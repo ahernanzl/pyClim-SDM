@@ -1,6 +1,6 @@
 # pyClim-SDM: Statistical Downscaling for Climate Change Projections with a Graphical User Interface  
 
-![](pyClim-SDM_logo.png | width=100)
+![](pyClim-SDM_logo.png?raw=true| width=100)
 
 **Author:** Alfonso Hernanz Lazaro - ahernanzl@aemet.es
 
