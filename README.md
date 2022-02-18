@@ -16,7 +16,6 @@ pyClim-SDM 1.0 is a software for statistical downscaling of climate change proje
 - post-processing: ETCCDI extreme climate indices (Karl *et al*., 1999; https://www.climdex.org/learn/indices/).
 - visualization of downscaled projections and evaluation metrics.
 <br/><br/>
-<br/><br/>
 ![](screenshot.png?raw=true)
 <br/><br/>
 
