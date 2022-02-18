@@ -108,6 +108,7 @@ class welcomeMessage(ttk.Frame):
                     'If not possible, you can use pyClim-SDM without graphical user interface by editing config/manual_settings.py')
                 print('and src/manual_mode.py, and running the last one.')
                 exit()
+
             welcomeWinW, welcomeWinH = 950, 600
             root.minsize(welcomeWinW, welcomeWinH)
             root.maxsize(welcomeWinW, welcomeWinH)
