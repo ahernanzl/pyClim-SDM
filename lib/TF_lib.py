@@ -272,10 +272,6 @@ def train_ipoint(var, methodName, X, Y, ipoint):
                                     param_grid={"C": np.logspace(0, 1, 2), "gamma": np.logspace(-2, -1, 2)}, cv=3)
         elif methodName == 'LS-SVM':
             classifier = RidgeClassifierCV(cv=3)
-        elif methodName == 'RF':
-            # classifier = RandomForestClassifier()
-            classifier = GridSearchCV(RandomForestClassifier(),
-                                    param_grid={"max_depth": [20, 50, 100]}, cv=3)
 
         # Transform classifier to CalibratedClassifierCV to get probabilities from classes.
         # if classifier_mode == 'probabilistic':
@@ -313,10 +309,6 @@ def train_ipoint(var, methodName, X, Y, ipoint):
         elif methodName == 'LS-SVM':
             regressor = GridSearchCV(KernelRidge(kernel='rbf'),
                                  param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
-        elif methodName == 'RF':
-            # regressor = RandomForestRegressor()
-            regressor = GridSearchCV(RandomForestRegressor(),
-                                    param_grid={"max_depth": [20, 50, 100]}, cv=3)
 
 
         # Fit
