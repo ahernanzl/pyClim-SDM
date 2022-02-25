@@ -6,7 +6,7 @@
 
 **License:** GNU General Public License v3.0
 
-**Citation:** Hernanz, A., García-Valero, J. A., Domínguez, M., Correa, C. and Rodríguez-Camino, E. (2022). pyClim-SDM 1.0: a software for statistical downscaling of climate change projections with a graphical user interface. Geoscientific Model Development.
+**Citation:** Hernanz, A., García-Valero, J. A., Domínguez, M., Correa, C. and Rodríguez-Camino, E. (2022). pyClim-SDM 1.0: a software for statistical downscaling of climate change projections with a graphical user interface. Geoscientific Model Development. (Submitted)
 
 <p align="center">
     <img src=pyClim-SDM_logo_bg.png width="150">
@@ -60,6 +60,12 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 pyClim-SDM is implemented in python3 and makes use of the following python libraries: 
 numpy 1.19.5, pandas 1.2.4, netCDF4 1.5.6, matplotlib 3.0.3, sklearn 0.24.2, scipy 1.4.1, geopy 1.21.0, geopandas 0.7.0, shapely 1.6.4.post2, statsmodels 0.10.1 and mpi4py 3.0.3. 
 
+
+# How to use
+
+- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory.
+- run src/gui_mode.py and follow the very intuitive menu.
+- alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
 
 
 # References
