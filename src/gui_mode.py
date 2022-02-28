@@ -451,7 +451,7 @@ class tabPredictors(ttk.Frame):
         # Levels
         ttk.Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
         ttk.Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, pady=10, padx=30); irow+=1
-        self.levels = [1000, 850, 750, 500, 250]
+        self.levels = [1000, 850, 700, 500, 250]
         for level in self.levels:
             Label(tabPredictors,  text=str(level) + " hPa").grid(sticky="E", padx=30,  row=irow, column=icol); irow+=1
         Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, padx=20); irow-=6; icol+=1
@@ -1387,3 +1387,4 @@ def main():
 if __name__=="__main__":
     main()
     os.system('python3 tmp_main.py')
+    os.remove('tmp_main.py')

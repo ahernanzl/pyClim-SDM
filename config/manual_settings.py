@@ -446,7 +446,6 @@ climdex_names = {
         # 'R99p',
         # 'R99pFRAC',
         # 'CWD',
-        # 'p95'
     )}
 
 
