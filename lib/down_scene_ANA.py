@@ -289,7 +289,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         path ='../tmp/'+var+'_'+methodName+'_'+ model + '_' + scene + '/'
         filename = path + 'ichunk_' + str(ichunk) + '.npy'
         est = np.append(est, np.load(filename), axis=0)
-    os.system('rm -r ' + path)
+    shutil.rmtree(path)
 
     # Gets scene dates
     if scene == 'TESTING':

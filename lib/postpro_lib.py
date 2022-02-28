@@ -54,17 +54,19 @@ def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
         elif climdex_name in ('TX10p', 'TN10p', 'CSDI'):
             percCalendar = get_perc_calendar(var, times_ref, ref, 10)
         elif climdex_name in ('R95p', 'R95pFRAC'):
-            # aux = 1*ref
-            # aux[aux < 1] = np.nan
-            # percCalendar = np.repeat(np.nanpercentile(aux, 95, axis=0)[np.newaxis, :], 365, axis=0)
-            # del aux
-
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
             perc95Calendar = {}
             for season in season_dict.values():
                 aux = get_season(ref, times_ref, season)['data']
                 aux[aux < 1] = np.nan
                 perc95Calendar.update({season: np.repeat(np.nanpercentile(aux, 95, axis=0)[np.newaxis, :], 365, axis=0)})
+        elif climdex_name in ('R99p', 'R99pFRAC'):
+            # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
+            perc99Calendar = {}
+            for season in season_dict.values():
+                aux = get_season(ref, times_ref, season)['data']
+                aux[aux < 1] = np.nan
+                perc99Calendar.update({season: np.repeat(np.nanpercentile(aux, 99, axis=0)[np.newaxis, :], 365, axis=0)})
         else:
             percCalendar = np.zeros((365, ref.shape[1]))
 
@@ -77,6 +79,8 @@ def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
             times_percCalendar = [datetime.date(1981, 1, 1) + datetime.timedelta(days=i) for i in range(365)]
             if climdex_name in ('R95p', 'R95pFRAC'):
                 percCalendar = perc95Calendar[season]
+            elif climdex_name in ('R99p', 'R99pFRAC'):
+                percCalendar = perc99Calendar[season]
             aux = get_season(percCalendar, times_percCalendar, season)
             percCalendar_season = aux['data']
             times_percCalendar_seaon = aux['times']
@@ -108,6 +112,15 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
 
     FD: Number of frost days. Annual count of days when TN (daily minimum temperature) < 0°C.
         Let TNij be daily minimum temperature on day i in year j. Count the number of days where TNij < 0 °C.
+
+    SU: Number of summer days. Annual count of days when TX (daily maximum temperature) > 25°C. Let TXij be daily
+        maximum temperature on day i in year j. Count the number of days where TXij > 25 °C.
+
+    ID: Number of icing days. Annual count of days when TX (daily maximum temperature) < 0 °C. Let TXijbe daily maximum
+        temperature on day i in year j. Count the number of days where TXij < 0 °C.
+
+    TR: Number of tropical nights. Annual count of days when TN (daily minimum temperature) > 20 °C. Let TNij be daily
+        minimum temperature on day i in year j. Count the number of days where TNij > 20 °C.
 
     TN10p: Percentage of days when TN < 10th percentile
         Let TNij be the daily minimum temperature on day i in period j and let TNin10 be the calendar day 10th
@@ -154,6 +167,15 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
 
     R95pFRAC:
         R95p / PRCPTOT
+
+    R99p:
+        Annual total PRCP when RR > 99th percentile
+        Let RRwj be the daily precipitation amount on a wet day w (RR ≥ 1.0mm) in period i and let RRwn99 be the 99th
+        percentile of precipitation on wet days in the 1961-1990 period. If W represents the number of wet days in the
+        period, then: R99p=W∑w=1RRwjwhereRRwj>RRwn99
+
+    R99pFRAC:
+        R99p / PRCPTOT
 
     PRCPTOT: Annual total precipitation on wet days
         Let RRij be the daily pre If i represents the number of days in j, then: PRCPTOTj=I∑i=1RRij
@@ -224,6 +246,12 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
                 results.append(get_spell_duration(data_year < aux, climdex_name))
             elif climdex_name == 'FD':
                 results.append(np.nansum(data_year < 0, axis=0))
+            elif climdex_name == 'SU':
+                results.append(np.nansum(data_year > 25, axis=0))
+            elif climdex_name == 'ID':
+                results.append(np.nansum(data_year < 0, axis=0))
+            elif climdex_name == 'TR':
+                results.append(np.nansum(data_year > 20, axis=0))
             elif climdex_name == 'R01':
                 results.append(np.nansum(data_year >= 1, axis=0))
             elif climdex_name == 'SDII':
@@ -240,11 +268,11 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
                 results.append(np.nansum(data_year, axis=0))
             elif climdex_name == 'CDD':
                 results.append(get_spell_duration(data_year < 1, climdex_name))
-            elif climdex_name == 'R95p':
+            elif climdex_name in ('R95p', 'R99p'):
                 data_year[data_year < aux] = 0
                 data_year[data_year < 1] = 0
                 results.append(np.nansum(data_year, axis=0))
-            elif climdex_name == 'R95pFRAC':
+            elif climdex_name in ('R95pFRAC', 'R99pFRAC'):
                 data_year[data_year < 1] = 0
                 total = np.nansum(data_year, axis=0)
                 data_year[data_year < aux] = 0
@@ -425,7 +453,7 @@ def get_data_projections(nYears, npoints, climdex_name, season, pathIn, iaux):
                     # Calculate change (absolute)
                     if climdex_name in ('TXm', 'TX90p', 'TX10p', 'TXx', 'TXn', 'WSDI',
                                         'TNm', 'TN90p', 'TN10p', 'TNx', 'TNn', 'CSDI', 'FD',
-                                        'CDD', 'CWD', 'R01', 'R95p', 'R95pFRAC'):
+                                        'CDD', 'CWD', 'R01', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC'):
                         change = data - ref_mean
 
                     # Relative
@@ -469,7 +497,7 @@ def figures_projections(lan='EN'):
 
     implemented_climdex = ['TXm', 'TXx', 'TXn', 'TX90p', 'TX10p', 'WSDI', 
                            'TNm', 'TNx', 'TNn', 'TN90p', 'TN10p', 'CSDI', 'FD',
-                           'Pm', 'R01', 'SDII', 'PRCPTOT', 'CDD', 'R95p', 'R95pFRAC', 'CWD']
+                           'Pm', 'R01', 'SDII', 'PRCPTOT', 'CDD', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC', 'CWD']
 
     # Go through all methods
     for method_dict in methods:
@@ -491,11 +519,12 @@ def figures_projections(lan='EN'):
         # ylim_dict = {'TXm': (-1, 10), 'TX90p': (0, 70), 'TX10p': (-70, 0), 'WSDI': (-20, 80),
         #              'TNm': (-1, 10), 'TN90p': (0, 70), 'TN10p': (-70, 0), 'CSDI': (-80, 20), 'FD': (-60, 20),
         #              'Pm': (-60, 60), 'R01': (-60, 20), 'SDII': (-60, 60), 'PRCPTOT': (-60, 60),
-        #              'CDD': (-20, 60), 'R95p': (-20, 20), 'R95pFRAC': (-20, 20), 'CWD': (-60, 20)}
+        #              'CDD': (-20, 60), 'R95p': (-20, 20), 'R95pFRAC': (-20, 20), 'R99p': (-100, 100), 'R99pFRAC': (-100, 100), 'CWD': (-60, 20)}
         ylim_dict = {'TXm': (-1, 10), 'TXx': (-1, 12), 'TXn': (-1, 8), 'TX90p': (0, 70), 'TX10p': (-70, 0), 'WSDI': (0, 300),
                      'TNm': (-1, 10), 'TNx': (-1, 12), 'TNn': (-1, 8), 'TN90p': (0, 70), 'TN10p': (-70, 0), 'CSDI': (-80, 20), 'FD': (-60, 20),
                      'Pm': (-60, 60), 'R01': (-80, 40), 'SDII': (-40, 40), 'PRCPTOT': (-60, 20),
-                     'CDD': (-20, 60), 'R95p': (-100, 100), 'R95pFRAC': (-100, 100), 'CWD': (-60, 20)}
+                     'CDD': (-20, 60), 'R95p': (-100, 100), 'R95pFRAC': (-100, 100), 'CWD': (-60, 20),
+                     'R99p': (-100, 100), 'R99pFRAC': (-100, 100)}
 
         if lan == 'ES':
             xlabel = 'Año'
@@ -519,6 +548,8 @@ def figures_projections(lan='EN'):
                            'CDD': 'Cambio duración periodo seco (dias)',
                            'R95p': 'Cambio en precipitaciones intensas (%)',
                            'R95pFRAC': 'Cambio en precipitaciones intensas (%)',
+                           'R99p': 'Cambio en precipitaciones intensas (%)',
+                           'R99pFRAC': 'Cambio en precipitaciones intensas (%)',
                            'CWD': 'Cambio duración periodo húmedo (días)'}
         elif lan == 'EN':
             xlabel = 'year'
@@ -542,6 +573,8 @@ def figures_projections(lan='EN'):
                            'CDD': 'Change in CDD (dias)',
                            'R95p': 'Change in R95p (%)',
                            'R95pFRAC': 'Change in R95pFRAC (%)',
+                           'R99p': 'Change in R99p (%)',
+                           'R99pFRAC': 'Change in R99pFRAC (%)',
                            'CWD': 'Change in CWD (days)'}
 
         # Define years
@@ -932,7 +965,7 @@ def format_web_AEMET_maps(var, methodName, df_methods, df_targetType, df_seasons
 
                                 # Copy file
                                 pathOld, pathNew = pathIn, pathOut
-                                os.system('cp '+pathOld+fileOld+' '+pathNew+fileNew)
+                                shutil.copyfile(pathOld+fileOld, pathNew+fileNew)
 
 ########################################################################################################################
 def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars,
@@ -965,7 +998,7 @@ def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_se
                             fileNew = '_'.join((cmipNumber, 'EST', df_methods['nameForFigAndCsv'].values[0],
                                                 'Modelos_Anomal', df_vars['nameForFigAndCsv'].values[0],
                                                 row_regions['nameForFigAndCsv'], row_seasons['nameForFigAndCsv'])) + '.png'
-                            os.system('cp '+pathOld+fileOld+' '+pathNew+fileNew)
+                            shutil.copyfile(pathOld+fileOld, pathNew+fileNew)
 
                         # Tubes
                         if (climdex in ('TXm', 'TNm', 'Pm')) or (row_seasons['season'] == 'ANNUAL'):
@@ -975,7 +1008,7 @@ def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_se
                             fileNew = '_'.join((cmipNumber, 'EST', df_methods['nameForFigAndCsv'].values[0],
                                                 'MedModelos_Anomal', df_vars['nameForFigAndCsv'].values[0],
                                                 row_regions['nameForFigAndCsv'], row_seasons['nameForFigAndCsv'])) + '.png'
-                            os.system('cp '+pathOld+fileOld+' '+pathNew+fileNew)
+                            shutil.copyfile(pathOld+fileOld, pathNew+fileNew)
 
                         # Csv (they are duplicated to go both with spaghettis and tubes)
                         if (climdex in ('TXm', 'TNm', 'Pm')) or (row_seasons['season'] == 'ANNUAL'):
@@ -987,9 +1020,10 @@ def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_se
                                                 row_regions['nameForFigAndCsv'], row_seasons['nameForFigAndCsv'])) + '.csv'
                             fileNew2 = '_'.join((cmipNumber, 'EST', df_methods['nameForFigAndCsv'].values[0],
                                                 'MedModelos_Anomal', df_vars['nameForFigAndCsv'].values[0],
-                                                row_regions['nameForFigAndCsv'], row_seasons['nameForFigAndCsv'])) + '.csv'
-                            os.system('cp '+pathOld+fileOld+' '+pathNew+fileNew1)
-                            os.system('cp '+pathOld+fileOld+' '+pathNew+fileNew2)
+                                                 row_regions['nameForFigAndCsv'],
+                                                 row_seasons['nameForFigAndCsv'])) + '.csv'
+                            shutil.copyfile(pathOld+fileOld, pathNew+fileNew1)
+                            shutil.copyfile(pathOld + fileOld, pathNew + fileNew2)
 
 
 ########################################################################################################################
@@ -1040,7 +1074,7 @@ def format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_va
                     if df_targetType['targetType'].values[0] == 'gridded_data':
                         write.netCDF_rotated(pathOut+'NETCDF/', fileOut_noExt+'.nc', var, data, times)
                     elif df_targetType['targetType'].values[0] == 'stations':
-                        os.system('cp ' + pathIn+model+'_'+scene+'.nc ' + pathOut+'NETCDF/'+fileOut_noExt+'.nc')
+                        shutil.copyfile(pathIn+model+'_'+scene+'.nc', pathOut+'NETCDF/'+fileOut_noExt+'.nc')
 
                 # ASCII: id_stations is added as header and dates is added as first column
                 print('writing ASCII', model, scene)

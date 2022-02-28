@@ -1,9 +1,10 @@
 import sys
 import os
+import shutil
 sys.path.append('../config/')
 from manual_settings import *
 if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py').st_size == 0:
-    os.system('cp ../config/manual_settings.py ../config/settings.py')
+    shutil.copyfile('../config/manual_settings.py', '../config/settings.py')
 from imports import *
 from settings import *
 from advanced_settings import *
@@ -153,6 +154,7 @@ class welcomeMessage(ttk.Frame):
 
             self.showWelcomeMessage_new = not dontShowAgain_local.get()
         else:
+            self.run = True
             self.showWelcomeMessage_new = False
 
     def get(self):
@@ -625,6 +627,12 @@ class tabClimdex(ttk.Frame):
                 'TXn': 'Minimum value of daily maximum temperature',
                 'TX90p': 'Percentage of days when TX > 90th percentile',
                 'TX10p': 'Percentage of days when TX < 10th percentile',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+                'SU': 'Number of summer days',
+                'ID': 'Number of icing days',
                 'WSDI': 'Warm spell duration index',
             },
             'tmin': {
@@ -633,8 +641,13 @@ class tabClimdex(ttk.Frame):
                 'TNn': 'Minimum value of daily minimum temperature',
                 'TN90p': 'Percentage of days when TN > 90th percentile',
                 'TN10p': 'Percentage of days when TN < 10th percentile',
-                'CSDI': 'Cold spell duration index',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
                 'FD': 'Number of frost days',
+                'TR': 'Number of tropical nights',
+                'CSDI': 'Cold spell duration index',
             },
             'pcp': {
                 'Pm': 'Mean precipitation amount',
@@ -648,6 +661,9 @@ class tabClimdex(ttk.Frame):
                 'p95': '95th percentile',
                 'R95p': 'Total PRCP when RR > 95th percentile (total precipitation on very wet days)',
                 'R95pFRAC': 'Fraction of total PRCP when RR > 95th percentile (fraction of total precipitation on very wet days)',
+                'p99': '99th percentile',
+                'R99p': 'Total PRCP when RR > 99th percentile (total precipitation on very wet days)',
+                'R99pFRAC': 'Fraction of total PRCP when RR > 99th percentile (fraction of total precipitation on very wet days)',
                 'CDD': 'Maximum length of dry spell',
                 'CWD': 'Maximum length of wet spell',
             }
@@ -665,10 +681,10 @@ class tabClimdex(ttk.Frame):
             colJumps = 0
             for climdex in climdex_dict[var]:
                 add_to_chk_list(self.chk_list, var, climdex, climdex_dict[var][climdex], icol, irow); irow+=1; nrows+=1
-                if nrows==8:
+                if nrows==9:
                     icol+=1; irow-=nrows; nrows=1; irow+=1; colJumps+=1
 
-            irow = 9; icol-=colJumps
+            irow = 10; icol-=colJumps
             # Select/deselect all
             ttk.Label(tabClimdex, text="").grid(sticky="W", column=icol, row=irow, pady=30); irow += 1
             if var == 'tmax':
@@ -1226,7 +1242,7 @@ class selectionWindow():
 
 ########################################################################################################################
 def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
-                        saf_list, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
+                        saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
                         bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
@@ -1281,9 +1297,57 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     f.write("model_names_list = " + str(model_names_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
     f.write("modelRealizationFilename = '" + str(modelRealizationFilename) + "'\n")
+    f.write("climdex_names = " + str(climdex_names) + "\n")
 
     # Close f
     f.close()
+
+
+########################################################################################################################
+def write_tmpMain_file(steps, bc_method):
+
+    """This function prepares a tmp main file with the user selected options"""
+
+    # Open f for writing
+    f = open('tmp_main.py', "w")
+
+
+    f.write("import sys\n")
+    f.write("sys.path.append('../config/')\n")
+    f.write("from imports import *\n")
+    f.write("from settings import *\n")
+    f.write("from advanced_settings import *\n")
+
+    f.write("\n")
+    f.write("def main():\n")
+
+    # Steps
+    if 'preprocess' in steps:
+        f.write("    preprocess.preprocess()\n")
+    if 'train_methods' in steps:
+        f.write("    preprocess.train_methods()\n")
+    if 'downscale' in steps:
+        f.write("    process.downscale()\n")
+    if 'calculate_climdex' in steps:
+        f.write("    postprocess.get_climdex()\n")
+    if 'plot_results' in steps:
+        f.write("    postprocess.plot_results()\n")
+    if 'bias_correct_projections' in steps:
+        f.write("    postprocess.bias_correction_projections()\n")
+    if 'nc2ascii' in steps:
+        f.write("    postprocess.nc2ascii_projections("+bc_method+")\n")
+
+    f.write("\n")
+    f.write("if __name__ == '__main__':\n")
+    f.write("    start = datetime.datetime.now()\n")
+    f.write("    aux_lib.initial_checks()\n")
+    f.write("    main()\n")
+    f.write("    end = datetime.datetime.now()\n")
+    f.write("    print('Elapsed time: ' + str(end - start))")
+
+    # Close f
+    f.close()
+
 
 ########################################################################################################################
 def main():
@@ -1310,33 +1374,16 @@ def main():
 
     # Write settings file
     write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
-                        saf_list, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
+                        saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
                         bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         rcpPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename)
 
-    # Steps
-    aux_lib.initial_checks()
-    if 'preprocess' in steps:
-        preprocess.preprocess()
-    if 'train_methods' in steps:
-        preprocess.train_methods()
-    if 'downscale' in steps:
-        process.downscale()
-    if 'calculate_climdex' in steps:
-        postprocess.get_climdex()
-    if 'plot_results' in steps:
-        postprocess.plot_results()
-    if 'bias_correct_projections' in steps:
-        postprocess.bias_correction_projections()
-    if 'nc2ascii' in steps:
-        postprocess.nc2ascii_projections(bc_method)
-
-
-
+    write_tmpMain_file(steps, bc_method)
 
 
 if __name__=="__main__":
     main()
+    os.system('python3 tmp_main.py')
