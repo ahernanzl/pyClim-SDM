@@ -422,7 +422,8 @@ def coefficients_collect_chunks(var, methodName, mode, nproc=1):
         coef = np.append(coef, np.load(filename), axis=0)
         filename = path + 'intercept_ichunk_' + str(ichunk) + '.npy'
         intercept = np.append(intercept, np.load(filename), axis=0)
-    os.system('rm -r ' + path)
+    shutil.rmtree(path)
+    shutil.rmtree(path)
 
     np.save(pathOut+var+'_'+methodName+'_coefficients', coef)
     np.save(pathOut+var+'_'+methodName+'_intercept', intercept)
@@ -571,7 +572,7 @@ def correlations_collect_chunks(var, methodName, mode, nproc=1):
         path = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
         filename = path + 'ichunk_' + str(ichunk) + '.npy'
         R = np.append(R, np.load(filename), axis=0)
-    os.system('rm -r ' + path)
+    shutil.rmtree(path)
 
     np.save(pathOut+'pcp_ANA_correlations', R)
 

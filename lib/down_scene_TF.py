@@ -181,7 +181,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
     if nproc > 1:
         MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
     if iproc == 0:
-        os.system('rm -r ' + pathTmp)
+        shutil.rmtree(pathTmp)
 
     # Create empty array for results
     est = np.zeros((len(scene_dates), npoints_ichunk))
@@ -288,7 +288,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         path = '../tmp/ESTIMATED_'+ '_'.join((var, methodName, scene, model)) + '/'
         filename = path + '/ichunk_' + str(ichunk) + '.npy'
         est = np.append(est, np.load(filename), axis=1)
-    os.system('rm -r ' + path)
+    shutil.rmtree(path)
 
     # Save to file
     if experiment == 'EVALUATION':

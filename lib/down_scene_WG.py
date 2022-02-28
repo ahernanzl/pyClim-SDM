@@ -144,7 +144,7 @@ def downscale_chunk_WG_PDF(var, methodName, family, mode, fields, scene, model, 
     if nproc > 1:
         MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
     if iproc == 0:
-        os.system('rm -r ' + pathTmp)
+        shutil.rmtree(pathTmp)
 
     # Create empty array for results
     scene_ndates = len(scene_dates)
@@ -371,7 +371,7 @@ def downscale_chunk_WG_NMM(var, methodName, family, mode, fields, scene, model, 
     if nproc > 1:
         MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
     if iproc == 0:
-        os.system('rm -r ' + pathTmp)
+        shutil.rmtree(pathTmp)
 
     # Create empty array for results
     scene_ndates = len(scene_dates)
@@ -490,7 +490,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         path = '../tmp/ESTIMATED_'+ '_'.join((var, methodName, scene, model)) + '/'
         filename = path + '/ichunk_' + str(ichunk) + '.npy'
         est = np.append(est, np.load(filename), axis=1)
-    os.system('rm -r ' + path)
+    shutil.rmtree(path)
 
     if var == 'pcp':
         est[est < 0.01] = 0

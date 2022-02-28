@@ -1,6 +1,6 @@
 import sys
-import os
-os.system('cp ../config/manual_settings.py ../config/settings.py')
+import shutil
+shutil.copyfile('../config/manual_settings.py', '../config/settings.py')
 sys.path.append('../config/')
 from imports import *
 from settings import *

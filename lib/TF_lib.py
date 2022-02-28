@@ -177,7 +177,7 @@ def collect_chunks(var, methodName, family, n_chunks=1):
             if var == 'pcp':
                 classifiers_scores_ichunk = np.load(pathIn + 'classifiers_scores_' + str(ichunk) + '.npy')
                 classifiers_scores = np.append(classifiers_scores, classifiers_scores_ichunk, axis=0)
-    os.system('rm -r ' + pathIn)
+    shutil.rmtree(pathIn)
 
     # Save to file
     outfile = open(pathOut + methodName + '_reg', 'wb')

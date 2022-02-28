@@ -208,7 +208,7 @@ def collect_chunks_WG_PDF(var, methodName, family, n_chunks=1):
         PARAM2_reg_ichunk = pickle.load(infile)
         infile.close()
         PARAM2_reg = np.append(PARAM2_reg, PARAM2_reg_ichunk, axis=0)
-    os.system('rm -r ' + pathIn)
+    shutil.rmtree(pathIn)
 
     # Save to file
     outfile = open(pathOut + methodName + '_PARAM1_reg', 'wb')
@@ -402,7 +402,7 @@ def collect_chunks_WG_NMM(var, methodName, family, n_chunks=1):
         ECDF_pcp[ipoint:ipoint+npoints_chunk] = ecdf_pcp
         ipoint += npoints_chunk
 
-    os.system('rm -r ' + pathIn)
+    shutil.rmtree(pathIn)
 
     # Save to file
     np.save(pathOut + 'P00', P00)
