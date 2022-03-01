@@ -105,7 +105,7 @@ def daily_boxplots(metric, by_season):
     # Select season
     for season in season_dict.values():
         if season == 'ANNUAL' or by_season == True:
-            for VAR in ('pcp', 'tmax', 'tmin', ):
+            for VAR in vars:
             # for VAR in ('pcp', ):
                 nmethods = len([x for x in methods if x['var'] == VAR])
                 if VAR[0] == 't':
