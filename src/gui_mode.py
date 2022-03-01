@@ -1304,7 +1304,7 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
 
 
 ########################################################################################################################
-def write_tmpMain_file(steps, bc_method):
+def write_tmpMain_file(steps):
 
     """This function prepares a tmp main file with the user selected options"""
 
@@ -1343,9 +1343,7 @@ def write_tmpMain_file(steps, bc_method):
         f.write("    postprocess.bias_correction_projections()\n")
     if 'nc2ascii' in steps:
         noSteps = False
-        if bc_method == None:
-            bc_method = 'None'
-        f.write("    postprocess.nc2ascii_projections("+bc_method+")\n")
+        f.write("    postprocess.nc2ascii()\n")
     if noSteps == True:
         print('At least one step must be selected.')
         exit()
@@ -1394,7 +1392,7 @@ def main():
                         rcpPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename)
 
-    write_tmpMain_file(steps, bc_method)
+    write_tmpMain_file(steps)
 
 
 if __name__=="__main__":
