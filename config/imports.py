@@ -1,3 +1,6 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', message='No protocol specified')
 import sys
 import os
 import shutil
@@ -7,7 +10,6 @@ import time
 import pandas as pd
 import pickle
 import math
-import warnings
 from sys import exit
 import collections
 from os import listdir

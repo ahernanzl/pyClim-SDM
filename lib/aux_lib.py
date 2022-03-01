@@ -47,15 +47,17 @@ def initial_checks():
             nonExisting_paths.append(pathName)
     # os.makedirs('../'+pathName+'/')
     if nonExisting_paths != []:
-        print('The following directories will be created unless they already exist:')
+        print('\nThe following directories will be created unless they already exist:')
         for path in needed_paths:
             print('  - ' + path)
         print('and they will storage a great volume of data.')
-        print('It would be advisable for you to stop the program and create them as links to a masive storage disk.')
-        a = input('Press "Enter" so they will be automatically created, or stop the program and create them yourself: ')
-        if a == '':
+        print('It is recommended to stop the program and create them as links to a masive storage disk.')
+        a = input('Enter "c" so they will be automatically created, or press "Enter" to stop the program and create them yourself: ')
+        if a == 'c':
             for pathName in nonExisting_paths:
                 os.makedirs('../'+pathName+'/')
+        else:
+            exit()
 
     # Detect needed_preds
     needed_preds = []
@@ -64,18 +66,18 @@ def initial_checks():
             if method['var'] == var and var not in needed_preds:
                 needed_preds.append(var[0])
     if 't' in needed_preds and len(preds_t_list) == 0:
-        print('At least one predictor must be selected for Maximum and Minimum Temeperature')
+        print('\nAt least one predictor must be selected for Maximum and Minimum Temeperature')
         exit()
     if 'p' in needed_preds and len(preds_p_list) == 0:
-        print('At least one predictor must be selected for Precipitation')
+        print('\nAt least one predictor must be selected for Precipitation')
         exit()
     if len(saf_list) == 0:
-        print('At least one field must be selected for Synoptic Analogy Fields')
+        print('\nAt least one field must be selected for Synoptic Analogy Fields')
         exit()
 
     # Kill living old jobs
     if running_at_HPC == True:
-        a = input('Press "k" to kill running jobs and delete logs or any other key to preserve them:')
+        a = input('\nPress "k" to kill running jobs and delete logs or any other key to preserve them:')
         # a = 'k'
         # a = ''
         if a.lower() == 'k':

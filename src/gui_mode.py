@@ -1309,7 +1309,7 @@ def write_tmpMain_file(steps, bc_method):
     """This function prepares a tmp main file with the user selected options"""
 
     # Open f for writing
-    f = open('tmp_main.py', "w")
+    f = open('.tmp_main.py', "w")
 
 
     f.write("import sys\n")
@@ -1343,6 +1343,8 @@ def write_tmpMain_file(steps, bc_method):
         f.write("    postprocess.bias_correction_projections()\n")
     if 'nc2ascii' in steps:
         noSteps = False
+        if bc_method == None:
+            bc_method = 'None'
         f.write("    postprocess.nc2ascii_projections("+bc_method+")\n")
     if noSteps == True:
         print('At least one step must be selected.')
@@ -1397,5 +1399,5 @@ def main():
 
 if __name__=="__main__":
     main()
-    os.system('python3 tmp_main.py')
-    os.remove('tmp_main.py')
+    os.system('python3 .tmp_main.py')
+    os.remove('.tmp_main.py')
