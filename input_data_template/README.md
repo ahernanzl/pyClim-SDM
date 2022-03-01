@@ -13,10 +13,10 @@ input_data_template/ as input_data/, run src/gui_mode.py and limit your selectio
 
 This will allow you to test how pyClim-SDM works with no need from your side to prepare any input data. 
 Nevertheless, datasets here included are only meant for tests, downscaling a reanalysis over a set of 15 locations
-and using a very poor set of predictors. 
+and using a very poor set of predictors, so results will not be representative. 
 
-In order to expand to other options/predictors, additional datasets should be included and prepared as explained 
-hereafter.
+In order to perform realistic tests and to downscale projections from GCMs, additional datasets should be included and 
+prepared as explained hereafter.
 
 
 # hres/
