@@ -154,6 +154,7 @@ def daily_boxplots(metric, by_season):
                         # plt.ylim((-.2, 1))
                         # fill with colors
                         for patch, color in zip(g['boxes'], colors.values()):
+                            color = colors[methodName]
                             patch.set_facecolor(color)
                         # plt.title(VAR + ' ' + metric +' daily  ' + season)
                         plt.title(VAR.upper() + ' ' + metric, fontsize=20)
@@ -252,6 +253,7 @@ def climdex_boxplots(by_season):
                             # plt.ylim((-.2, 1))
                             # fill with colors
                             for patch, color in zip(g['boxes'], colors.values()):
+                                color = colors[methodName]
                                 patch.set_facecolor(color)
                             # plt.ylim((-.2, 1))
                             # plt.title(VAR + ' ' + climdex_name + ' bias ' + season)
