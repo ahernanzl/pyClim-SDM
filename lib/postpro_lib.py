@@ -639,7 +639,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
             sign_ylabel = degree_sign
             title_size = 20
 
-        color = colors[methodName]
+        color = [colors[x['methodName']] for x in methods if x['var'] == VAR]
         linestyle = linestyles[methodName]
 
         # method

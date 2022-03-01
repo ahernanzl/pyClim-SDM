@@ -1,6 +1,6 @@
 showWelcomeMessage = True
 experiment = 'EVALUATION'
-steps = []
+steps = ['plot_results']
 methods = [{'var': 'tmax', 'methodName': 'QM', 'family': 'BC', 'mode': 'MOS', 'fields': 'var'}, {'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA', 'mode': 'PP', 'fields': 'pred+saf'}, {'var': 'tmax', 'methodName': 'MLR', 'family': 'TF', 'mode': 'PP', 'fields': 'pred'}, {'var': 'tmax', 'methodName': 'WG-PDF', 'family': 'WG', 'mode': 'WG', 'fields': 'var'}, {'var': 'pcp', 'methodName': 'PSDM', 'family': 'BC', 'mode': 'MOS', 'fields': 'var'}, {'var': 'pcp', 'methodName': 'ANA-SYN-1NN', 'family': 'ANA', 'mode': 'PP', 'fields': 'saf'}, {'var': 'pcp', 'methodName': 'GLM-LIN', 'family': 'TF', 'mode': 'PP', 'fields': 'pred'}, {'var': 'pcp', 'methodName': 'WG-NMM', 'family': 'WG', 'mode': 'WG', 'fields': 'var'}]
 reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q', 'mslp': 'msl', 'u10': 'u10', 'v10': 'v10', 't2m': 't2m', 'tmax': 'mx2t', 'tmin': 'mn2t', 'pcp': 'tp'}
 modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus', 'mslp': 'psl', 'u10': 'uas', 'v10': 'vas', 't2m': 'tas', 'tmax': 'tasmax', 'tmin': 'tasmin', 'pcp': 'pr'}
@@ -33,4 +33,4 @@ saf_lat_down = 29.5
 model_names_list = ['ACCESS-CM2', 'CanESM5', 'EC-Earth3', 'INM-CM4-8', 'INM-CM5-0', 'IPSL-CM6A-LR', 'MIROC6', 'MPI-ESM1-2-HR', 'MPI-ESM1-2-LR', 'MRI-ESM2-0']
 scene_names_list = ['HISTORICAL', 'SSP5-8.5']
 modelRealizationFilename = 'r1i1p1f1'
-climdex_names = {'tmax': ['TXm', 'TXx', 'TXn'], 'tmin': ['TNm', 'TNx', 'TNn'], 'pcp': ['PRCPTOT', 'R01', 'SDII', 'R95p']}
+climdex_names = {'tmax': ['TXm'], 'tmin': ['TNm'], 'pcp': ['PRCPTOT', 'R01']}

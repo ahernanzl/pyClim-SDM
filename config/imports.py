@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from matplotlib.lines import Line2D
 from matplotlib.colors import LinearSegmentedColormap
+from mpl_toolkits.basemap import Basemap
 import sklearn
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.cluster import KMeans
