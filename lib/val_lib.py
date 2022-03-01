@@ -153,9 +153,11 @@ def daily_boxplots(metric, by_season):
                         g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
                         # plt.ylim((-.2, 1))
                         # fill with colors
-                        for patch, color in zip(g['boxes'], colors.values()):
-                            color = colors[methodName]
-                            patch.set_facecolor(color)
+                        i = 0
+                        color = [colors[x['methodName']] for x in methods if x['var'] == VAR]
+                        for patch in g['boxes']:
+                            patch.set_facecolor(color[i])
+                            i += 1
                         # plt.title(VAR + ' ' + metric +' daily  ' + season)
                         plt.title(VAR.upper() + ' ' + metric, fontsize=20)
                         plt.ylabel(units, rotation=0)
@@ -252,9 +254,11 @@ def climdex_boxplots(by_season):
                             g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
                             # plt.ylim((-.2, 1))
                             # fill with colors
-                            for patch, color in zip(g['boxes'], colors.values()):
-                                color = colors[methodName]
-                                patch.set_facecolor(color)
+                            i = 0
+                            color = [colors[x['methodName']] for x in methods if x['var'] == VAR]
+                            for patch in g['boxes']:
+                                patch.set_facecolor(color[i])
+                                i += 1
                             # plt.ylim((-.2, 1))
                             # plt.title(VAR + ' ' + climdex_name + ' bias ' + season)
                             plt.title(climdex_name, fontsize=20)
