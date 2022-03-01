@@ -63,7 +63,7 @@ numpy 1.19.5, pandas 1.2.4, netCDF4 1.5.6, matplotlib 3.0.3, sklearn 0.24.2, sci
 
 # How to use
 
-- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory.
+- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. For your first steps you can use some example datsets included in the input_data_template.
 - run src/gui_mode.py and follow the very intuitive menu.
 - alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
 
