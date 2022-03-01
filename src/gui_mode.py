@@ -110,7 +110,7 @@ class welcomeMessage(ttk.Frame):
                 print('and src/manual_mode.py, and running the last one.')
                 exit()
 
-            welcomeWinW, welcomeWinH = 950, 600
+            welcomeWinW, welcomeWinH = 900, 600
             root.minsize(welcomeWinW, welcomeWinH)
             root.maxsize(welcomeWinW, welcomeWinH)
             offset = int((totalW-welcomeWinW)/2)
@@ -137,8 +137,8 @@ class welcomeMessage(ttk.Frame):
 
             dontShowAgain_local = tk.BooleanVar()
             l = Label(frameMsg,
-                text="Welcome to pyClim-SDM. Please, create an input_data directory following the structure and format \n"
-                     "indicated in input_data_template. Outputs will be storaged in the results/ directory.",
+                text="Welcome to pyClim-SDM. Please, create an input_data directory following the structure and \n"
+                     "format indicated in the input_data_template, where example datasets have been included.\n",
                 # justify="center", font=("Arial", 12)
             )
             l.pack(padx=20, pady=0, fill='both')
@@ -1322,20 +1322,31 @@ def write_tmpMain_file(steps, bc_method):
     f.write("def main():\n")
 
     # Steps
+    noSteps = True
     if 'preprocess' in steps:
+        noSteps = False
         f.write("    preprocess.preprocess()\n")
     if 'train_methods' in steps:
+        noSteps = False
         f.write("    preprocess.train_methods()\n")
     if 'downscale' in steps:
+        noSteps = False
         f.write("    process.downscale()\n")
     if 'calculate_climdex' in steps:
+        noSteps = False
         f.write("    postprocess.get_climdex()\n")
     if 'plot_results' in steps:
+        noSteps = False
         f.write("    postprocess.plot_results()\n")
     if 'bias_correct_projections' in steps:
+        noSteps = False
         f.write("    postprocess.bias_correction_projections()\n")
     if 'nc2ascii' in steps:
+        noSteps = False
         f.write("    postprocess.nc2ascii_projections("+bc_method+")\n")
+    if noSteps == True:
+        print('At least one step must be selected.')
+        exit()
 
     f.write("\n")
     f.write("if __name__ == '__main__':\n")

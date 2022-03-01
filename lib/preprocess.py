@@ -82,9 +82,15 @@ def common_fold_dependent():
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
-    # Split train/test var
+    # Detect needed_vars
+    needed_vars = []
     for var in ('tmax', 'tmin', 'pcp'):
+        for method in methods:
+            if method['var'] == var and 'var' in method['fields'] and var not in needed_vars:
+                needed_vars.append(var)
 
+    # Split train/test var
+    for var in needed_vars:
         print('train/test split', var)
 
         # Reanalysis
