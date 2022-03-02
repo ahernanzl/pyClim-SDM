@@ -365,7 +365,7 @@ def reanalysis_all():
         insolation()
 
     for level in preds_levels:
-        print(level)
+        print('derived predictors', level)
         if ('vort' + str(level) in all_preds) or ('div' + str(level) in all_preds):
             vorticity_and_divergence(level=level)
         if 'r' + str(level) in all_preds:

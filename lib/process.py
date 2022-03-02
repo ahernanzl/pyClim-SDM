@@ -81,6 +81,12 @@ def models(method_dict, scene, model):
 
     pathOut = '../results/'+experiment+'/'
 
+    if var[0] == 't':
+        preds = preds_t
+    else:
+        preds = preds_p
+    preds_modNames = [preds[x]['modName'] for x in preds]
+
     if experiment == 'PSEUDOREALITY':
         pathOut += 'pseudoreality_' + GCM_longName + '_' + RCM + '/'
 
@@ -90,8 +96,12 @@ def models(method_dict, scene, model):
         periodFilename = rcpPeriodFilename
 
     # check if scene/model exists
-    if not os.path.isfile('../input_data/models/psl_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'):
-        print(scene, model, 'Does not exist')
+    missing_files = False
+    for pred_modName in preds_modNames:
+        if not os.path.isfile('../input_data/models/'+pred_modName+'_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'):
+            missing_files = True
+    if missing_files == True:
+        print(scene, model, 'Does not exist or there is at least one missing file.')
     else:
         # Check if scene/model has already been processed
         if os.path.isfile(pathOut + var.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc'):

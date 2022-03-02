@@ -373,7 +373,7 @@ def QQplot(var, methodName, obs, est, pathOut, season):
     h = []
     for i in range(len(c_list)):
         h.append(Line2D([0], [0], marker='o', markersize=np.sqrt(20), color=c_list[i], linestyle='None'))
-    # plt.legend(h, ['p'+str(x) for x in perc_list], markerscale=2, scatterpoints=1, fontsize=10)
+    plt.legend(h, ['p'+str(x) for x in perc_list], markerscale=2, scatterpoints=1, fontsize=10)
     m -= 5
     M += 5
     plt.plot(range(m, M), range(m, M))

@@ -132,10 +132,16 @@ def annual_cycle():
 
                         if imethod == nmethods:
                             if var[0] == 't':
-                                plt.legend(ncol=1, bbox_to_anchor = (1.05, .99), fontsize=18)
+                                if nmethods > 10:
+                                    plt.legend(ncol=1, bbox_to_anchor = (1.05, .99), fontsize=18)
+                                else:
+                                    plt.legend
                                 title_size = 25
                             else:
-                                plt.legend(ncol=3, bbox_to_anchor = (0.06, 1.1))
+                                if nmethods > 10:
+                                    plt.legend(ncol=3, bbox_to_anchor = (0.06, 1.1))
+                                else:
+                                    plt.legend
                                 title_size = 15
 
                             plt.title(var.upper(), fontsize=title_size)
@@ -345,7 +351,7 @@ def climdex(by_season=True):
                             plt.xlim(m, M)
                             plt.ylim(m, M)
                             plt.xlabel('obs (' + units + ')')
-                            plt.ylabel('est (' + units + ')')
+                            plt.ylabel('down (' + units + ')')
                             m -= 5
                             M += 5
                             plt.plot(range(m, M), range(m, M))
