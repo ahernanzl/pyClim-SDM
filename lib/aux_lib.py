@@ -49,7 +49,6 @@ def initial_checks():
     if nonExisting_paths != []:
         print('--------------------------------------------------------------------')
         print('The following directories will be created unless they already exist:')
-        print('--------------------------------------------------------------------')
         for path in needed_paths:
             print('  - ' + path)
         print('and they will storage a great volume of data.')
