@@ -47,7 +47,9 @@ def initial_checks():
             nonExisting_paths.append(pathName)
     # os.makedirs('../'+pathName+'/')
     if nonExisting_paths != []:
-        print('\nThe following directories will be created unless they already exist:')
+        print('--------------------------------------------------------------------')
+        print('The following directories will be created unless they already exist:')
+        print('--------------------------------------------------------------------')
         for path in needed_paths:
             print('  - ' + path)
         print('and they will storage a great volume of data.')
