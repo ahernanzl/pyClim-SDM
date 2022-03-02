@@ -332,13 +332,16 @@ def climdex(by_season=True):
                                     # Plot obs, est and bias (est-obs) maps
                                     filename = '_'.join(('EVALUATION', 'obsMap', 'climdex', var, climdex_name, methodName,
                                                          season))
-                                    plot.map(mean_obs, palette, path=pathFigures, filename=filename, title='')
+                                    title = ' '.join(('obsMap', var, climdex_name, methodName, season))
+                                    plot.map(mean_obs, palette, path=pathFigures, filename=filename, title=title)
                                     filename = '_'.join(('EVALUATION', 'estMap', 'climdex', var, climdex_name, methodName,
                                                          season))
-                                    plot.map(mean_est, palette, path=pathFigures, filename=filename, title='')
+                                    title = ' '.join(('estMap', var, climdex_name, methodName, season))
+                                    plot.map(mean_est, palette, path=pathFigures, filename=filename, title=title)
                                     filename = '_'.join(('EVALUATION', 'biasMap', 'climdex', var, climdex_name, methodName,
                                                          season))
-                                    plot.map(bias, bias_palette, path=pathFigures, filename=filename, title='')
+                                    title = ' '.join(('biasMap', var, climdex_name, methodName, season))
+                                    plot.map(bias, bias_palette, path=pathFigures, filename=filename, title=title)
 
                             #-------------------- Scatter plot mean values -----------------------------------------------------
                             m = int(min(np.min(mean_obs), np.min(mean_est)))
@@ -360,12 +363,13 @@ def climdex(by_season=True):
 
                             filename = '_'.join(('EVALUATION', 'scatterPlot', 'climdex', var, climdex_name, methodName,
                                                  season))
+                            title = ' '.join((var, climdex_name, methodName, season))
+                            plt.title(title)
                             if plotAllRegions == False:
                                 # plt.show()
                                 # exit()
                                 plt.savefig(pathFigures + filename)
                             else:
-                                plt.title('_'.join((var, methodName, season)))
                                 # plt.show()
                                 # exit()
                                 plt.savefig(pathOut + filename + '.png')

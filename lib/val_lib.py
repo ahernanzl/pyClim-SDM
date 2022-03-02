@@ -311,17 +311,18 @@ def monthly_maps(metric, var, methodName):
 
     filename = '_'.join(('EVALUATION', metric+'Map', 'monthly', var, 'None', methodName,
                                 'None'))
+    title = ' '.join((metric, 'monthly', var, methodName))
     # Correlation
     if metric == 'correlation':
         r = np.zeros((npoints,))
         for ipoint in range(npoints):
             r[ipoint] = pearsonr(obs_acc[:, ipoint], est_acc[:, ipoint])[0]
-        plot.map(r, 'corrMonth', path=pathFigures, filename=filename, title=case, regType=None, regName=None)
+        plot.map(r, 'corrMonth', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
     # R2_score
     if metric == 'R2':
         R2 = 1 - np.sum((est_acc-obs_acc)**2, axis=0) / np.sum(obs_acc**2, axis=0)
-        plot.map(R2, 'r2', path=pathFigures, filename=filename, title=case, regType=None, regName=None)
+        plot.map(R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
 
 ########################################################################################################################
@@ -378,7 +379,8 @@ def QQplot(var, methodName, obs, est, pathOut, season):
     m -= 5
     M += 5
     plt.plot(range(m, M), range(m, M))
-    plt.title(case)
+    title = ' '.join((var, methodName, season))
+    plt.title(title)
     # plt.show()
     # exit()
     filename = '_'.join(('EVALUATION', 'qqPlot', 'daily', var, 'None', methodName, season)) + '.png'
@@ -423,8 +425,9 @@ def continuous(var, methodName, obs, est, pathOut, season):
     # # R2_score
     filename = '_'.join(('EVALUATION', 'r2Map', 'daily', var, 'None', methodName,
                                 season))
+    title = ' '.join(('R2_score', var, methodName, season))
     R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
-    plot.map(R2,  'r2', path=pathOut, filename=filename, title='')
+    plot.map(R2,  'r2', path=pathOut, filename=filename, title=title)
 
 
 
@@ -459,6 +462,7 @@ def dichotomous(var, methodName, obs, est, pathOut, season):
     # Accuracy score
     filename = '_'.join(('EVALUATION', 'accuracyMap', 'daily', var, 'None', methodName,
                                 season))
+    title = ' '.join(('Accuracy_score', var, methodName, season))
     accuracy = (hits+correct_negatives) / (hits+correct_negatives+misses+false_alarms)
-    plot.map(accuracy,  'acc', path=pathOut, filename=filename, title='')
+    plot.map(accuracy,  'acc', path=pathOut, filename=filename, title=title)
 
