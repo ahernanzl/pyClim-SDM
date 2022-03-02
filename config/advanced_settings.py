@@ -180,7 +180,9 @@ longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 #############################################  GRIDS  ##################################################################
 if not os.path.isfile(pathHres + 'hres_metadata.txt'):
-    print('Make sure your input_data is prepared as indicated in the input_data_template.')
+    print('----------------------------------------------------------------------------------------')
+    print('Make sure your input_data directory is prepared as indicated in the input_data_template.')
+    print('----------------------------------------------------------------------------------------')
     exit()
 aux_hres_metadata = np.loadtxt(pathHres + 'hres_metadata.txt')
 hres_npoints = aux_hres_metadata.shape[0]
