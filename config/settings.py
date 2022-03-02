@@ -1,10 +1,10 @@
-showWelcomeMessage = True
+showWelcomeMessage = False
 experiment = 'EVALUATION'
-steps = ['train_methods']
+steps = ['preprocess', 'train_methods', 'downscale', 'calculate_climdex', 'plot_results', 'nc2ascii']
 methods = [{'var': 'tmax', 'methodName': 'QM', 'family': 'BC', 'mode': 'MOS', 'fields': 'var'}, {'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA', 'mode': 'PP', 'fields': 'pred+saf'}, {'var': 'tmax', 'methodName': 'MLR', 'family': 'TF', 'mode': 'PP', 'fields': 'pred'}, {'var': 'tmax', 'methodName': 'WG-PDF', 'family': 'WG', 'mode': 'WG', 'fields': 'var'}, {'var': 'pcp', 'methodName': 'PSDM', 'family': 'BC', 'mode': 'MOS', 'fields': 'var'}, {'var': 'pcp', 'methodName': 'ANA-SYN-1NN', 'family': 'ANA', 'mode': 'PP', 'fields': 'saf'}, {'var': 'pcp', 'methodName': 'GLM-LIN', 'family': 'TF', 'mode': 'PP', 'fields': 'pred'}, {'var': 'pcp', 'methodName': 'WG-NMM', 'family': 'WG', 'mode': 'WG', 'fields': 'var'}]
 reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q', 'mslp': 'msl', 'u10': 'u10', 'v10': 'v10', 't2m': 't2m', 'tmax': 'mx2t', 'tmin': 'mn2t', 'pcp': 'tp'}
 modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus', 'mslp': 'psl', 'u10': 'uas', 'v10': 'vas', 't2m': 'tas', 'tmax': 'tasmax', 'tmin': 'tasmin', 'pcp': 'pr'}
-preds_t_list = ['u850', 'u500', 'v850', 'v500', 't850', 't500', 't2m', 'mslp']
+preds_t_list = ['u850', 'u500', 'v850', 'v500', 't850', 't500', 'mslp', 't2m']
 preds_p_list = ['u850', 'u500', 'v850', 'v500', 'z850', 'z500', 'r850', 'r500', 'mslp']
 saf_list = ['z500']
 calibration_years = (1979, 2020)

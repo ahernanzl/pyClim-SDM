@@ -564,7 +564,8 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
             if pointSize != None:
                 s = pointSize
             elif pseudoreality == False:
-                s = 1
+                # s = 1
+                s = 3
             elif pseudoreality == True:
                 s = 10
             if palette == 'target_region':

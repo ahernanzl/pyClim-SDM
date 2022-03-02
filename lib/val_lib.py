@@ -363,7 +363,8 @@ def QQplot(var, methodName, obs, est, pathOut, season):
         p, c = perc_list[i], c_list[i]
         print('perc', p)
         px, py = np.nanpercentile(obs, p, axis=0), np.nanpercentile(est, p, axis=0)
-        plt.plot(px, py, '+', c=c, markersize=2, label='p'+str(p))
+        plt.plot(px, py, '+', c=c, label='p'+str(p))
+        # plt.plot(px, py, '+', c=c, markersize=2, label='p'+str(p))
         M = int(max(np.max(px), np.max(py), M))
         m = int(min(np.min(px), np.min(py), m))
     plt.xlim(m, M)
