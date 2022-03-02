@@ -135,13 +135,13 @@ def annual_cycle():
                                 if nmethods > 10:
                                     plt.legend(ncol=1, bbox_to_anchor = (1.05, .99), fontsize=18)
                                 else:
-                                    plt.legend
+                                    plt.legend()
                                 title_size = 25
                             else:
                                 if nmethods > 10:
                                     plt.legend(ncol=3, bbox_to_anchor = (0.06, 1.1))
                                 else:
-                                    plt.legend
+                                    plt.legend()
                                 title_size = 15
 
                             plt.title(var.upper(), fontsize=title_size)

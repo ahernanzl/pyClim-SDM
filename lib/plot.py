@@ -500,8 +500,8 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
             lats, lons = lats[iaux], lons[iaux]
 
         # Set map limits
-        latmin = np.min(lats) - 1
-        latMax = np.max(lats) + 1
+        latmin = np.min(lats) - 2
+        latMax = np.max(lats) + 2
         lonmin = np.min(lons) - 1
         lonMax = np.max(lons) + 1
 
@@ -565,7 +565,7 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
                 s = pointSize
             elif pseudoreality == False:
                 # s = 1
-                s = 3
+                s = 10
             elif pseudoreality == True:
                 s = 10
             if palette == 'target_region':
