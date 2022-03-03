@@ -159,9 +159,9 @@ def daily_boxplots(metric, by_season):
                             patch.set_facecolor(color[i])
                             i += 1
                         if metric == 'correlation':
-                            title = ' '.join((VAR, metric, season))
+                            title = ' '.join((VAR.upper(), metric, season))
                         elif metric == 'variance':
-                            title = ' '.join((VAR, 'bias', metric, season))
+                            title = ' '.join((VAR.upper(), 'bias', metric, season))
                         plt.title(title)
                         # plt.title(VAR.upper() + ' ' + metric, fontsize=20)
                         plt.ylabel(units, rotation=0)
@@ -264,7 +264,7 @@ def climdex_boxplots(by_season):
                                 patch.set_facecolor(color[i])
                                 i += 1
                             # plt.ylim((-.2, 1))
-                            title = ' '.join((VAR, climdex_name, 'bias', season))
+                            title = ' '.join((VAR.upper, climdex_name, 'bias', season))
                             plt.title(title)
                             # plt.title(climdex_name, fontsize=20)
                             ax.set_xticklabels(names, rotation=90)
@@ -318,7 +318,7 @@ def monthly_maps(metric, var, methodName):
                                 'None'))
     # Correlation
     if metric == 'correlation':
-        title = ' '.join(('monthly', metric, var, methodName))
+        title = ' '.join(('monthly', metric, var.upper(), methodName))
         r = np.zeros((npoints,))
         for ipoint in range(npoints):
             r[ipoint] = pearsonr(obs_acc[:, ipoint], est_acc[:, ipoint])[0]
@@ -326,7 +326,7 @@ def monthly_maps(metric, var, methodName):
 
     # R2_score
     if metric == 'R2':
-        title = ' '.join(('monthly', metric+'_score', var, methodName))
+        title = ' '.join(('monthly', metric+'_score', var.upper(), methodName))
         R2 = 1 - np.sum((est_acc-obs_acc)**2, axis=0) / np.sum(obs_acc**2, axis=0)
         plot.map(R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
@@ -385,7 +385,7 @@ def QQplot(var, methodName, obs, est, pathOut, season):
     m -= 5
     M += 5
     plt.plot(range(m, M), range(m, M))
-    title = ' '.join((var, methodName, season))
+    title = ' '.join((var.upper(), methodName, season))
     plt.title(title)
     # plt.show()
     # exit()
@@ -431,7 +431,7 @@ def continuous(var, methodName, obs, est, pathOut, season):
     # # R2_score
     filename = '_'.join(('EVALUATION', 'r2Map', 'daily', var, 'None', methodName,
                                 season))
-    title = ' '.join(('daily R2_score', var, methodName, season))
+    title = ' '.join(('daily R2_score', var.upper(), methodName, season))
     R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
     plot.map(R2,  'r2', path=pathOut, filename=filename, title=title)
 
@@ -468,7 +468,7 @@ def dichotomous(var, methodName, obs, est, pathOut, season):
     # Accuracy score
     filename = '_'.join(('EVALUATION', 'accuracyMap', 'daily', var, 'None', methodName,
                                 season))
-    title = ' '.join(('Daily accuracy_score', var, methodName, season))
+    title = ' '.join(('Daily accuracy_score', var.upper(), methodName, season))
     accuracy = (hits+correct_negatives) / (hits+correct_negatives+misses+false_alarms)
     plot.map(accuracy,  'acc', path=pathOut, filename=filename, title=title)
 
