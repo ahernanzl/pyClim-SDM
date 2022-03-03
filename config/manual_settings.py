@@ -86,10 +86,11 @@ split_mode = 'single_split'
 # split_mode = 'fold5' # This last fold will automatically join the 5 folds
 
 reference_years = (1979, 2005) # For standardization and future signal of change
-# historical_years = (1950, 2014)
-historical_years = (1979, 2005)
+historical_years = (1950, 2014)
+# historical_years = (1979, 2005)
 ssp_years = (2015, 2100)
 biasCorr_years = (1979, 2005)
+biasCorr_years = (1951, 2014)
 
 hresPeriodFilename = '19510101-20201231'
 reanalysisName = 'ERA5'
@@ -453,5 +454,4 @@ climdex_names = {
 bc_method = None
 # bc_method = 'QM'
 # bc_method = 'DQM'
-# bc_method = 'QDM'
-# bc_method = 'PSDM'
+# bc_method
