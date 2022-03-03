@@ -144,7 +144,8 @@ def annual_cycle():
                                     plt.legend()
                                 title_size = 15
 
-                            plt.title(var.upper(), fontsize=title_size)
+                            # plt.title(var.upper(), fontsize=title_size)
+                            plt.title(var.upper() + ' annual cycle')
                             plt.xticks(ticks=range(12), labels=range(1, 13))
                             plt.xlabel('month')
                             plt.ylabel(units)
@@ -332,15 +333,15 @@ def climdex(by_season=True):
                                     # Plot obs, est and bias (est-obs) maps
                                     filename = '_'.join(('EVALUATION', 'obsMap', 'climdex', var, climdex_name, methodName,
                                                          season))
-                                    title = ' '.join(('obsMap', var, climdex_name, methodName, season))
+                                    title = ' '.join((var, climdex_name, 'obs', season))
                                     plot.map(mean_obs, palette, path=pathFigures, filename=filename, title=title)
                                     filename = '_'.join(('EVALUATION', 'estMap', 'climdex', var, climdex_name, methodName,
                                                          season))
-                                    title = ' '.join(('estMap', var, climdex_name, methodName, season))
+                                    title = ' '.join((var, climdex_name, methodName, season))
                                     plot.map(mean_est, palette, path=pathFigures, filename=filename, title=title)
                                     filename = '_'.join(('EVALUATION', 'biasMap', 'climdex', var, climdex_name, methodName,
                                                          season))
-                                    title = ' '.join(('biasMap', var, climdex_name, methodName, season))
+                                    title = ' '.join((var, climdex_name, 'bias', methodName, season))
                                     plot.map(bias, bias_palette, path=pathFigures, filename=filename, title=title)
 
                             #-------------------- Scatter plot mean values -----------------------------------------------------

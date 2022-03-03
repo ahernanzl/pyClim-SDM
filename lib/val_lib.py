@@ -158,8 +158,12 @@ def daily_boxplots(metric, by_season):
                         for patch in g['boxes']:
                             patch.set_facecolor(color[i])
                             i += 1
-                        # plt.title(VAR + ' ' + metric +' daily  ' + season)
-                        plt.title(VAR.upper() + ' ' + metric, fontsize=20)
+                        if metric == 'correlation':
+                            title = ' '.join((VAR, metric, season))
+                        elif metric == 'variance':
+                            title = ' '.join((VAR, 'bias', metric, season))
+                        plt.title(title)
+                        # plt.title(VAR.upper() + ' ' + metric, fontsize=20)
                         plt.ylabel(units, rotation=0)
                         ax.set_xticklabels(names, rotation=90)
                         if metric == 'variance':
@@ -260,8 +264,9 @@ def climdex_boxplots(by_season):
                                 patch.set_facecolor(color[i])
                                 i += 1
                             # plt.ylim((-.2, 1))
-                            # plt.title(VAR + ' ' + climdex_name + ' bias ' + season)
-                            plt.title(climdex_name, fontsize=20)
+                            title = ' '.join((VAR, climdex_name, 'bias', season))
+                            plt.title(title)
+                            # plt.title(climdex_name, fontsize=20)
                             ax.set_xticklabels(names, rotation=90)
                             plt.hlines(y=0, xmin=-1, xmax=nmethods + 1, linestyles='--', color='grey')
                             plt.ylabel(units, rotation=0)
@@ -311,9 +316,9 @@ def monthly_maps(metric, var, methodName):
 
     filename = '_'.join(('EVALUATION', metric+'Map', 'monthly', var, 'None', methodName,
                                 'None'))
-    title = ' '.join((metric, 'monthly', var, methodName))
     # Correlation
     if metric == 'correlation':
+        title = ' '.join(('monthly', metric, var, methodName))
         r = np.zeros((npoints,))
         for ipoint in range(npoints):
             r[ipoint] = pearsonr(obs_acc[:, ipoint], est_acc[:, ipoint])[0]
@@ -321,6 +326,7 @@ def monthly_maps(metric, var, methodName):
 
     # R2_score
     if metric == 'R2':
+        title = ' '.join(('monthly', metric+'_score', var, methodName))
         R2 = 1 - np.sum((est_acc-obs_acc)**2, axis=0) / np.sum(obs_acc**2, axis=0)
         plot.map(R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
@@ -425,7 +431,7 @@ def continuous(var, methodName, obs, est, pathOut, season):
     # # R2_score
     filename = '_'.join(('EVALUATION', 'r2Map', 'daily', var, 'None', methodName,
                                 season))
-    title = ' '.join(('R2_score', var, methodName, season))
+    title = ' '.join(('daily R2_score', var, methodName, season))
     R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
     plot.map(R2,  'r2', path=pathOut, filename=filename, title=title)
 
@@ -462,7 +468,7 @@ def dichotomous(var, methodName, obs, est, pathOut, season):
     # Accuracy score
     filename = '_'.join(('EVALUATION', 'accuracyMap', 'daily', var, 'None', methodName,
                                 season))
-    title = ' '.join(('Accuracy_score', var, methodName, season))
+    title = ' '.join(('Daily accuracy_score', var, methodName, season))
     accuracy = (hits+correct_negatives) / (hits+correct_negatives+misses+false_alarms)
     plot.map(accuracy,  'acc', path=pathOut, filename=filename, title=title)
 
