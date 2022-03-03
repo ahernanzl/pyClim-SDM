@@ -264,7 +264,7 @@ def climdex_boxplots(by_season):
                                 patch.set_facecolor(color[i])
                                 i += 1
                             # plt.ylim((-.2, 1))
-                            title = ' '.join((VAR.upper, climdex_name, 'bias', season))
+                            title = ' '.join((VAR.upper(), climdex_name, 'bias', season))
                             plt.title(title)
                             # plt.title(climdex_name, fontsize=20)
                             ax.set_xticklabels(names, rotation=90)

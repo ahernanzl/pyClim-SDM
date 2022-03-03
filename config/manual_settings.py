@@ -6,63 +6,63 @@ showWelcomeMessage = True # For graphical mode
 methods = []
 
 # ---------------- TMAX --------------------------------
-methods.append({'var': 'tmax', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 methods.append({'var': 'tmax', 'methodName': 'QM',      'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmax', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 methods.append({'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-methods.append({'var': 'tmax', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'tmax', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 methods.append({'var': 'tmax', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmax', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmax', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmax', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmax', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmax', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmax', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
 # # ---------------- TMIN --------------------------------
-methods.append({'var': 'tmin', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-methods.append({'var': 'tmin', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-methods.append({'var': 'tmin', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmin', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmin', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmin', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'tmin', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'tmin', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmin', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmin', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmin', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
 # ---------------- PCP --------------------------------
-methods.append({'var': 'pcp', 'methodName': 'RAW',          'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'RAW',          'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 methods.append({'var': 'pcp', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
 methods.append({'var': 'pcp', 'methodName': 'GLM-LIN',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'pcp', 'methodName': 'GLM-EXP',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'pcp', 'methodName': 'GLM-CUB',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'pcp', 'methodName': 'ANN',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'pcp', 'methodName': 'SVM',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'pcp', 'methodName': 'LS-SVM',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'GLM-EXP',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'GLM-CUB',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'ANN',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'SVM',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'LS-SVM',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 methods.append({'var': 'pcp', 'methodName': 'WG-NMM',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'WG-PDF',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'WG-PDF',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
 
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
 # experiment = 'GCM_EVAL'
-# experiment = 'EVALUATION'
-experiment = 'PROJECTIONS'
+experiment = 'EVALUATION'
+# experiment = 'PROJECTIONS'
 
 ########################################       DATES      ##############################################################
 # calibration_years corresponds to the longest period available, which then can be split for training and testing
@@ -128,17 +128,17 @@ preds_t_list = [
     't2m',              # surface temperature
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
-    'u700',             # wind at pressure levels
+    # 'u700',             # wind at pressure levels
     'u500',             # wind at pressure levels
     # 'u250',             # wind at pressure levels
     # 'v1000',            # wind at pressure levels
     'v850',             # wind at pressure levels
-    'v700',             # wind at pressure levels
+    # 'v700',             # wind at pressure levels
     'v500',             # wind at pressure levels
     # 'v250',             # wind at pressure levels
     # 't1000',            # temperature at pressure levels
     't850',             # temperature at pressure levels
-    't700',             # temperature at pressure levels
+    # 't700',             # temperature at pressure levels
     't500',             # temperature at pressure levels
     # 't250',             # temperature at pressure levels
     # 'z1000',            # geopotential at pressure levels
@@ -198,12 +198,12 @@ preds_p_list = [
     # 't2m',              # surface temperature
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
-    'u700',             # wind at pressure levels
+    # 'u700',             # wind at pressure levels
     'u500',             # wind at pressure levels
     # 'u250',             # wind at pressure levels
     # 'v1000',            # wind at pressure levels
     'v850',             # wind at pressure levels
-    'v700',             # wind at pressure levels
+    # 'v700',             # wind at pressure levels
     'v500',             # wind at pressure levels
     # 'v250',             # wind at pressure levels
     # 't1000',            # temperature at pressure levels
@@ -213,7 +213,7 @@ preds_p_list = [
     # 't250',             # temperature at pressure levels
     # 'z1000',            # geopotential at pressure levels
     'z850',             # geopotential at pressure levels
-    'z700',             # geopotential at pressure levels
+    # 'z700',             # geopotential at pressure levels
     'z500',             # geopotential at pressure levels
     # 'z250',             # geopotential at pressure levels
     # 'q1000',            # specifit humidity at pressure levels
@@ -223,7 +223,7 @@ preds_p_list = [
     # 'q250',             # specifit humidity at pressure levels
     # 'r1000',            # relative humidity at pressure levels (derived from t and q)
     'r850',             # relative humidity at pressure levels (derived from t and q)
-    'r700',             # relative humidity at pressure levels (derived from t and q)
+    # 'r700',             # relative humidity at pressure levels (derived from t and q)
     'r500',             # relative humidity at pressure levels (derived from t and q)
     # 'r250',             # relative humidity at pressure levels (derived from t and q)
     # 'td1000',           # dew point at pressure levels (derived from q)
@@ -405,8 +405,8 @@ climdex_names = {
         'TXm',
         # 'TX90p',
         # 'TX10p',
-        'TXx',
-        'TXn',
+        # 'TXx',
+        # 'TXn',
         # 'p99',
         # 'p95',
         # 'p5',
@@ -419,8 +419,8 @@ climdex_names = {
         'TNm',
         # 'TN90p',
         # 'TN10p',
-        'TNx',
-        'TNn',
+        # 'TNx',
+        # 'TNn',
         # 'p99',
         # 'p95',
         # 'p5',
@@ -433,14 +433,14 @@ climdex_names = {
         # 'Pm',
         'PRCPTOT',
         'R01',
-        'SDII',
+        # 'SDII',
         # 'Rx1day',
         # 'Rx5day',
         # 'R10mm',
         # 'R20mm',
         # 'CDD',
         # 'p95',
-        'R95p',
+        # 'R95p',
         # 'R95pFRAC',
         # 'p99',
         # 'R99p',
