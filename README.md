@@ -64,9 +64,12 @@ requirements.txt. Install them by executing: **pip install -r requirements.txt**
 
 # How to use
 
-- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. For your first steps you can use some example datsets included in the input_data_template just by renaming this folder as input_data.
+- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and 
+format indicated in the 'input_data_template' directory. For your first steps you can use some example datsets included 
+in the 'input_data_template' just by renaming this folder as 'input_data'.
 - run src/gui_mode.py and follow the very intuitive menu.
-- alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
+- alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the 
+config/manual_settings.py file.
 
 
 # References
