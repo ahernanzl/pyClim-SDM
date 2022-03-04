@@ -56,14 +56,11 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 
 
 
-# Dependecies
+# Installation
 
-pyClim-SDM is implemented in python3 and makes use of the following python libraries: 
-numpy 1.19.5, pandas 1.2.4, netCDF4 1.5.6, matplotlib 3.0.3, scikit-learn 1.0.2, scipy 1.4.1, geopy 1.21.0, geopandas 0.7.0, shapely 1.6.4.post2, statsmodels 0.10.1 and mpi4py 3.0.3. 
+In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at requirements.txt. Install them by executing:
 
-A requirements.txt file has been included in order to ease their installation by executing: 
-
-pip install -r requirements.txt
+**pip install -r requirements.txt**
 
 
 # How to use
