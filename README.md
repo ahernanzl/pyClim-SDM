@@ -58,14 +58,13 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 
 # Installation
 
-In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at requirements.txt. Install them by executing:
-
-**pip install -r requirements.txt**
+In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
+requirements.txt. Install them by executing: **pip install -r requirements.txt**
 
 
 # How to use
 
-- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. For your first steps you can use some example datsets included in the input_data_template.
+- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. For your first steps you can use some example datsets included in the input_data_template just by renaming this folder as input_data.
 - run src/gui_mode.py and follow the very intuitive menu.
 - alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
 
