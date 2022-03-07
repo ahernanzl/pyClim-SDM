@@ -116,7 +116,7 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
         X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
 
         # Train TF (clf and reg)
-        regressors[ipoint_local_index], classifiers[ipoint_local_index] = train_ipoint(var, methodName, X, Y, ipoint)
+        regressors[ipoint_local_index], classifiers[ipoint_local_index] = train_point(var, methodName, X, Y, ipoint)
         if get_reg_and_clf_scores == True:
             regressors_scores[ipoint_local_index] = regressors[ipoint_local_index].score(X, Y)
             if var == 'pcp':
@@ -195,7 +195,7 @@ def collect_chunks(var, methodName, family, n_chunks=1):
 
 
 ########################################################################################################################
-def train_ipoint(var, methodName, X, Y, ipoint):
+def train_point(var, methodName, X, Y, ipoint):
     '''
     Train model (classifiers and regressors)
     '''

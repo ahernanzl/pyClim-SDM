@@ -8,6 +8,7 @@ from advanced_settings import *
 
 def main():
 
+    aux_lib.initial_checks()
     preprocess.preprocess()
     preprocess.train_methods()
     process.downscale()
@@ -18,7 +19,6 @@ def main():
 
 if __name__=="__main__":
     start = datetime.datetime.now()
-    aux_lib.initial_checks()
     main()
     end = datetime.datetime.now()
     print("\n------------------------------\nElapsed time: " + str(end-start))
