@@ -56,12 +56,8 @@ def train_PCA():
     saf_train *= W
 
     # Perform PCA
-    for n_components in range(nlats * nlons):
-        pca = PCA(n_components=n_components)
-        pca.fit(saf_train)
-        exp_var_ratio = np.sum(pca.explained_variance_ratio_)
-        if exp_var_ratio >= exp_var_ratio_th:
-            break
+    pca = PCA(exp_var_ratio_th)
+    pca.fit(saf_train)
 
     # Save trained pca object
     outfile = open(pathOut + 'pca', 'wb')

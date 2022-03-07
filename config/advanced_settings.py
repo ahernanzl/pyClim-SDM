@@ -200,8 +200,8 @@ ext_lats = np.linspace(ext_lat_up, ext_lat_down, ext_nlats)
 ext_lons = np.linspace(ext_lon_left, ext_lon_right, ext_nlons)
 
 # saf
-saf_nlats = int(((saf_lat_up - saf_lat_down) / 1.5 ) + 1)
-saf_nlons = int(((saf_lon_right - saf_lon_left) / 1.5 ) + 1)
+saf_nlats = int(((saf_lat_up - saf_lat_down) / grid_res ) + 1)
+saf_nlons = int(((saf_lon_right - saf_lon_left) / grid_res ) + 1)
 saf_lats = np.linspace(saf_lat_up, saf_lat_down, saf_nlats)
 saf_lons = np.linspace(saf_lon_left, saf_lon_right, saf_nlons)
 saf_ilats = [i for i in range(ext_nlats) if ext_lats[i] in saf_lats]
@@ -343,6 +343,8 @@ if os.path.isfile('../private/private_settings.py'):
     from private_settings import *
 else:
     running_at_HPC, HPC_partition = False, 'enterPartitionName'
+if running_at_HPC == True:
+    from mpi4py import MPI
 
 # ####################  COLORS AND STYLES    #####################################################
 t_methods_colors = {

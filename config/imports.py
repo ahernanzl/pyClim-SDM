@@ -13,7 +13,6 @@ import math
 from sys import exit
 import collections
 from os import listdir
-from mpi4py import MPI
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors

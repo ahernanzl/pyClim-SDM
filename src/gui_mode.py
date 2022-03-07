@@ -123,7 +123,7 @@ class welcomeMessage(ttk.Frame):
             # Logo
             Label(root, text='', borderwidth=0).grid(sticky="SE", column=0, row=0, pady=0)
             w = 800
-            img = Image.open("../pyClim-SDM_logo.png")
+            img = Image.open("../doc/pyClim-SDM_logo.png")
             h = int(w * img.height / img.width)
             img = img.resize((w, h), Image.ANTIALIAS)
             img = ImageTk.PhotoImage(img)
@@ -1096,7 +1096,7 @@ class selectionWindow():
         # Logo
         Label(notebook, text='', borderwidth=0).grid(sticky="SE", column=0, row=0, pady=265)
         w = 120
-        img = Image.open("../pyClim-SDM_logo.png")
+        img = Image.open("../doc/pyClim-SDM_logo.png")
         h = int(w * img.height / img.width)
         img = img.resize((w, h), Image.ANTIALIAS)
         img = ImageTk.PhotoImage(img)

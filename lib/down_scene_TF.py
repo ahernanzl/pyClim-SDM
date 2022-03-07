@@ -226,7 +226,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                     Y_train = Y_train[valid]
 
                 # Train regressors and classifiers without missing predictors or predictands
-                reg_ipoint, clf_ipoint = TF_lib.train_ipoint(var, methodName, X_train, Y_train, ipoint)
+                reg_ipoint, clf_ipoint = TF_lib.train_point(var, methodName, X_train, Y_train, ipoint)
 
                 # Remove missing predictors from X_test
                 X_test = X_test[:, valid_preds]

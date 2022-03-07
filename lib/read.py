@@ -154,9 +154,8 @@ def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=Non
     """
     Reads one predictor from reanalysis or model. The purpose of this function is to avoid defining path, filename,
     etc., each time a predictor is read, so they can be read easily no matter whether we are using reanalysis or models.
-    mslp is treated specially, for it is the variable used to check whether a model exists or to read dates, so it is
-    explicitly defined, in case it is not included in the predictors list. tmax, tmin and pcp are explicitly defined too
-    because they are used (for RAW, BC, WG...) even if they are not in pred_list for TF.
+    tmax, tmin and pcp are explicitly defined too because they are used (for RAW, BC, WG...) even if they are not in
+    pred_list for TF.
     :param predName: as defined in preds dictionaries in settings
     :return: dictionary with data, times, lats, lons and calendar
     """
@@ -167,9 +166,7 @@ def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=Non
 
     if model == 'reanalysis':
         pathIn = '../input_data/reanalysis/'
-        if predName == 'mslp':
-            ncVar = 'msl'
-        elif predName == 'tmax':
+        if predName == 'tmax':
             ncVar = 'mx2t'
         elif predName == 'tmin':
             ncVar = 'mn2t'
@@ -186,9 +183,7 @@ def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=Non
         else:
             periodFilename = rcpPeriodFilename
         pathIn = '../input_data/models/'
-        if predName == 'mslp':
-            ncVar = 'psl'
-        elif predName == 'tmax':
+        if predName == 'tmax':
             ncVar = 'tasmax'
         elif predName == 'tmin':
             ncVar = 'tasmin'
@@ -221,7 +216,8 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        dates = np.ndarray.tolist(read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['times'])
+        ncName = preds[list(preds.keys())[0]]['modName']
+        dates = np.ndarray.tolist(read.one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times'])
     ndates = len(dates)
     if field == 'var':
         nvar = 1
@@ -244,7 +240,8 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
-        aux_times = one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['times']
+        ncName = preds[list(preds.keys())[0]]['reaName']
+        aux_times = one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var

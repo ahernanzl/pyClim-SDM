@@ -172,7 +172,8 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             sufix = str(level)
     else:
         if level == 'sl':
-            dates = read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['times']
+            ncName = preds_p[list(preds_p.keys())[0]]['modName']
+            dates = read.one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
             aux = geostrophic(model=model, scene=scene)
             u, v = aux['ugsl'], aux['vgsl']
             sufix = 'gsl'
@@ -250,7 +251,8 @@ def insolation(model='reanalysis', scene='TESTING'):
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        dates = read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['times']
+        ncName = preds_p[list(preds_p.keys())[0]]['modName']
+        dates = read.one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
 
     # Calculate ins
     ins = []

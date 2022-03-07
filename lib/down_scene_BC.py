@@ -78,7 +78,12 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             aux = read.lres_data(var, 'var', model=model, scene='historical')
             dates = aux['times']
             var_calib = aux['data']
-            calendar = read.one_predictor('mslp', model=model, scene=scene)['calendar']
+            if var[0] == 'p':
+                preds = preds_p
+            elif var[0] == 't':
+                preds = preds_t
+            ncName = preds[list(preds.keys())[0]]['modName']
+            calendar = read.one_predictor(ncName, model=model, scene=scene)['calendar']
 
             # Auxiliary dates "avail" are defined in case historical projections contain years out of calibration_years
             avail_first_date = max(calibration_first_date, dates[0])
