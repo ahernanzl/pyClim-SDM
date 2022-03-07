@@ -51,9 +51,8 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **ANN**: Artificial Neural Networks. Non-linear machine learning classification and regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **SVM**: Support Vector Machine. Non-linear machine learning classification and regression. See Hernanz *et al.* (2021). 
 - **LS-SVM**: Least Square Support Vector Machine. Linear machine learning classification and non-linear regression. See Hernanz *et al.* (2021). 
-- **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models.
+- **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
-
 
 
 # Installation
@@ -88,6 +87,8 @@ requirements.txt. Install them by executing: **pip install -r requirements.txt**
 - Petisco de Lara, S.E. (2008a). Método de regionalización de precipitación basado en análogos. Explicación y Validación. In: AEMET Nota Técnica 3A, Área de Evaluación y Modelización del Cambio Climático. Spain: AEMET. 
 
 - Petisco de Lara, S.E. (2008b). Método de regionalización de temperatura basado en análogos. Explicación y Validación. In: AEMET Nota Técnica 3B, Área de Evaluación y Modelización del Cambio Climático. Spain: AEMET.
+
+- Richardson, C. W. (1981), Stochastic simulation of daily precipitation, temperature, and solar radiation, Water Resour. Res., 17( 1), 182– 190, https://doi.org/10.1029/WR017i001p0018
 
 - Switanek, M.B., Troch, P.A., Castro, C.L., Leuprecht, A., Chang, H.-I., Mukherjee, R., and Demaria, E.M.C. (2017). Scaled distribution mapping: a bias correction method that preserves raw climate model projected changes, Hydrol. Earth Syst. Sci., 21, 2649–2666, https://doi.org/10.5194/hess-21-2649-2017
 
