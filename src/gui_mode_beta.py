@@ -49,13 +49,13 @@ def switch_splitMode(split_modeName, dict):
 
 
 ########################################################################################################################
-def switch_steps(exp, steps, steps_ordered, chk_only_for_experiment):
+def switch_steps(exp, steps, steps_ordered, exp_ordered, chk_only_for_experiment):
     """To enable/disable steps depending on the experiment"""
 
     for i in range(len(chk_only_for_experiment)):
         object = chk_only_for_experiment[i]
         step = steps_ordered[i]
-        if steps[step][exp] == True:
+        if step in steps[exp] and exp == exp_ordered[i]:
             object["state"] = "normal"
         else:
             object["state"] = "disabled"
@@ -187,15 +187,16 @@ class tabSteps(ttk.Frame):
         self.rdbuts = []
         self.chk_only_for_experiment = []
         self.steps_ordered = []
+        self.exp_ordered = []
 
         irow = 0
 
-        ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=120)
+        ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
         ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=40); irow+=1
 
         # Experiment
         icol = 1
-        ttk.Label(tabSteps, text="Select experiment:", font=("Arial", fontSize)).grid(sticky="W", column=icol, row=irow, padx=10, pady=15); irow+=1
+        ttk.Label(tabSteps, text="Select experiment:", font=("Arial", fontSize)).grid(sticky="W", column=icol, row=irow, padx=10, pady=15); icol+=1
         self.experiment = StringVar()
         experiments = {'PRECONTROL': 'Evaluation of predictors and GCMs previous to dowscaling',
                        'EVALUATION': 'Evaluate methods using a reanalysis over a historical period',
@@ -203,75 +204,94 @@ class tabSteps(ttk.Frame):
         for exp in experiments:
             c = Radiobutton(tabSteps, text=exp, font=("Arial", fontSize), variable=self.experiment, value=exp,
                             command=lambda: switch_steps(self.experiment.get(), steps, self.steps_ordered,
-                            self.chk_only_for_experiment), takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow); irow+=1
+                            self.exp_ordered, self.chk_only_for_experiment), takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=50); icol+=1
             CreateToolTip(c, experiments[exp])
             self.experiment.set(experiment)
 
-        irow = 1
-        icol += 3
-        ttk.Label(tabSteps, text="").grid(sticky="W", column=icol, row=irow, padx=100, pady=10); icol+=1
+        irow += 1
+        icol = 1
+        ttk.Label(tabSteps, text="").grid(sticky="W", column=icol, row=irow, padx=100, pady=10); irow+=1
         # Steps definition
         ttk.Label(tabSteps, text="Select steps:", font=("Arial", fontSize)).grid(sticky="W", column=icol, row=irow, padx=10, columnspan=100); irow+=1
-        steps = {'predictors_strength': {'text': 'Predictors strengh', 'info': 'Test the strength of the\n'
-                                                                                      'predictors/predictand relationships.',
-                                         'PRECONTROL': True, 'EVALUATION': False, 'PROJECTIONS': False},
-                 'GCMs_availability': {'text': 'GCMs availability', 'info':  'Check for missing data in predictors by GCMs.',
-                                         'PRECONTROL': True, 'EVALUATION': False, 'PROJECTIONS': False},
+
+        steps = {'PRECONTROL': {'predictors_strength': {'text': 'Predictors strengh', 'info': 'Test the strength of the\n'
+                                                                                      'predictors/predictand relationships.'},
+                 'GCMs_availability': {'text': 'GCMs availability', 'info':  'Check for missing data in predictors by GCMs.',},
                  'GCMs_reliability': {'text': 'GCMs reliability', 'info': 'Test the reliability of GCMs in a historical period\n'
-                                                                                    'comparing them with a reanalysis.',
-                                         'PRECONTROL': True, 'EVALUATION': False, 'PROJECTIONS': False},
+                                                                                    'comparing them with a reanalysis.'},
                  'GCMs_uncertainty': {'text': 'GCMs uncertainty', 'info': 'Test the uncertainty in GCMs in the future,\n'
-                                                                            'given by the multimodel spread.',
-                                         'PRECONTROL': True, 'EVALUATION': False, 'PROJECTIONS': False},
-                 'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
+                                                                            'given by the multimodel spread.'},},
+                 'EVALUATION': {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
                                                                    'resolution grid, calculation of derived predictors, \n'
                                                                    'standardization of predictors, training/testing split \n'
-                                                                   'and weather types clustering.',
-                                         'PRECONTROL': False, 'EVALUATION': True, 'PROJECTIONS': True},
+                                                                   'and weather types clustering.'},
                 'train_methods': {'text': 'Train methods', 'info': 'Train of all selected methods. \n'
                                                                    'If you are working in a HPC, you can assign different \n'
                                                                    'configuration (number of nodes, memory, etc) to each \n'
-                                                                   'method by editing the lib/launch_jobs.py file.',
-                                         'PRECONTROL': False, 'EVALUATION': True, 'PROJECTIONS': True},
+                                                                   'method by editing the lib/launch_jobs.py file.'},
                 'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
                                                            'working in a HPC, you can assign different configuration \n'
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
-                                                           'results/ directory.',
-                                         'PRECONTROL': False, 'EVALUATION': True, 'PROJECTIONS': True},
-                'bias_correct_projections': {'text': 'Bias correct projections (optional)', 'info': 'Bias correct '
-                                                                                                    'downscaled projections.',
-                                         'PRECONTROL': False, 'EVALUATION': False, 'PROJECTIONS': True},
-                'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.',
-                                         'PRECONTROL': False, 'EVALUATION': True, 'PROJECTIONS': True},
+                                                           'results/ directory.'},
+                'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
-                                                                 'selected experiment (EVALUATION / PROJECTIONS).',
-                                         'PRECONTROL': False, 'EVALUATION': True, 'PROJECTIONS': True},
-                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.',
-                                         'PRECONTROL': False, 'EVALUATION': True, 'PROJECTIONS': True},
-                 }
+                                                                 'selected experiment (EVALUATION / PROJECTIONS).'},
+                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'}},
+                 'PROJECTIONS': {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
+                                                                   'resolution grid, calculation of derived predictors, \n'
+                                                                   'standardization of predictors, training/testing split \n'
+                                                                   'and weather types clustering.'},
+                'train_methods': {'text': 'Train methods', 'info': 'Train of all selected methods. \n'
+                                                                   'If you are working in a HPC, you can assign different \n'
+                                                                   'configuration (number of nodes, memory, etc) to each \n'
+                                                                   'method by editing the lib/launch_jobs.py file.'},
+                'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
+                                                           'working in a HPC, you can assign different configuration \n'
+                                                           '(number of nodes, memory, etc) to each method by editing the \n'
+                                                           'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
+                                                           'results/ directory.'},
+                'bias_correct_projections': {'text': 'Bias correct projections (optional)', 'info': 'Bias correct '
+                                                                                                    'downscaled projections.'},
+                'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
+                'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
+                                                                 'A different set of figures will be generated depending on the \n'
+                                                                 'selected experiment (EVALUATION / PROJECTIONS).'},
+                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'}}}
+
+        self.all_steps = steps
 
         # Create steps_ordered
-        for step in steps:
-            self.steps_ordered.append(step)
+        for exp_name in (experiments):
+            for step in steps[exp_name]:
+                self.steps_ordered.append(step)
+                self.exp_ordered.append(exp_name)
 
         # Steps check buttons
-        for step in steps:
-            checked = tk.BooleanVar()
-            c = Checkbutton(tabSteps, text=steps[step]['text'], font=("Arial", fontSize), variable=checked, takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow, padx=10); irow+=1
-            CreateToolTip(c, steps[step]['info'])
-            self.chk_dict.update({step: checked})
-            self.chk_only_for_experiment.append(c)
-            if steps[step][experiment] == True:
-                c.config(state='normal')
-            else:
-                c.config(state='disabled')
+        irow -= 1
+        for exp_name in (experiments):
+            nrows = 0
+            icol +=1
+            aux_dict = {}
+            for step in steps[exp_name]:
+                checked = tk.BooleanVar()
+                c = Checkbutton(tabSteps, text=steps[exp_name][step]['text'], font=("Arial", fontSize), variable=checked, takefocus=False)
+                c.grid(sticky="W", column=icol, row=irow, padx=50); irow+=1
+                CreateToolTip(c, steps[exp_name][step]['info'])
+                aux_dict.update({step: checked})
+                self.chk_only_for_experiment.append(c)
+                if exp_name == experiment:
+                    c.config(state='normal')
+                else:
+                    c.config(state='disabled')
+                nrows += 1
+            self.chk_dict.update({exp_name: aux_dict})
+            irow -= nrows
 
     def get(self):
-        return self.experiment, self.chk_dict
+        return self.experiment, self.chk_dict, self.all_steps
 
 
 ########################################################################################################################
@@ -1109,7 +1129,7 @@ class selectionWindow():
         notebook.pack(expand=1, fill="both")
 
         # Tab: run
-        self.experiment, self.steps_dict = tabSteps(notebook, root).get()
+        self.experiment, self.steps_dict, self.all_steps = tabSteps(notebook, root).get()
 
         # Tab: methods
         self.methods_chk = tabMethods(notebook).get()
@@ -1162,8 +1182,8 @@ class selectionWindow():
 
         # Steps
         self.steps = []
-        for step in self.steps_dict:
-            if self.steps_dict[step].get() == True:
+        for step in self.all_steps[self.experiment]:
+            if self.steps_dict[self.experiment][step].get() == True:
                 self.steps.append(step)
 
         # Methods
@@ -1362,6 +1382,20 @@ def write_tmpMain_file(steps):
 
     # Steps
     noSteps = True
+    if len(steps) > 0:
+        f.write("    aux_lib.initial_checks()\n")
+    if 'predictors_strength' in steps:
+        noSteps = False
+        f.write("    precontrol.predictors_strength()\n")
+    if 'GCMs_availability' in steps:
+        noSteps = False
+        f.write("    precontrol.GCMs_availability()\n")
+    if 'GCMs_reliability' in steps:
+        noSteps = False
+        f.write("    precontrol.GCMs_reliability()\n")
+    if 'GCMs_uncertainty' in steps:
+        noSteps = False
+        f.write("    precontrol.GCMs_uncertainty()\n")
     if 'preprocess' in steps:
         noSteps = False
         f.write("    preprocess.preprocess()\n")
@@ -1390,7 +1424,6 @@ def write_tmpMain_file(steps):
     f.write("\n")
     f.write("if __name__ == '__main__':\n")
     f.write("    start = datetime.datetime.now()\n")
-    f.write("    aux_lib.initial_checks()\n")
     f.write("    main()\n")
     f.write("    end = datetime.datetime.now()\n")
     f.write("    print('Elapsed time: ' + str(end - start))")
