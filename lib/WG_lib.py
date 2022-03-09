@@ -8,6 +8,7 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import BC_lib
+import derived_predictors
 import down_scene_ANA
 import down_scene_BC
 import down_scene_RAW
@@ -21,7 +22,6 @@ import launch_jobs
 import plot
 import postpro_lib
 import postprocess
-import derived_predictors
 import precontrol
 import preprocess
 import process
@@ -31,7 +31,6 @@ import TF_lib
 import val_lib
 import WG_lib
 import write
-
 
 ########################################################################################################################
 def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):

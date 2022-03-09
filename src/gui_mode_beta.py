@@ -55,7 +55,6 @@ def switch_steps(exp, steps, steps_ordered, chk_only_for_experiment):
     for i in range(len(chk_only_for_experiment)):
         object = chk_only_for_experiment[i]
         step = steps_ordered[i]
-        print(step)
         if steps[step][exp] == True:
             object["state"] = "normal"
         else:
