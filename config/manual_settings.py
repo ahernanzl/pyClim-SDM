@@ -60,7 +60,7 @@ methods.append({'var': 'pcp', 'methodName': 'WG-NMM',       'family': 'WG',     
 
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
-# experiment = 'GCM_EVAL'
+# experiment = 'PRECONTROL'
 experiment = 'EVALUATION'
 # experiment = 'PROJECTIONS'
 

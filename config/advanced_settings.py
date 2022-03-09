@@ -303,7 +303,7 @@ elif experiment == 'PROJECTIONS':
 elif experiment == 'PSEUDOREALITY':
     scene_list = ('historical', 'RCP85')
     model_list = (GCM_shortName, )
-elif experiment == 'GCM_EVAL':
+elif experiment == 'PRECONTROL':
     scene_list = list(scene_names_dict.keys())
     model_list = model_names_list
 
