@@ -272,7 +272,7 @@ def climdex_boxplots(by_season):
                             # plt.show()
                             # exit()
 
-                            filename = '_'.join(('EVALUATION', 'biasBoxplot', 'climdex', VAR, climdex_name, 'all',
+                            filename = '_'.join(('EVALUATION', 'biasBoxplot', 'all', VAR, climdex_name, 'all',
                                                  season))
                             plt.savefig(pathOut + filename + '.png', bbox_inches='tight')
                             plt.close()

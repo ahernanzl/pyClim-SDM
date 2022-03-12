@@ -666,7 +666,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
         # plt.show()
         # exit()
-        filename = '_'.join(('PROJECTIONS', 'evolTrendRaw', 'climdex', var, climdex_name, methodName, season))
+        filename = '_'.join(('PROJECTIONS', 'evolTrendRaw', 'all', var, climdex_name, methodName, season))
         if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
             plt.title(methodName, fontsize=title_size)
             plt.savefig(pathFigures + filename + '.png')
@@ -734,7 +734,7 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
     # plt.show()
     # exit()
     if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
-        filename = '_'.join(('PROJECTIONS', 'evolSpaghetti', 'climdex', var, climdex_name, methodName, season))
+        filename = '_'.join(('PROJECTIONS', 'evolSpaghetti', 'all', var, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
         filename = '_'.join(('evolSpaghetti', climdex_name, season))
@@ -771,7 +771,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
     # plt.show()
     # exit()
     if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
-        filename = '_'.join(('PROJECTIONS', 'evolTube', 'climdex', var, climdex_name, methodName, season))
+        filename = '_'.join(('PROJECTIONS', 'evolTube', 'all', var, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
         filename = '_'.join(('evolTube', climdex_name, season))
@@ -803,7 +803,7 @@ def change_maps(ssp_dict, years, var, methodName, season, climdex_name, pathOut,
             mean = np.mean(dataTerm, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
-                    ('PROJECTIONS', 'meanChangeMap', 'climdex', var, climdex_name, methodName, season))
+                    ('PROJECTIONS', 'meanChangeMap', 'all', var, climdex_name, methodName, season))
                 plot.map(mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                          filename=filename, title='')
             else:
@@ -815,7 +815,7 @@ def change_maps(ssp_dict, years, var, methodName, season, climdex_name, pathOut,
             std = np.std(dataTerm, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
-                    ('PROJECTIONS', 'stdChangeMap', 'climdex', var, climdex_name, methodName, season))
+                    ('PROJECTIONS', 'stdChangeMap', 'all', var, climdex_name, methodName, season))
                 plot.map(mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                          filename=filename, title='')
                 plot.map(std, 'change_' + climdex_name + '_std', path=pathFigures,

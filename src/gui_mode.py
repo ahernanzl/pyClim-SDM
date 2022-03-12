@@ -38,14 +38,27 @@ def switch_splitMode(split_modeName, dict):
                 else:
                     object["state"] = 'disabled'
 
+# ########################################################################################################################
+# def switch_steps(exp, only_for_projections):
+#     """To enable/disable steps depending on the experiment"""
+    # for object in only_for_projections:
+    #     if exp == 'PROJECTIONS':
+    #         object["state"] = "normal"
+    #     else:
+    #         object["state"] = 'disabled'
+
+
 ########################################################################################################################
-def switch_steps(exp, only_for_projections):
+def switch_steps(exp, steps, steps_ordered, exp_ordered, chk_only_for_experiment):
     """To enable/disable steps depending on the experiment"""
-    for object in only_for_projections:
-        if exp == 'PROJECTIONS':
+
+    for i in range(len(chk_only_for_experiment)):
+        object = chk_only_for_experiment[i]
+        step = steps_ordered[i]
+        if step in steps[exp] and exp == exp_ordered[i]:
             object["state"] = "normal"
         else:
-            object["state"] = 'disabled'
+            object["state"] = "disabled"
 
 
 ########################################################################################################################
@@ -172,31 +185,70 @@ class tabSteps(ttk.Frame):
         notebook.add(tabSteps, text='Experiment and Steps')
         self.chk_dict = {}
         self.rdbuts = []
-        self.only_for_projections = []
+        self.chk_only_for_experiment = []
+        self.steps_ordered = []
+        self.exp_ordered = []
 
         irow = 0
 
-        ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=120)
+        ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
         ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=40); irow+=1
 
         # Experiment
         icol = 1
-        ttk.Label(tabSteps, text="Select experiment:", font=("Arial", fontSize)).grid(sticky="W", column=icol, row=irow, padx=10, pady=15); irow+=1
+        ttk.Label(tabSteps, text="Select experiment:", font=("Arial", fontSize)).grid(sticky="E", column=icol, row=irow, padx=10, pady=15); icol+=1
         self.experiment = StringVar()
-        experiments = {'EVALUATION': 'Evaluate methods using a reanalysis over a historical period',
+        experiments = {'PRECONTROL': 'Evaluation of predictors and GCMs previous to dowscaling',
+                       'EVALUATION': 'Evaluate methods using a reanalysis over a historical period',
                        'PROJECTIONS': 'Apply methods to dowscale climate projections'}
         for exp in experiments:
-            c = Radiobutton(tabSteps, text=exp, font=("Arial", fontSize), variable=self.experiment, value=exp, command=lambda: switch_steps(self.experiment.get(), self.only_for_projections), takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow); irow+=1
+            c = Radiobutton(tabSteps, text=exp, font=("Arial", fontSize), variable=self.experiment, value=exp,
+                            command=lambda: switch_steps(self.experiment.get(), steps, self.steps_ordered,
+                            self.exp_ordered, self.chk_only_for_experiment), takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=30); icol+=1
             CreateToolTip(c, experiments[exp])
             self.experiment.set(experiment)
 
-        irow = 1
-        icol += 3
-        ttk.Label(tabSteps, text="").grid(sticky="W", column=icol, row=irow, padx=100, pady=10); icol+=1
+        irow += 2
+        icol = 1
+
         # Steps definition
-        ttk.Label(tabSteps, text="Select steps:", font=("Arial", fontSize)).grid(sticky="W", column=icol, row=irow, padx=10, columnspan=100); irow+=1
-        steps = {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
+        ttk.Label(tabSteps, text="Select steps:", font=("Arial", fontSize)).grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
+
+        steps = {'PRECONTROL': {
+                 'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
+                                                                   'resolution grid, calculation of derived predictors, \n'
+                                                                   'standardization of predictors, training/testing split \n'
+                                                                   'and weather types clustering.'},
+                 'predictors_strength': {'text': 'Predictors strengh', 'info': 'Test the strength of the\n'
+                                                                      'predictors/predictand relationships.'},
+                 'GCMs_availability': {'text': 'GCMs availability', 'info':  'Check for missing data in predictors by GCMs.',},
+                 'GCMs_evaluation_historical': {'text': 'GCMs evaluation historical', 'info': 'Test the reliability of GCMs in a historical period\n'
+                                                                                    'comparing them with a reanalysis.'},
+                 'GCMs_evaluation_future': {'text': 'GCMs evaluation future', 'info': 'Test the uncertainty in GCMs in the future,\n'
+                                                                            'given by the multimodel spread.'},},
+
+                 'EVALUATION': {
+                 'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
+                                                                   'resolution grid, calculation of derived predictors, \n'
+                                                                   'standardization of predictors, training/testing split \n'
+                                                                   'and weather types clustering.'},
+                'train_methods': {'text': 'Train methods', 'info': 'Train of all selected methods. \n'
+                                                                   'If you are working in a HPC, you can assign different \n'
+                                                                   'configuration (number of nodes, memory, etc) to each \n'
+                                                                   'method by editing the lib/launch_jobs.py file.'},
+                'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
+                                                           'working in a HPC, you can assign different configuration \n'
+                                                           '(number of nodes, memory, etc) to each method by editing the \n'
+                                                           'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
+                                                           'results/ directory.'},
+                'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
+                'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
+                                                                 'A different set of figures will be generated depending on the \n'
+                                                                 'selected experiment (EVALUATION / PROJECTIONS).'},
+                 'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'}},
+
+                 'PROJECTIONS': {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
                                                                    'resolution grid, calculation of derived predictors, \n'
                                                                    'standardization of predictors, training/testing split \n'
                                                                    'and weather types clustering.'},
@@ -215,24 +267,39 @@ class tabSteps(ttk.Frame):
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
                                                                  'selected experiment (EVALUATION / PROJECTIONS).'},
-                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'},
-                 }
+                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'}}}
 
+        self.all_steps = steps
+
+        # Create steps_ordered
+        for exp_name in (experiments):
+            for step in steps[exp_name]:
+                self.steps_ordered.append(step)
+                self.exp_ordered.append(exp_name)
 
         # Steps check buttons
-        for step in steps:
-            checked = tk.BooleanVar()
-            c = Checkbutton(tabSteps, text=steps[step]['text'], font=("Arial", fontSize), variable=checked, takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow, padx=10); irow+=1
-            CreateToolTip(c, steps[step]['info'])
-            self.chk_dict.update({step: checked})
-            if step in ['bias_correct_projections', ]:
-                self.only_for_projections.append(c)
-                if experiment == 'EVALUATION':
+        irow -= 1
+        for exp_name in (experiments):
+            nrows = 0
+            icol +=1
+            aux_dict = {}
+            for step in steps[exp_name]:
+                checked = tk.BooleanVar()
+                c = Checkbutton(tabSteps, text=steps[exp_name][step]['text'], font=("Arial", fontSize), variable=checked, takefocus=False)
+                c.grid(sticky="W", column=icol, row=irow, padx=50); irow+=1
+                CreateToolTip(c, steps[exp_name][step]['info'])
+                aux_dict.update({step: checked})
+                self.chk_only_for_experiment.append(c)
+                if exp_name == experiment:
+                    c.config(state='normal')
+                else:
                     c.config(state='disabled')
+                nrows += 1
+            self.chk_dict.update({exp_name: aux_dict})
+            irow -= nrows
 
     def get(self):
-        return self.experiment, self.chk_dict
+        return self.experiment, self.chk_dict, self.all_steps
 
 
 ########################################################################################################################
@@ -989,12 +1056,12 @@ class tabDatesAndDomain(ttk.Frame):
         historicalPeriodFilename_Entry.insert(END, historicalPeriodFilename)
         historicalPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
-        # rcpPeriodFilename
-        self.rcpPeriodFilename_var = tk.StringVar()
+        # sspPeriodFilename
+        self.sspPeriodFilename_var = tk.StringVar()
         Label(framePeriodFilenames, text='SSP period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
-        rcpPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.rcpPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        rcpPeriodFilename_Entry.insert(END, rcpPeriodFilename)
-        rcpPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+        sspPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.sspPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
+        sspPeriodFilename_Entry.insert(END, sspPeriodFilename)
+        sspPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
         icol, irow = 0, 0
         ttk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
@@ -1047,7 +1114,7 @@ class tabDatesAndDomain(ttk.Frame):
     def get(self):
         return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, \
                self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var, self.reanalysisName_var, \
-               self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, self.rcpPeriodFilename_var, \
+               self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, self.sspPeriodFilename_var, \
                self.split_mode, self.grid_res_var, \
                self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var
 
@@ -1070,7 +1137,7 @@ class selectionWindow():
         notebook.pack(expand=1, fill="both")
 
         # Tab: run
-        self.experiment, self.steps_dict = tabSteps(notebook, root).get()
+        self.experiment, self.steps_dict, self.all_steps = tabSteps(notebook, root).get()
 
         # Tab: methods
         self.methods_chk = tabMethods(notebook).get()
@@ -1088,7 +1155,7 @@ class selectionWindow():
         # Tab: dates and Domain
         self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, \
             self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var, self.reanalysisName_var, \
-               self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, self.rcpPeriodFilename_var, \
+               self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, self.sspPeriodFilename_var, \
                 self.split_mode, self.grid_res_var, \
                    self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var\
                 = tabDatesAndDomain(notebook).get()
@@ -1123,8 +1190,8 @@ class selectionWindow():
 
         # Steps
         self.steps = []
-        for step in self.steps_dict:
-            if self.steps_dict[step].get() == True:
+        for step in self.all_steps[self.experiment]:
+            if self.steps_dict[self.experiment][step].get() == True:
                 self.steps.append(step)
 
         # Methods
@@ -1190,7 +1257,7 @@ class selectionWindow():
         self.reanalysisName_var = self.reanalysisName_var.get()
         self.reanalysisPeriodFilename_var = self.reanalysisPeriodFilename_var.get()
         self.historicalPeriodFilename_var = self.historicalPeriodFilename_var.get()
-        self.rcpPeriodFilename_var = self.rcpPeriodFilename_var.get()
+        self.sspPeriodFilename_var = self.sspPeriodFilename_var.get()
 
         # grid_res
         self.grid_res_var = self.grid_res_var.get()
@@ -1235,7 +1302,7 @@ class selectionWindow():
                self.single_split_testing_years, self.fold1_testing_years, self.fold2_testing_years, \
                self.fold3_testing_years, self.fold4_testing_years, self.fold5_testing_years, \
                self.hresPeriodFilename_var, self.reanalysisName_var, self.reanalysisPeriodFilename_var, \
-               self.historicalPeriodFilename_var, self.rcpPeriodFilename_var, self.split_mode, \
+               self.historicalPeriodFilename_var, self.sspPeriodFilename_var, self.split_mode, \
                self.grid_res_var, \
                self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var, \
                self.model_names_list, self.scene_names_list, self.modelRealizationFilename
@@ -1246,7 +1313,7 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
                         bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
-                        rcpPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
+                        sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename):
 
     """This function prepares a new settings file with the user selected options"""
@@ -1285,7 +1352,7 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
     f.write("reanalysisPeriodFilename = '" + str(reanalysisPeriodFilename) + "'\n")
     f.write("historicalPeriodFilename = '" + str(historicalPeriodFilename) + "'\n")
-    f.write("rcpPeriodFilename = '" + str(rcpPeriodFilename) + "'\n")
+    f.write("sspPeriodFilename = '" + str(sspPeriodFilename) + "'\n")
     f.write("split_mode = '" + str(split_mode) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
@@ -1323,9 +1390,23 @@ def write_tmpMain_file(steps):
 
     # Steps
     noSteps = True
+    if len(steps) > 0:
+        f.write("    aux_lib.initial_checks()\n")
     if 'preprocess' in steps:
         noSteps = False
         f.write("    preprocess.preprocess()\n")
+    if 'predictors_strength' in steps:
+        noSteps = False
+        f.write("    precontrol.predictors_strength()\n")
+    if 'GCMs_availability' in steps:
+        noSteps = False
+        f.write("    precontrol.GCMs_availability()\n")
+    if 'GCMs_evaluation_historical' in steps:
+        noSteps = False
+        f.write("    precontrol.GCMs_evaluation_historical()\n")
+    if 'GCMs_evaluation_future' in steps:
+        noSteps = False
+        f.write("    precontrol.GCMs_evaluation_future()\n")
     if 'train_methods' in steps:
         noSteps = False
         f.write("    preprocess.train_methods()\n")
@@ -1351,7 +1432,6 @@ def write_tmpMain_file(steps):
     f.write("\n")
     f.write("if __name__ == '__main__':\n")
     f.write("    start = datetime.datetime.now()\n")
-    f.write("    aux_lib.initial_checks()\n")
     f.write("    main()\n")
     f.write("    end = datetime.datetime.now()\n")
     f.write("    print('Elapsed time: ' + str(end - start))")
@@ -1376,7 +1456,7 @@ def main():
         calibration_years, reference_years, historical_years, ssp_years, biasCorr_years, bc_method, \
         single_split_testing_years, fold1_testing_years, fold2_testing_years, fold3_testing_years, fold4_testing_years, \
         fold5_testing_years, hresPeriodFilename, reanalysisName, reanalysisPeriodFilename, \
-        historicalPeriodFilename, rcpPeriodFilename, split_mode, grid_res, \
+        historicalPeriodFilename, sspPeriodFilename, split_mode, grid_res, \
         saf_lat_up, saf_lon_left, saf_lon_right, saf_lat_down, model_names_list, scene_names_list, \
         modelRealizationFilename = selectionWindow().get()
     if run == False:
@@ -1389,7 +1469,7 @@ def main():
                         bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
-                        rcpPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
+                        sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename)
 
     write_tmpMain_file(steps)

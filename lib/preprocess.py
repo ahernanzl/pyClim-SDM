@@ -52,11 +52,20 @@ def common():
     Calculate mean and std of all models
     """
 
+    # Warning
+    if experiment == 'PRECONTROL' and split_mode != 'all_training':
+        print('\n----------------------------------------------------------------')
+        print('For PRECONTROL, the whole calibration period must be used')
+        print('If you are runing the graphical interface, select All training at the Dates and Domain menu')
+        print('Otherwise, select split_mode=all_training at config/manual_settings.py')
+        print('----------------------------------------------------------------\n')
+        exit()
+
     # Association between high resolution and low resolution grids, and regions labels.
     for interp_mode in ('nearest', 'bilinear', ):
         grids.association(interp_mode)
 
-    # Calculate indirect predictors for ERA-Interim
+    # Calculate indirect predictors for reanalysis
     if pseudoreality == False:
         derived_predictors.reanalysis_all()
 

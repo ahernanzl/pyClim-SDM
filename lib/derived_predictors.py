@@ -44,16 +44,16 @@ def q2r(level, model='reanalysis', scene='TESTING'):
     # Read data
     if model == 'reanalysis':
         dates = calibration_dates
-        aux = read.one_predictor('t', level=level, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
         times = aux['times']
         idates = [i for i in range(len(times)) if times[i] in dates]
         t = aux['data'][idates]
-        q = read.one_predictor('q', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+        q = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data'][idates]
     else:
-        aux = read.one_predictor('t', level=level, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
         dates = aux['times']
         t = aux['data']
-        q = read.one_predictor('q', level=level, grid='ext', model=model, scene=scene)['data']
+        q = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data']
 
     L = 2.5 * 10 ** 6
     Rv = 461
@@ -92,12 +92,12 @@ def q2Td(level, model='reanalysis', scene='TESTING'):
     if model == 'reanalysis':
         dates = calibration_dates
 
-        aux = read.one_predictor('q', level=level, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
         times = aux['times']
         idates = [i for i in range(len(times)) if times[i] in dates]
         q = aux['data'][idates]
     else:
-        aux = read.one_predictor('q', level=level, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
         dates = aux['times']
         q = aux['data']
 
@@ -123,16 +123,16 @@ def vtg(level0, level1, model='reanalysis', scene='TESTING'):
     if model == 'reanalysis':
         dates = calibration_dates
 
-        aux = read.one_predictor('t', level=level1, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('t', level=level1, grid='ext', model=model, scene=scene)
         times = aux['times']
         idates = [i for i in range(len(times)) if times[i] in dates]
         t_level1 = aux['data'][idates]
-        t_level0 = read.one_predictor('t', level=level0, grid='ext', model=model, scene=scene)['data'][idates]
+        t_level0 = read.one_direct_predictor('t', level=level0, grid='ext', model=model, scene=scene)['data'][idates]
     else:
-        aux = read.one_predictor('t', level=level1, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('t', level=level1, grid='ext', model=model, scene=scene)
         dates = aux['times']
         t_level1 = aux['data']
-        t_level0 = read.one_predictor('t', level=level0, grid='ext', model=model, scene=scene)['data']
+        t_level0 = read.one_direct_predictor('t', level=level0, grid='ext', model=model, scene=scene)['data']
 
     # Calculate GTV
     vtg = t_level0 - t_level1
@@ -163,24 +163,24 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             sufix = 'gsl'
         else:
             dates = calibration_dates
-            aux = read.one_predictor('u', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('u', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
             u = aux['data'][idates]
-            v = read.one_predictor('v', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            v = read.one_direct_predictor('v', level=level, grid='ext', model=model, scene=scene)['data'][idates]
             sufix = str(level)
     else:
         if level == 'sl':
-            ncName = preds_p[list(preds_p.keys())[0]]['modName']
-            dates = read.one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+            ncName = list(preds_p.keys())[0]
+            dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
             aux = geostrophic(model=model, scene=scene)
             u, v = aux['ugsl'], aux['vgsl']
             sufix = 'gsl'
         else:
-            aux = read.one_predictor('u', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('u', level=level, grid='ext', model=model, scene=scene)
             dates = aux['times']
             u = aux['data']
-            v = read.one_predictor('v', level=level, grid='ext', model=model, scene=scene)['data']
+            v = read.one_direct_predictor('v', level=level, grid='ext', model=model, scene=scene)['data']
             sufix = str(level)
 
     # Calculate wind gradients
@@ -219,12 +219,12 @@ def mslp_trend(model='reanalysis', scene='TESTING'):
     # Read data
     if model == 'reanalysis':
         dates = calibration_dates
-        aux = read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)
         times = aux['times']
         idates = [i for i in range(len(times)) if times[i] in dates]
         mslp = aux['data'][idates]
     else:
-        aux = read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)
         dates = aux['times']
         mslp = aux['data']
 
@@ -250,8 +250,8 @@ def insolation(model='reanalysis', scene='TESTING'):
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        ncName = preds_p[list(preds_p.keys())[0]]['modName']
-        dates = read.one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+        ncName = list(preds_p.keys())[0]
+        dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
 
     # Calculate ins
     ins = []
@@ -286,16 +286,16 @@ def geostrophic(model='reanalysis', scene='TESTING'):
     # Read data
     if model == 'reanalysis':
         level = 1000
-        aux = read.one_predictor('t', level=level, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
         times = aux['times']
         idates = [i for i in range(len(times)) if times[i] in calibration_dates]
         dates = calibration_dates
         t1000 = aux['data'][idates]
-        mslp = read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]
+        mslp = read.one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]
         tsl = t1000 / (100000 / mslp) ** (R * alpha / g)
         denssl = mslp / (R * tsl)
     else:
-        aux = read.one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)
+        aux = read.one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)
         dates = aux['times']
         mslp = aux['data']
         denssl = 1.225  # Density

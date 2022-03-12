@@ -96,7 +96,7 @@ hresPeriodFilename = '19510101-20201231'
 reanalysisName = 'ERA5'
 reanalysisPeriodFilename = '19790101-20201231'
 historicalPeriodFilename = '19500101-20141231'
-rcpPeriodFilename = '20150101-21001231'
+sspPeriodFilename = '20150101-21001231'
 
 #############################################  GRIDS  ##################################################################
 grid_res = 1.5

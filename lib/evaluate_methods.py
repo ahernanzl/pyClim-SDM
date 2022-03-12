@@ -330,15 +330,15 @@ def climdex(by_season=True):
                                         bias_palette = palette + '_rel_bias'
 
                                     # Plot obs, est and bias (est-obs) maps
-                                    filename = '_'.join(('EVALUATION', 'obsMap', 'climdex', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'obsMap', 'all', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, 'obs', season))
                                     plot.map(mean_obs, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION', 'estMap', 'climdex', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'estMap', 'all', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, methodName, season))
                                     plot.map(mean_est, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION', 'biasMap', 'climdex', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'biasMap', 'all', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, 'bias', methodName, season))
                                     plot.map(bias, bias_palette, path=pathFigures, filename=filename, title=title)
@@ -361,7 +361,7 @@ def climdex(by_season=True):
                             plt.plot(range(m, M), range(m, M))
                             # if plotAllRegions == False and season == season_dict['ANNUAL']:
 
-                            filename = '_'.join(('EVALUATION', 'scatterPlot', 'climdex', var, climdex_name, methodName,
+                            filename = '_'.join(('EVALUATION', 'scatterPlot', 'all', var, climdex_name, methodName,
                                                  season))
                             title = ' '.join((var.upper(), climdex_name, methodName, season))
                             plt.title(title)
