@@ -223,10 +223,9 @@ class tabSteps(ttk.Frame):
                  'predictors_strength': {'text': 'Predictors strengh', 'info': 'Test the strength of the\n'
                                                                       'predictors/predictand relationships.'},
                  'GCMs_availability': {'text': 'GCMs availability', 'info':  'Check for missing data in predictors by GCMs.',},
-                 'GCMs_evaluation_historical': {'text': 'GCMs evaluation historical', 'info': 'Test the reliability of GCMs in a historical period\n'
-                                                                                    'comparing them with a reanalysis.'},
-                 'GCMs_evaluation_future': {'text': 'GCMs evaluation future', 'info': 'Test the uncertainty in GCMs in the future,\n'
-                                                                            'given by the multimodel spread.'},},
+                 'GCMs_evaluation': {'text': 'GCMs evaluation', 'info': 'Test the reliability of GCMs in a historical period\n'
+                                                                            'comparing them with a reanalysis, and also the\n'
+                                                                            'uncertainty in the future.'},},
 
                  'EVALUATION': {
                  'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
@@ -1401,12 +1400,9 @@ def write_tmpMain_file(steps):
     if 'GCMs_availability' in steps:
         noSteps = False
         f.write("    precontrol.GCMs_availability()\n")
-    if 'GCMs_evaluation_historical' in steps:
+    if 'GCMs_evaluation' in steps:
         noSteps = False
-        f.write("    precontrol.GCMs_evaluation_historical()\n")
-    if 'GCMs_evaluation_future' in steps:
-        noSteps = False
-        f.write("    precontrol.GCMs_evaluation_future()\n")
+        f.write("    precontrol.GCMs_evaluation()\n")
     if 'train_methods' in steps:
         noSteps = False
         f.write("    preprocess.train_methods()\n")
