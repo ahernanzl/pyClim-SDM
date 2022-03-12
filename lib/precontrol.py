@@ -420,3 +420,15 @@ def GCMs_evaluation_future():
                         plt.close()
 
                         iseason += 1
+
+
+########################################################################################################################
+def GCMs_evaluation():
+    """
+    Evaluate GCMs in a historical period and in the future
+    """
+
+    print('GCMs_evaluation...')
+
+    GCMs_evaluation_historical()
+    GCMs_evaluation_future()
