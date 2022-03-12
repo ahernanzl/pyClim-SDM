@@ -81,8 +81,8 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                 preds = preds_p
             elif var[0] == 't':
                 preds = preds_t
-            ncName = preds[list(preds.keys())[0]]['modName']
-            calendar = read.one_predictor(ncName, model=model, scene=scene)['calendar']
+            ncName = list(preds.keys())[0]
+            calendar = read.one_direct_predictor(ncName, model=model, scene=scene)['calendar']
 
             # Auxiliary dates "avail" are defined in case historical projections contain years out of calibration_years
             avail_first_date = max(calibration_first_date, dates[0])
@@ -190,7 +190,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
             periodFilename = historicalPeriodFilename
             scene_dates = historical_dates
         else:
-            periodFilename = rcpPeriodFilename
+            periodFilename = sspPeriodFilename
             scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'

@@ -150,9 +150,9 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
 
 
 ########################################################################################################################
-def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=None):
+def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', scene=None):
     """
-    Reads one predictor from reanalysis or model. The purpose of this function is to avoid defining path, filename,
+    Reads one direct predictor from reanalysis or model. The purpose of this function is to avoid defining path, filename,
     etc., each time a predictor is read, so they can be read easily no matter whether we are using reanalysis or models.
     tmax, tmin and pcp are explicitly defined too because they are used (for RAW, BC, WG...) even if they are not in
     pred_list for TF.
@@ -162,7 +162,6 @@ def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=Non
 
     if level != None:
         predName += str(level)
-
 
     if model == 'reanalysis':
         pathIn = '../input_data/reanalysis/'
@@ -181,7 +180,7 @@ def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=Non
         if scene == 'historical':
             periodFilename = historicalPeriodFilename
         else:
-            periodFilename = rcpPeriodFilename
+            periodFilename = sspPeriodFilename
         pathIn = '../input_data/models/'
         if predName == 'tmax':
             ncVar = 'tasmax'
@@ -202,23 +201,18 @@ def one_predictor(predName, level=None, grid=None, model='reanalysis', scene=Non
 
 
 ########################################################################################################################
-def lres_data(var, field, grid=None, model='reanalysis', scene=None):
+def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=None):
     """
     If no grid is specified, each field will use its own grid. But a grid can be specified so, for example, this
     function can read preds in a saf_grid, or any other combination.
     Possible fields: var, pred, saf
     Possible grids: pred, saf
+    If predName is passed as argument, only that predictor will be read.
     return: data (ndays, npreds, nlats, nlons) and times
     """
 
     # Define variables
     var0 = var[0]
-    if model == 'reanalysis':
-        dates = calibration_dates
-    else:
-        ncName = preds[list(preds.keys())[0]]['modName']
-        dates = np.ndarray.tolist(read.one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times'])
-    ndates = len(dates)
     if field == 'var':
         nvar = 1
     elif field == 'saf':
@@ -231,25 +225,59 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
         if var0 == 't':
             nvar = n_preds_t
             preds = preds_t
+        if predName != None:
+            nvar = 1
+            preds = {predName: preds[predName]}
     else:
         print('field', field, 'not valid.')
         exit()
+
+    # Define dates
+    if model == 'reanalysis':
+        dates = calibration_dates
+    else:
+        ncName = None
+        for aux_pred in all_preds:
+            if all_preds[aux_pred]['modName'] != None:
+                ncName = aux_pred
+                continue
+        if ncName == None:
+            print('At least one predictor must be direct, not derived')
+            exit()
+        level_for_dates = None
+        for aux_level in preds_levels:
+            if str(aux_level) in ncName:
+                level_for_dates = aux_level
+        dates = np.ndarray.tolist(read.one_direct_predictor(ncName, level=level_for_dates, grid='ext', model=model, scene=scene)['times'])
+    ndates = len(dates)
 
     data = np.zeros((nvar, ndates, ext_nlats, ext_nlons))
 
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
-        ncName = preds[list(preds.keys())[0]]['reaName']
-        aux_times = one_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+        ncName = None
+        for aux_pred in all_preds:
+            if all_preds[aux_pred]['reaName'] != None:
+                ncName = aux_pred
+                continue
+        if ncName == None:
+            print('At least one predictor must be direct, not derived')
+            exit()
+        # ncName = list(preds.keys())[0]
+        level_for_dates = None
+        for aux_level in preds_levels:
+            if str(aux_level) in ncName:
+                level_for_dates = aux_level
+        aux_times = one_direct_predictor(ncName, level=level_for_dates, grid='ext', model=model, scene=scene)['times']
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var
         if field == 'var':
             if var[0] == 't':
-                data[0] = one_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15
+                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15
             else:
-                data[0] = 1000 * one_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
+                data[0] = 1000 * one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
 
 
         # pred / saf
@@ -258,16 +286,16 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
 
             # tmax
             if 'tmax' in preds:
-                data[i] = one_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15; i += 1
             # tmin
             if 'tmin' in preds:
-                data[i] = one_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15; i += 1
             # pcp
             if 'pcp' in preds:
-                data[i] = 1000 * one_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = 1000 * one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # mslp
             if 'mslp' in preds:
-                data[i] = one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # mslp_trend
             if 'mslp_trend' in preds:
                 data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'mslp_trend.nc', 'mslp_trend')['data']; i += 1
@@ -277,22 +305,22 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
             # u10, v10
             for var in ('u10', 'v10'):
                 if var in preds:
-                    data[i] = one_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # t2m
             if 't2m' in preds:
-                data[i] = one_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
 
             # u, v, t, z, q (direct predictors)
             for var in ['u', 'v', 't', 'z', 'q']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = one_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # r, td, Dtd, vort, div
             for var in ['r', 'td', 'Dtd', 'vort', 'div']:
                 for level in preds_levels:
                     if var + str(level) in preds:
                         if var == 'Dtd':
-                            t = one_predictor('t', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+                            t = one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)['data'][idates]
                             td = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'td'+str(level)+'.nc', 'td')['data']
                             data[i] = t - td; i += 1
                         else:
@@ -311,25 +339,25 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
         # var
         if field == 'var':
             if var[0] == 't':
-                data[0] = one_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'] - 273.15
+                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'] - 273.15
             else:
-                data[0] = 24 * 60 * 60 * one_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
+                data[0] = 24 * 60 * 60 * one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
 
         # pred / saf
         elif field in ('pred', 'saf'):
             i = 0
             # tmax
             if 'tmax' in preds:
-                data[i] = one_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'] - 273.15; i += 1
             # tmin
             if 'tmin' in preds:
-                data[i] = one_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'] - 273.15; i += 1
             # pcp
             if 'pcp' in preds:
-                data[i] = 24 * 60 * 60 * one_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = 24 * 60 * 60 * one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # mslp
             if 'mslp' in preds:
-                data[i] = one_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # mslp_trend
             if 'mslp_trend' in preds:
                 data[i] = derived_predictors.mslp_trend(model=model,scene=scene); i += 1
@@ -339,24 +367,25 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
             # u10, v10
             for var in ('u', 'v'):
                 if var in preds:
-                    data[i] = one_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # t2m
             if 't2m' in preds:
-                data[i] = one_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
 
             # u, v, t (direct predictors)
             for var in ['u', 'v', 't']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = one_predictor(var, level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data']; i += 1
             # z
             for level in preds_levels:
                 if 'z' + str(level) in preds:
-                    data[i] = (1/9.8) * one_predictor('z', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+                    # data[i] = (1/9.8) * one_direct_predictor('z', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+                    data[i] = one_direct_predictor('z', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
             # q
             for level in preds_levels:
                 if 'q' + str(level) in preds:
-                    data[i] = one_predictor('q', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+                    data[i] = one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
             # r
             for level in preds_levels:
                 if 'r' + str(level) in preds:
@@ -369,7 +398,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None):
             for level in preds_levels:
                 if 'Dtd' + str(level) in preds:
                         td = derived_predictors.q2Td(level, model=model, scene=scene)
-                        t = one_predictor('t', level=level, grid='ext', model=model, scene=scene)['data']
+                        t = one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)['data']
                         data[i] = t - td; i+=1
             # vort, div
             for var in ['vort', 'div']:

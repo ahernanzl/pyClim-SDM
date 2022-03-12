@@ -93,7 +93,7 @@ def models(method_dict, scene, model):
     if scene == 'historical':
         periodFilename = historicalPeriodFilename
     else:
-        periodFilename = rcpPeriodFilename
+        periodFilename = sspPeriodFilename
 
     # check if scene/model exists
     missing_files = False

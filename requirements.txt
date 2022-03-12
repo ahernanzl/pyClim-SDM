@@ -7,6 +7,7 @@ numpy==1.19.5
 pandas==1.2.4
 scikit-learn==1.0.2
 scipy==1.4.1
+seaborn==0.9.0
 Shapely==1.6.4.post2
 statsmodels==0.10.1
 

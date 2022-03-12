@@ -8,7 +8,18 @@ from advanced_settings import *
 
 def main():
 
-    aux_lib.initial_checks()
+    # aux_lib.initial_checks()
+
+    #---------------------- PRECONTROL ---------------------------------------------------------------------------------
+
+    preprocess.preprocess()
+    precontrol.predictors_strength()
+    precontrol.GCMs_availability()
+    precontrol.GCMs_evaluation_historical()
+    precontrol.GCMs_evaluation_future()
+
+    #---------------------- EVALUATION / PROJECTIONS -------------------------------------------------------------------
+
     preprocess.preprocess()
     preprocess.train_methods()
     process.downscale()
@@ -16,6 +27,8 @@ def main():
     postprocess.get_climdex()
     postprocess.plot_results()
     postprocess.nc2ascii()
+
+
 
 if __name__=="__main__":
     start = datetime.datetime.now()

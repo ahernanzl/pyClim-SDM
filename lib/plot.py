@@ -257,7 +257,7 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
     # Create dictionary of all possible palettes
     dict = {}
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
-                        'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
+                        'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
                         'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
     dict.update({'tmax_TXm': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
@@ -427,8 +427,8 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
                           'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
     dict.update({'corrMonth': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.4, 'vmax': 1, 'n_bin': 6,
                                'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'correlation': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10,
-                               'colors': ['r', 'y', 'g'], 'ext': 'min'}})
+    dict.update({'correlation': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 10,
+                               'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
     dict.update({'pearson': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10,
                                'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'spearman': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 10,
@@ -441,6 +441,9 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
     dict.update({'p_r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5,
                         'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'acc': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10, 'colors': ['r', 'y', 'g'], 'ext': 'min'}})
+    dict.update({'perc_nan': {'units': '%', 'bounds': np.array(
+        [0, 1, 2, 5, 10, 20, 30, 40, 50, 100]), 'cmap': 'RdYlGn_r', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'neither'}})
+
     # dict.update({'std_interp_preds': {'units': '', '': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 41, 'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     # dict.update({'abs_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 25, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
     # dict.update({'rel_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -5, 'vmax': 5, 'n_bin': 25, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
@@ -515,17 +518,17 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
     elif grid != None:
         # Read lats lons
         if grid == 'ext':
-            lats, lons, grid_res = ext_lats, ext_lons, ext_grid_res
+            lats, lons, grid_res_local = ext_lats, ext_lons, ext_grid_res
         elif grid == 'saf':
-            lats, lons, grid_res = saf_lats, saf_lons, saf_grid_res
+            lats, lons, grid_res_local = saf_lats, saf_lons, saf_grid_res
         elif grid == 'pred':
-            lats, lons, grid_res = pred_lats, pred_lons, grid_res
+            lats, lons, grid_res_local = pred_lats, pred_lons, grid_res
 
         # Give lats/lons proper format for colormesh function
         lats = np.sort(lats)
         lons = np.sort(lons)
-        lats = np.append(lats, lats[-1] + grid_res) - grid_res / 2
-        lons = np.append(lons, lons[-1] + grid_res) - grid_res / 2
+        lats = np.append(lats, lats[-1] + grid_res_local) - grid_res_local / 2
+        lons = np.append(lons, lons[-1] + grid_res_local) - grid_res_local / 2
 
         # Set map limits
         latmin = np.min(lats)
