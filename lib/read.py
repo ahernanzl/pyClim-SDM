@@ -165,12 +165,8 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
     if model == 'reanalysis':
         pathIn = '../input_data/reanalysis/'
-        if predName == 'tmax':
-            ncVar = 'mx2t'
-        elif predName == 'tmin':
-            ncVar = 'mn2t'
-        elif predName == 'pcp':
-            ncVar = 'tp'
+        if predName in ('tmax', 'tmin', 'pcp'):
+            ncVar = reaNames[predName]
         else:
             for aux_level in preds_levels:
                 predName = predName.replace(str(aux_level), '')
@@ -182,12 +178,8 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
         else:
             periodFilename = sspPeriodFilename
         pathIn = '../input_data/models/'
-        if predName == 'tmax':
-            ncVar = 'tasmax'
-        elif predName == 'tmin':
-            ncVar = 'tasmin'
-        elif predName == 'pcp':
-            ncVar = 'pr'
+        if predName in ('tmax', 'tmin', 'pcp'):
+            ncVar = modNames[predName]
         else:
             for aux_level in preds_levels:
                 predName = predName.replace(str(aux_level), '')
@@ -232,23 +224,17 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
         print('field', field, 'not valid.')
         exit()
 
+    # Define var_aux for dates
+    if var0 == 'p':
+        var_aux = 'pcp'
+    else:
+        var_aux = 'tmax'
+
     # Define dates
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        ncName = None
-        for aux_pred in all_preds:
-            if all_preds[aux_pred]['modName'] != None:
-                ncName = aux_pred
-                continue
-        if ncName == None:
-            print('At least one predictor must be direct, not derived')
-            exit()
-        level_for_dates = None
-        for aux_level in preds_levels:
-            if str(aux_level) in ncName:
-                level_for_dates = aux_level
-        dates = np.ndarray.tolist(read.one_direct_predictor(ncName, level=level_for_dates, grid='ext', model=model, scene=scene)['times'])
+        dates = np.ndarray.tolist(read.one_direct_predictor(var_aux, grid='ext', model=model, scene=scene)['times'])
     ndates = len(dates)
 
     data = np.zeros((nvar, ndates, ext_nlats, ext_nlons))
@@ -256,20 +242,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
-        ncName = None
-        for aux_pred in all_preds:
-            if all_preds[aux_pred]['reaName'] != None:
-                ncName = aux_pred
-                continue
-        if ncName == None:
-            print('At least one predictor must be direct, not derived')
-            exit()
-        # ncName = list(preds.keys())[0]
-        level_for_dates = None
-        for aux_level in preds_levels:
-            if str(aux_level) in ncName:
-                level_for_dates = aux_level
-        aux_times = one_direct_predictor(ncName, level=level_for_dates, grid='ext', model=model, scene=scene)['times']
+        aux_times = one_direct_predictor(var_aux, grid='ext', model=model, scene=scene)['times']
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var

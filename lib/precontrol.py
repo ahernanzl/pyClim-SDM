@@ -32,14 +32,102 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
-def predictors_strength():
+def missing_data_check():
     """
-    Test the strength of the predictors/predictand relationships. It can be used to select the most relevant predictors
+    Check for missing data in predictors by GCMs. It can be used to discard some predictors/levels.
+    """
+
+    print('missing_data_check...')
+
+    # Go through all target variables
+    for var0 in ('t', 'p', ):
+
+        # Define pathTmp
+        pathTmp = '../results/' + experiment + '/missing_data_check/' + var0.upper() + '/'
+        if not os.path.exists(pathTmp):
+            os.makedirs(pathTmp)
+        pathOut = pathFigures
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
+
+        # Define preds
+        if var0 == 'p':
+            preds = preds_p
+        else:
+            preds = preds_t
+        npreds = len(preds)
+        nscenes = len(scene_list)
+        nmodels = len(model_list)
+        nlats = pred_nlats
+        nlons = pred_nlons
+        PERC_NAN = np.zeros((npreds, nscenes, nmodels, nlats, nlons))
+
+        # Go through all predictors, scenes and models
+        for ipred in range(npreds):
+            predName = list(preds.keys())[ipred]
+            iscene = 0
+            for sceneName in scene_list:
+                imodel = 0
+                for model in model_list:
+
+                    # Read data
+                    data = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)['data']
+
+                    # Calculate percentaje of nans
+                    perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
+                    PERC_NAN[ipred, iscene, imodel] = perc_nan
+                    print(var0, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
+
+                    if np.max(perc_nan) != 0:
+                        # Plot map
+                        filename = '_'.join((experiment, 'nansMap', 'daily', var0, predName, model+'-'+sceneName, 'None'))
+                        title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
+                        plot.map(perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
+
+                    imodel += 1
+                iscene += 1
+
+        # Save results
+        np.save(pathTmp+'PERC_NAN', PERC_NAN)
+        PERC_NAN = np.load(pathTmp+'PERC_NAN.npy')
+
+        # Plot heatmaps
+        nscenes = len(scene_names_list)
+        predNames = [list(preds.keys())[i] for i in range(npreds)]
+        modelNames = model_names_list
+
+        # Go through all scenes
+        for iscene in range(nscenes):
+            sceneName = scene_names_list[iscene]
+            matrix = np.mean(PERC_NAN[:, iscene, :].reshape(npreds, nmodels, -1), axis=2).T
+
+            xticklabels = predNames
+            g = sns.heatmap(matrix, annot=True, vmin=0, vmax=100, fmt='.1f',
+                            cbar_kws={'label': '%'},
+                            xticklabels=xticklabels, yticklabels=True, square=True, cmap='RdYlGn_r')
+            g.tick_params(left=False, bottom=False)
+            g.yaxis.set_label_position("right")
+            g.set_yticklabels(modelNames, rotation=0)
+            g.set_xticklabels(predNames, rotation=90)
+            plt.title(sceneName + ' pertentage of NANs')
+            # plt.show()
+            # exit()
+            filename = '_'.join((experiment, 'nansMatrix', 'daily', var0, 'None', sceneName, 'None.png'))
+            plt.savefig(pathOut + filename)
+            plt.close()
+
+
+
+########################################################################################################################
+def predictors_correlation():
+    """
+    Test the correlation of the predictors/predictand relationships. It can be used to select the most relevant predictors
     for the downscaling.
     """
 
-    print('predictors_strength...')
+    print('predictors_correlation...')
 
     # For interpolation
     interp_mode = 'bilinear'
@@ -51,7 +139,7 @@ def predictors_strength():
     for var in ('tmax', 'tmin', 'pcp', ):
 
         # Define pathTmp
-        pathTmp = '../results/' + experiment + '/predictors_strength/' + var.upper() + '/'
+        pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
         if not os.path.exists(pathTmp):
             os.makedirs(pathTmp)
         pathOut = pathFigures
@@ -129,92 +217,6 @@ def predictors_strength():
 
 
 
-########################################################################################################################
-def GCMs_availability():
-    """
-    Check for missing data in predictors by GCMs. It can be used to discard some predictors/levels.
-    """
-
-    print('GCMs_availability...')
-
-    # Go through all target variables
-    for var0 in ('t', 'p', ):
-
-        # Define pathTmp
-        pathTmp = '../results/' + experiment + '/GCMs_availability/' + var0.upper() + '/'
-        if not os.path.exists(pathTmp):
-            os.makedirs(pathTmp)
-        pathOut = pathFigures
-        if not os.path.exists(pathOut):
-            os.makedirs(pathOut)
-
-        # Define preds
-        if var0 == 'p':
-            preds = preds_p
-        else:
-            preds = preds_t
-        npreds = len(preds)
-        nscenes = len(scene_list)
-        nmodels = len(model_list)
-        nlats = pred_nlats
-        nlons = pred_nlons
-        PERC_NAN = np.zeros((npreds, nscenes, nmodels, nlats, nlons))
-
-        # Go through all predictors, scenes and models
-        for ipred in range(npreds):
-            predName = list(preds.keys())[ipred]
-            iscene = 0
-            for sceneName in scene_list:
-                imodel = 0
-                for model in model_list:
-
-                    # Read data
-                    data = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)['data']
-
-                    # Calculate percentaje of nans
-                    perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
-                    PERC_NAN[ipred, iscene, imodel] = perc_nan
-                    print(var0, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
-
-                    if np.max(perc_nan) != 0:
-                        # Plot map
-                        filename = '_'.join((experiment, 'nansMap', 'daily', var0, predName, model+'-'+sceneName, 'None'))
-                        title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
-                        plot.map(perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
-
-                    imodel += 1
-                iscene += 1
-
-        # Save results
-        np.save(pathTmp+'PERC_NAN', PERC_NAN)
-        PERC_NAN = np.load(pathTmp+'PERC_NAN.npy')
-
-        # Plot heatmaps
-        nscenes = len(scene_names_list)
-        predNames = [list(preds.keys())[i] for i in range(npreds)]
-        modelNames = model_names_list
-
-        # Go through all scenes
-        for iscene in range(nscenes):
-            sceneName = scene_names_list[iscene]
-            matrix = np.mean(PERC_NAN[:, iscene, :].reshape(npreds, nmodels, -1), axis=2).T
-
-            xticklabels = predNames
-            g = sns.heatmap(matrix, annot=True, vmin=0, vmax=100, fmt='.1f',
-                            cbar_kws={'label': '%'},
-                            xticklabels=xticklabels, yticklabels=True, square=True, cmap='RdYlGn_r')
-            g.tick_params(left=False, bottom=False)
-            g.yaxis.set_label_position("right")
-            g.set_yticklabels(modelNames, rotation=0)
-            g.set_xticklabels(predNames, rotation=90)
-            plt.title(sceneName + ' pertentage of NANs')
-            # plt.show()
-            # exit()
-            filename = '_'.join((experiment, 'nansMatrix', 'daily', var0, 'None', sceneName, 'None.png'))
-            plt.savefig(pathOut + filename)
-            plt.close()
-
-
 
 ########################################################################################################################
 def GCMs_evaluation_historical():
@@ -267,9 +269,10 @@ def GCMs_evaluation_historical():
                     model = model_list[imodel]
 
                     # Read model
+                    ncVar = modNames[var]
                     calendar = read.netCDF('../input_data/models/',
-                                           'psl_' + model + '_' + sceneName + '_' + modelRealizationFilename + '_' +
-                                           historicalPeriodFilename + '.nc', 'psl')['calendar']
+                                           ncVar + '_' + model + '_' + sceneName + '_' + modelRealizationFilename + '_' +
+                                           historicalPeriodFilename + '.nc', ncVar)['calendar']
                     aux = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)
                     scene_dates = aux['times']
                     if calendar == '360':

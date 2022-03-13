@@ -220,9 +220,9 @@ class tabSteps(ttk.Frame):
                                                                    'resolution grid, calculation of derived predictors, \n'
                                                                    'standardization of predictors, training/testing split \n'
                                                                    'and weather types clustering.'},
-                 'predictors_strength': {'text': 'Predictors strengh', 'info': 'Test the strength of the\n'
+                 'missing_data_check': {'text': 'Missing data check', 'info':  'Check for missing data in predictors by GCMs.',},
+                 'predictors_correlation': {'text': 'Predictors correlation', 'info': 'Test the strength of the\n'
                                                                       'predictors/predictand relationships.'},
-                 'GCMs_availability': {'text': 'GCMs availability', 'info':  'Check for missing data in predictors by GCMs.',},
                  'GCMs_evaluation': {'text': 'GCMs evaluation', 'info': 'Test the reliability of GCMs in a historical period\n'
                                                                             'comparing them with a reanalysis, and also the\n'
                                                                             'uncertainty in the future.'},},
@@ -1394,12 +1394,12 @@ def write_tmpMain_file(steps):
     if 'preprocess' in steps:
         noSteps = False
         f.write("    preprocess.preprocess()\n")
-    if 'predictors_strength' in steps:
+    if 'missing_data_check' in steps:
         noSteps = False
-        f.write("    precontrol.predictors_strength()\n")
-    if 'GCMs_availability' in steps:
+        f.write("    precontrol.missing_data_check()\n")
+    if 'predictors_correlation' in steps:
         noSteps = False
-        f.write("    precontrol.GCMs_availability()\n")
+        f.write("    precontrol.predictors_correlation()\n")
     if 'GCMs_evaluation' in steps:
         noSteps = False
         f.write("    precontrol.GCMs_evaluation()\n")

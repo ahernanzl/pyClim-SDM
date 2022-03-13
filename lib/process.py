@@ -81,93 +81,74 @@ def models(method_dict, scene, model):
 
     pathOut = '../results/'+experiment+'/'
 
-    if var[0] == 't':
-        preds = preds_t
-    else:
-        preds = preds_p
-    preds_modNames = [preds[x]['modName'] for x in preds]
-
     if experiment == 'PSEUDOREALITY':
         pathOut += 'pseudoreality_' + GCM_longName + '_' + RCM + '/'
 
-    if scene == 'historical':
-        periodFilename = historicalPeriodFilename
+    # Check if scene/model has already been processed
+    if os.path.isfile(pathOut + var.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc'):
+        print('-------------------------------')
+        print(var, scene, model, methodName, 'Already processed')
     else:
-        periodFilename = sspPeriodFilename
-
-    # check if scene/model exists
-    missing_files = False
-    for pred_modName in preds_modNames:
-        if not os.path.isfile('../input_data/models/'+pred_modName+'_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'):
-            missing_files = True
-    if missing_files == True:
-        print(scene, model, 'Does not exist or there is at least one missing file.')
-    else:
-        # Check if scene/model has already been processed
-        if os.path.isfile(pathOut + var.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc'):
+        # Serial processing
+        if running_at_HPC == False:
             print('-------------------------------')
-            print(scene, model, methodName, 'Already processed')
-        else:
-            # Serial processing
-            if running_at_HPC == False:
-                print('-------------------------------')
-                print(scene, model, methodName, 'Processing')
-                if family == 'ANA':
-                    down_scene_ANA.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                    down_scene_ANA.collect_chunks(var, methodName, family, mode, fields, scene, model)
-                elif family == 'TF':
-                    down_scene_TF.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                    down_scene_TF.collect_chunks(var, methodName, family, mode, fields, scene, model)
-                elif family == 'RAW':
-                    down_scene_RAW.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                    down_scene_RAW.collect_chunks(var, methodName, family, mode, fields, scene, model)
-                elif family == 'BC':
-                    down_scene_BC.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                    down_scene_BC.collect_chunks(var, methodName, family, mode, fields, scene, model)
-                elif family == 'WG':
-                    down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                    down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            print(var, scene, model, methodName, 'Processing')
+            if family == 'ANA':
+                down_scene_ANA.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_ANA.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            elif family == 'TF':
+                down_scene_TF.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_TF.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            elif family == 'RAW':
+                down_scene_RAW.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_RAW.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            elif family == 'BC':
+                down_scene_BC.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_BC.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            elif family == 'WG':
+                down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
 
-            # Parallel processing
-            elif running_at_HPC == True:
-                while 1:
-                    # Check for error files, save them and kill erroneous jobs
-                    for file in os.listdir('../job/'):
-                        if file.endswith(".err"):
-                            filename = os.path.join('../job/', file)
-                            filesize = os.path.getsize(filename)
-                            if filesize != 0:
-                                jobid = filename.split('/')[-1].split('.')[0]
-                                print('-----------------------')
-                                print(filename, filesize)
-                                os.system('mv ' + filename + ' ../job/err/')
-                                os.system('mv ' + filename[:-3]+'out ../job/err/')
-                                os.system('scancel ' + str(jobid))
+        # Parallel processing
+        elif running_at_HPC == True:
+            while 1:
+                # Check for error files, save them and kill erroneous jobs
+                for file in os.listdir('../job/'):
+                    if file.endswith(".err"):
+                        filename = os.path.join('../job/', file)
+                        filesize = os.path.getsize(filename)
+                        if filesize != 0:
+                            jobid = filename.split('/')[-1].split('.')[0]
+                            print('-----------------------')
+                            print(filename, filesize)
+                            os.system('mv ' + filename + ' ../job/err/')
+                            os.system('mv ' + filename[:-3]+'out ../job/err/')
+                            os.system('scancel ' + str(jobid))
 
-                    # Check for correctly finished jobs
-                    for file in os.listdir('../job/'):
-                        if file.endswith(".out"):
-                            filename=os.path.join('../job/', file)
-                            if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
-                                print('-----------------------')
-                                print(filename, 'end')
-                                os.system('mv ' + filename + ' ../job/out/')
-                                os.system('mv ' + filename[:-3] + 'err ../job/out/')
+                # Check for correctly finished jobs
+                for file in os.listdir('../job/'):
+                    if file.endswith(".out"):
+                        filename=os.path.join('../job/', file)
+                        if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
+                            print('-----------------------')
+                            print(filename, 'end')
+                            os.system('mv ' + filename + ' ../job/out/')
+                            os.system('mv ' + filename[:-3] + 'err ../job/out/')
 
-                    # Check number of living jobs
-                    os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
-                    f = open('../log/nJobs.txt', 'r')
-                    nJobs = int(f.read()) - 1
-                    f.close()
-                    time.sleep(1)
-                    if nJobs < max_nJobs:
-                        print('nJobs', nJobs)
-                        print('-------------------------------')
-                        print(scene, model, methodName, 'Processing')
-                        break
+                # Check number of living jobs
+                os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
+                f = open('../log/nJobs.txt', 'r')
+                nJobs = int(f.read()) - 1
+                f.close()
+                time.sleep(1)
+                if nJobs < max_nJobs:
+                    print('nJobs', nJobs)
+                    print('-------------------------------')
+                    print(var, scene, model, methodName, 'Processing')
+                    break
 
-                # Send new job
-                launch_jobs.process(var, methodName, family, mode, fields, scene, model)
+            # Send new job
+            launch_jobs.process(var, methodName, family, mode, fields, scene, model)
 
 ########################################################################################################################
 def downscale():

@@ -9,6 +9,7 @@ to experiment=EVALUATION and using the default sets of predictors.
 This will allow you to get familiar with pyClim-SDM with no need from your side to prepare any input data.
 
 In order to use your own datasets, spatial domain, etc., prepare your input_data directory as explained hereafter.
+Beware tmax, tmin and pcp by reanalysis/GCMs are mandatory files.
 
 
 # hres/

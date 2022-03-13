@@ -194,8 +194,9 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
             scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
-        filename = 'psl_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'
-        model_dates = np.ndarray.tolist(read.netCDF(path, filename, 'psl',)['times'])
+        ncVar = modNames[var]
+        filename = ncVar + '_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'
+        model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
         model_dates = [x for x in model_dates if x.year >= scene_dates[0].year and x.year <= scene_dates[-1].year]
 
     # Create empty array and accumulate results
