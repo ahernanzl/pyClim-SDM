@@ -69,7 +69,7 @@ requirements.txt. Install them by executing: **pip install -r requirements.txt**
 - When working in a HPC, define partition name at config/advanced_settings.py and tune jobs specifications at lib/launch_jobs.py.
 
 # References
-
+ 
 - Amblar-Francés, P., Casado-Calle, M.J., Pastor-Saavedra, M.A., Ramos-Calzado, P., and Rodríguez-Camino, E. (2017). Guía de escenarios regionalizados de cambio climático sobre España a partir de los resultados del IPCC-AR5. Available at: https://www.aemet.es/documentos/es/conocermas/recursos_en_linea/publicaciones_y_estudios/publicaciones/Guia_escenarios_AR5/Guia_escenarios_AR5.pdf
 
 - Benestad, R.E. (2021) A Norwegian approach to downscaling. Geoscientific Model Development Discussion (in review). https://doi.org/10.5194/gmd-2021-176. 
