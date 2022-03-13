@@ -47,13 +47,17 @@ def get_mean_and_std_allModels(var0, grid):
         os.makedirs(pathOut)
 
     # Read low resolution data from reanalysis
+    if var0 == 'p':
+        var_aux = 'pcp'
+    else:
+        var_aux = 'tmax'
     if pseudoreality == True:
-        aux = read.lres_data(var0, grid, model=GCM_shortName, scene=scene)
+        aux = read.lres_data(var_aux, grid, model=GCM_shortName, scene=scene)
         dates = aux['times']
         data = aux['data']
     else:
         dates = calibration_dates
-        data = read.lres_data(var0, grid)['data']
+        data = read.lres_data(var_aux, grid)['data']
 
     # Selects standardization period
     time_first, time_last=dates.index(reference_first_date),dates.index(reference_last_date)+1
@@ -69,7 +73,7 @@ def get_mean_and_std_allModels(var0, grid):
     expected_models = []
     for model in model_list:
         if model != 'reanalysis':
-            if os.path.isfile('../input_data/models/psl_' + model + '_' + scene + '_' + modelRealizationFilename + '_' +
+            if os.path.isfile('../input_data/models/'+modNames[var_aux]+'_' + model + '_' + scene + '_' + modelRealizationFilename + '_' +
                               periodFilename + '.nc'):
                 print('get_mean_and_std', var0, grid, scene, model)
 
@@ -141,12 +145,18 @@ def get_mean_and_std_allModels(var0, grid):
 def get_mean_and_std_oneModel(var0, grid, model, scene):
 
     pathOut = pathAux+'STANDARDIZATION/'+grid.upper()+'/'+var0.upper()+'/'
+    print('get_mean_and_std_oneModel', var0, grid, model, scene)
 
     # Read data and times from model/scene
     aux = read.lres_data(var0, grid, model=model, scene=scene)
     scene_dates = aux['times']
-    calendar = read.netCDF('../input_data/models/', 'psl_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+
-               historicalPeriodFilename+ '.nc', 'psl')['calendar']
+
+    if var0 == 'p':
+        ncVar = modNames['pcp']
+    else:
+        ncVar = modNames['tmax']
+    calendar = read.netCDF('../input_data/models/', ncVar + '_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+
+               historicalPeriodFilename+ '.nc', ncVar)['calendar']
 
     if calendar == '360':
         time_first, time_last = scene_dates.index(reference_first_date), -1

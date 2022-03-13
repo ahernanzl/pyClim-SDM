@@ -8,15 +8,15 @@ from advanced_settings import *
 
 def main():
 
-    # aux_lib.initial_checks()
+    #---------------------- INITIAL CHECKS ---------------------------------------------------------------------------------
+    aux_lib.initial_checks()
 
     #---------------------- PRECONTROL ---------------------------------------------------------------------------------
 
     preprocess.preprocess()
-    precontrol.predictors_strength()
-    precontrol.GCMs_availability()
-    precontrol.GCMs_evaluation_historical()
-    precontrol.GCMs_evaluation_future()
+    precontrol.missing_data_check()
+    precontrol.predictors_correlation()
+    precontrol.GCMs_evaluation()
 
     #---------------------- EVALUATION / PROJECTIONS -------------------------------------------------------------------
 
