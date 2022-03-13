@@ -345,6 +345,8 @@ else:
     running_at_HPC, HPC_partition = False, 'enterPartitionName'
 if running_at_HPC == True:
     from mpi4py import MPI
+if running_at_HPC == False:
+    from mpl_toolkits.basemap import Basemap
 
 # ####################  COLORS AND STYLES    #####################################################
 t_methods_colors = {
