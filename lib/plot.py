@@ -442,7 +442,7 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
                         'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'acc': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10, 'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'perc_nan': {'units': '%', 'bounds': np.array(
-        [0, 1, 2, 5, 10, 20, 30, 40, 50, 100]), 'cmap': 'RdYlGn_r', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'neither'}})
+        [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]), 'cmap': 'RdYlGn_r', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'neither'}})
 
     # dict.update({'std_interp_preds': {'units': '', '': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 41, 'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     # dict.update({'abs_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 25, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})

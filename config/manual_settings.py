@@ -1,5 +1,12 @@
 showWelcomeMessage = True # For graphical mode
 
+
+########################################       EXPERIMENT      #########################################################
+# Select your current experiment type
+# experiment = 'PRECONTROL'
+experiment = 'EVALUATION'
+# experiment = 'PROJECTIONS'
+
 ####################################################################################################################
 #                                        METHODS                                                                   #
 ####################################################################################################################
@@ -57,12 +64,6 @@ methods.append({'var': 'pcp', 'methodName': 'GLM-LIN',      'family': 'TF',     
 methods.append({'var': 'pcp', 'methodName': 'WG-NMM',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 # methods.append({'var': 'pcp', 'methodName': 'WG-PDF',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
-
-########################################       EXPERIMENT      #########################################################
-# Select your current experiment type
-# experiment = 'PRECONTROL'
-experiment = 'EVALUATION'
-# experiment = 'PROJECTIONS'
 
 ########################################       DATES      ##############################################################
 # calibration_years corresponds to the longest period available, which then can be split for training and testing
