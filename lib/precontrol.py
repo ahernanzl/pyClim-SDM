@@ -98,15 +98,24 @@ def missing_data_check():
         predNames = [list(preds.keys())[i] for i in range(npreds)]
         modelNames = model_names_list
 
+        # Define colors and units for heatmap
+        cmap = 'RdYlGn_r'
+        bounds = [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]
+        units = '%'
+        norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
+        cmap = plt.get_cmap(cmap)
+
         # Go through all scenes
         for iscene in range(nscenes):
             sceneName = scene_names_list[iscene]
             matrix = np.mean(PERC_NAN[:, iscene, :].reshape(npreds, nmodels, -1), axis=2).T
 
             xticklabels = predNames
-            g = sns.heatmap(matrix, annot=True, vmin=0, vmax=100, fmt='.1f',
-                            cbar_kws={'label': '%'},
-                            xticklabels=xticklabels, yticklabels=True, square=True, cmap='RdYlGn_r')
+            g = sns.heatmap(matrix, annot=True, vmin=0, vmax=100, fmt='.2f',
+                            cmap=cmap, norm=norm, cbar_kws={'label': units, 'ticks': bounds,
+                                                            # 'format':'%.2f%%'
+                                                            },
+                            xticklabels=xticklabels, yticklabels=True, square=True)
             g.tick_params(left=False, bottom=False)
             g.yaxis.set_label_position("right")
             g.set_yticklabels(modelNames, rotation=0)
