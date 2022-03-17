@@ -39,7 +39,7 @@ def annual_cycle():
     """
 
 
-    for VAR in ('pcp', 'tmax', 'tmin', ):
+    for VAR in target_vars:
 
         nmethods = len([x for x in methods if x['var'] == VAR])
 

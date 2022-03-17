@@ -214,10 +214,10 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     elif field == 'pred':
         if var0 == 'p':
             nvar = n_preds_p
-            preds = preds_p
+            preds = preds_dict['p']
         if var0 == 't':
             nvar = n_preds_t
-            preds = preds_t
+            preds = preds_dict['t']
         if predName != None:
             nvar = 1
             preds = {predName: preds[predName]}
@@ -229,7 +229,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     if var0 == 'p':
         var_aux = 'pcp'
     else:
-        var_aux = 'tmax'
+        var_aux = [x for x in target_vars if x[0]=='t'][0]
 
     # Define dates
     if model == 'reanalysis':

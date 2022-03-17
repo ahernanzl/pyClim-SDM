@@ -178,6 +178,77 @@ shortTermPeriodFilename = str(shortTerm_years[0]) + '-' + str(shortTerm_years[1]
 longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 
+
+###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
+
+# Build saf_dict
+saf_dict = {}
+for pred in saf_list:
+    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+    if key in reaNames:
+        reaName = reaNames[key]
+        modName = modNames[key]
+    else:
+        reaName = None
+        modName = None
+    saf_dict.update({pred: {'reaName': reaName, 'modName': modName, 'w': 1}})
+nsaf = len(saf_dict)
+
+###########################################   PREDICTORS  ###############################################################
+
+preds_dict = {'t': {}, 'p': {}}
+
+# Build preds_t
+for pred in preds_t_list:
+    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+    if key in reaNames:
+        reaName = reaNames[key]
+        modName = modNames[key]
+    else:
+        reaName = None
+        modName = None
+    preds_dict['t'].update({pred: {'reaName': reaName, 'modName': modName}})
+
+# Build preds_p
+for pred in preds_p_list:
+    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+    if key in reaNames:
+        reaName = reaNames[key]
+        modName = modNames[key]
+    else:
+        reaName = None
+        modName = None
+    preds_dict['p'].update({pred: {'reaName': reaName, 'modName': modName}})
+n_preds_t, n_preds_p = len(preds_dict['t'].keys()), len(preds_dict['p'].keys())
+all_preds = {**preds_dict['t'], **preds_dict['p'], **saf_dict}
+
+preds_levels = []
+for level in [1000, 850, 700, 500, 250]:
+    for pred in all_preds:
+        if str(level) in pred:
+            preds_levels.append(level)
+preds_levels = list(dict.fromkeys(preds_levels))
+
+if 'pcp' in all_preds.keys():
+    print('---------------------------------------------------------------')
+    print('CAUTION: predictors will be standardized, and precipitation should not be mixed with other predictors and used that way.')
+    print('---------------------------------------------------------------')
+
+# Detect target_vars0 depending on selected predictors
+target_vars0 = []
+if n_preds_t != 0:
+    target_vars0.append('t')
+if n_preds_p != 0:
+    target_vars0.append('p')
+
+# Detect target_vars depending on selected methods
+target_vars = []
+for var in ('tmax', 'tmin', 'pcp'):
+    for method in methods:
+        if method['var'] == var and 'var' in method['fields'] and var not in target_vars:
+            target_vars.append(var)
+
+
 #############################################  GRIDS  ##################################################################
 
 target_type = 'gridded_data'
@@ -194,7 +265,7 @@ hres_npoints = aux_hres_metadata.shape[0]
 hres_lats, hres_lons = aux_hres_metadata[:, 2], aux_hres_metadata[:, 1]
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
-nc = Dataset('../input_data/reanalysis/' + reaNames['tmax']+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
+nc = Dataset('../input_data/reanalysis/' + reaNames[target_vars[0]]+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
 if 'lat' in nc.variables:
     lat_name, lon_name = 'lat', 'lon'
 elif 'latitude' in nc.variables:
@@ -226,7 +297,6 @@ saf_ilats = [i for i in range(ext_nlats) if ext_lats[i] in saf_lats]
 saf_ilons = [i for i in range(ext_nlons) if ext_lons[i] in saf_lons]
 
 # Check that hres_points are fully contained in the defined domain
-print(saf_lons[saf_lons <= np.min(hres_lons)].size)
 if saf_lats[saf_lats >= np.max(hres_lats)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats)].size == 0 or \
         saf_lons[saf_lons >= np.max(hres_lons)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons)].size == 0:
     print('hres_points are not fully contained inside the domain defined for Synoptic Analogy Fields')
@@ -245,22 +315,7 @@ pred_lons = np.linspace(pred_lon_left, pred_lon_right, pred_nlons)
 pred_ilats = [i for i in range(ext_nlats) if ext_lats[i] in pred_lats]
 pred_ilons = [i for i in range(ext_nlons) if ext_lons[i] in pred_lons]
 
-###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
-
-# Build saf_dict
-saf_dict = {}
-for pred in saf_list:
-    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
-    if key in reaNames:
-        reaName = reaNames[key]
-        modName = modNames[key]
-    else:
-        reaName = None
-        modName = None
-    saf_dict.update({pred: {'reaName': reaName, 'modName': modName, 'w': 1}})
-
-nsaf = len(saf_dict)
-
+##################################      SAF WEIGHTS         ############################################################
 # Create W_saf (weights for synoptic analogy fields).Do not change
 W_saf = np.ones((nsaf, saf_nlats, saf_nlons))
 i = 0
@@ -269,56 +324,6 @@ for saf in saf_dict:
     i += 1
 W_saf = W_saf.flatten()
 
-
-###########################################   PREDICTORS  ###############################################################
-
-
-# Build preds_t
-preds_t = {}
-for pred in preds_t_list:
-    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
-    if key in reaNames:
-        reaName = reaNames[key]
-        modName = modNames[key]
-    else:
-        reaName = None
-        modName = None
-    preds_t.update({pred: {'reaName': reaName, 'modName': modName}})
-
-# Build preds_p
-preds_p = {}
-for pred in preds_p_list:
-    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
-    if key in reaNames:
-        reaName = reaNames[key]
-        modName = modNames[key]
-    else:
-        reaName = None
-        modName = None
-    preds_p.update({pred: {'reaName': reaName, 'modName': modName}})
-
-
-n_preds_t, n_preds_p = len(preds_t.keys()), len(preds_p.keys())
-target_vars0 = []
-if n_preds_t != 0:
-    target_vars0.append('t')
-if n_preds_p != 0:
-    target_vars0.append('p')
-
-
-all_preds = {**preds_t, **preds_p, **saf_dict}
-
-preds_levels = []
-for level in [1000, 850, 700, 500, 250]:
-    for pred in all_preds:
-        if str(level) in pred:
-            preds_levels.append(level)
-preds_levels = list(dict.fromkeys(preds_levels))
-
-if 'pcp' in all_preds.keys():
-    print('---------------------------------------------------------------')
-    print('CAUTION: predictors will be standardized, and precipitation should not be mixed with other predictors and used that way.')
-    print('---------------------------------------------------------------')
 
 ###################################     SCENES AND MODELS    ###########################################################
 scene_names_dict = {}
