@@ -104,7 +104,7 @@ grid_res = 1.5
 
 # saf grid (for synoptic analogy). All files (reanalysis and models) need to contain at least this region plus one grid box border.
 saf_lat_up, saf_lat_down =  49.0, 29.5
-saf_lon_left, saf_lon_rightsaf_lon_left, saf_lon_right = -18.0, 12.0
+saf_lon_left, saf_lon_right = -18.0, 12.0
 
 
 ###########################################   PREDICTORS  ##############################################################
