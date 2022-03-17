@@ -16,7 +16,7 @@ Beware tmax, tmin and pcp by reanalysis/GCMs are mandatory files.
 
 This folder must contain predictands information with the following format:
 
-- hres_metadata.txt: one row per grid point with four columns: id, lon, lat, h. 
+- hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
 - tmax_$hresPeriodFilename.txt
 - tmin_$hresPeriodFilename.txt
 - pcp_$hresPeriodFilename.txt 
@@ -37,6 +37,7 @@ follow the following format: $var_$reanalysisName_$reanalysisPeriodFilename.nc
 
 Example: t_ERA5_19790101-20201231.nc ...
 
+Tmax/tmin/pcp in low resolution given by the reanalysis are mandatory files
 
 
 
