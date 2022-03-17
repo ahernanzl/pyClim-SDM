@@ -42,7 +42,7 @@ def missing_data_check():
     print('missing_data_check...')
 
     # Go through all target variables
-    for var0 in ('t', 'p', ):
+    for var0 in target_vars0:
 
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/missing_data_check/' + var0.upper() + '/'
@@ -53,10 +53,7 @@ def missing_data_check():
             os.makedirs(pathOut)
 
         # Define preds
-        if var0 == 'p':
-            preds = preds_p
-        else:
-            preds = preds_t
+        preds = preds_dict[var0]
         npreds = len(preds)
         nscenes = len(scene_list)
         nmodels = len(model_list)
@@ -145,7 +142,7 @@ def predictors_correlation():
     w_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/w_4nn.npy')
 
     # Go through all target variables
-    for var in ('tmax', 'tmin', 'pcp', ):
+    for var in target_vars:
 
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
@@ -159,10 +156,7 @@ def predictors_correlation():
         obs = read.hres_data(var, period='calibration')['data']
 
         # Define preds
-        if var == 'pcp':
-            preds = preds_p
-        else:
-            preds = preds_t
+        preds = preds_dict[var[0]]
         npreds = len(preds)
 
         # Go through all seasons
@@ -250,10 +244,7 @@ def GCMs_evaluation_historical():
             os.makedirs(pathOut)
 
         # Define preds
-        if var0 == 'p':
-            preds = preds_p
-        else:
-            preds = preds_t
+        preds = preds_dict[var0]
         npreds = len(preds)
         nmodels = len(model_list)
         nlats = pred_nlats
@@ -370,10 +361,7 @@ def GCMs_evaluation_future():
             os.makedirs(pathOut)
 
         # Define preds
-        if var0 == 'p':
-            preds = preds_p
-        else:
-            preds = preds_t
+        preds = preds_dict[var0]
         npreds = len(preds)
 
         # Go through all predictors

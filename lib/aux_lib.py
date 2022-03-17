@@ -60,18 +60,15 @@ def initial_checks():
         else:
             exit()
 
-    # Detect needed_preds
-    needed_preds = []
-    for var in ('tmax', 'tmin', 'pcp'):
-        for method in methods:
-            if method['var'] == var and var not in needed_preds:
-                needed_preds.append(var[0])
-    if 't' in needed_preds and len(preds_t_list) == 0:
-        print('\nAt least one predictor must be selected for Maximum and Minimum Temeperature')
-        exit()
-    if 'p' in needed_preds and len(preds_p_list) == 0:
-        print('\nAt least one predictor must be selected for Precipitation')
-        exit()
+    # Check for consistency between predictors and methods
+    for var in ('tmax', 'tmin', 'pcp', ):
+        if var in target_vars and var[0] not in target_vars0:
+            print('-----------------------------------------------')
+            print('Inconsistency found between preditors and methods selection.')
+            print('Your selection includes some methods for '+ var + ' but no predictor has been selected')
+            exit()
+
+    # Force to define at least one synoptic analogy field
     if len(saf_list) == 0:
         print('\nAt least one field must be selected for Synoptic Analogy Fields')
         exit()

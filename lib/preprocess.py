@@ -62,7 +62,7 @@ def common():
 
     # Calculates mean and std for all predictors both at reanalysis and models (standardization period)
     for grid in ('pred', 'saf', ):
-        for var0 in ('t', 'p', ):
+        for var0 in target_vars0:
             print(grid, var0, 'get_mean_and_std_allModels')
             standardization.get_mean_and_std_allModels(var0, grid)
     if running_at_HPC == True:
@@ -82,15 +82,8 @@ def common_fold_dependent():
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
-    # Detect needed_vars
-    needed_vars = []
-    for var in ('tmax', 'tmin', 'pcp'):
-        for method in methods:
-            if method['var'] == var and 'var' in method['fields'] and var not in needed_vars:
-                needed_vars.append(var)
-
     # Split train/test var
-    for var in needed_vars:
+    for var in target_vars:
         print('train/test split', var)
 
         # Reanalysis
@@ -122,7 +115,7 @@ def common_fold_dependent():
     # Standarizes ERA-Int predictors and saves them to files divided by training and testing
     # This is done for the two grids: pred and saf
     for grid in ('saf', 'pred', ):
-        for var0 in ('p', 't', ):
+        for var0 in target_vars0:
             print(grid, var0, 'standardize and split train/test')
 
             # Reanalysis

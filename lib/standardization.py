@@ -50,7 +50,7 @@ def get_mean_and_std_allModels(var0, grid):
     if var0 == 'p':
         var_aux = 'pcp'
     else:
-        var_aux = 'tmax'
+        var_aux = [x for x in target_vars if x[0] == 't'][0]
     if pseudoreality == True:
         aux = read.lres_data(var_aux, grid, model=GCM_shortName, scene=scene)
         dates = aux['times']
@@ -154,7 +154,8 @@ def get_mean_and_std_oneModel(var0, grid, model, scene):
     if var0 == 'p':
         ncVar = modNames['pcp']
     else:
-        ncVar = modNames['tmax']
+        var_aux = [x for x in target_vars if x[0] == 't'][0]
+        ncVar = modNames[var_aux]
     calendar = read.netCDF('../input_data/models/', ncVar + '_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+
                historicalPeriodFilename+ '.nc', ncVar)['calendar']
 

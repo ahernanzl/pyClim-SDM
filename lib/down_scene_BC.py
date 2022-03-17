@@ -78,9 +78,9 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             dates = aux['times']
             var_calib = aux['data']
             if var[0] == 'p':
-                preds = preds_p
+                preds = preds_dict['p']
             elif var[0] == 't':
-                preds = preds_t
+                preds = preds_dict['t']
             ncName = list(preds.keys())[0]
             calendar = read.one_direct_predictor(ncName, model=model, scene=scene)['calendar']
 

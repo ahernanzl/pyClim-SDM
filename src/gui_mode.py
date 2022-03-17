@@ -527,10 +527,10 @@ class tabPredictors(ttk.Frame):
 
             if block == 't':
                 title = 'Maximum / Minimum Temperature'
-                pred_dictIn = preds_t
+                pred_dictIn = preds_dict['t']
             elif block == 'p':
                 title = 'Precipitation'
-                pred_dictIn = preds_p
+                pred_dictIn = preds_dict['p']
             else:
                 title = 'Synoptic Analogy Fields'
                 pred_dictIn = saf_dict
