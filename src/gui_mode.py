@@ -135,7 +135,7 @@ class welcomeMessage(ttk.Frame):
             frameLogo.grid(column=0, row=0, padx=0)
 
             # Logo
-            Label(root, text='', borderwidth=0).grid(sticky="SE", column=0, row=0, pady=0)
+            Label(root, text='', borderwidth=0, background=None).grid(sticky="SE", column=0, row=0, pady=0)
             w = 800
             img = Image.open("../doc/pyClim-SDM_logo.png")
             h = int(w * img.height / img.width)
@@ -361,7 +361,7 @@ class tabMethods(ttk.Frame):
                 icol, irow, variable = 2, 0, 'Minimum Temperature'
 
             ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=40, pady=0); icol+=1; irow+=1
-            ttk.Label(tabMethods, text=variable, font=Font(weight="bold"))\
+            ttk.Label(tabMethods, text=variable)\
                 .grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4); irow+=1
 
             # Raw
@@ -412,7 +412,7 @@ class tabMethods(ttk.Frame):
         icol, irow, variable = 5, 0, 'Precipitation'
 
         ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=5); irow+=1; icol += 1
-        ttk.Label(tabMethods, text=variable, font=Font(weight="bold"))\
+        ttk.Label(tabMethods, text=variable)\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
 
         # Raw
@@ -532,7 +532,7 @@ class tabPredictors(ttk.Frame):
                 pred_dictIn = saf_dict
 
             irow -= 1
-            Label(tabPredictors, text=title, font=Font(weight="bold")).grid(columnspan=10, row=irow, column=icol)
+            Label(tabPredictors, text=title).grid(columnspan=10, row=irow, column=icol)
             irow += 1
             upperAirVars = {'u': 'Eastward wind component',
                             'v': 'Northward wind component',
@@ -733,12 +733,12 @@ class tabClimdex(ttk.Frame):
 
 
         irow, icol = 0, 0
-        ttk.Label(tabClimdex, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10)
+        ttk.Label(tabClimdex, text="").grid(sticky="W", column=icol, row=irow, padx=80, pady=10)
 
         for (var, title) in [('tmax', 'Maximum Temperature'), ('tmin', 'Minimum Temperature'), ('pcp', 'Precipitation')]:
             irow = 1
             Label(tabClimdex, text='').grid(column=icol, row=irow, padx=50, pady=30); icol+=1
-            Label(tabClimdex, text=title, font=Font(weight="bold")).grid(sticky="W", column=icol, row=irow, padx=30, pady=30, columnspan=3); irow+=1
+            Label(tabClimdex, text=title).grid(sticky="W", column=icol, row=irow, padx=30, pady=30, columnspan=3); irow+=1
             nrows = 1
             colJumps = 0
             for climdex in climdex_dict[var]:
