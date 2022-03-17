@@ -142,79 +142,79 @@ def predictors_correlation():
     w_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/w_4nn.npy')
 
     # Go through all target variables
-    for var in target_vars:
+    for var in ('tmax', 'tmin', 'pcp'):
+        if var[0] in target_vars0:
+            # Define pathTmp
+            pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
+            if not os.path.exists(pathTmp):
+                os.makedirs(pathTmp)
+            pathOut = pathFigures
+            if not os.path.exists(pathOut):
+                os.makedirs(pathOut)
 
-        # Define pathTmp
-        pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
-        if not os.path.exists(pathTmp):
-            os.makedirs(pathTmp)
-        pathOut = pathFigures
-        if not os.path.exists(pathOut):
-            os.makedirs(pathOut)
+            # Read data predictand
+            obs = read.hres_data(var, period='calibration')['data']
 
-        # Read data predictand
-        obs = read.hres_data(var, period='calibration')['data']
+            # Define preds
+            preds = preds_dict[var[0]]
+            npreds = len(preds)
 
-        # Define preds
-        preds = preds_dict[var[0]]
-        npreds = len(preds)
+            # Go through all seasons
+            for season in season_dict.values():
 
-        # Go through all seasons
-        for season in season_dict.values():
+                R = np.zeros((npreds, hres_npoints))
 
-            R = np.zeros((npreds, hres_npoints))
+                # Calculate correlations for each predictor
+                for ipred in range(npreds):
+                    predName = list(preds.keys())[ipred]
 
-            # Calculate correlations for each predictor
-            for ipred in range(npreds):
-                predName = list(preds.keys())[ipred]
+                    # Read data predictor
+                    data = read.lres_data(var, 'pred', predName=predName)['data']
 
-                # Read data predictor
-                data = read.lres_data(var, 'pred', predName=predName)['data']
+                    # Select season
+                    data_season = postpro_lib.get_season(data, calibration_dates, season)['data']
+                    obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
 
-                # Select season
-                data_season = postpro_lib.get_season(data, calibration_dates, season)['data']
-                obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
+                    # Go through all points
+                    for ipoint in range(hres_npoints):
 
-                # Go through all points
-                for ipoint in range(hres_npoints):
+                        # Interpolate to one point
+                        X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                        y = obs_season[:, ipoint]
 
-                    # Interpolate to one point
-                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
-                    y = obs_season[:, ipoint]
+                        # Calculate correlation
+                        if var == 'pcp':
+                            R[ipred, ipoint] = spearmanr(X, y)[0]
+                        else:
+                            R[ipred, ipoint] = pearsonr(X, y)[0]
 
-                    # Calculate correlation
-                    if var == 'pcp':
-                        R[ipred, ipoint] = spearmanr(X, y)[0]
-                    else:
-                        R[ipred, ipoint] = pearsonr(X, y)[0]
+                    # Save results
+                    print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
+                    np.save(pathTmp + '_'.join((predName, 'correlation', season)), R[ipred])
 
-                # Save results
-                print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
-                np.save(pathTmp + '_'.join((predName, 'correlation', season)), R[ipred])
+                # Plot correlation maps and boxplots
+                for ipred in range(npreds):
+                    predName = list(preds.keys())[ipred]
 
-            # Plot correlation maps and boxplots
-            for ipred in range(npreds):
-                predName = list(preds.keys())[ipred]
+                    # Load correlation
+                    R[ipred] = np.load(pathTmp + '_'.join((predName, 'correlation', season+'.npy')))
+                    print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
 
-                # Load correlation
-                R[ipred] = np.load(pathTmp + '_'.join((predName, 'correlation', season+'.npy')))
-                print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
+                    # Plot map
+                    title = ' '.join((var.upper(), predName, 'correlation', season))
+                    filename = '_'.join((experiment, 'correlationMap', 'daily', var, predName, 'None', season))
+                    plot.map(abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
 
-                # Plot map
-                title = ' '.join((var.upper(), predName, 'correlation', season))
-                filename = '_'.join((experiment, 'correlationMap', 'daily', var, predName, 'None', season))
-                plot.map(abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
-
-            # Boxplot
-            fig, ax = plt.subplots()
-            ax.boxplot(abs(R.T), showfliers=False)
-            ax.set_xticklabels(list(preds.keys()), rotation=90)
-            plt.ylim((0, 1))
-            plt.title(' '.join((var.upper(), 'correlation', season)))
-            # plt.show()
-            # exit()
-            filename = '_'.join((experiment, 'correlationBoxplot', 'daily', var, 'None', 'None', season))
-            plt.savefig(pathOut + filename)
+                # Boxplot
+                fig, ax = plt.subplots()
+                ax.boxplot(abs(R.T), showfliers=False)
+                ax.set_xticklabels(list(preds.keys()), rotation=90)
+                plt.ylim((0, 1))
+                plt.title(' '.join((var.upper(), 'correlation', season)))
+                # plt.show()
+                # exit()
+                filename = '_'.join((experiment, 'correlationBoxplot', 'daily', var, 'None', 'None', season))
+                plt.savefig(pathOut + filename)
 
 
 
@@ -269,10 +269,14 @@ def GCMs_evaluation_historical():
                     model = model_list[imodel]
 
                     # Read model
-                    ncVar = modNames[var]
+                    if var0 == 'p':
+                        ncVar = modNames['pcp']
+                    else:
+                        ncVar = modNames['tmax']
+
                     calendar = read.netCDF('../input_data/models/',
-                                           ncVar + '_' + model + '_' + sceneName + '_' + modelRealizationFilename + '_' +
-                                           historicalPeriodFilename + '.nc', ncVar)['calendar']
+                                           ncVar + '_' + model + '_' + sceneName + '_' + modelRealizationFilename + '_' + historicalPeriodFilename + '.nc',
+                                           ncVar)['calendar']
                     aux = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)
                     scene_dates = aux['times']
                     if calendar == '360':

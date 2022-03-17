@@ -229,7 +229,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     if var0 == 'p':
         var_aux = 'pcp'
     else:
-        var_aux = [x for x in target_vars if x[0]=='t'][0]
+        var_aux = 'tmax'
 
     # Define dates
     if model == 'reanalysis':
