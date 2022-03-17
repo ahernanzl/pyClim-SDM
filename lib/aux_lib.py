@@ -62,15 +62,18 @@ def initial_checks():
 
     # Check for consistency between predictors and methods
     for var in ('tmax', 'tmin', 'pcp', ):
-        if var in target_vars and var[0] not in target_vars0:
+        if (var in target_vars) and (var[0] not in target_vars0) and (experiment != 'PRECONTROL'):
             print('-----------------------------------------------')
             print('Inconsistency found between preditors and methods selection.')
             print('Your selection includes some methods for '+ var + ' but no predictor has been selected')
+            print('-----------------------------------------------')
             exit()
 
     # Force to define at least one synoptic analogy field
     if len(saf_list) == 0:
-        print('\nAt least one field must be selected for Synoptic Analogy Fields')
+        print('-----------------------------------------------')
+        print('At least one field must be selected for Synoptic Analogy Fields')
+        print('-----------------------------------------------')
         exit()
 
     # Kill living old jobs
