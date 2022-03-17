@@ -265,7 +265,11 @@ hres_npoints = aux_hres_metadata.shape[0]
 hres_lats, hres_lons = aux_hres_metadata[:, 2], aux_hres_metadata[:, 1]
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
-nc = Dataset('../input_data/reanalysis/' + reaNames[target_vars[0]]+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
+if 'p' in target_vars0:
+    ncVar = 'pcp'
+elif 't' in target_vars0:
+    ncVar = 'tmax'
+nc = Dataset('../input_data/reanalysis/' + reaNames[ncVar] +'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
 if 'lat' in nc.variables:
     lat_name, lon_name = 'lat', 'lon'
 elif 'latitude' in nc.variables:

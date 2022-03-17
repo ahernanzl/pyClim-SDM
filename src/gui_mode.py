@@ -1418,7 +1418,9 @@ def write_tmpMain_file(steps):
         noSteps = False
         f.write("    postprocess.nc2ascii()\n")
     if noSteps == True:
+        print('-----------------------------------------------')
         print('At least one step must be selected.')
+        print('-----------------------------------------------')
         exit()
 
     f.write("\n")
