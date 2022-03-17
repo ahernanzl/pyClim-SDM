@@ -159,7 +159,7 @@ def get_mean_and_std_oneModel(var0, grid, model, scene):
                historicalPeriodFilename+ '.nc', ncVar)['calendar']
 
     if calendar == '360':
-        time_first, time_last = scene_dates.index(reference_first_date), -1
+        time_first, time_last = scene_dates.index(reference_first_date), reference_dates[-2]
     else:
         time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_last_date) + 1
     data = aux['data']

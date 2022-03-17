@@ -285,7 +285,7 @@ def GCMs_evaluation_historical():
                     aux = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)
                     scene_dates = aux['times']
                     if calendar == '360':
-                        time_first, time_last = scene_dates.index(reference_first_date), -1
+                        time_first, time_last = scene_dates.index(reference_first_date), reference_dates[-2]
                     else:
                         time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(
                             reference_last_date) + 1

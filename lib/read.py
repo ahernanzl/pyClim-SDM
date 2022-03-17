@@ -200,6 +200,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     Possible fields: var, pred, saf
     Possible grids: pred, saf
     If predName is passed as argument, only that predictor will be read.
+    If model=reanalysis, the whole calibration period is returned, and for GCMs the whole scene (hisotical/SSP).
     return: data (ndays, npreds, nlats, nlons) and times
     """
 
@@ -426,7 +427,8 @@ def hres_metadata(GCM_local=None, RCM_local=None, pathIn=None):
     # read master file
     #------------------------
     npMaster = np.loadtxt(masterFile)
-    df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2], 'h': npMaster[:,3]})
+    # df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2], 'h': npMaster[:,3]})
+    df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2]})
     df['id'] = df['id'].astype(int)
     df.set_index("id", inplace=True)
 
@@ -509,7 +511,7 @@ def hres_data(var, period=None):
             exit('At least one point contains too many missing data at period', period)
 
     if out_of_range > 0:
-        exit('Predictands contain values out of range. Change predictands_codification at settings')
+        exit('Predictands contain values out of range. Change predictands_codification at advanced_settings')
 
     return {'data': data, 'times': times}
 

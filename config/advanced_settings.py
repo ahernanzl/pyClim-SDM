@@ -179,15 +179,33 @@ longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 
 #############################################  GRIDS  ##################################################################
+
+target_type = 'gridded_data'
+# target_type = 'stations'
+
 if not os.path.isfile(pathHres + 'hres_metadata.txt'):
     print('----------------------------------------------------------------------------------------')
     print('Make sure your input_data directory is prepared as indicated in the input_data_template.')
+    print('Missing hres/hres_metadata.txt file.')
     print('----------------------------------------------------------------------------------------')
     exit()
 aux_hres_metadata = np.loadtxt(pathHres + 'hres_metadata.txt')
 hres_npoints = aux_hres_metadata.shape[0]
-target_type = 'gridded_data'
-# target_type = 'stations'
+hres_lats, hres_lons = aux_hres_metadata[:, 2], aux_hres_metadata[:, 1]
+
+# Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
+nc = Dataset('../input_data/reanalysis/' + reaNames['tmax']+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
+if 'lat' in nc.variables:
+    lat_name, lon_name = 'lat', 'lon'
+elif 'latitude' in nc.variables:
+    lat_name, lon_name = 'latitude', 'longitude'
+lats = nc.variables[lat_name][:]
+lons = nc.variables[lon_name][:]
+lons[lons > 180] -= 360
+saf_lat_down = np.min(lats[lats >= saf_lat_down])
+saf_lat_up = np.max(lats[lats <= saf_lat_up])
+saf_lon_left = np.min(lons[lons >= saf_lon_left])
+saf_lon_right = np.max(lons[lons <= saf_lon_right])
 
 # ext
 # ext_lat_up, ext_lat_down  = 55., 23.5
@@ -207,8 +225,15 @@ saf_lons = np.linspace(saf_lon_left, saf_lon_right, saf_nlons)
 saf_ilats = [i for i in range(ext_nlats) if ext_lats[i] in saf_lats]
 saf_ilons = [i for i in range(ext_nlons) if ext_lons[i] in saf_lons]
 
+# Check that hres_points are fully contained in the defined domain
+print(saf_lons[saf_lons <= np.min(hres_lons)].size)
+if saf_lats[saf_lats >= np.max(hres_lats)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats)].size == 0 or \
+        saf_lons[saf_lons >= np.max(hres_lons)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons)].size == 0:
+    print('hres_points are not fully contained inside the domain defined for Synoptic Analogy Fields')
+    print('Please, define a larger domain')
+    exit()
+
 # pred grid (for predictors). Smaller area which covers, at least, the target region.
-hres_lats, hres_lons = aux_hres_metadata[:, 2], aux_hres_metadata[:, 1]
 pred_lat_up = np.min(saf_lats[saf_lats >= np.max(hres_lats)])
 pred_lat_down = np.max(saf_lats[saf_lats <= np.min(hres_lats)])
 pred_lon_right = np.min(saf_lons[saf_lons >= np.max(hres_lons)])
@@ -247,6 +272,8 @@ W_saf = W_saf.flatten()
 
 ###########################################   PREDICTORS  ###############################################################
 
+preds = {'t': {}, 'p': {}}
+
 # Build preds_t
 preds_t = {}
 for pred in preds_t_list:
@@ -273,6 +300,12 @@ for pred in preds_p_list:
 
 
 n_preds_t, n_preds_p = len(preds_t.keys()), len(preds_p.keys())
+target_vars0 = []
+if n_preds_t != 0:
+    target_vars0.append('t')
+if n_preds_p != 0:
+    target_vars0.append('p')
+
 
 all_preds = {**preds_t, **preds_p, **saf_dict}
 
