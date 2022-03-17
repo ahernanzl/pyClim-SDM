@@ -10,6 +10,7 @@ from settings import *
 from advanced_settings import *
 import tkinter as tk
 from tkinter import ttk
+from tkinter.font import Font
 from tkinter import *
 from PIL import ImageTk,Image
 
@@ -152,7 +153,6 @@ class welcomeMessage(ttk.Frame):
             l = Label(frameMsg,
                 text="Welcome to pyClim-SDM. Please, create an input_data directory following the structure and \n"
                      "format indicated in the input_data_template, where example datasets have been included.\n",
-                # justify="center", font=("Arial", 12)
             )
             l.pack(padx=20, pady=0, fill='both')
             c = Checkbutton(frameMsg, text="Do not show this dialog again", variable=dontShowAgain_local)
@@ -179,8 +179,6 @@ class tabSteps(ttk.Frame):
 
     def __init__(self, notebook, root):
 
-        fontSize = 10
-
         tabSteps = ttk.Frame(notebook)
         notebook.add(tabSteps, text='Experiment and Steps')
         self.chk_dict = {}
@@ -190,19 +188,18 @@ class tabSteps(ttk.Frame):
         self.exp_ordered = []
 
         irow = 0
-
         ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
         ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=40); irow+=1
 
         # Experiment
         icol = 1
-        ttk.Label(tabSteps, text="Select experiment:", font=("Arial", fontSize)).grid(sticky="E", column=icol, row=irow, padx=10, pady=15); icol+=1
+        ttk.Label(tabSteps, text="Select experiment:").grid(sticky="E", column=icol, row=irow, padx=10, pady=15); icol+=1
         self.experiment = StringVar()
         experiments = {'PRECONTROL': 'Evaluation of predictors and GCMs previous to dowscaling',
                        'EVALUATION': 'Evaluate methods using a reanalysis over a historical period',
                        'PROJECTIONS': 'Apply methods to dowscale climate projections'}
         for exp in experiments:
-            c = Radiobutton(tabSteps, text=exp, font=("Arial", fontSize), variable=self.experiment, value=exp,
+            c = Radiobutton(tabSteps, text=exp, variable=self.experiment, value=exp,
                             command=lambda: switch_steps(self.experiment.get(), steps, self.steps_ordered,
                             self.exp_ordered, self.chk_only_for_experiment), takefocus=False)
             c.grid(sticky="W", column=icol, row=irow, padx=30); icol+=1
@@ -213,7 +210,7 @@ class tabSteps(ttk.Frame):
         icol = 1
 
         # Steps definition
-        ttk.Label(tabSteps, text="Select steps:", font=("Arial", fontSize)).grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
+        ttk.Label(tabSteps, text="Select steps:").grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
 
         steps = {'PRECONTROL': {
                  'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
@@ -284,7 +281,7 @@ class tabSteps(ttk.Frame):
             aux_dict = {}
             for step in steps[exp_name]:
                 checked = tk.BooleanVar()
-                c = Checkbutton(tabSteps, text=steps[exp_name][step]['text'], font=("Arial", fontSize), variable=checked, takefocus=False)
+                c = Checkbutton(tabSteps, text=steps[exp_name][step]['text'], variable=checked, takefocus=False)
                 c.grid(sticky="W", column=icol, row=irow, padx=50); irow+=1
                 CreateToolTip(c, steps[exp_name][step]['info'])
                 aux_dict.update({step: checked})
@@ -308,7 +305,6 @@ class tabMethods(ttk.Frame):
 
         # ---------------------- tab methods ---------------------------------------------------------------------------------
 
-        familyFontSize = 10
         self.chk_list = []
         tabMethods = ttk.Frame(notebook)
         notebook.add(tabMethods, text='Methods')
@@ -365,7 +361,7 @@ class tabMethods(ttk.Frame):
                 icol, irow, variable = 2, 0, 'Minimum Temperature'
 
             ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=40, pady=0); icol+=1; irow+=1
-            ttk.Label(tabMethods, text=variable, font=("Arial", 12, "bold"))\
+            ttk.Label(tabMethods, text=variable, font=Font(weight="bold"))\
                 .grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4); irow+=1
 
             # Raw
@@ -373,7 +369,7 @@ class tabMethods(ttk.Frame):
 
             # Bias correction
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
-            ttk.Label(tabMethods, text="Bias Correction:", font=("Arial", familyFontSize, "bold")).grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
+            ttk.Label(tabMethods, text="Bias Correction:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
             add_to_chk_list(self.chk_list, var, 'QM', 'BC', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow+=1
             add_to_chk_list(self.chk_list, var, 'DQM', 'BC', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow-=1
             add_to_chk_list(self.chk_list, var, 'QDM', 'BC', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow+=1
@@ -381,14 +377,14 @@ class tabMethods(ttk.Frame):
 
             # Analogs / Weather Typing
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-            ttk.Label(tabMethods, text="Analogs / Weather Typing:", font=("Arial", familyFontSize, "bold")).grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
+            ttk.Label(tabMethods, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
             add_to_chk_list(self.chk_list, var, 'ANA-MLR', 'ANA', 'PP', 'pred+saf', 'Analog Multiple Linear Regression', icol, irow); irow+=1
             add_to_chk_list(self.chk_list, var, 'WT-MLR', 'ANA', 'PP', 'pred+saf', 'Weather Typing Multiple Linear Regression', icol, irow); irow+=1
 
             # Transfer function
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-            ttk.Label(tabMethods, text="Transfer Function:", font=("Arial", familyFontSize, "bold")).grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
+            ttk.Label(tabMethods, text="Transfer Function:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
             add_to_chk_list(self.chk_list, var, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol+=1
             add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
             add_to_chk_list(self.chk_list, var, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow+=1
@@ -396,7 +392,7 @@ class tabMethods(ttk.Frame):
 
             # Weather Generators
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-            ttk.Label(tabMethods, text="Weather Generators:", font=("Arial", familyFontSize, "bold")).grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
+            ttk.Label(tabMethods, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
             add_to_chk_list(self.chk_list, var, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow+=1
 
             # Select/deselect all
@@ -416,7 +412,7 @@ class tabMethods(ttk.Frame):
         icol, irow, variable = 5, 0, 'Precipitation'
 
         ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=5); irow+=1; icol += 1
-        ttk.Label(tabMethods, text=variable, font=("Arial", 12, "bold"))\
+        ttk.Label(tabMethods, text=variable, font=Font(weight="bold"))\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
 
         # Raw
@@ -424,7 +420,7 @@ class tabMethods(ttk.Frame):
 
         # Bias correction
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Bias Correction:", font=("Arial", familyFontSize, "bold"))\
+        ttk.Label(tabMethods, text="Bias Correction:")\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_to_chk_list(self.chk_list, var, 'QM', 'BC', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
         add_to_chk_list(self.chk_list, var, 'DQM', 'BC', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow -= 1
@@ -433,7 +429,7 @@ class tabMethods(ttk.Frame):
 
         # Analogs / Weather Typing
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Analogs / Weather Typing:", font=("Arial", familyFontSize, "bold"))\
+        ttk.Label(tabMethods, text="Analogs / Weather Typing:")\
                                                 .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_to_chk_list(self.chk_list, var, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
@@ -447,7 +443,7 @@ class tabMethods(ttk.Frame):
 
         # Transfer function
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Transfer Function:", font=("Arial", familyFontSize, "bold"))\
+        ttk.Label(tabMethods, text="Transfer Function:")\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
         add_to_chk_list(self.chk_list, var, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); irow+=1
@@ -458,7 +454,7 @@ class tabMethods(ttk.Frame):
 
         # Weather Generators
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Weather Generators:", font=("Arial", familyFontSize, "bold"))\
+        ttk.Label(tabMethods, text="Weather Generators:")\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_to_chk_list(self.chk_list, var, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol += 1
         add_to_chk_list(self.chk_list, var, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow += 1; icol -=1
@@ -512,7 +508,7 @@ class tabPredictors(ttk.Frame):
 
 
         Label(tabPredictors, text="").grid(sticky="W", padx=10, row=irow, column=icol); icol += 1
-        ttk.Label(tabPredictors, text="").grid(sticky="W", column=icol, columnspan=100, row=irow, padx=30, pady=10); irow+=2
+        ttk.Label(tabPredictors, text="").grid(sticky="W", column=icol, columnspan=100, row=irow, padx=20, pady=10); irow+=2
 
         # Levels
         ttk.Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
@@ -536,7 +532,7 @@ class tabPredictors(ttk.Frame):
                 pred_dictIn = saf_dict
 
             irow -= 1
-            Label(tabPredictors, text=title, font=("Arial", 12, "bold")).grid(columnspan=10, row=irow, column=icol)
+            Label(tabPredictors, text=title, font=Font(weight="bold")).grid(columnspan=10, row=irow, column=icol)
             irow += 1
             upperAirVars = {'u': 'Eastward wind component',
                             'v': 'Northward wind component',
@@ -737,12 +733,12 @@ class tabClimdex(ttk.Frame):
 
 
         irow, icol = 0, 0
-        ttk.Label(tabClimdex, text="").grid(sticky="W", column=icol, row=irow, padx=80, pady=10)
+        ttk.Label(tabClimdex, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10)
 
         for (var, title) in [('tmax', 'Maximum Temperature'), ('tmin', 'Minimum Temperature'), ('pcp', 'Precipitation')]:
             irow = 1
             Label(tabClimdex, text='').grid(column=icol, row=irow, padx=50, pady=30); icol+=1
-            Label(tabClimdex, text=title, font=("Arial", 12, "bold")).grid(sticky="W", column=icol, row=irow, padx=30, pady=30, columnspan=3); irow+=1
+            Label(tabClimdex, text=title, font=Font(weight="bold")).grid(sticky="W", column=icol, row=irow, padx=30, pady=30, columnspan=3); irow+=1
             nrows = 1
             colJumps = 0
             for climdex in climdex_dict[var]:
