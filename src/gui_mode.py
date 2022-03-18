@@ -1156,7 +1156,6 @@ class selectionWindow():
                 = tabDatesAndDomain(notebook).get()
 
         # Logo
-        Label(notebook, text='', borderwidth=0).grid(sticky="SE", column=0, row=0, pady=265)
         w = 120
         img = Image.open("../doc/pyClim-SDM_logo.png")
         h = int(w * img.height / img.width)
@@ -1167,7 +1166,7 @@ class selectionWindow():
         canvas.grid(sticky="W", column=0, row=1, padx=10)
 
         # Run butnon
-        Label(notebook, text='', borderwidth=0).grid(sticky="SE", column=1, row=0, padx=480)
+        Label(notebook, text='', borderwidth=0).grid(sticky="SE", column=1, row=0, padx=480, pady=265)
         self.run = False
         def run():
 
