@@ -69,6 +69,14 @@ def initial_checks():
             print('-----------------------------------------------')
             exit()
 
+    # Force at least one predictor
+    if len(target_vars0) == 0:
+        print('-----------------------------------------------')
+        print('At least one predictor, for temperature and/or precipitation, must be selected')
+        print('-----------------------------------------------')
+        exit()
+
+
     # Force to define at least one synoptic analogy field
     if len(saf_list) == 0:
         print('-----------------------------------------------')

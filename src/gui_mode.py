@@ -1170,8 +1170,74 @@ class selectionWindow():
         Label(notebook, text='', borderwidth=0).grid(sticky="SE", column=1, row=0, padx=480)
         self.run = False
         def run():
-            self.run = True
-            root.destroy()
+
+            self.all_checks_ok = False
+
+            # Read experiment and steps
+            self.exp = self.experiment.get()
+            self.steps = []
+            for step in self.all_steps[self.exp]:
+                if self.steps_dict[self.exp][step].get() == True:
+                    self.steps.append(step)
+
+            # Read predictors and saf
+            self.selected_all_preds = []
+            for x in self.preds:
+                if self.preds[x].get() == True and x.split('_')[0] not in self.selected_all_preds:
+                    self.selected_all_preds.append(x.split('_')[0])
+            self.target_vars0 = [x for x in self.selected_all_preds if x != 'saf']
+
+            # Read methods
+            self.target_vars = []
+            for meth in self.methods_chk:
+                if meth['checked'].get() == True and meth['var'] not in self.target_vars:
+                    self.target_vars.append(meth['var'])
+
+            # Force to select at least one saf
+            if 'saf' not in self.selected_all_preds:
+                self.all_checks_ok = False
+                tk.messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected (Predictors tab)")
+            else:
+                self.all_checks_ok = True
+
+            # Force to select at least one pred
+            if self.all_checks_ok == True:
+                if len(self.target_vars0) == 0:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "At least one predictor (for temperature and/or precipitation) must be selected (Predictors tab)")
+                else:
+                    self.all_checks_ok = True
+
+            # Force consistency between target_vars and target_vars0
+            for var in ('tmax', 'tmin', 'pcp',):
+                if self.all_checks_ok == True:
+                    if (var in self.target_vars) and (var[0] not in self.target_vars0) and (self.exp != 'PRECONTROL'):
+                        self.all_checks_ok = False
+                        tk.messagebox.showerror("pyClim-SDM",  'Your selection includes some methods for ' + var + ' but no predictor has been selected')
+                    else:
+                        self.all_checks_ok = True
+
+            # Force consistency between methods and experiment
+            if self.all_checks_ok == True:
+                if len(self.target_vars) == 0 and self.exp != 'PRECONTROL':
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
+                else:
+                    self.all_checks_ok = True
+
+            # Force at least one step
+            if self.all_checks_ok == True:
+                if len(self.steps) == 0:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected (Experiments and Steps tab)")
+                else:
+                    self.all_checks_ok = True
+
+            # Force all checks ok
+            if self.all_checks_ok == True:
+                self.run = True
+                root.destroy()
+
         Button(notebook, text="Run", width=10, command=run).grid(sticky="W", column=2, row=1, padx=20, pady=0)
 
         # Mainloop
