@@ -587,7 +587,7 @@ def figures_projections(lan='EN'):
                 iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
                 npoints = len(iaux)
                 print('-----------------------------------------------------------------')
-                print(regType, regName, npoints, str(index) + '/' + str(df_reg.shape[0]))
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
 
                 # Go through all climdex, seasons, scenes and models
                 for climdex_name in climdex_names[var]:
@@ -601,8 +601,7 @@ def figures_projections(lan='EN'):
                             # Evolution figures of mean trend in the whole region vs RAW
                             if (regType == typeCompleteRegion):
                                 trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
-                                          ylim_dict[climdex_name], ylabel_dict[climdex_name], season, var, methodName,
-                                          xlabel)
+                                          ylim_dict[climdex_name], ylabel_dict[climdex_name], season, var, methodName, xlabel)
 
                             # Csv with data for evolution graphs
                             # if (season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
@@ -638,7 +637,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
             sign_ylabel = degree_sign
             title_size = 20
 
-        color = [colors[x['methodName']] for x in methods if x['var'] == VAR]
+        color = colors[methodName]
         linestyle = linestyles[methodName]
 
         # method
