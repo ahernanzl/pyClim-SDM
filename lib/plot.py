@@ -599,7 +599,8 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
 
 
     # elif plot_library == 'Cartopy':
-    #     fig = plt.figure(figsize=(8, 6), dpi=300)
+    #     # fig = plt.figure(figsize=(8, 6), dpi=300)
+    #     import cartopy.crs as ccrs
     #     projection = ccrs.PlateCarree()
     #     resolution = '50m'
     #     ax = plt.axes(projection=projection)
@@ -623,6 +624,8 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     #     if palette == 'target_region':
     #         s = .05
     #
+    #     plt.xlim((lonmin, lonMax))
+    #     plt.ylim((latmin, latMax))
     #     if irregular_bins == True:
     #         plt.scatter(lons, lats, c=data, s=s, norm=norm, cmap=cmap, transform=projection)
     #     else:

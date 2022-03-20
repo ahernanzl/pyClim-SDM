@@ -298,7 +298,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
             periodFilename = historicalPeriodFilename
             scene_dates = historical_dates
         else:
-            periodFilename = rcpPeriodFilename
+            periodFilename = sspPeriodFilename
             scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'

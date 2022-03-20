@@ -98,7 +98,7 @@ def annual_cycle():
                 regType, regName, subDir = row['regType'], row['regName'], row['subDir']
                 iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
                 npoints = len(iaux)
-                print(regType, regName, npoints, str(index) + '/' + str(df_reg.shape[0]))
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
 
                 # Create pathOut
                 if plotAllRegions == False:
@@ -187,7 +187,7 @@ def daily_data(by_season=True):
                 regType, regName, subDir = row['regType'], row['regName'], row['subDir']
                 iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
                 npoints = len(iaux)
-                print(regType, regName, npoints, str(index) + '/' + str(df_reg.shape[0]))
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
 
                 # Create pathOut
                 if plotAllRegions == False:
@@ -268,7 +268,7 @@ def climdex(by_season=True):
                 regType, regName, subDir = row['regType'], row['regName'], row['subDir']
                 iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
                 npoints = len(iaux)
-                print(regType, regName, npoints, str(index) + '/' + str(df_reg.shape[0]))
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
 
                 # Select climdex
                 for climdex_name in climdex_names[var]:

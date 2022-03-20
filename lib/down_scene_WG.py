@@ -93,7 +93,7 @@ def downscale_chunk_WG_PDF(var, methodName, family, mode, fields, scene, model, 
                 periodFilename = historicalPeriodFilename
             else:
                 years = ssp_years
-                periodFilename = rcpPeriodFilename
+                periodFilename = sspPeriodFilename
 
             # Read dates (can be different for different calendars)
             ncVar = modNames[var]
@@ -322,7 +322,7 @@ def downscale_chunk_WG_NMM(var, methodName, family, mode, fields, scene, model, 
                 periodFilename = historicalPeriodFilename
             else:
                 years = ssp_years
-                periodFilename = rcpPeriodFilename
+                periodFilename = sspPeriodFilename
 
             # Read dates (can be different for different calendars)
             ncVar = modNames[var]
@@ -477,7 +477,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
             periodFilename  = historicalPeriodFilename
             scene_dates = historical_dates
         else:
-            periodFilename  = rcpPeriodFilename
+            periodFilename  = sspPeriodFilename
             scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
