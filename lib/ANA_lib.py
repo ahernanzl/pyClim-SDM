@@ -276,8 +276,8 @@ def get_local_distances(pred_calib, pred_scene, ipred):
     """
 
     # Format to pred_calib and pred_scene
-    pred_calib=pred_calib[:,ipred]
-    pred_scene=pred_scene[:,ipred]
+    pred_calib = pred_calib[:,ipred]
+    pred_scene = pred_scene[:,ipred]
     pred_scene = np.repeat(pred_scene, pred_calib.shape[0], 0)
 
     # Calculate local distance
@@ -293,6 +293,7 @@ def coefficients(var, methodName, mode, iproc=0, nproc=1):
     """
 
     mode = 'PP'
+    var0 = var[0]
 
     # Define pathOut
     pathOut = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
@@ -301,9 +302,9 @@ def coefficients(var, methodName, mode, iproc=0, nproc=1):
     MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
 
     # Read metadata of hres grid and the neighbour associated to each point
-    i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-    j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-    w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
 
     # Read synoptic analogy fields and centroids
     pred = np.load(pathAux+'STANDARDIZATION/PRED/t_training.npy')
@@ -350,8 +351,8 @@ def coefficients(var, methodName, mode, iproc=0, nproc=1):
         len_chunk.append(len(k_chunk[ichunk]))
 
     # Create empty array to accumulate correlation coefficients
-    coef = np.zeros((len_chunk[iproc], hres_npoints, n_preds_t))
-    intercept = np.zeros((len_chunk[iproc], hres_npoints, 1))
+    coef = np.zeros((len_chunk[iproc], hres_npoints[var[0]], n_preds_t))
+    intercept = np.zeros((len_chunk[iproc], hres_npoints[var[0]], 1))
 
     # Go through k clusters
     for ik in range(len_chunk[iproc]):
@@ -437,6 +438,7 @@ def correlations(var, methodName, mode, iproc=0, nproc=1, th_metric='median'):
     """
 
     mode = 'PP'
+    var0 = var[0]
 
     # Define pathOut
     pathOut = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
@@ -448,9 +450,9 @@ def correlations(var, methodName, mode, iproc=0, nproc=1, th_metric='median'):
     pcp_th_for_corr = 0.1 # mm
 
     # Read metadata of hres grid and the neighbour associated to each point
-    i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-    j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-    w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
 
     # Read pred, saf and centroids
     pred = np.load(pathAux+'STANDARDIZATION/PRED/p_training.npy')

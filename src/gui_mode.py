@@ -1384,7 +1384,6 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     # Write new settings
     f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
     f.write("experiment = '" + str(experiment) + "'\n")
-    f.write("steps = " + str(steps) + "\n")
     f.write("methods = " + str(methods) + "\n")
     f.write("reaNames = " + str(reaNames) + "\n")
     f.write("modNames = " + str(modNames) + "\n")

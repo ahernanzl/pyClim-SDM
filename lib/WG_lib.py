@@ -52,10 +52,10 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
@@ -63,13 +63,13 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
         obs = read.hres_data(var, period='training')['data']
         var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints))
-        for ipoint in range(hres_npoints):
+        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[var[0]]))
+        for ipoint in range(hres_npoints[var[0]]):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
@@ -236,10 +236,10 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
@@ -247,13 +247,13 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
         obs = read.hres_data(var, period='training')['data']
         var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints))
-        for ipoint in range(hres_npoints):
+        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[var[0]]))
+        for ipoint in range(hres_npoints[var[0]]):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
@@ -378,11 +378,11 @@ def collect_chunks_WG_NMM(var, methodName, family, n_chunks=1):
     nthresholds = len(thresholds)
 
     # Create empty arrays for probabilities of transition and ECDFs with 101 intervals
-    P00 = np.zeros((hres_npoints, nthresholds))
-    P01 = np.zeros((hres_npoints, nthresholds))
-    P10 = np.zeros((hres_npoints, nthresholds))
-    P11 = np.zeros((hres_npoints, nthresholds))
-    ECDF_pcp = np.zeros((hres_npoints, nthresholds, 101))
+    P00 = np.zeros((hres_npoints[var[0]], nthresholds))
+    P01 = np.zeros((hres_npoints[var[0]], nthresholds))
+    P10 = np.zeros((hres_npoints[var[0]], nthresholds))
+    P11 = np.zeros((hres_npoints[var[0]], nthresholds))
+    ECDF_pcp = np.zeros((hres_npoints[var[0]], nthresholds, 101))
 
     # Read trained models chunks and accumulate them
     ipoint = 0

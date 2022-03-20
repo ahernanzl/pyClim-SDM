@@ -408,7 +408,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
 
 
 ########################################################################################################################
-def hres_metadata(GCM_local=None, RCM_local=None, pathIn=None):
+def hres_metadata(var0, GCM_local=None, RCM_local=None, pathIn=None):
     """
     Read metadata of stations (high resolution grid) and returns a pandas dataframe with id, lon, lat and height
     :return:
@@ -421,7 +421,7 @@ def hres_metadata(GCM_local=None, RCM_local=None, pathIn=None):
     else:
         dataPath = pathHres
 
-    masterFile = dataPath + 'hres_metadata.txt'
+    masterFile = dataPath + var0 + '_hres_metadata.txt'
 
     #------------------------
     # read master file
@@ -432,8 +432,6 @@ def hres_metadata(GCM_local=None, RCM_local=None, pathIn=None):
     df['id'] = df['id'].astype(int)
     df.set_index("id", inplace=True)
 
-    # print "-------   master   ------------\n"
-    # print df
     return df
 
 ########################################################################################################################
@@ -508,7 +506,7 @@ def hres_data(var, period=None):
         aux = 1*(data == special_value)
         aux = 100*np.mean(aux, axis=0)
         if np.max(aux) >= max_perc_missing_predictands_allowed:
-            exit('At least one point contains too many missing data at period', period)
+            print('At least one point contains too many missing data (', np.max(aux), '%) at', period, 'period')
 
     if out_of_range > 0:
         exit('Predictands contain values out of range. Change predictands_codification at advanced_settings')

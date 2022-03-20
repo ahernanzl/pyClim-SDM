@@ -16,9 +16,13 @@ Beware tmax, tmin and pcp by reanalysis/GCMs are mandatory files.
 
 This folder must contain predictands information with the following format:
 
-- hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
+For temperature:
+- t_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
 - tmax_$hresPeriodFilename.txt
 - tmin_$hresPeriodFilename.txt
+
+For precipitation:
+- p_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
 - pcp_$hresPeriodFilename.txt 
 
 Example: pcp_19510101-20191231.txt

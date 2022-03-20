@@ -41,6 +41,11 @@ def missing_data_check():
 
     print('missing_data_check...')
 
+    if experiment != 'PRECONTROL':
+        print('------------------------------')
+        print('ERROR: Select experiment = PRECONTROL')
+        exit()
+
     # Go through all target variables
     for var0 in target_vars0:
 
@@ -81,7 +86,7 @@ def missing_data_check():
                         # Plot map
                         filename = '_'.join((experiment, 'nansMap', 'daily', var0, predName, model+'-'+sceneName, 'None'))
                         title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
-                        plot.map(perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
+                        plot.map(var0, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
 
                     imodel += 1
                 iscene += 1
@@ -135,11 +140,18 @@ def predictors_correlation():
 
     print('predictors_correlation...')
 
+    if experiment != 'PRECONTROL':
+        print('------------------------------')
+        print('ERROR: Select experiment = PRECONTROL')
+        exit()
+
+    var = 'pcp'
+
     # For interpolation
     interp_mode = 'bilinear'
-    i_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/i_4nn.npy')
-    j_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/j_4nn.npy')
-    w_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/w_4nn.npy')
+    i_4nn = np.load(pathAux + 'ASSOCIATION/'+var[0].upper()+'_' + interp_mode + '/i_4nn.npy')
+    j_4nn = np.load(pathAux + 'ASSOCIATION/'+var[0].upper()+'_' + interp_mode + '/j_4nn.npy')
+    w_4nn = np.load(pathAux + 'ASSOCIATION/'+var[0].upper()+'_' + interp_mode + '/w_4nn.npy')
 
     # Go through all target variables
     for var in ('tmax', 'tmin', 'pcp'):
@@ -162,7 +174,7 @@ def predictors_correlation():
             # Go through all seasons
             for season in season_dict.values():
 
-                R = np.zeros((npreds, hres_npoints))
+                R = np.zeros((npreds, hres_npoints[var[0]]))
 
                 # Calculate correlations for each predictor
                 for ipred in range(npreds):
@@ -176,7 +188,7 @@ def predictors_correlation():
                     obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
 
                     # Go through all points
-                    for ipoint in range(hres_npoints):
+                    for ipoint in range(hres_npoints[var[0]]):
 
                         # Interpolate to one point
                         X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
@@ -198,12 +210,11 @@ def predictors_correlation():
 
                     # Load correlation
                     R[ipred] = np.load(pathTmp + '_'.join((predName, 'correlation', season+'.npy')))
-                    print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
 
                     # Plot map
                     title = ' '.join((var.upper(), predName, 'correlation', season))
                     filename = '_'.join((experiment, 'correlationMap', 'daily', var, predName, 'None', season))
-                    plot.map(abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
+                    plot.map(var[0], abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
 
                 # Boxplot
                 fig, ax = plt.subplots()
@@ -304,14 +315,14 @@ def GCMs_evaluation_historical():
                     # # Plot maps
                     # filename = '_'.join((experiment, 'reaMap', 'all', var0, predName, 'None', season))
                     # title = ' '.join((predName, 'reanalysis'))
-                    # plot.map(rea_mean_season, grid='pred', path=pathOut, filename=filename, title=title)
+                    # plot.map(var0, rea_mean_season, grid='pred', path=pathOut, filename=filename, title=title)
                     # filename = '_'.join((experiment, 'modMap', 'all', var0, predName, model, season))
                     # title = ' '.join((predName, model))
-                    # plot.map(sceneData_mean_season, grid='pred', path=pathOut, filename=filename, title=title)
+                    # plot.map(var0, sceneData_mean_season, grid='pred', path=pathOut, filename=filename, title=title)
                     # bias = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'bias.npy')))
                     # filename = '_'.join((experiment, 'biasMap', 'all', var0, predName, model, season))
                     # title = ' '.join((predName, model, 'bias'))
-                    # plot.map(bias, grid='pred', path=pathOut, filename=filename, title=title)
+                    # plot.map(var0, bias, grid='pred', path=pathOut, filename=filename, title=title)
 
                 # Go through all models
                 matrix = np.zeros((nmodels, nlats, nlons))
@@ -433,6 +444,11 @@ def GCMs_evaluation():
     """
 
     print('GCMs_evaluation...')
+
+    if experiment != 'PRECONTROL':
+        print('------------------------------')
+        print('ERROR: Select experiment = PRECONTROL')
+        exit()
 
     GCMs_evaluation_historical()
     GCMs_evaluation_future()

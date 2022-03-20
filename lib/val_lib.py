@@ -41,10 +41,6 @@ def daily_boxplots(metric, by_season):
     :param by_season: boolean
     """
 
-    # Read regions csv
-    df_reg = pd.read_csv(pathAux + 'ASSOCIATION/regions.csv')
-
-
     vars = []
     for method in methods:
         var = method['var']
@@ -80,9 +76,9 @@ def daily_boxplots(metric, by_season):
                             aux = postpro_lib.get_season(est, times_scene, season)
                             est_season = aux['data']
                             times = aux['times']
-                        matrix = np.zeros((hres_npoints, ))
+                        matrix = np.zeros((hres_npoints[VAR[0]], ))
                         if metric == 'correlation':
-                            for ipoint in range(hres_npoints):
+                            for ipoint in range(hres_npoints[VAR[0]]):
                                 X = obs_season[:, ipoint]
                                 Y = est_season[:, ipoint]
                                 if var[0] == 't':
@@ -107,11 +103,13 @@ def daily_boxplots(metric, by_season):
             for VAR in vars:
             # for VAR in ('pcp', ):
                 nmethods = len([x for x in methods if x['var'] == VAR])
+                # Read regions csv
+                df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + VAR[0].upper() +'/regions.csv')
                 if VAR[0] == 't':
                     colors = t_methods_colors
                 else:
                     colors = p_methods_colors
-                matrix = np.zeros((hres_npoints, nmethods))
+                matrix = np.zeros((hres_npoints[VAR[0]], nmethods))
                 imethod = 0
                 names = []
                 for method_dict in methods:
@@ -184,8 +182,6 @@ def climdex_boxplots(by_season):
     :param by_season: boolean
     """
 
-    # Read regions csv
-    df_reg = pd.read_csv(pathAux + 'ASSOCIATION/regions.csv')
 
     vars = []
     for method in methods:
@@ -197,6 +193,9 @@ def climdex_boxplots(by_season):
     for VAR in vars:
         nmethods = len([x for x in methods if x['var'] == VAR])
 
+        # Read regions csv
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+VAR[0].upper()+'/regions.csv')
+
         # Go through all climdex
         for climdex_name in climdex_names[VAR]:
 
@@ -207,7 +206,7 @@ def climdex_boxplots(by_season):
                     # Go through all methods
                     imethod = 0
                     names = []
-                    matrix = np.zeros((hres_npoints, nmethods))
+                    matrix = np.zeros((hres_npoints[VAR[0]], nmethods))
                     for method_dict in methods:
                         var = method_dict['var']
                         if var == VAR:
@@ -321,13 +320,13 @@ def monthly_maps(metric, var, methodName):
         r = np.zeros((npoints,))
         for ipoint in range(npoints):
             r[ipoint] = pearsonr(obs_acc[:, ipoint], est_acc[:, ipoint])[0]
-        plot.map(r, 'corrMonth', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
+        plot.map(var[0], r, 'corrMonth', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
     # R2_score
     if metric == 'R2':
         title = ' '.join(('monthly', metric+'_score', var.upper(), methodName))
         R2 = 1 - np.sum((est_acc-obs_acc)**2, axis=0) / np.sum(obs_acc**2, axis=0)
-        plot.map(R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
+        plot.map(var[0], R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
 
 ########################################################################################################################
@@ -419,20 +418,20 @@ def continuous(var, methodName, obs, est, pathOut, season):
     # filename = '_'.join(('EVALUATION', 'maeMap', 'daily', var, 'None', methodName,
     #                             season))
     # MAE = np.round(np.nanmean(abs(est - obs), axis=0), 2)
-    # plot.map(MAE,  var[0]+'_mae', path=pathOut, filename='MAE_' + filename, title='')
+    # plot.map(var[0], MAE,  var[0]+'_mae', path=pathOut, filename='MAE_' + filename, title='')
 
     # # RMSE
     # filename = '_'.join(('EVALUATION', 'rmseMap', 'daily', var, 'None', methodName,
     #                             season))
     # RMSE = np.round(np.sqrt(np.nanmean((est - obs) ** 2, axis=0)), 2)
-    # plot.map(RMSE,  var[0]+'_rmse', path=pathOut, filename='RMSE_' + filename, title='')
+    # plot.map(var[0], RMSE,  var[0]+'_rmse', path=pathOut, filename='RMSE_' + filename, title='')
 
     # # R2_score
     filename = '_'.join(('EVALUATION', 'r2Map', 'daily', var, 'None', methodName,
                                 season))
     title = ' '.join(('daily R2_score', var.upper(), methodName, season))
     R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
-    plot.map(R2,  'r2', path=pathOut, filename=filename, title=title)
+    plot.map(var[0], R2,  'r2', path=pathOut, filename=filename, title=title)
 
 
 
@@ -469,5 +468,5 @@ def dichotomous(var, methodName, obs, est, pathOut, season):
                                 season))
     title = ' '.join(('Daily accuracy_score', var.upper(), methodName, season))
     accuracy = (hits+correct_negatives) / (hits+correct_negatives+misses+false_alarms)
-    plot.map(accuracy,  'acc', path=pathOut, filename=filename, title=title)
+    plot.map(var[0], accuracy,  'acc', path=pathOut, filename=filename, title=title)
 

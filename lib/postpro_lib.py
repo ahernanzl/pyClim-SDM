@@ -512,7 +512,7 @@ def figures_projections(lan='EN'):
             os.makedirs(pathOut)
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/regions.csv')
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+var[0].upper()+'/regions.csv')
 
         # Define ylimit and ylabel
         # ylim_dict = {'TXm': (-1, 10), 'TX90p': (0, 70), 'TX10p': (-70, 0), 'WSDI': (-20, 80),
@@ -804,27 +804,27 @@ def change_maps(ssp_dict, years, var, methodName, season, climdex_name, pathOut,
             if plotAllRegions == False:
                 filename = '_'.join(
                     ('PROJECTIONS', 'meanChangeMap', 'all', var, climdex_name, methodName, season))
-                plot.map(mean, 'change_' + climdex_name + '_mean', path=pathFigures,
+                plot.map(var[0], mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                          filename=filename, title='')
             else:
                 filename = '_'.join(('meanChangeMap', climdex_name, scene, season, period))
                 # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
                 title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
+                plot.map(var[0], mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
                          filename=filename, title=title)
             std = np.std(dataTerm, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
                     ('PROJECTIONS', 'stdChangeMap', 'all', var, climdex_name, methodName, season))
-                plot.map(mean, 'change_' + climdex_name + '_mean', path=pathFigures,
+                plot.map(var[0], mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                          filename=filename, title='')
-                plot.map(std, 'change_' + climdex_name + '_std', path=pathFigures,
+                plot.map(var[0], std, 'change_' + climdex_name + '_std', path=pathFigures,
                          filename=filename, title='')
             else:
                 filename = '_'.join(('stdChangeMap', climdex_name, scene, season, period))
                 # title = ' '.join(('mod_std', climdex_name, scene, season, period))
                 title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(std, 'change_' + climdex_name + '_std', path=pathOut + 'maps/',
+                plot.map(var[0], std, 'change_' + climdex_name + '_std', path=pathOut + 'maps/',
                          filename=filename, title=title)
 
 
@@ -894,7 +894,7 @@ def format_web_AEMET():
         try:
             df_regions = pd.read_csv(regions_file)
         except:
-            print('Copy ../aux/ASSOCIATION/regions.csv to ' + regions_file + ' and fill nameForMaps and nameForFigAndCsv manually')
+            print('Copy ../aux/ASSOCIATION/'+var[0].upper()+'/regions.csv to ' + regions_file + ' and fill nameForMaps and nameForFigAndCsv manually')
             print('Remove column of points and add columns nameForMaps and nameForFigAndCsv')
             exit()
 
@@ -1077,7 +1077,7 @@ def format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_va
 
                 # ASCII: id_stations is added as header and dates is added as first column
                 print('writing ASCII', model, scene)
-                id = list(read.hres_metadata().index.values)
+                id = list(read.hres_metadata(var[0]).index.values)
                 times = np.array([10000 * x.year + 100 * x.month + x.day for x in times])
                 data = np.append(times[:, np.newaxis], data, axis=1)
                 id.insert(0, 'YYYYMMDD')

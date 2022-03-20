@@ -156,9 +156,8 @@ def spatial_domains():
         plt.text(x, y, domain, fontsize=12, color=color, fontweight='bold')
 
 
-
-    lats = read.hres_metadata()['lats'].values
-    lons = read.hres_metadata()['lons'].values
+    lats = hres_lats[target_vars0[0]]
+    lons = hres_lons[target_vars0[0]]
     X, Y = list(map(lons, lats))
     map.scatter(X, Y, c=0*lats, s=3, cmap='Accent_r')
     # plt.show()
@@ -231,9 +230,13 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
 
 
 ########################################################################################################################
-def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None, plot_library='Basemap',
+def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None, plot_library='Basemap',
         regType=None, regName=None, colorbar_out=False, pointSize=None, grid=None, plot_lat_lon=True):
     """
+    This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
+    data as colormesh.
+
+    :param var0: 'p' for precipitation or 't' for temperature. It controls the hres_metadata to use.
     :param data:
     :param palette: differente palettes are defined in the function
     :param lats: if none provided, hres_lats will be used
@@ -246,7 +249,7 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
     :param regName: subregion name
     :param colorbar_out: if true, saves figure without colorbar and a horizontal colorbar as an independent image
     :param pointSize: different sizes needed depending on the region size and spatial resolution for optimal visualization
-    :param grid: pred, saf or ext
+    :param grid: pred, saf or ext. If specified, colormesh will be used instead of scatter plot.
     :param plot_lat_lon: plot x_ticks and y_ticks
     :return: void
     """
@@ -494,19 +497,26 @@ def map(data, palette=None, lats=[None, None], lons=[None, None], path=None, fil
     if grid == None:
         # Read lats lons
         if lats[0] == None:
-            lats = read.hres_metadata()['lats'].values
-            lons = read.hres_metadata()['lons'].values
+
+            lats = hres_lats[var0]
+            lons = hres_lons[var0]
+
+            # Set map limits
+            latmin = np.min(hres_lats_all) - 2
+            latMax = np.max(hres_lats_all) + 2
+            lonmin = np.min(hres_lons_all) - 2
+            lonMax = np.max(hres_lons_all) + 2
 
         if regType != None:
-            regNames = pd.read_csv(pathAux + 'ASSOCIATION/association.csv')[regType].values
+            regNames = pd.read_csv(pathAux + 'ASSOCIATION/'+var0.upper()+'/association.csv')[regType].values
             iaux = [i for i in range(len(regNames)) if regNames[i] == regName]
             lats, lons = lats[iaux], lons[iaux]
 
-        # Set map limits
-        latmin = np.min(lats) - 1
-        latMax = np.max(lats) + 1
-        lonmin = np.min(lons) - 2
-        lonMax = np.max(lons) + 2
+            # Set map limits
+            latmin = np.min(lats) - 2
+            latMax = np.max(lats) + 2
+            lonmin = np.min(lons) - 2
+            lonMax = np.max(lons) + 2
 
         if palette == 'target_region':
             # Set map limits

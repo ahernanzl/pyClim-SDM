@@ -40,10 +40,10 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
@@ -62,9 +62,9 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         # Read data and converts obs to uint16 or int16 to save memory
         obs = read.hres_data(var, period='training')['data']
         obs = (100 * obs).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
         pred_calib = None
         saf_calib = None
         var_calib = None
@@ -295,7 +295,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
     if experiment == 'EVALUATION':
         pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
     elif experiment == 'PSEUDOREALITY':
-        aux = np.zeros((len(scene_dates), hres_npoints))
+        aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
         aux[:] = np.nan
         idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
         aux[idates] = est
@@ -303,7 +303,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         del aux
         pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+var.upper()+'/'+methodName+'/daily_data/'
     else:
-        aux = np.zeros((len(scene_dates), hres_npoints))
+        aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
         aux[:] = np.nan
         idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
         aux[idates] = est
@@ -312,8 +312,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lons.npy')
 
     # Set units
     if var == 'pcp':

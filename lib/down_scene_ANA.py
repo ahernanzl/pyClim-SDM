@@ -53,9 +53,9 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         # Read data and converts obs to uint16 or int16 to save memory
         obs = read.hres_data(var, period='training')['data']
         obs = (100 * obs).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
         pred_calib = None
         saf_calib = None
         var_calib = None
@@ -233,7 +233,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         pred_scene = pred_scene_chunk[ichunk]
     if 'var' in fields:
         var_scene = var_scene_chunk[ichunk]
-    est = np.zeros((scene_ndates, hres_npoints))
+    est = np.zeros((scene_ndates, hres_npoints[var[0]]))
     est = est.astype(predictands_codification[var]['type'])
 
     # Goes throuch all dates
@@ -283,7 +283,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
     print(scene, model, 'collect chunks', n_chunks)
 
     # Create empty array and accumulate
-    est = np.zeros((0, hres_npoints))
+    est = np.zeros((0, hres_npoints[var[0]]))
     for ichunk in range(n_chunks):
         path ='../tmp/'+var+'_'+methodName+'_'+ model + '_' + scene + '/'
         filename = path + 'ichunk_' + str(ichunk) + '.npy'
@@ -305,7 +305,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         ncVar = modNames[var]
         filename = ncVar + '_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'
         model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
-        aux = np.zeros((len(scene_dates), hres_npoints))
+        aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
         aux[:] = np.nan
         idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
         aux[idates] = est
@@ -323,8 +323,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         os.makedirs(pathOut)
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lons.npy')
 
     if var == 'pcp':
         units = 'mm'

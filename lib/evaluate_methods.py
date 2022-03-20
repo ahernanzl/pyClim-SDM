@@ -44,8 +44,8 @@ def annual_cycle():
         nmethods = len([x for x in methods if x['var'] == VAR])
 
         # Create empty array to accumulate results
-        obs_matrix = np.zeros((nmethods, 12, hres_npoints))
-        est_matrix = np.zeros((nmethods, 12, hres_npoints))
+        obs_matrix = np.zeros((nmethods, 12, hres_npoints[VAR[0]]))
+        est_matrix = np.zeros((nmethods, 12, hres_npoints[VAR[0]]))
 
         # Define plot style
         if VAR[0] == 't':
@@ -90,7 +90,7 @@ def annual_cycle():
         est_matrix = np.load('../tmp/est_matrix_'+VAR+'.npy')
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/regions.csv')
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+VAR[0].upper()+'/regions.csv')
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -145,7 +145,9 @@ def annual_cycle():
 
                             # plt.title(var.upper(), fontsize=title_size)
                             plt.title(var.upper() + ' annual cycle')
-                            plt.xticks(ticks=range(12), labels=range(1, 13))
+                            # plt.xticks(ticks=range(12), labels=range(1, 13))
+                            plt.xticks(ticks=range(12), labels=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                                                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
                             plt.xlabel('month')
                             plt.ylabel(units)
                             plt.tight_layout()
@@ -177,7 +179,7 @@ def daily_data(by_season=True):
         del d
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux+'ASSOCIATION/regions.csv')
+        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+var[0].upper()+'/regions.csv')
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -258,7 +260,7 @@ def climdex(by_season=True):
         bias_type = 'rel'
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux+'ASSOCIATION/regions.csv')
+        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+var[0].upper()+'/regions.csv')
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -333,15 +335,15 @@ def climdex(by_season=True):
                                     filename = '_'.join(('EVALUATION', 'obsMap', 'all', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, 'obs', season))
-                                    plot.map(mean_obs, palette, path=pathFigures, filename=filename, title=title)
+                                    plot.map(var[0], mean_obs, palette, path=pathFigures, filename=filename, title=title)
                                     filename = '_'.join(('EVALUATION', 'estMap', 'all', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, methodName, season))
-                                    plot.map(mean_est, palette, path=pathFigures, filename=filename, title=title)
+                                    plot.map(var[0], mean_est, palette, path=pathFigures, filename=filename, title=title)
                                     filename = '_'.join(('EVALUATION', 'biasMap', 'all', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, 'bias', methodName, season))
-                                    plot.map(bias, bias_palette, path=pathFigures, filename=filename, title=title)
+                                    plot.map(var[0], bias, bias_palette, path=pathFigures, filename=filename, title=title)
 
                             #-------------------- Scatter plot mean values -----------------------------------------------------
                             m = int(min(np.min(mean_obs), np.min(mean_est)))

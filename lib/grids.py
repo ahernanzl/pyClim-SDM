@@ -61,7 +61,7 @@ def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp):
 
 
 ########################################################################################################################
-def association(interp):
+def association(interp, var0):
     """
     Associates each high resolution grid point to the low resolution grid in three different ways:
     - nearest: using coords UTM
@@ -74,10 +74,9 @@ def association(interp):
     """
 
     print('grids.association() starts')
-    start = datetime.datetime.now()
 
     # Read lat lon of high resolution grid
-    df_association = read.hres_metadata()
+    df_association = read.hres_metadata(var0)
     for n in range(4):
         df_association['lat' + str(n+1)] = np.nan
         df_association['lon' + str(n+1)] = np.nan
@@ -87,9 +86,9 @@ def association(interp):
         df_association['w' + str(n+1)] = np.nan
 
     # Goes through each high resolution point and looks for its 4 nearest low resolution neighbours
-    for ipoint in range(hres_npoints):
+    for ipoint in range(hres_npoints[var0]):
         if ipoint%100==0:
-            print('grids.association', interp, 100*ipoint/hres_npoints, '%')
+            print('grids.association', interp, 100*ipoint/hres_npoints[var0], '%')
         hres_lat = df_association.iloc[[ipoint]]['lats'].values[0]
         hres_lon = df_association.iloc[[ipoint]]['lons'].values[0]
 
@@ -170,13 +169,13 @@ def association(interp):
             df_association['j4'][ipoint + 1] = jlonLeft
 
     # Save results
-    pathOut=pathAux+'ASSOCIATION/'+interp+'/'
+    pathOut=pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp+'/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
     df_association.to_csv(pathOut+'association.csv')
 
     # Create arrays for speed
-    df_association = pd.read_csv(pathAux+'ASSOCIATION/'+interp+'/association.csv')
+    df_association = pd.read_csv(pathOut+'/association.csv')
     i_4nn = np.asarray(df_association[["i1", "i2", "i3", "i4"]], dtype='int')
     j_4nn = np.asarray(df_association[["j1", "j2", "j3", "j4"]], dtype='int')
     w_4nn = np.asarray(df_association[["w1", "w2", "w3", "w4"]])
@@ -196,7 +195,7 @@ def association(interp):
 
 
 ########################################################################################################################
-def subregions():
+def subregions(var0):
     """
     For each region_type adds column to association.csv and each cell is filled with the region_name of the point.
     For each region_name adds row to regions.csv with a cell listing all points contained in the region.
@@ -209,14 +208,19 @@ def subregions():
     For a new project shapefiles and regTypes must be defined.
     """
 
-    print('calculating subregions')
+    print('calculating subregions', var0)
 
+    pathOutReg = pathAux+'ASSOCIATION/'+var0.upper()+'/'
+    if not os.path.exists(pathOutReg):
+        os.makedirs(pathOutReg)
 
     # Read hres metadata
-    df_association = pd.read_csv(pathAux+'ASSOCIATION/bilinear/association.csv')
+    df_association = pd.read_csv(pathAux+'ASSOCIATION/'+var0.upper()+'_bilinear/association.csv')
 
     # Define name of complete region for csv
-    if nameCompleteRegion == 'EspañaPB':
+    if nameCompleteRegion == 'myRegionName':
+        df_association[typeCompleteRegion] = 'myRegionName'
+    elif nameCompleteRegion == 'EspañaPB':
         df_association[typeCompleteRegion] = 'ESPAÑA PENINSULAR'
     elif nameCompleteRegion == 'Canarias':
         df_association[typeCompleteRegion] = 'CANARIAS'
@@ -225,7 +229,8 @@ def subregions():
         print('grids.subregions() needs to be tuned for this new region/project.')
         print('shapefiles with polygons or any other way to define regions for each hres point are needed.')
         exit()
-    # df_association.to_csv(pathAux+'ASSOCIATION/association.csv')
+    # for interp in ('nearest', 'bilinear'):
+    #     df_association.to_csv(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp+'/association.csv')
 
     # If a division by regions will be used
     if divideByRegions == True:
@@ -248,9 +253,9 @@ def subregions():
 
             # Go through all divissions and points to classify each point
             for divission in (prov_dict, ccaa_dict, cuencas_dict):
-                for ipoint in range(hres_npoints):
+                for ipoint in range(hres_npoints[var0]):
                     if ipoint%100==0:
-                        print(divission['col_name'], int(100*ipoint/hres_npoints),'%')
+                        print(divission['col_name'], int(100*ipoint/hres_npoints[var0]),'%')
                     lat, lon = df_association.iloc[ipoint]['lats'], df_association.iloc[ipoint]['lons']
                     for iregion in range(divission['shp'].shape[0]):
                         regName = divission['shp'].loc[iregion, divission['regName']]
@@ -267,7 +272,8 @@ def subregions():
                             df_association[divission['col_name']][ipoint] = regName
 
             # # Save results
-            # df_association.to_csv(pathAux+'ASSOCIATION/association.csv')
+            # for interp in ('nearest', 'bilinear'):
+            #     df_association.to_csv(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp+'/association.csv')
 
             # Create regions file
             df_reg = pd.DataFrame(columns=['regType', 'regName', 'subDir', 'ipoints'])
@@ -279,15 +285,16 @@ def subregions():
                     subDir = regType.upper() + '/' + regName.upper().replace(' ', '_').replace(',', '').replace('/', '_').replace('(', '').replace(')', '') + '/'
                     ipoints = [i for i in range(int(df_association.shape[0])) if str(df_association[regType][i]) == regName]
                     df_reg = df_reg.append({'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}, ignore_index=True)
-            df_reg.to_csv(pathAux+'ASSOCIATION/regions.csv')
+
+            df_reg.to_csv(pathOutReg + 'regions.csv')
 
             # # Plot all regions and their points to detect errors that must be corrected manually
-            # df_reg = pd.read_csv(pathAux+'ASSOCIATION/regions.csv')
+            # df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+var0.upper()+'/regions.csv')
             # for index, row in df_reg.iterrows():
             #     regType, regName = row['regType'], row['regName']
             #     iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
             #     print(regType, regName, str(index) + '/' + str(df_reg.shape[0]))
-            #     plot.map(np.zeros((len(iaux))), 'prob', path=pathAux+'ASSOCIATION/Maps_regions/',
+            #     plot.map(map(var0, np.zeros((len(iaux))), 'prob', path=pathAux+'ASSOCIATION/Maps_regions/',
             #              filename=regType+'_'+regName, title=regType+' '+regName, plot_mode='scatter', regType=regType,
             #              regName=regName)
 
@@ -309,4 +316,4 @@ def subregions():
             subDir = regType.upper() + '/' + regName.upper().replace(' ', '_').replace(',', '').replace('/', '_').replace('(', '').replace(')', '') + '/'
             ipoints = [i for i in range(int(df_association.shape[0])) if str(df_association[regType][i]) == regName]
             df_reg = df_reg.append({'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}, ignore_index=True)
-        df_reg.to_csv(pathAux + 'ASSOCIATION/regions.csv')
+        df_reg.to_csv(pathOutReg + 'regions.csv')

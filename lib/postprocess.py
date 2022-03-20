@@ -181,8 +181,8 @@ def bias_correction_oneModel(var, methodName, model):
                 units = 'degress'
 
             # Save bias corrected scene
-            hres_lats = np.load(pathAux + 'ASSOCIATION/hres_lats.npy')
-            hres_lons = np.load(pathAux + 'ASSOCIATION/hres_lons.npy')
+            hres_lats = np.load(pathAux + var[0].upper()+'_bilinear/ASSOCIATION/hres_lats.npy')
+            hres_lons = np.load(pathAux + var[0].upper()+'_bilinear/ASSOCIATION/hres_lons.npy')
             write.netCDF(pathOut, model + '_' + scene + '.nc', var, scene_bc, units, hres_lats, hres_lons,
                          scene_dates, regular_grid=False)
 
@@ -375,7 +375,8 @@ def plot_results():
     """
 
     # Establish subregions for each point
-    grids.subregions()
+    for var0 in target_vars0:
+        grids.subregions(var0)
 
     if experiment == 'EVALUATION':
         evaluate_methods.annual_cycle()
@@ -431,7 +432,7 @@ def nc2ascii():
                     data[np.isnan(data)] = -999
                     del nc
                     print('writing daily data to ASCCI file for', var, methodName, bc_method, scene, model, '...')
-                    id = list(read.hres_metadata().index.values)
+                    id = list(read.hres_metadata(var[0]).index.values)
                     times = np.array([10000 * x.year + 100 * x.month + x.day for x in times])
                     data = np.append(times[:, np.newaxis], data, axis=1)
                     id.insert(0, 'YYYYMMDD')
@@ -455,7 +456,7 @@ def nc2ascii():
                         fileOut = '_'.join((climdex, scene, model, season))
                         if os.path.isfile(pathIn + fileIn +'.npy'):
                             data = np.load(pathIn + fileIn +'.npy')
-                            id = list(read.hres_metadata().index.values)
+                            id = list(read.hres_metadata(var[0]).index.values)
                             times = np.array(years)
                             data = np.append(times[:, np.newaxis], data, axis=1)
                             id.insert(0, 'YYYY')

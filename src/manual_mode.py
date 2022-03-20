@@ -11,19 +11,19 @@ def main():
     #---------------------- INITIAL CHECKS ---------------------------------------------------------------------------------
     aux_lib.initial_checks()
 
-    #---------------------- PRECONTROL ---------------------------------------------------------------------------------
+    #---------------------- experiment = PRECONTROL --------------------------------------------------------------------
 
     preprocess.preprocess()
     precontrol.missing_data_check()
     precontrol.predictors_correlation()
     precontrol.GCMs_evaluation()
 
-    #---------------------- EVALUATION / PROJECTIONS -------------------------------------------------------------------
+    #-------------------- experiment = EVALUATION / PROJECTIONS ------------------------------------------------------
 
     preprocess.preprocess()
     preprocess.train_methods()
     process.downscale()
-    postprocess.bias_correction_projections()
+    postprocess.bias_correction_projections() # Only for PROJECTIONS
     postprocess.get_climdex()
     postprocess.plot_results()
     postprocess.nc2ascii()
