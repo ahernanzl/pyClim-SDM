@@ -18,13 +18,13 @@ methods.append({'var': 'tmax', 'methodName': 'QM',      'family': 'BC',     'mod
 # methods.append({'var': 'tmax', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+# methods.append({'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmax', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 methods.append({'var': 'tmax', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmax', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmax', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmax', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
 # # ---------------- TMIN --------------------------------
 # methods.append({'var': 'tmin', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
@@ -32,13 +32,13 @@ methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mod
 # methods.append({'var': 'tmin', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmin', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
+methods.append({'var': 'tmin', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmin', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmin', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmin', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmin', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmin', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-# methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
 # ---------------- PCP --------------------------------
 # methods.append({'var': 'pcp', 'methodName': 'RAW',          'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
