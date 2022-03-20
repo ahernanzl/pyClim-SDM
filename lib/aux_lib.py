@@ -60,30 +60,6 @@ def initial_checks():
         else:
             exit()
 
-    # Check for consistency between predictors and methods
-    for var in ('tmax', 'tmin', 'pcp', ):
-        if (var in target_vars) and (var[0] not in target_vars0) and (experiment != 'PRECONTROL'):
-            print('-----------------------------------------------')
-            print('Inconsistency found between preditors and methods selection.')
-            print('Your selection includes some methods for '+ var + ' but no predictor has been selected')
-            print('-----------------------------------------------')
-            exit()
-
-    # Force at least one predictor
-    if len(target_vars0) == 0:
-        print('-----------------------------------------------')
-        print('At least one predictor, for temperature and/or precipitation, must be selected')
-        print('-----------------------------------------------')
-        exit()
-
-
-    # Force to define at least one synoptic analogy field
-    if len(saf_list) == 0:
-        print('-----------------------------------------------')
-        print('At least one field must be selected for Synoptic Analogy Fields')
-        print('-----------------------------------------------')
-        exit()
-
     # Kill living old jobs
     if running_at_HPC == True:
         a = input('\nPress "k" to kill running jobs and delete logs or any other key to preserve them:')
@@ -164,7 +140,7 @@ def prepare_hres_data_ascii2npy(var):
     if pseudoreality == True:
         exit('Do not run read.hres_data first time True for pseudoreality')
     num_lines = sum(1 for line in open(filename + '.txt'))
-    lon_line=hres_npoints+1
+    lon_line=hres_npoints[var[0]]+1
     data=np.zeros((0))
     chunk=0
     CHUNK=0

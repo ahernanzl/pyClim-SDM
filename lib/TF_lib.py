@@ -54,9 +54,9 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
             var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
         obs = read.hres_data(var, period='training')['data']
         obs = (100 * obs).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
 
     # Declares variables for the other processes
     else:
@@ -79,10 +79,10 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 

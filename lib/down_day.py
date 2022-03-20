@@ -48,7 +48,7 @@ def pcp(pred_scene, saf_scene, var_scene, pred_calib, saf_calib, var_calib, obs,
     """
 
     # Creates empty array for results
-    est = np.zeros((hres_npoints))
+    est = np.zeros((hres_npoints['p']))
 
     # Define analogy_mode and estimation_mode
     analogy_mode = methodName.split('-')[1]
@@ -100,7 +100,7 @@ def pcp(pred_scene, saf_scene, var_scene, pred_calib, saf_calib, var_calib, obs,
             weather_type_id = None
 
         # Goes through high resolution grid
-        for ipoint in range(hres_npoints):
+        for ipoint in range(hres_npoints['p']):
 
             if analogy_mode == ('LOC'):
                 corr_ipoint = corr[:,ipoint]
@@ -125,7 +125,7 @@ def t(pred_scene, saf_scene, var_scene, pred_calib, saf_calib, var_calib, obs, c
     """
 
     # Creates empty array for results
-    est = np.zeros((hres_npoints))
+    est = np.zeros((hres_npoints['t']))
 
     # Adds axis so scene and calib have the same dimensions
     pred_scene = pred_scene[np.newaxis,:,:,:]
@@ -146,7 +146,7 @@ def t(pred_scene, saf_scene, var_scene, pred_calib, saf_calib, var_calib, obs, c
         weather_type_id = None
 
     # Goes through high resolution grid
-    for ipoint in range(hres_npoints):
+    for ipoint in range(hres_npoints['t']):
         if methodName == 'WT-MLR':
             coef_ipoint = coef[weather_type_id, ipoint]
             intercept_ipoint = intercept[weather_type_id, ipoint]

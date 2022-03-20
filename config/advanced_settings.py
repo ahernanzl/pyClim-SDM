@@ -181,6 +181,13 @@ longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
 
+# Force to define at least one synoptic analogy field
+if len(saf_list) == 0:
+    print('-----------------------------------------------')
+    print('At least one field must be selected for Synoptic Analogy Fields')
+    print('-----------------------------------------------')
+    exit()
+
 # Build saf_dict
 saf_dict = {}
 for pred in saf_list:
@@ -248,21 +255,43 @@ for var in ('tmax', 'tmin', 'pcp'):
         if method['var'] == var and 'var' in method['fields'] and var not in target_vars:
             target_vars.append(var)
 
+# Check for consistency between predictors and methods
+for var in ('tmax', 'tmin', 'pcp',):
+    if (var in target_vars) and (var[0] not in target_vars0) and (experiment != 'PRECONTROL'):
+        print('-----------------------------------------------')
+        print('Inconsistency found between preditors and methods selection.')
+        print('Your selection includes some methods for ' + var + ' but no predictor has been selected')
+        print('-----------------------------------------------')
+        exit()
+
+# Force at least one predictor
+if len(target_vars0) == 0:
+    print('-----------------------------------------------')
+    print('At least one predictor, for temperature and/or precipitation, must be selected')
+    print('-----------------------------------------------')
+    exit()
+
 
 #############################################  GRIDS  ##################################################################
 
 target_type = 'gridded_data'
 # target_type = 'stations'
 
-if not os.path.isfile(pathHres + 'hres_metadata.txt'):
-    print('----------------------------------------------------------------------------------------')
-    print('Make sure your input_data directory is prepared as indicated in the input_data_template.')
-    print('Missing hres/hres_metadata.txt file.')
-    print('----------------------------------------------------------------------------------------')
-    exit()
-aux_hres_metadata = np.loadtxt(pathHres + 'hres_metadata.txt')
-hres_npoints = aux_hres_metadata.shape[0]
-hres_lats, hres_lons = aux_hres_metadata[:, 2], aux_hres_metadata[:, 1]
+hres_npoints, hres_lats, hres_lons = {}, {}, {}
+for var0 in target_vars0:
+    if not os.path.isfile(pathHres + var0 + '_hres_metadata.txt'):
+        print('----------------------------------------------------------------------------------------')
+        print('Make sure your input_data directory is prepared as indicated in the input_data_template.')
+        print('Missing hres/'+var0+'_hres_metadata.txt file.')
+        print('----------------------------------------------------------------------------------------')
+        exit()
+    aux_hres_metadata = np.loadtxt(pathHres + var0 + '_hres_metadata.txt')
+    hres_npoints.update({var0: aux_hres_metadata.shape[0]})
+    hres_lats.update({var0: aux_hres_metadata[:, 2]})
+    hres_lons.update({var0: aux_hres_metadata[:, 1]})
+hres_lats_all = np.asarray(list(hres_lats['t']) + list(hres_lats['p']))
+hres_lons_all = np.asarray(list(hres_lons['t']) + list(hres_lons['p']))
+
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
 if 'p' in target_vars0:
@@ -301,17 +330,17 @@ saf_ilats = [i for i in range(ext_nlats) if ext_lats[i] in saf_lats]
 saf_ilons = [i for i in range(ext_nlons) if ext_lons[i] in saf_lons]
 
 # Check that hres_points are fully contained in the defined domain
-if saf_lats[saf_lats >= np.max(hres_lats)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats)].size == 0 or \
-        saf_lons[saf_lons >= np.max(hres_lons)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons)].size == 0:
+if saf_lats[saf_lats >= np.max(hres_lats_all)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats_all)].size == 0 or \
+        saf_lons[saf_lons >= np.max(hres_lons_all)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons_all)].size == 0:
     print('hres_points are not fully contained inside the domain defined for Synoptic Analogy Fields')
     print('Please, define a larger domain')
     exit()
 
 # pred grid (for predictors). Smaller area which covers, at least, the target region.
-pred_lat_up = np.min(saf_lats[saf_lats >= np.max(hres_lats)])
-pred_lat_down = np.max(saf_lats[saf_lats <= np.min(hres_lats)])
-pred_lon_right = np.min(saf_lons[saf_lons >= np.max(hres_lons)])
-pred_lon_left = np.max(saf_lons[saf_lons <= np.min(hres_lons)])
+pred_lat_up = np.min(saf_lats[saf_lats >= np.max(hres_lats_all)])
+pred_lat_down = np.max(saf_lats[saf_lats <= np.min(hres_lats_all)])
+pred_lon_right = np.min(saf_lons[saf_lons >= np.max(hres_lons_all)])
+pred_lon_left = np.max(saf_lons[saf_lons <= np.min(hres_lons_all)])
 pred_nlats = int(1 + (pred_lat_up - pred_lat_down) / grid_res)
 pred_nlons = int(1 + (pred_lon_right - pred_lon_left) / grid_res)
 pred_lats = np.linspace(pred_lat_up, pred_lat_down, pred_nlats)
@@ -327,7 +356,6 @@ for saf in saf_dict:
     W_saf[i] = saf_dict[saf]['w'] * np.ones((saf_nlats, saf_nlons))
     i += 1
 W_saf = W_saf.flatten()
-
 
 ###################################     SCENES AND MODELS    ###########################################################
 scene_names_dict = {}
@@ -351,9 +379,11 @@ elif experiment == 'PRECONTROL':
 ###################################     SUBREGIONS    #####################################################################
 
 # This program allows to analyse results by subregions. Region types and names are handled by grids.subregions()
-# At the moment only EspañaPB is implemented, but adaptation to other regions (and their shapefiles) is prepared to be easy
-typeCompleteRegion = 'SPAIN' # It would make more sense to call it "COUNTRY", but it was designed as "SPAIN" for the website
-nameCompleteRegion = 'EspañaPB' # Chose between EspañaPB or Canarias (Canarias to be implemented)
+# # At the moment only EspañaPB is implemented, but adaptation to other regions (and their shapefiles) is prepared to be easy
+# typeCompleteRegion = 'SPAIN' # It would make more sense to call it "COUNTRY", but it was designed as "SPAIN" for the website
+typeCompleteRegion = 'COMPLETE' # It would make more sense to call it "COUNTRY", but it was designed as "SPAIN" for the website
+# nameCompleteRegion = 'EspañaPB' # Chose between EspañaPB or Canarias (Canarias to be implemented)
+nameCompleteRegion = 'myRegionName' # Chose between EspañaPB or Canarias (Canarias to be implemented)
 divideByRegions = False # Set to True if a division by regions will be done, and to False if no regions will be used
 plotAllRegions = False  # Set to False so only the complete region will be plotted and to True so all regions will be plotted
 

@@ -53,8 +53,9 @@ def common():
     """
 
     # Association between high resolution and low resolution grids, and regions labels.
-    for interp_mode in ('nearest', 'bilinear', ):
-        grids.association(interp_mode)
+    for var0 in target_vars0:
+        for interp_mode in ('nearest', 'bilinear', ):
+            grids.association(interp_mode, var0)
 
     # Calculate indirect predictors for reanalysis
     if pseudoreality == False:

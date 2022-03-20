@@ -208,8 +208,8 @@ def netCDF_rotated(path, filename, varName, data, dates):
 	# 		coords[irlat * nrlons + irlon] = np.array([irlat, irlon, lat, lon, rlat, rlon])
 	# rlats = []
 	# rlons = []
-	# lats = read.hres_metadata()['lats'].values
-	# lons = read.hres_metadata()['lons'].values
+	# lats = read.hres_metadata(var0)['lats'].values
+	# lons = read.hres_metadata(var0)['lons'].values
 	# npoints = len(lats)
 	# err = .0001
 	# for ipoint in range(npoints):
