@@ -66,7 +66,8 @@ methods.append({'var': 'pcp', 'methodName': 'WG-NMM',       'family': 'WG',     
 
 
 ########################################       DATES      ##############################################################
-# calibration_years corresponds to the longest period available, which then can be split for training and testing
+# calibration_years corresponds to the longest period available by reanalysis and hres_data, which then can be split for
+# training and testing
 calibration_years = (1979, 2020)
 
 single_split_testing_years = (2006, 2020)
@@ -86,12 +87,14 @@ split_mode = 'single_split'
 # split_mode = 'fold4'
 # split_mode = 'fold5' # This last fold will automatically join the 5 folds
 
-reference_years = (1979, 2005) # For standardization and future signal of change
-historical_years = (1950, 2014)
-# historical_years = (1979, 2005)
+# Reference: for standardization and future signal of change. The choice of the reference period is constrained by
+# availability of reanalysis, historical GCMs and hres data.
+reference_years = (1979, 2005)
+# historical_years = (1950, 2014)
+historical_years = (1979, 2005)
 ssp_years = (2015, 2100)
 biasCorr_years = (1979, 2005)
-biasCorr_years = (1951, 2014)
+# biasCorr_years = (1951, 2014)
 
 hresPeriodFilename = '19510101-20201231'
 reanalysisName = 'ERA5'
