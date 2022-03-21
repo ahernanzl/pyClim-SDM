@@ -900,11 +900,16 @@ class tabDatesAndDomain(ttk.Frame):
 
         # Years
         for (text, var, info) in [
-            ('Calibration:', calibration_years, 'Longest period available, which then can be split for training and testing'),
-            ('Reference:', reference_years, 'For standardization and as reference climatology'),
+            ('Calibration:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
+                                                'which then can be split for training and testing'),
+            ('Reference:', reference_years, 'For standardization and as reference climatology. \n'
+                                            'The choice of the reference period is constrained by availability of \n'
+                                            'reanalysis, historical GCMs and hres data.'),
             ('Historical:', historical_years, 'For historical projections'),
             ('SSPs:', ssp_years, 'For future projections'),
-            ('Bias correction:', biasCorr_years, 'For bias correction of projections'),
+            ('Bias correction:', biasCorr_years, 'For bias correction of projections\n'
+                                            'The choice of the bias correction period is constrained by availability of \n'
+                                            'historical GCMs and hres data.'),
             ]:
 
             lab = ttk.Label(frameDates, text=text)
@@ -1025,7 +1030,7 @@ class tabDatesAndDomain(ttk.Frame):
 
         # hresPeriodFilename
         self.hresPeriodFilename_var = tk.StringVar()
-        Label(framePeriodFilenames, text='Predictands period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
+        Label(framePeriodFilenames, text='Hres period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
         hresPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.hresPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
         hresPeriodFilename_Entry.insert(END, hresPeriodFilename)
         hresPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
@@ -1229,6 +1234,112 @@ class selectionWindow():
                 if len(self.steps) == 0:
                     self.all_checks_ok = False
                     tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected (Experiments and Steps tab)")
+                else:
+                    self.all_checks_ok = True
+
+            # Years
+            self.aux_calibration_years = (int(self.calibration_years[0].get()), int(self.calibration_years[1].get()))
+            self.aux_reference_years = (int(self.reference_years[0].get()), int(self.reference_years[1].get()))
+            self.aux_historical_years = (int(self.historical_years[0].get()), int(self.historical_years[1].get()))
+            self.aux_ssp_years = (int(self.ssp_years[0].get()), int(self.ssp_years[1].get()))
+            self.aux_biasCorr_years = (int(self.biasCorr_years[0].get()), int(self.biasCorr_years[1].get()))
+            self.all_years_hres = [x for x in range(int(self.hresPeriodFilename_var.get().split('-')[0][:4]),
+                                                    int(self.hresPeriodFilename_var.get().split('-')[1][:4])+1)]
+            self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var.get().split('-')[0][:4]),
+                                                    int(self.reanalysisPeriodFilename_var.get().split('-')[1][:4])+1)]
+            self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var.get().split('-')[0][:4]),
+                                                    int(self.historicalPeriodFilename_var.get().split('-')[1][:4])+1)]
+            self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var.get().split('-')[0][:4]),
+                                                    int(self.sspPeriodFilename_var.get().split('-')[1][:4])+1)]
+
+            # Force calibration years
+            if self.all_checks_ok == True:
+                year = self.aux_calibration_years[0]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+            if self.all_checks_ok == True:
+                year = self.aux_calibration_years[1]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force reference years
+            if self.all_checks_ok == True:
+                year = self.aux_reference_years[0]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+                        or year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+            if self.all_checks_ok == True:
+                year = self.aux_reference_years[1]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+                        or year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force historical years
+            if self.all_checks_ok == True:
+                year = self.aux_historical_years[0]
+                if year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+                year = self.aux_historical_years[1]
+                if year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force ssp years
+            if self.all_checks_ok == True:
+                year = self.aux_ssp_years[0]
+                if year not in self.all_years_ssp:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+                year = self.aux_ssp_years[1]
+                if year not in self.all_years_ssp:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force bias correction years
+            if self.all_checks_ok == True:
+                year = self.aux_biasCorr_years[0]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+                        or year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM", "Bias correction years not available by historical GCMs or hres data.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+                year = self.aux_biasCorr_years[1]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+                        or year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Bias correction years not available by historical GCMs or hres data.\n"
+                                                       "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
 
