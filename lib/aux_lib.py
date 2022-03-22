@@ -124,11 +124,11 @@ def prepare_hres_data_ascii2npy(var):
 
     """
 
-    filename = pathHres + var + '_' + hresPeriodFilename
+    filename = pathHres + var + '_' + hresPeriodFilename[var[0]]
     fill_value_txt = -999 # This is the value in the txt file, and this function convert it to np.nan for the .npy file
 
-    minYear = int(hresPeriodFilename.split('-')[0][:4])
-    maxYear = int(hresPeriodFilename.split('-')[1][:4])
+    minYear = int(hresPeriodFilename[var[0]].split('-')[0][:4])
+    maxYear = int(hresPeriodFilename[var[0]].split('-')[1][:4])
 
     tmp='../tmp/'
     if not os.path.exists(tmp):

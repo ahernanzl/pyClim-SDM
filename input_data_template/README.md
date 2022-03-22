@@ -18,12 +18,12 @@ This folder must contain predictands information with the following format:
 
 For temperature:
 - t_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
-- tmax_$hresPeriodFilename.txt
-- tmin_$hresPeriodFilename.txt
+- tmax_$hresPeriodFilename['t'].txt
+- tmin_$hresPeriodFilename['t'].txt
 
 For precipitation:
 - p_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
-- pcp_$hresPeriodFilename.txt 
+- pcp_$hresPeriodFilename['p'].txt 
 
 Example: pcp_19510101-20191231.txt
 

@@ -96,7 +96,9 @@ ssp_years = (2015, 2100)
 biasCorr_years = (1979, 2005)
 # biasCorr_years = (1951, 2014)
 
-hresPeriodFilename = '19510101-20201231'
+hresPeriodFilename = {}
+hresPeriodFilename.update({'t': '19510101-20201231'})
+hresPeriodFilename.update({'p': '19510101-20201231'})
 reanalysisName = 'ERA5'
 reanalysisPeriodFilename = '19790101-20201231'
 historicalPeriodFilename = '19500101-20141231'
