@@ -1028,12 +1028,19 @@ class tabDatesAndDomain(ttk.Frame):
 
         entriesW = 17
 
-        # hresPeriodFilename
-        self.hresPeriodFilename_var = tk.StringVar()
-        Label(framePeriodFilenames, text='Hres period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
-        hresPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.hresPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        hresPeriodFilename_Entry.insert(END, hresPeriodFilename)
-        hresPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+        # hresPeriodFilename_t
+        self.hresPeriodFilename_var_t = tk.StringVar()
+        Label(framePeriodFilenames, text='Hres temperature period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
+        hresPeriodFilename_Entry_t = tk.Entry(framePeriodFilenames, textvariable=self.hresPeriodFilename_var_t, width=entriesW, justify='right', takefocus=False)
+        hresPeriodFilename_Entry_t.insert(END, hresPeriodFilename['t'])
+        hresPeriodFilename_Entry_t.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+
+        # hresPeriodFilename_p
+        self.hresPeriodFilename_var_p = tk.StringVar()
+        Label(framePeriodFilenames, text='Hres precipitation period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
+        hresPeriodFilename_Entry_p = tk.Entry(framePeriodFilenames, textvariable=self.hresPeriodFilename_var_p, width=entriesW, justify='right', takefocus=False)
+        hresPeriodFilename_Entry_p.insert(END, hresPeriodFilename['p'])
+        hresPeriodFilename_Entry_p.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
         # reanalysisName
         self.reanalysisName_var = tk.StringVar()
@@ -1113,10 +1120,10 @@ class tabDatesAndDomain(ttk.Frame):
 
     def get(self):
         return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, \
-               self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var, self.reanalysisName_var, \
-               self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, self.sspPeriodFilename_var, \
-               self.split_mode, self.grid_res_var, \
-               self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var
+               self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var_t, self.hresPeriodFilename_var_p, \
+               self.reanalysisName_var, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
+               self.sspPeriodFilename_var, self.split_mode, self.grid_res_var, self.saf_lat_up_var, \
+               self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var
 
 
 
@@ -1154,11 +1161,10 @@ class selectionWindow():
 
         # Tab: dates and Domain
         self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, \
-            self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var, self.reanalysisName_var, \
-               self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, self.sspPeriodFilename_var, \
-                self.split_mode, self.grid_res_var, \
-                   self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var\
-                = tabDatesAndDomain(notebook).get()
+            self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var_t, self.hresPeriodFilename_var_p, \
+            self.reanalysisName_var, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
+            self.sspPeriodFilename_var, self.split_mode, self.grid_res_var, self.saf_lat_up_var, self.saf_lon_left_var, \
+            self.saf_lon_right_var, self.saf_lat_down_var = tabDatesAndDomain(notebook).get()
 
         # Logo
         w = 120
@@ -1243,8 +1249,11 @@ class selectionWindow():
             self.aux_historical_years = (int(self.historical_years[0].get()), int(self.historical_years[1].get()))
             self.aux_ssp_years = (int(self.ssp_years[0].get()), int(self.ssp_years[1].get()))
             self.aux_biasCorr_years = (int(self.biasCorr_years[0].get()), int(self.biasCorr_years[1].get()))
-            self.all_years_hres = [x for x in range(int(self.hresPeriodFilename_var.get().split('-')[0][:4]),
-                                                    int(self.hresPeriodFilename_var.get().split('-')[1][:4])+1)]
+            self.all_years_hres = [x for x in range(max(int(self.hresPeriodFilename_var_t.get().split('-')[0][:4]),
+                                                        int(self.hresPeriodFilename_var_p.get().split('-')[0][:4])),
+                                                    min(int(self.hresPeriodFilename_var_t.get().split('-')[1][:4]),
+                                                        int(self.hresPeriodFilename_var_p.get().split('-')[1][:4]))
+                                                        + 1)]
             self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var.get().split('-')[0][:4]),
                                                     int(self.reanalysisPeriodFilename_var.get().split('-')[1][:4])+1)]
             self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var.get().split('-')[0][:4]),
@@ -1424,7 +1433,8 @@ class selectionWindow():
         self.fold5_testing_years = (self.testing_years_dict['fold5'][0].get(), self.testing_years_dict['fold5'][1].get())
 
         # period filenames
-        self.hresPeriodFilename_var = self.hresPeriodFilename_var.get()
+        self.hresPeriodFilename_var_t = self.hresPeriodFilename_var_t.get()
+        self.hresPeriodFilename_var_p = self.hresPeriodFilename_var_p.get()
         self.reanalysisName_var = self.reanalysisName_var.get()
         self.reanalysisPeriodFilename_var = self.reanalysisPeriodFilename_var.get()
         self.historicalPeriodFilename_var = self.historicalPeriodFilename_var.get()
@@ -1472,7 +1482,8 @@ class selectionWindow():
                self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, self.bc_method, \
                self.single_split_testing_years, self.fold1_testing_years, self.fold2_testing_years, \
                self.fold3_testing_years, self.fold4_testing_years, self.fold5_testing_years, \
-               self.hresPeriodFilename_var, self.reanalysisName_var, self.reanalysisPeriodFilename_var, \
+               self.hresPeriodFilename_var_t, self.hresPeriodFilename_var_p, \
+               self.reanalysisName_var, self.reanalysisPeriodFilename_var, \
                self.historicalPeriodFilename_var, self.sspPeriodFilename_var, self.split_mode, \
                self.grid_res_var, \
                self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var, \
@@ -1482,7 +1493,7 @@ class selectionWindow():
 def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
                         saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
                         bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
-                        fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename,
+                        fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename):
@@ -1518,7 +1529,10 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     f.write("fold4_testing_years = (" + str(fold4_testing_years[0]) + ", " + str(fold4_testing_years[1]) + ")\n")
     f.write("fold5_testing_years = (" + str(fold5_testing_years[0]) + ", " + str(fold5_testing_years[1]) + ")\n")
 
-    f.write("hresPeriodFilename = '" + str(hresPeriodFilename) + "'\n")
+
+    f.write("hresPeriodFilename = {}\n")
+    f.write("hresPeriodFilename.update({'t': '" + str(hresPeriodFilename_t) + "'})\n")
+    f.write("hresPeriodFilename.update({'p': '" + str(hresPeriodFilename_p) + "'})\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
     f.write("reanalysisPeriodFilename = '" + str(reanalysisPeriodFilename) + "'\n")
     f.write("historicalPeriodFilename = '" + str(historicalPeriodFilename) + "'\n")
@@ -1624,7 +1638,7 @@ def main():
     run, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list, saf_list, climdex_names, \
         calibration_years, reference_years, historical_years, ssp_years, biasCorr_years, bc_method, \
         single_split_testing_years, fold1_testing_years, fold2_testing_years, fold3_testing_years, fold4_testing_years, \
-        fold5_testing_years, hresPeriodFilename, reanalysisName, reanalysisPeriodFilename, \
+        fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p, reanalysisName, reanalysisPeriodFilename, \
         historicalPeriodFilename, sspPeriodFilename, split_mode, grid_res, \
         saf_lat_up, saf_lon_left, saf_lon_right, saf_lat_down, model_names_list, scene_names_list, \
         modelRealizationFilename = selectionWindow().get()
@@ -1636,7 +1650,7 @@ def main():
     write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
                         saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
                         bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
-                        fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename,
+                        fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename)

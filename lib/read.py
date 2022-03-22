@@ -443,10 +443,10 @@ def hres_data(var, period=None):
     PeriodFilename: returns only data from selected period
     """
 
-    filename = pathHres + var + '_' + hresPeriodFilename
+    filename = pathHres + var + '_' + hresPeriodFilename[var[0]]
 
-    minYear = int(hresPeriodFilename.split('-')[0][:4])
-    maxYear = int(hresPeriodFilename.split('-')[1][:4])
+    minYear = int(hresPeriodFilename[var[0]].split('-')[0][:4])
+    maxYear = int(hresPeriodFilename[var[0]].split('-')[1][:4])
 
     # If data is in ASCII, binary files are created for a faster reading
     if not os.path.isfile(filename +'.npy'):

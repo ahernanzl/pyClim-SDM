@@ -88,7 +88,7 @@ def association(interp, var0):
     # Goes through each high resolution point and looks for its 4 nearest low resolution neighbours
     for ipoint in range(hres_npoints[var0]):
         if ipoint%100==0:
-            print('grids.association', interp, 100*ipoint/hres_npoints[var0], '%')
+            print(var0, 'grids.association', interp, 100*ipoint/hres_npoints[var0], '%')
         hres_lat = df_association.iloc[[ipoint]]['lats'].values[0]
         hres_lon = df_association.iloc[[ipoint]]['lons'].values[0]
 
