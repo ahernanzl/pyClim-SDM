@@ -40,6 +40,12 @@ def initial_checks():
     """
 
     # Create needed paths
+    if not os.path.exists('../job/'):
+        os.makedirs('../job/')
+        os.makedirs('../job/out/')
+        os.makedirs('../job/err/')
+    if not os.path.exists('../log/'):
+        os.makedirs('../log/')
     needed_paths = ['aux', 'tmp', 'results']
     nonExisting_paths = []
     for pathName in needed_paths:

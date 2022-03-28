@@ -46,88 +46,97 @@ def missing_data_check():
         print('ERROR: Select experiment = PRECONTROL')
         exit()
 
+
     # Go through all target variables
     for var0 in target_vars0:
 
-        # Define pathTmp
-        pathTmp = '../results/' + experiment + '/missing_data_check/' + var0.upper() + '/'
-        if not os.path.exists(pathTmp):
-            os.makedirs(pathTmp)
-        pathOut = pathFigures
-        if not os.path.exists(pathOut):
-            os.makedirs(pathOut)
+        for grid in ('saf', 'pred'):
 
-        # Define preds
-        preds = preds_dict[var0]
-        npreds = len(preds)
-        nscenes = len(scene_list)
-        nmodels = len(model_list)
-        nlats = pred_nlats
-        nlons = pred_nlons
-        PERC_NAN = np.zeros((npreds, nscenes, nmodels, nlats, nlons))
+            # Define pathTmp
+            pathTmp = '../results/' + experiment + '/missing_data_check/' + var0.upper() + '/'
+            if not os.path.exists(pathTmp):
+                os.makedirs(pathTmp)
+            pathOut = pathFigures
+            if not os.path.exists(pathOut):
+                os.makedirs(pathOut)
 
-        # Go through all predictors, scenes and models
-        for ipred in range(npreds):
-            predName = list(preds.keys())[ipred]
-            iscene = 0
-            for sceneName in scene_list:
-                imodel = 0
-                for model in model_list:
+            # Define preds
+            if grid == 'saf':
+                preds = saf_dict
+                npreds = len(preds)
+                nlats = saf_nlats
+                nlons = saf_nlons
+            else:
+                preds = preds_dict[var0]
+                npreds = len(preds)
+                nlats = pred_nlats
+                nlons = pred_nlons
+            nscenes = len(scene_list)
+            nmodels = len(model_list)
+            PERC_NAN = np.zeros((npreds, nscenes, nmodels, nlats, nlons))
 
-                    # Read data
-                    data = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)['data']
+            # Go through all predictors, scenes and models
+            for ipred in range(npreds):
+                predName = list(preds.keys())[ipred]
+                iscene = 0
+                for sceneName in scene_list:
+                    imodel = 0
+                    for model in model_list:
 
-                    # Calculate percentaje of nans
-                    perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
-                    PERC_NAN[ipred, iscene, imodel] = perc_nan
-                    print(var0, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
+                        # Read data
+                        data = read.lres_data(var0, grid, model=model, scene=sceneName, predName=predName)['data']
 
-                    if np.max(perc_nan) != 0:
-                        # Plot map
-                        filename = '_'.join((experiment, 'nansMap', 'daily', var0, predName, model+'-'+sceneName, 'None'))
-                        title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
-                        plot.map(var0, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
+                        # Calculate percentaje of nans
+                        perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
+                        PERC_NAN[ipred, iscene, imodel] = perc_nan
+                        print(var0, grid, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
 
-                    imodel += 1
-                iscene += 1
+                        if np.max(perc_nan) != 0:
+                            # Plot map
+                            filename = '_'.join((experiment, 'nansMap', 'daily', var0, predName, model+'-'+sceneName+'-'+grid, 'None'))
+                            title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
+                            plot.map(var0, perc_nan, 'perc_nan', grid=grid, path=pathOut, filename=filename, title=title)
 
-        # Save results
-        np.save(pathTmp+'PERC_NAN', PERC_NAN)
-        PERC_NAN = np.load(pathTmp+'PERC_NAN.npy')
+                        imodel += 1
+                    iscene += 1
 
-        # Plot heatmaps
-        nscenes = len(scene_names_list)
-        predNames = [list(preds.keys())[i] for i in range(npreds)]
-        modelNames = model_names_list
+            # Save results
+            np.save(pathTmp+'PERC_NAN', PERC_NAN)
+            PERC_NAN = np.load(pathTmp+'PERC_NAN.npy')
 
-        # Define colors and units for heatmap
-        cmap = 'RdYlGn_r'
-        bounds = [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]
-        units = '%'
-        norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
-        cmap = plt.get_cmap(cmap)
+            # Plot heatmaps
+            nscenes = len(scene_names_list)
+            predNames = [list(preds.keys())[i] for i in range(npreds)]
+            modelNames = model_names_list
 
-        # Go through all scenes
-        for iscene in range(nscenes):
-            sceneName = scene_names_list[iscene]
-            matrix = np.mean(PERC_NAN[:, iscene, :].reshape(npreds, nmodels, -1), axis=2).T
+            # Define colors and units for heatmap
+            cmap = 'RdYlGn_r'
+            bounds = [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]
+            units = '%'
+            norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
+            cmap = plt.get_cmap(cmap)
 
-            xticklabels = predNames
-            g = sns.heatmap(matrix, annot=True, vmin=0, vmax=100, fmt='.2f',
-                            cmap=cmap, norm=norm, cbar_kws={'label': units, 'ticks': bounds,
-                                                            # 'format':'%.2f%%'
-                                                            },
-                            xticklabels=xticklabels, yticklabels=True, square=True)
-            g.tick_params(left=False, bottom=False)
-            g.yaxis.set_label_position("right")
-            g.set_yticklabels(modelNames, rotation=0)
-            g.set_xticklabels(predNames, rotation=90)
-            plt.title(sceneName + ' pertentage of NANs')
-            # plt.show()
-            # exit()
-            filename = '_'.join((experiment, 'nansMatrix', 'daily', var0, 'None', sceneName, 'None.png'))
-            plt.savefig(pathOut + filename)
-            plt.close()
+            # Go through all scenes
+            for iscene in range(nscenes):
+                sceneName = scene_names_list[iscene]
+                matrix = np.mean(PERC_NAN[:, iscene, :].reshape(npreds, nmodels, -1), axis=2).T
+
+                xticklabels = predNames
+                g = sns.heatmap(matrix, annot=True, vmin=0, vmax=100, fmt='.2f',
+                                cmap=cmap, norm=norm, cbar_kws={'label': units, 'ticks': bounds,
+                                                                # 'format':'%.2f%%'
+                                                                },
+                                xticklabels=xticklabels, yticklabels=True, square=True)
+                g.tick_params(left=False, bottom=False)
+                g.yaxis.set_label_position("right")
+                g.set_yticklabels(modelNames, rotation=0)
+                g.set_xticklabels(predNames, rotation=90)
+                plt.title(sceneName + ' pertentage of NANs')
+                # plt.show()
+                # exit()
+                filename = '_'.join((experiment, 'nansMatrix', 'daily', var0, 'None', sceneName+'-'+grid, 'None.png'))
+                plt.savefig(pathOut + filename)
+                plt.close()
 
 
 
@@ -147,11 +156,6 @@ def predictors_correlation():
 
     var = 'pcp'
 
-    # For interpolation
-    interp_mode = 'bilinear'
-    i_4nn = np.load(pathAux + 'ASSOCIATION/'+var[0].upper()+'_' + interp_mode + '/i_4nn.npy')
-    j_4nn = np.load(pathAux + 'ASSOCIATION/'+var[0].upper()+'_' + interp_mode + '/j_4nn.npy')
-    w_4nn = np.load(pathAux + 'ASSOCIATION/'+var[0].upper()+'_' + interp_mode + '/w_4nn.npy')
 
     # Go through all target variables
     for var in ('tmax', 'tmin', 'pcp'):
@@ -166,6 +170,13 @@ def predictors_correlation():
 
             # Read data predictand
             obs = read.hres_data(var, period='calibration')['data']
+
+            # For interpolation
+            interp_mode = 'bilinear'
+            i_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/i_4nn.npy')
+            j_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/j_4nn.npy')
+            w_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/w_4nn.npy')
+
 
             # Define preds
             preds = preds_dict[var[0]]

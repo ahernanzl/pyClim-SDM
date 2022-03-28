@@ -38,7 +38,7 @@ def info_msg():
     print('You are about to launch a job.')
     print('Different methods might need different number of nodes and memory.')
     print('You can optimize your configuration in lib/launch_jobs.py.')
-    print('Do not launch next steps until current step jobs are finished')
+    print('Do not launch next steps until current jobs have finished')
     print('Check stdout and stderr files at the jobs/ directory')
     print('----------------------------------------------------------------')
 

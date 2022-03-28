@@ -339,7 +339,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
             if 'ins' in preds:
                 data[i] = derived_predictors.insolation(model=model,scene=scene); i += 1
             # u10, v10
-            for var in ('u', 'v'):
+            for var in ('u10', 'v10'):
                 if var in preds:
                     data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # t2m
