@@ -81,12 +81,10 @@ def spatial_domains():
     '''
     Plot regions for different weighting for synoptic analogy
     '''
-
     lat_up, lat_down = pred_lat_up + grid_res * 5, pred_lat_down - grid_res * 6
     lon_left, lon_right = pred_lon_left - grid_res * 10, pred_lon_right + grid_res * 10
-    grid_res = 1.5
     nlats = int(((lat_up - lat_down) / 1.5) + 1)
-    nlons = int(((lon_right - lon_left) / 1.5 ) + 1)
+    nlons = int(((lon_right - lon_left) / 1.5) + 1)
     lats = np.linspace(lat_up, lat_down, nlats)
     lons = np.linspace(lon_left, lon_right, nlons)
 
@@ -95,7 +93,8 @@ def spatial_domains():
     map = Basemap(llcrnrlon=lons[0] - grid_res, llcrnrlat=lats[-1] - grid_res,
                   urcrnrlon=lons[-1] + grid_res, urcrnrlat=lats[0] + grid_res,
                   projection='merc', resolution='i')
-    map.drawcoastlines()
+    # map.drawcoastlines()
+    map.drawlsmask()
 
     # Create grid
     mlons, mlats = np.meshgrid(lons, lats)
@@ -118,11 +117,11 @@ def spatial_domains():
     # saf grid (for synoptic analogy)
     domains = ['00', 'NW', 'NE', 'SW', 'SE']
     colors = ['g', 'orange', 'purple', 'b', 'r']
-    shifts = [.75, .25, .5, 1, 1.25]
+    shifts = [.75, .5, .25, 1.25, 1]
     t = .5
     fw = 10
     fh = 3
-    text = [(0, 0, t, -fh*t), (0, 0, t, -fh*t), (-1, 0, -fw*t, -fh*t), (0, -1, t, t), (-1, -1, -fw*t, t)]
+    text = [(0, 0, t, -fh * t), (-1, 0, -fw * t, -fh * t), (0, 0, t, -fh * t), (-1, -1, -fw * t, t), (0, -1, t, t)]
     for idomain in range(len(domains)):
         domain = domains[idomain]
         color = colors[idomain]
@@ -144,22 +143,23 @@ def spatial_domains():
             saf_lon_left, saf_lon_right = pred_lon_left - grid_res * 1, pred_lon_right + grid_res * 9
         saf_grid_res = 1.5
         saf_nlats = int(((saf_lat_up - saf_lat_down) / 1.5) + 1)
-        saf_nlons = int(((saf_lon_right - saf_lon_left) / 1.5 ) + 1)
+        saf_nlons = int(((saf_lon_right - saf_lon_left) / 1.5) + 1)
         saf_lats = np.linspace(saf_lat_up, saf_lat_down, saf_nlats)
         saf_lons = np.linspace(saf_lon_left, saf_lon_right, saf_nlons)
 
-        map.plot(np.array([saf_lons[0]-shift, saf_lons[-1]+shift, saf_lons[-1]+shift, saf_lons[0]-shift, saf_lons[0]-shift]),
-                 np.array([saf_lats[-1]-shift, saf_lats[-1]-shift, saf_lats[0]+shift, saf_lats[0]+shift, saf_lats[-1]-shift]),
+        map.plot(np.array([saf_lons[0] - shift, saf_lons[-1] + shift, saf_lons[-1] + shift, saf_lons[0] - shift,
+                           saf_lons[0] - shift]),
+                 np.array([saf_lats[-1] - shift, saf_lats[-1] - shift, saf_lats[0] + shift, saf_lats[0] + shift,
+                           saf_lats[-1] - shift]),
                  latlon=True, color=color)
 
-        x, y = map(saf_lons[text[idomain][0]]+text[idomain][2], saf_lats[text[idomain][1]]+text[idomain][3])
+        x, y = map(saf_lons[text[idomain][0]] + text[idomain][2], saf_lats[text[idomain][1]] + text[idomain][3])
         plt.text(x, y, domain, fontsize=12, color=color, fontweight='bold')
-
 
     lats = hres_lats[target_vars0[0]]
     lons = hres_lons[target_vars0[0]]
     X, Y = list(map(lons, lats))
-    map.scatter(X, Y, c=0*lats, s=3, cmap='Accent_r')
+    map.scatter(X, Y, c=0 * lats, s=3, cmap='Accent_r')
     # plt.show()
     # exit()
 

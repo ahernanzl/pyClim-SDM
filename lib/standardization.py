@@ -1,4 +1,7 @@
 import sys
+
+import numpy as np
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -192,6 +195,7 @@ def standardize(var0, A, model, grid):
 
     # Standardize
     A = (A - mean) / std
+
 
     return A
 
