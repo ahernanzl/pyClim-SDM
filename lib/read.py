@@ -193,14 +193,17 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
 
 ########################################################################################################################
-def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=None):
+def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=None, period=None):
     """
     If no grid is specified, each field will use its own grid. But a grid can be specified so, for example, this
     function can read preds in a saf_grid, or any other combination.
     Possible fields: var, pred, saf
     Possible grids: pred, saf
     If predName is passed as argument, only that predictor will be read.
-    If model=reanalysis, the whole calibration period is returned, and for GCMs the whole scene (hisotical/SSP).
+    Different periods can be extracted. If period==None, the whole calibration period is returned for reanalysis and for
+    GCMs the whole scene (hisotical/SSP). For reanalysis and historical GCMs also the reference period can be extracted
+    by specifying period='reference'.
+    Beware that different GCMs can have different calendars
     return: data (ndays, npreds, nlats, nlons) and times
     """
 
@@ -403,6 +406,27 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     data = data[:, :, ilats]
     data = data[:, :, :, ilons]
     data = np.swapaxes(data, 0, 1)
+
+    # If a selection of dates is desired
+    if period != None:
+        if model == 'reanalysis':
+            if period == 'calibration':
+                years = calibration_years
+            elif period == 'reference':
+                years = reference_years
+            else:
+                print(model, period, 'not valid')
+                exit()
+        else:
+            if scene == 'historical' and period == 'reference':
+                years = reference_years
+            else:
+                print(model, period, 'not valid')
+                exit()
+
+        idates = [i for i in range(len(dates)) if dates[i].year >= years[0] and dates[i].year <= years[1]]
+        dates = list(np.asarray(dates)[idates])
+        data = data[idates]
 
     return {'data': data, 'times': dates}
 
