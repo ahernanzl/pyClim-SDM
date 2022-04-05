@@ -7,6 +7,20 @@ from settings import *
 # ########################################      WARNING       ##########################################################
 # DO NOT CHANGE ANY ADVANCED SETTINGS UNLESS YOU ARE SURE OF WHAT YOU ARE DOING !!!
 
+# ####################  HIGH PERFORMANCE COMPUTER (HPC) OPTIONS    #####################################################
+# Ir running in a HPC, define partition to lauch jobs here or in a private_settings.py file
+user = os.popen('whoami').read().split('\n')[0]
+max_nJobs = 5 # Max number of jobs
+if os.path.isfile('../private/private_settings.py'):
+    sys.path.append(('../private/'))
+    from private_settings import *
+else:
+    running_at_HPC, HPC_partition = False, 'enterPartitionName'
+if running_at_HPC == True:
+    from mpi4py import MPI
+if running_at_HPC == False:
+    from mpl_toolkits.basemap import Basemap
+
 # ########################################  RUNNING OPTIONS   ##########################################################
 # Predictands preprarataion. When working with stations, files with all stations have to be previously prepared.
 # All stations should have the same number of data and have to be between the ranges indicated below.
@@ -404,20 +418,6 @@ plotAllRegions = False  # Set to False so only the complete region will be plott
 #            'CUENCAS MEDITERRÁNEAS ANDALUZAS', 'DUERO', 'EBRO', 'GALICIA-COSTA', 'GUADALETE Y BARBATE', 'GUADALQUIVIR',
 #            'GUADIANA', 'ISLAS BALEARES', 'JÚCAR', 'MELILLA', 'MIÑO-SIL', 'SEGURA', 'TAJO', 'TINTO, ODIEL Y PIEDRAS']
 
-
-# ####################  HIGH PERFORMANCE COMPUTER (HPC) OPTIONS    #####################################################
-# Ir running in a HPC, define partition to lauch jobs here or in a private_settings.py file
-user = os.popen('whoami').read().split('\n')[0]
-max_nJobs = 5 # Max number of jobs
-if os.path.isfile('../private/private_settings.py'):
-    sys.path.append(('../private/'))
-    from private_settings import *
-else:
-    running_at_HPC, HPC_partition = False, 'enterPartitionName'
-if running_at_HPC == True:
-    from mpi4py import MPI
-if running_at_HPC == False:
-    from mpl_toolkits.basemap import Basemap
 
 # ####################  COLORS AND STYLES    #####################################################
 t_methods_colors = {
