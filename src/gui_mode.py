@@ -801,20 +801,28 @@ class tabModelsAndScenes(ttk.Frame):
 
 
         irow, icol = 0, 0
-        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol+=1
-        Label(tabModelsAndScenes, text="Select models and scenarios:").grid(sticky="W", column=icol, row=irow, padx=30, pady=30,
+        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=20); icol+=1
+        Label(tabModelsAndScenes, text="Select models:").grid(sticky="W", column=icol, row=irow, padx=30, pady=30,
+                                                          columnspan=100);
+        Label(tabModelsAndScenes, text="Select scenarios:").grid(sticky="W", column=icol+4, row=irow, padx=30, pady=30,
                                                           columnspan=100);
         irow += 1
 
 
         # Models
-        all_models = ('ACCESS-CM2', 'ACCESS-ESM1-5', 'AWI-CM-1-1-MR', 'BCC-CSM2-MR', 'CAMS-CSM1-0', 'CanESM5', 'CESM2',
-                      'CESM2-WACCM', 'CMCC-CM2-SR5', 'CMCC-ESM2', 'CNRM-CM6-1', 'CNRM-CM6-1-HR', 'CNRM-ESM2-1',
+        all_models = ('ACCESS-CM2', 'ACCESS-ESM1-5', 'AWI-CM-1-1-MR', 'AWI-CM-1-1-LR', 'BCC-CSM2-MR', 'BCC-ESM1',
+                      'CAMS-CSM1-0', 'CanESM5', 'CanESM5-CanOE',
+                      'CESM2', 'CESM2-FV2', 'CESM2-WACCM', 'CESM2-WACCM-FV2', 'CIESM',
+                      'CMCC-CM2-HR4', 'CMCC-CM2-SR5', 'CMCC-ESM2', 'CNRM-CM6-1', 'CNRM-CM6-1-HR', 'CNRM-ESM2-1',
+                      'E3SM-1-0', 'E3SM-1-1', 'E3SM-1-1-ECA',
                       'EC-Earth3', 'EC-Earth3-AerChem', 'EC-Earth3-CC', 'EC-Earth3-Veg',
-                      'EC-Earth3-Veg-LR', 'FGOALS-g3', 'GFDL-CM4', 'GFDL-ESM4', 'GISS-E2-1-G', 'HadGEM3-GC31-LL',
+                      'EC-Earth3-Veg-LR', 'FGOALS-f3-L', 'FGOALS-g3', 'FIO-ESM-2-0',
+                      'GFDL-CM4', 'GFDL-ESM4', 'GISS-E2-1-G', 'GISS-E2-1-H', 'HadGEM3-GC31-LL',
                       'HadGEM3-GC31-MM', 'IITM-ESM', 'INM-CM4-8', 'INM-CM5-0', 'IPSL-CM5A2-INCA', 'IPSL-CM6A-LR',
-                      'KACE-1-0-G', 'KIOST-ESM', 'MIROC-ES2L', 'MIROC6', 'MPI-ESM-1-2-HAM', 'MPI-ESM1-2-HR',
-                      'MPI-ESM1-2-LR', 'MRI-ESM2-0', 'NESM3', 'NorESM2-LM', 'NorESM2-MM', 'TaiESM1', 'UKESM1-0-LL')
+                      'KACE-1-0-G', 'KIOST-ESM', 'MCM-UA-1-0', 'MIROC-ES2H', 'MIROC-ES2L', 'MIROC6', 'MPI-ESM-1-2-HAM',
+                      'MPI-ESM1-2-HR', 'MPI-ESM1-2-LR', 'MRI-ESM2-0', 'NESM3', 'NorCPM1', 'NorESM2-LM', 'NorESM2-MM',
+                      'SAM0-UNICON', 'TaiESM1', 'UKESM1-0-LL')
+
         maxRows = 15
         ncols = 0
         nrows = maxRows
@@ -825,7 +833,7 @@ class tabModelsAndScenes(ttk.Frame):
                 ncols+=1; nrows = maxRows; icol+=1; irow-=maxRows
 
         # Other models
-        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow); irow+=1
+        # Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow); irow+=1
         self.otherModels_var = tk.StringVar()
         self.otherModels_Entry = tk.Entry(tabModelsAndScenes, textvariable=self.otherModels_var, width=15, justify='right', state='disabled')
         self.otherModels_Entry.grid(sticky="E", column=icol, row=irow, padx=100)
@@ -834,13 +842,14 @@ class tabModelsAndScenes(ttk.Frame):
 
         # Select all models
         irow+=maxRows; icol-=ncols
+        icol += 1
         Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, pady=10); irow+=1
         Button(tabModelsAndScenes, text='Select all', command=select_all, takefocus=False).grid(sticky="E", column=icol, row=irow); icol += 1
         Button(tabModelsAndScenes, text='Deselect all', command=deselect_all, takefocus=False).grid(sticky="E", column=icol, row=irow)
 
         # Scenes
-        irow, icol = 1, 6
-        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=20); icol+=1
+        irow, icol = 1, 4
+        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
         all_scenes = ['HISTORICAL', 'SSP1-1.9', 'SSP1-2.6', 'SSP2-4.5', 'SSP3-7.0', 'SSP5-8.5']
         self.chk_dict_scenes = {}
         for scene in all_scenes:
@@ -854,10 +863,10 @@ class tabModelsAndScenes(ttk.Frame):
         CreateToolTip(self.otherScenes_Entry, "Enter scenario names separated by ';'")
         self.chk_dict_scenes.update(add_to_chk_list('Others:', scene_names_list, icol, irow, obj=self.otherScenes_Entry)); irow += 1
 
+
         # modelRealizationFilename
-        irow+=3
-        Label(tabModelsAndScenes, text="Realization:")\
-            .grid(sticky="W", column=icol, row=irow, padx=3)#; irow+=1
+        irow+=7
+        Label(tabModelsAndScenes, text="Realization:").grid(sticky="W", column=icol, row=irow)
         self.modelRealizationFilename_var = tk.StringVar()
         self.modelRealizationFilename_Entry = tk.Entry(tabModelsAndScenes, textvariable=self.modelRealizationFilename_var, width=8, justify='right', takefocus=False)
         self.modelRealizationFilename_Entry.grid(sticky="W", column=icol, row=irow, padx=80)
