@@ -653,7 +653,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         top = np.nanpercentile(data, 75, axis=0)
         bottom = np.nanpercentile(data, 25, axis=0)
         fig, ax = plt.subplots(dpi=300)
-        plt.plot(years, median, label=methodName, color=color, linestyle=linestyle)
+        plt.plot(years, median, label=methodName, color=plot.lighten_color(color, 1.2), linestyle=linestyle)
         plt.fill_between(years, bottom, top, color=color, alpha=0.8)
 
         # RAW
@@ -777,7 +777,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
         top = np.nanpercentile(data, 75, axis=0)
         bottom = np.nanpercentile(data, 25, axis=0)
         scene_legend = scene_names_dict[scene]
-        plt.plot(years, median, label=scene_legend + '   (' + str(nModels) + ')', color=color_dict[scene])
+        plt.plot(years, median, label=scene_legend + '   (' + str(nModels) + ')', color=plot.lighten_color(color_dict[scene], 1.2))
         plt.fill_between(years, bottom, top, color=color_dict[scene], alpha=0.3)
 
     plt.legend(loc='upper left')

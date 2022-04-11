@@ -58,7 +58,7 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 # Installation
 
 In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
-requirements.txt. Install them by executing: **pip install -r requirements.txt**
+requirements.txt. Install them by executing: **python -m pip install -r requirements.txt**
 
 
 # How to use
