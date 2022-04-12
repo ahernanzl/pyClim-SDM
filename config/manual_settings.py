@@ -190,6 +190,8 @@ preds_t_list = [
     # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
     # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
+    # 'K_index',          # K instability index
+    # 'TT_index',         # Total Totals instability index
 ]
 
 
@@ -260,6 +262,8 @@ preds_p_list = [
     # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
     # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
+    # 'K_index',          # K instability index
+    # 'TT_index',         # Total Totals instability index
 ]
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
@@ -332,6 +336,8 @@ saf_list = [
     # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
     # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
+    # 'K_index',          # K instability index
+    # 'TT_index',         # Total Totals instability index
 ]
 
 

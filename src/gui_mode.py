@@ -497,10 +497,10 @@ class tabPredictors(ttk.Frame):
             chk_list.update({block+'_'+pred: checked})
             irow += 1
             nrows += 1
-            if nrows == 8:
+            if nrows == 9:
                 nrows = 0
                 icol += 5
-                irow -= 8
+                irow -= 9
             return irow, icol, nrows
 
         irow = 0
@@ -577,6 +577,8 @@ class tabPredictors(ttk.Frame):
                             'vgsl': 'Northward component of the geostrophic wind at sea level (derived from t and mslp)',
                             'vortgsl': 'Vorticity of the geostrophic wind at sea level (derived from t and mslp)',
                             'divgsl': 'Divergence of the geostrophic wind at sea level (derived from t and mslp)',
+                            'K_index': 'K instability index',
+                            'TT_index': 'Total Totals instability index',
                             }
 
             # Label(tabPredictors, text="").grid(sticky="W", row=irow, column=icol);
