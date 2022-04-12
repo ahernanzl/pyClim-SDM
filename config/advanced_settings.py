@@ -194,6 +194,7 @@ longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
+all_levels = [1000, 850, 700, 500, 250]
 
 # Force to define at least one synoptic analogy field
 if len(saf_list) == 0:
@@ -244,7 +245,7 @@ n_preds_t, n_preds_p = len(preds_dict['t'].keys()), len(preds_dict['p'].keys())
 all_preds = {**preds_dict['t'], **preds_dict['p'], **saf_dict}
 
 preds_levels = []
-for level in [1000, 850, 700, 500, 250]:
+for level in all_levels:
     for pred in all_preds:
         if str(level) in pred:
             preds_levels.append(level)

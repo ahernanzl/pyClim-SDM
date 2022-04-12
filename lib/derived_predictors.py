@@ -33,7 +33,63 @@ import val_lib
 import WG_lib
 import write
 
-# ########################################################################################################################
+
+########################################################################################################################
+def K_index(model='reanalysis', scene='TESTING'):
+    """    Instability index:    K-Index (K) = (T850 - T500) + Td850 - (T700 - Td700)     """
+
+    # Prepare times
+    times = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['times']
+    if model == 'reanalysis':
+        dates = calibration_dates
+    else:
+        dates = times
+    idates = [i for i in range(len(times)) if times[i] in dates]
+
+    # Read data
+    t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
+    t700 = read.one_direct_predictor('t', level=700, grid='ext', model=model, scene=scene)['data'][idates]
+    t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
+    td850 = q2Td(850, model=model, scene=scene)
+    td700 = q2Td(700, model=model, scene=scene)
+
+    K_index = (t850 - t500) + td850 - (t700 - td700)
+
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'K_index.nc', 'K_index', K_index, 'K', ext_lats, ext_lons, dates)
+
+    return K_index
+
+
+########################################################################################################################
+def TT_index(model='reanalysis', scene='TESTING'):
+    """    Total Totals index:  TT = (T850 – T500) + (Td850 – T500)  =   T850 + Td850 – 2(T500)     """
+
+    # Prepare times
+    times = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['times']
+    if model == 'reanalysis':
+        dates = calibration_dates
+    else:
+        dates = times
+    idates = [i for i in range(len(times)) if times[i] in dates]
+
+    # Read data
+    t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
+    t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
+    td850 = q2Td(850, model=model, scene=scene)
+
+    TT_index = t850 + td850 - 2*t500
+
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'TT_index.nc', 'TT_index', TT_index, 'K', ext_lats, ext_lons, dates)
+
+    return TT_index
+
+########################################################################################################################
 def q2r(level, model='reanalysis', scene='TESTING'):
     """specific humidity to relative humidity
     p in mb (hPa)
@@ -364,6 +420,10 @@ def reanalysis_all():
         mslp_trend()
     if 'ins' in all_preds:
         insolation()
+    if 'K_index' in all_preds:
+        K_index()
+    if 'TT_index' in all_preds:
+        TT_index()
 
     for level in preds_levels:
         print('derived predictors', level)

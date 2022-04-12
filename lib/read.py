@@ -95,7 +95,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
             level_factor = 100
         else:
             level_factor = 1
-        ilevel = np.where(abs((nc.variables[level_name][:] - level*level_factor)) < 0.001)[0]
+        ilevel = np.where(abs((nc.variables[level_name][:] - int(level*level_factor))) < 0.001)[0]
         dim=nc.variables[nc_variable][:].shape
         data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
 
@@ -168,12 +168,12 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
         if predName in ('tmax', 'tmin', 'pcp'):
             ncVar = reaNames[predName]
         else:
-            for aux_level in preds_levels:
+            for aux_level in all_levels:
                 predName = predName.replace(str(aux_level), '')
             ncVar = reaNames[predName]
         filename = ncVar+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc'
     else:
-        if scene == 'historical':
+        if scene in ('historical', 'HISTORICAL'):
             periodFilename = historicalPeriodFilename
         else:
             periodFilename = sspPeriodFilename
@@ -181,7 +181,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
         if predName in ('tmax', 'tmin', 'pcp'):
             ncVar = modNames[predName]
         else:
-            for aux_level in preds_levels:
+            for aux_level in all_levels:
                 predName = predName.replace(str(aux_level), '')
             ncVar = modNames[predName]
         filename = ncVar+'_'+model+'_'+scene+'_'+modelRealizationFilename+'_'+periodFilename+'.nc'
@@ -311,6 +311,11 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
             for var in ('u', 'v', 'vort', 'div'):
                 if var+'gsl' in preds:
                     data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', var+'gsl.nc', var)['data']; i += 1
+            # Instability indexes
+            if 'K_index' in preds:
+                data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'K_index.nc', 'K_index')['data']; i += 1
+            if 'TT_index' in preds:
+                data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'TT_index.nc', 'TT_index')['data']; i += 1
     else:
 
         # var
@@ -395,6 +400,11 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
             for var in ('vort', 'div'):
                 if var + 'gsl' in preds:
                     data[i] = derived_predictors.vorticity_and_divergence(model=model, scene=scene, level='sl')[var]; i += 1
+            # Instability indexes
+            if 'K_index' in preds:
+                data[i] = derived_predictors.K_index(model=model, scene=scene); i += 1
+            if 'TT_index' in preds:
+                data[i] = derived_predictors.TT_index(model=model, scene=scene); i += 1
 
     # Select grid
     if grid == None:
@@ -418,7 +428,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
                 print(model, period, 'not valid')
                 exit()
         else:
-            if scene == 'historical' and period == 'reference':
+            if scene in ('historical', 'HISTORICAL') and period == 'reference':
                 years = reference_years
             else:
                 print(model, period, 'not valid')
