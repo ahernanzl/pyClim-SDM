@@ -1140,6 +1140,45 @@ class tabDatesAndDomain(ttk.Frame):
                self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var
 
 
+########################################################################################################################
+class tabVisualization(ttk.Frame):
+
+
+    def __init__(self, notebook):
+        tabVisualization = ttk.Frame(notebook)
+        notebook.add(tabVisualization, text='Visualization')
+
+        def open_figure(filename, text):
+
+            rootIm = tk.Toplevel()
+            rootIm.title('')
+            rootIm.minsize(600, 550)
+            rootIm.maxsize(600, 550)
+
+            w = 600
+            global img
+            img = Image.open("../results/Figures/" + filename)
+            h = int(w * img.height / img.width)
+            img = img.resize((w, h), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            canvas = Canvas(rootIm, width=w, height=h)
+            canvas.create_image(0, 0, anchor=NW, image=img)
+            canvas.grid(column=0, row=0, padx=0, pady=0)
+            Label(rootIm, text=text, borderwidth=0, background=None).grid(column=0, row=1)
+
+
+        # frameFigSelection
+        frameFigSelection = Frame(tabVisualization)
+        frameFigSelection.grid(sticky="W", column=0, row=0, padx=616, pady=270)
+
+        filename = 'EVALUATION_annualCycle_None_pcp_None_all_None.png'
+        text = 'This figure represents the annual cycle for precipitation by all methods'
+
+        Button(tabVisualization, text="Open figure", width=10,
+               command=lambda: open_figure(filename, text), takefocus=False).grid(sticky="SE", column=0, row=0)
+
+
+
 
 ########################################################################################################################
 class selectionWindow():
@@ -1179,6 +1218,9 @@ class selectionWindow():
             self.reanalysisName_var, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
             self.sspPeriodFilename_var, self.split_mode, self.grid_res_var, self.saf_lat_up_var, self.saf_lon_left_var, \
             self.saf_lon_right_var, self.saf_lat_down_var = tabDatesAndDomain(notebook).get()
+
+        # # Tab: visualization
+        # tabVisualization(notebook)
 
         # Logo
         w = 120
