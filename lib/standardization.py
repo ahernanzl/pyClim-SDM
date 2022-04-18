@@ -76,7 +76,8 @@ def get_mean_and_std_allModels(var0, grid):
     expected_models = []
     for model in model_list:
         if model != 'reanalysis':
-            if os.path.isfile('../input_data/models/'+modNames[var_aux]+'_' + model + '_' + scene + '_' + modelRealizationFilename + '_' +
+            modelName, modelRun = model.split('_')[0], model.split('_')[1]
+            if os.path.isfile('../input_data/models/'+modNames[var_aux]+'_' + modelName + '_' + scene + '_' + modelRun + '_' +
                               periodFilename + '.nc'):
                 print('get_mean_and_std', var0, grid, scene, model)
 
@@ -158,7 +159,8 @@ def get_mean_and_std_oneModel(var0, grid, model, scene):
         ncVar = modNames['pcp']
     else:
         ncVar = modNames['tmax']
-    calendar = read.netCDF('../input_data/models/', ncVar + '_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+
+    modelName, modelRun = model.split('_')[0], model.split('_')[1]
+    calendar = read.netCDF('../input_data/models/', ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+
                historicalPeriodFilename+ '.nc', ncVar)['calendar']
 
     if calendar == '360':

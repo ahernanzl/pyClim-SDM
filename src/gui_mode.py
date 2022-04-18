@@ -783,9 +783,9 @@ class tabModelsAndScenes(ttk.Frame):
             if name in list:
                 checked = tk.BooleanVar(value=True)
             if obj == None:
-                c = Checkbutton(tabModelsAndScenes, text=name, variable=checked, takefocus=False)
+                c = Checkbutton(tabModelsAndScenes, text=name.split('_')[0], variable=checked, takefocus=False)
             else:
-                c = Checkbutton(tabModelsAndScenes, text=name, variable=checked, command=lambda: switch(obj), takefocus=False)
+                c = Checkbutton(tabModelsAndScenes, text=name.split('_')[0], variable=checked, command=lambda: switch(obj), takefocus=False)
             if affectedBySelectAll == True:
                 cbuts.append(c)
             c.grid(sticky="W", column=icol, row=irow, padx=30)
@@ -803,27 +803,27 @@ class tabModelsAndScenes(ttk.Frame):
 
 
         irow, icol = 0, 0
-        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=20); icol+=1
-        Label(tabModelsAndScenes, text="Select models:").grid(sticky="W", column=icol, row=irow, padx=30, pady=30,
+        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=20, pady=5); icol+=1; irow+=1
+        Label(tabModelsAndScenes, text="Select models from the list to include their r1i1p1f1 run.")\
+            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=100);
+        Label(tabModelsAndScenes, text="Select scenarios:").grid(sticky="W", column=icol+4, row=irow, padx=100,
                                                           columnspan=100);
-        Label(tabModelsAndScenes, text="Select scenarios:").grid(sticky="W", column=icol+4, row=irow, padx=30, pady=30,
-                                                          columnspan=100);
-        irow += 1
+        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, pady=20); irow+=1
 
 
         # Models
-        all_models = ('ACCESS-CM2', 'ACCESS-ESM1-5', 'AWI-CM-1-1-MR', 'AWI-CM-1-1-LR', 'BCC-CSM2-MR', 'BCC-ESM1',
-                      'CAMS-CSM1-0', 'CanESM5', 'CanESM5-CanOE',
-                      'CESM2', 'CESM2-FV2', 'CESM2-WACCM', 'CESM2-WACCM-FV2', 'CIESM',
-                      'CMCC-CM2-HR4', 'CMCC-CM2-SR5', 'CMCC-ESM2', 'CNRM-CM6-1', 'CNRM-CM6-1-HR', 'CNRM-ESM2-1',
-                      'E3SM-1-0', 'E3SM-1-1', 'E3SM-1-1-ECA',
-                      'EC-Earth3', 'EC-Earth3-AerChem', 'EC-Earth3-CC', 'EC-Earth3-Veg',
-                      'EC-Earth3-Veg-LR', 'FGOALS-f3-L', 'FGOALS-g3', 'FIO-ESM-2-0',
-                      'GFDL-CM4', 'GFDL-ESM4', 'GISS-E2-1-G', 'GISS-E2-1-H', 'HadGEM3-GC31-LL',
-                      'HadGEM3-GC31-MM', 'IITM-ESM', 'INM-CM4-8', 'INM-CM5-0', 'IPSL-CM5A2-INCA', 'IPSL-CM6A-LR',
-                      'KACE-1-0-G', 'KIOST-ESM', 'MCM-UA-1-0', 'MIROC-ES2H', 'MIROC-ES2L', 'MIROC6', 'MPI-ESM-1-2-HAM',
-                      'MPI-ESM1-2-HR', 'MPI-ESM1-2-LR', 'MRI-ESM2-0', 'NESM3', 'NorCPM1', 'NorESM2-LM', 'NorESM2-MM',
-                      'SAM0-UNICON', 'TaiESM1', 'UKESM1-0-LL')
+        all_models = ('ACCESS-CM2_r1i1p1f1', 'ACCESS-ESM1-5_r1i1p1f1', 'AWI-CM-1-1-MR_r1i1p1f1', 'AWI-CM-1-1-LR_r1i1p1f1', 'BCC-CSM2-MR_r1i1p1f1', 'BCC-ESM1_r1i1p1f1',
+                      'CAMS-CSM1-0_r1i1p1f1', 'CanESM5_r1i1p1f1', 'CanESM5-CanOE_r1i1p1f1',
+                      'CESM2_r1i1p1f1_r1i1p1f1', 'CESM2-FV2_r1i1p1f1', 'CESM2-WACCM_r1i1p1f1', 'CESM2-WACCM-FV2_r1i1p1f1', 'CIESM_r1i1p1f1',
+                      'CMCC-CM2-HR4_r1i1p1f1', 'CMCC-CM2-SR5_r1i1p1f1', 'CMCC-ESM2_r1i1p1f1', 'CNRM-CM6-1_r1i1p1f1', 'CNRM-CM6-1-HR_r1i1p1f1', 'CNRM-ESM2-1_r1i1p1f1',
+                      'E3SM-1-0_r1i1p1f1', 'E3SM-1-1_r1i1p1f1', 'E3SM-1-1-ECA_r1i1p1f1',
+                      'EC-Earth3_r1i1p1f1', 'EC-Earth3-AerChem_r1i1p1f1', 'EC-Earth3-CC_r1i1p1f1', 'EC-Earth3-Veg_r1i1p1f1',
+                      'EC-Earth3-Veg-LR_r1i1p1f1', 'FGOALS-f3-L_r1i1p1f1', 'FGOALS-g3_r1i1p1f1', 'FIO-ESM-2-0_r1i1p1f1',
+                      'GFDL-CM4_r1i1p1f1', 'GFDL-ESM4_r1i1p1f1', 'GISS-E2-1-G_r1i1p1f1', 'GISS-E2-1-H_r1i1p1f1', 'HadGEM3-GC31-LL_r1i1p1f1',
+                      'HadGEM3-GC31-MM_r1i1p1f1', 'IITM-ESM_r1i1p1f1', 'INM-CM4-8_r1i1p1f1', 'INM-CM5-0_r1i1p1f1', 'IPSL-CM5A2-INCA_r1i1p1f1', 'IPSL-CM6A-LR_r1i1p1f1',
+                      'KACE-1-0-G_r1i1p1f1', 'KIOST-ESM_r1i1p1f1', 'MCM-UA-1-0_r1i1p1f1', 'MIROC-ES2H_r1i1p1f1', 'MIROC-ES2L_r1i1p1f1', 'MIROC6_r1i1p1f1', 'MPI-ESM-1-2-HAM_r1i1p1f1',
+                      'MPI-ESM1-2-HR_r1i1p1f1', 'MPI-ESM1-2-LR_r1i1p1f1', 'MRI-ESM2-0_r1i1p1f1', 'NESM3_r1i1p1f1', 'NorCPM1_r1i1p1f1', 'NorESM2-LM_r1i1p1f1', 'NorESM2-MM_r1i1p1f1',
+                      'SAM0-UNICON_r1i1p1f1', 'TaiESM1_r1i1p1f1', 'UKESM1-0-LL_r1i1p1f1')
 
         maxRows = 15
         ncols = 0
@@ -835,23 +835,37 @@ class tabModelsAndScenes(ttk.Frame):
                 ncols+=1; nrows = maxRows; icol+=1; irow-=maxRows
 
         # Other models
-        # Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow); irow+=1
+        irow+=1; icol-=ncols
+        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=30, pady=5, columnspan=4); irow+=1
+        Label(tabModelsAndScenes, text="In order to include a different other models and runs introduce them here "
+                                       "separated by ';'.")\
+                                    .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
+        Label(tabModelsAndScenes, text="Example: ACCESS-CM2_r1i1p1f3; EC-Earth3_r2i1p1f1")\
+                                    .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
+        otherModels_list = []
+        for model in model_names_list:
+            if model.split('_')[1] != 'r1i1p1f1':
+                otherModels_list.append(model)
+        otherModels_list = '; '.join((otherModels_list))
+
+        icol -= 1
         self.otherModels_var = tk.StringVar()
-        self.otherModels_Entry = tk.Entry(tabModelsAndScenes, textvariable=self.otherModels_var, width=15, justify='right', state='disabled')
-        self.otherModels_Entry.grid(sticky="E", column=icol, row=irow, padx=100)
-        CreateToolTip(self.otherModels_Entry, "Enter model names separated by ';'")
-        self.chk_dict_models.update(add_to_chk_list('Others:', model_names_list, icol, irow, obj=self.otherModels_Entry)); irow += 1
+        self.otherModels_Entry = tk.Entry(tabModelsAndScenes, textvariable=self.otherModels_var, width=45,
+                                          justify='left', state='normal', takefocus=False)
+        self.otherModels_Entry.insert(END, otherModels_list)
+        self.otherModels_Entry.grid(sticky="E", column=icol, row=irow, columnspan=3)
+        icol += 1
 
         # Select all models
-        irow+=maxRows; icol-=ncols
+        irow+=maxRows
         icol += 1
         Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, pady=10); irow+=1
         Button(tabModelsAndScenes, text='Select all', command=select_all, takefocus=False).grid(sticky="E", column=icol, row=irow); icol += 1
         Button(tabModelsAndScenes, text='Deselect all', command=deselect_all, takefocus=False).grid(sticky="E", column=icol, row=irow)
 
         # Scenes
-        irow, icol = 1, 4
-        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
+        irow, icol = 2, 5
+        Label(tabModelsAndScenes, text="").grid(sticky="W", column=icol, row=irow, padx=30); icol+=1
         all_scenes = ['HISTORICAL', 'SSP1-1.9', 'SSP1-2.6', 'SSP2-4.5', 'SSP3-7.0', 'SSP5-8.5']
         self.chk_dict_scenes = {}
         for scene in all_scenes:
@@ -865,19 +879,8 @@ class tabModelsAndScenes(ttk.Frame):
         CreateToolTip(self.otherScenes_Entry, "Enter scenario names separated by ';'")
         self.chk_dict_scenes.update(add_to_chk_list('Others:', scene_names_list, icol, irow, obj=self.otherScenes_Entry)); irow += 1
 
-
-        # modelRealizationFilename
-        irow+=7
-        Label(tabModelsAndScenes, text="Realization:").grid(sticky="W", column=icol, row=irow)
-        self.modelRealizationFilename_var = tk.StringVar()
-        self.modelRealizationFilename_Entry = tk.Entry(tabModelsAndScenes, textvariable=self.modelRealizationFilename_var, width=8, justify='right', takefocus=False)
-        self.modelRealizationFilename_Entry.grid(sticky="W", column=icol, row=irow, padx=80)
-        self.modelRealizationFilename_Entry.insert(END, modelRealizationFilename)
-
-
     def get(self):
-        return self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
-               self.modelRealizationFilename_var
+        return self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var
 
 
 
@@ -1167,8 +1170,8 @@ class selectionWindow():
         self.climdex_dict_chk = tabClimdex(notebook).get()
 
         # Tab: models
-        self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
-                self.modelRealizationFilename_var = tabModelsAndScenes(notebook).get()
+        self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var = \
+            tabModelsAndScenes(notebook).get()
 
         # Tab: dates and Domain
         self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, \
@@ -1463,14 +1466,12 @@ class selectionWindow():
         for model in self.chk_dict_models:
             if self.chk_dict_models[model].get() == True:
                 self.model_names_list.append(model)
-        if 'Others:' in self.model_names_list:
-            self.model_names_list.remove('Others:')
-            otherModels = self.otherModels_var.get()
+        otherModels = self.otherModels_var.get()
+        if otherModels != '':
             while ' ' in otherModels:
                 otherModels = otherModels.replace(' ', '')
             for model in otherModels.split(';'):
                 self.model_names_list.append(model)
-
 
         # Scenes
         self.scene_names_list = []
@@ -1485,9 +1486,6 @@ class selectionWindow():
             for scene in otherScenes.split(';'):
                 self.scene_names_list.append(scene)
 
-        # modelRealizationFilename
-        self.modelRealizationFilename = self.modelRealizationFilename_var.get()
-
         return self.run, self.experiment, self.steps, self.methods, self.reaNames, self.modNames, self.preds_t_list, \
                self.preds_p_list, self.saf_list, self.climdex_names, self.calibration_years, \
                self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, self.bc_method, \
@@ -1498,7 +1496,7 @@ class selectionWindow():
                self.historicalPeriodFilename_var, self.sspPeriodFilename_var, self.split_mode, \
                self.grid_res_var, \
                self.saf_lat_up_var, self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var, \
-               self.model_names_list, self.scene_names_list, self.modelRealizationFilename
+               self.model_names_list, self.scene_names_list
 
 ########################################################################################################################
 def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
@@ -1507,7 +1505,7 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
-                        saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename):
+                        saf_lat_down, model_names_list, scene_names_list):
 
     """This function prepares a new settings file with the user selected options"""
 
@@ -1558,7 +1556,6 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
 
     f.write("model_names_list = " + str(model_names_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
-    f.write("modelRealizationFilename = '" + str(modelRealizationFilename) + "'\n")
     f.write("climdex_names = " + str(climdex_names) + "\n")
 
     # Close f
@@ -1652,7 +1649,7 @@ def main():
         fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p, reanalysisName, reanalysisPeriodFilename, \
         historicalPeriodFilename, sspPeriodFilename, split_mode, grid_res, \
         saf_lat_up, saf_lon_left, saf_lon_right, saf_lat_down, model_names_list, scene_names_list, \
-        modelRealizationFilename = selectionWindow().get()
+        = selectionWindow().get()
     if run == False:
         exit()
 
@@ -1664,10 +1661,9 @@ def main():
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
-                        saf_lat_down, model_names_list, scene_names_list, modelRealizationFilename)
+                        saf_lat_down, model_names_list, scene_names_list)
 
     write_tmpMain_file(steps)
-
 
 if __name__=="__main__":
     main()

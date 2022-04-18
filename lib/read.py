@@ -184,7 +184,8 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
             for aux_level in all_levels:
                 predName = predName.replace(str(aux_level), '')
             ncVar = modNames[predName]
-        filename = ncVar+'_'+model+'_'+scene+'_'+modelRealizationFilename+'_'+periodFilename+'.nc'
+        modelName, modelRun = model.split('_')[0], model.split('_')[1]
+        filename = ncVar+'_'+modelName+'_'+scene+'_'+modelRun+'_'+periodFilename+'.nc'
 
     return netCDF(pathIn, filename, ncVar, grid=grid, level=level)
 

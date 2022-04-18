@@ -159,11 +159,11 @@ def downscale():
     # Go through all methods
     for method_dict in methods:
 
-        # Go through all scenes
-        for scene in scene_list:
+        # Go through all models
+        for model in model_list:
 
-            # Go through all models
-            for model in model_list:
+            # Go through all scenes
+            for scene in scene_list:
 
                 # Call process.reanalysis or process.models
                 if model == 'reanalysis':

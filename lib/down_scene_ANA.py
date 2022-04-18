@@ -303,7 +303,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
         ncVar = modNames[var]
-        filename = ncVar + '_' + model + '_' + scene +'_'+ modelRealizationFilename + '_'+periodFilename + '.nc'
+        modelName, modelRun = model.split('_')[0], model.split('_')[1]
+        filename = ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename + '.nc'
         model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
         aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
         aux[:] = np.nan
