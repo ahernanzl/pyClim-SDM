@@ -306,8 +306,9 @@ def GCMs_evaluation_historical():
                     else:
                         ncVar = modNames['tmax']
 
+                    modelName, modelRun = model.split('_')[0], model.split('_')[1]
                     calendar = read.netCDF('../input_data/models/',
-                                           ncVar + '_' + model + '_' + sceneName + '_' + modelRealizationFilename + '_' + historicalPeriodFilename + '.nc',
+                                           ncVar + '_' + modelName + '_' + sceneName + '_' + modelRun + '_' + historicalPeriodFilename + '.nc',
                                            ncVar)['calendar']
                     aux = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)
                     scene_dates = aux['times']
