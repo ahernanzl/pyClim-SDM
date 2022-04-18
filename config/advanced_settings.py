@@ -307,6 +307,17 @@ for var0 in target_vars0:
 hres_lats_all = np.asarray(list(hres_lats['t']) + list(hres_lats['p']))
 hres_lons_all = np.asarray(list(hres_lons['t']) + list(hres_lons['p']))
 
+hres_lats_all = []
+for var0 in target_vars0:
+    for i in list(hres_lats[var0]):
+        hres_lats_all.append(i)
+hres_lats_all = np.asarray(hres_lats_all)
+hres_lons_all = []
+for var0 in target_vars0:
+    for i in list(hres_lons[var0]):
+        hres_lons_all.append(i)
+hres_lons_all = np.asarray(hres_lons_all)
+
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
 if 'p' in target_vars0:
