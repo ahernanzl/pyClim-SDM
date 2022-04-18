@@ -254,7 +254,7 @@ def GCMs_evaluation_historical():
     models, synoptic analogy fields... It can be used to discard models/predictors and to detect outliers.
     The comparison is performed in the reference period, when both reanalysis and models exist.
     """
-
+    
     print('GCMs_evaluation_historical...')
     sceneName = 'historical'
 
@@ -305,7 +305,7 @@ def GCMs_evaluation_historical():
                         ncVar = modNames['pcp']
                     else:
                         ncVar = modNames['tmax']
-
+                        
                     modelName, modelRun = model.split('_')[0], model.split('_')[1]
                     calendar = read.netCDF('../input_data/models/',
                                            ncVar + '_' + modelName + '_' + sceneName + '_' + modelRun + '_' + historicalPeriodFilename + '.nc',
@@ -348,6 +348,24 @@ def GCMs_evaluation_historical():
                             lst_months.append(monsum.mean())
                     cycle = lst_months
                     
+                    # Calculate annual values (used in spaghetti plots) 
+                    datevec = postpro_lib.get_season(sceneData, scene_dates, season)['times']
+                    if predName in ['tmax','tmin','pcp']:
+                        varcy = postpro_lib.get_season(sceneData, scene_dates, season)['data']
+                    else:
+                        varcy = (postpro_lib.get_season(sceneData, scene_dates, season)['data'] - mean_refperiod)/ std_refperiod
+                    
+                    lst_years = []
+                    years = [i for i in range(datevec[0].year, datevec[len(datevec) - 1].year)]
+                    for iyear in years:
+                        kkyear = [ii for ii,val in enumerate(datevec) if val.year == iyear]
+                        if predName != 'pcp':
+                            yearmean = varcy[kkyear,:,:].mean(axis=0)
+                            lst_years.append(yearmean.mean())
+                        else:
+                            yearsum = varcy[kkyear,:,:].sum(axis=0)
+                            lst_years.append(yearsum.mean())
+                    spaghetti = lst_years
                     
                     # Add rea data to annual cycle
                     datevec = rea_dates
@@ -367,6 +385,25 @@ def GCMs_evaluation_historical():
                             lst_months.append(monsum.mean())
                     cycle_rea = lst_months
                     
+                    # Calculate rea annual values (used in spaghetti plots)
+                    datevec = postpro_lib.get_season(sceneData, scene_dates, season)['times']
+                    if predName in ['tmax','tmin','pcp']:
+                        varcy = postpro_lib.get_season(sceneData, scene_dates, season)['data']
+                    else:
+                        varcy = (postpro_lib.get_season(sceneData, scene_dates, season)['data'] - mean_refperiod)/ std_refperiod
+                    
+                    lst_years = []
+                    for iyear in years:
+                        kkyear = [ii for ii,val in enumerate(datevec) if val.year == iyear]
+                        if predName != 'pcp':
+                            yearmean = varcy[kkyear,:,:].mean(axis=0)
+                            lst_years.append(yearmean.mean())
+                        else:
+                            yearsum = varcy[kkyear,:,:].sum(axis=0)
+                            lst_years.append(yearsum.mean())
+                    spaghetti_rea = lst_years
+                    
+                    
                     # Select season data
                     rea_season = postpro_lib.get_season(rea, reference_dates, season)['data']
                     sceneData_season = postpro_lib.get_season(sceneData, scene_dates, season)['data']
@@ -380,15 +417,24 @@ def GCMs_evaluation_historical():
                     # Calculate relative bias
                     if predName == 'pcp':
                         bias = 100*bias/rea_mean_season
-                    
+                    '''
+                    # Calculate annual accumulated precipitation 
+                    if predName == 'pcp':
+                        years = [i for i in range(scene_dates[0].year, scene_dates[-1].year)]
+                        for iyear in years:
+                            kkyear = [ii for ii,val in enumerate(scene_dates) if val.year == iyear]
+                            yearsum = sceneData[kkyear,:,:].nansum(axis=0)/nyears
+                    '''        
                     # Appending sceneData_mean_season of selected model in a list
                     if predName in ['tmax','tmin','pcp']:
-                         lst_sceneData_mean_season.append(sceneData_mean_season)
-                         
+                        lst_sceneData_mean_season.append(sceneData_mean_season)
+                    
                     # Save results
                     np.save(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'bias')), bias)
                     np.save(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle')), cycle)
                     np.save(pathTmp + '_'.join((var0, predName, 'Reanalysis', 'ANNUAL', 'cycle_rea')), cycle_rea)
+                    np.save(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'spaghetti')), spaghetti)
+                    np.save(pathTmp + '_'.join((var0, predName, 'Reanalysis', sceneName, season, 'spaghetti_rea')), spaghetti_rea)
                     print(var0, predName, model, sceneName, season)
                     
                     
@@ -442,8 +488,9 @@ def GCMs_evaluation_historical():
                 matrix = np.zeros((nmodels, nlats, nlons))
                 for imodel in range(nmodels):
                     model = model_list[imodel]
-                    matrix[imodel] = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'bias.npy')))       
+                    matrix[imodel] = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'bias.npy')))     
                 matrix = matrix.reshape(nmodels, -1)
+                
 
                 # Boxplot
                 fig, ax = plt.subplots()
@@ -474,7 +521,10 @@ def GCMs_evaluation_historical():
                 y_cycle_rea = [i for i in cycle_rea_load]
                 ax.plot(x_months, cycle_rea, label= 'Reanalysis' )    
                 ax.set_xlabel('month')
-                ax.set_ylabel(unitplot(predName))
+                if predName in ['tmax','tmin', 'pcp']:
+                    ax.set_ylabel(unitplot(predName))
+                else: 
+                    ax.set_ylabel('standardized ' + predName)
                 plt.title(' '.join(('annual cycle', predName, sceneName)))
                 ax.legend()
                 filename = '_'.join((experiment, 'annualCycle', 'None', var0, predName, sceneName, 'None'))
@@ -482,9 +532,29 @@ def GCMs_evaluation_historical():
                 # exit()
                 plt.savefig(pathOut + filename)
                 plt.close()
-                  
-
-
+                
+                # Evolution Spaghetti plot in reference period 
+                fig, ax = plt.subplots() 
+                for model in model_list:
+                    spaghetti_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'spaghetti.npy')))
+                    y_spaghetti = [i for i in spaghetti_load]
+                    y_spaghetti = gaussian_filter1d(y_spaghetti, 5)
+                    ax.plot(years, y_spaghetti, label= model)
+                spaghetti_rea_load = np.load(pathTmp + '_'.join((var0, predName, 'Reanalysis', sceneName, season, 'spaghetti_rea.npy')))
+                spaghetti_rea_load = gaussian_filter1d(spaghetti_rea_load, 5)
+                ax.plot(years, spaghetti_rea_load, label= 'Reanalysis' )
+                plt.title(' '.join((predName, sceneName, season)))
+                if predName in ['tmax','tmin', 'pcp']:
+                    ax.set_ylabel(unitplot(predName))
+                else: 
+                    ax.set_ylabel('standardized ' + predName)
+                plt.legend()
+                # plt.show()
+                # exit()
+                filename = '_'.join((experiment, 'evolSpaghetti', 'all', var0, predName, sceneName, season))
+                plt.savefig(pathOut + filename)
+                plt.close()
+                
 ########################################################################################################################
 def GCMs_evaluation_future():
     """
@@ -766,7 +836,7 @@ def GCMs_evaluation_future():
                         for season in season_dict.values():
                             fig, ax = plt.subplots()
                             for imodel in range(nmodels):
-                                model = model = model_list[imodel]
+                                model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
                                 data = np.mean(data.reshape(nYears, -1), axis=1)
                                 data = gaussian_filter1d(data, 5)
@@ -791,7 +861,7 @@ def GCMs_evaluation_future():
                         for season in season_dict.values():
                             fig, ax = plt.subplots()
                             for imodel in range(nmodels):
-                                model = model = model_list[imodel]
+                                model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
                                 data = np.mean(data.reshape(nYears, -1), axis=1)
                                 data = gaussian_filter1d(data, 5)
@@ -815,4 +885,4 @@ def GCMs_evaluation():
     print('GCMs_evaluation...')
 
     GCMs_evaluation_historical()
-    GCMs_evaluation_future()
+    #GCMs_evaluation_future()
