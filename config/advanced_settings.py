@@ -304,8 +304,6 @@ for var0 in target_vars0:
     hres_npoints.update({var0: aux_hres_metadata.shape[0]})
     hres_lats.update({var0: aux_hres_metadata[:, 2]})
     hres_lons.update({var0: aux_hres_metadata[:, 1]})
-hres_lats_all = np.asarray(list(hres_lats['t']) + list(hres_lats['p']))
-hres_lons_all = np.asarray(list(hres_lons['t']) + list(hres_lons['p']))
 
 hres_lats_all = []
 for var0 in target_vars0:
