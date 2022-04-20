@@ -43,6 +43,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.stats import gamma
 from scipy.stats import norm
 from scipy.signal import detrend
+from scipy.optimize import fsolve
 from netCDF4 import Dataset
 from netCDF4 import date2num
 from netCDF4 import num2date
