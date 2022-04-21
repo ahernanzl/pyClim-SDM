@@ -1148,7 +1148,11 @@ class tabVisualization(ttk.Frame):
         tabVisualization = ttk.Frame(notebook)
         notebook.add(tabVisualization, text='Visualization')
 
-        def open_figure(filename, text):
+        def open_figure(img, filename, text):
+
+            print('experiment', self.experiment)
+            print('figType', self.figType)
+
 
             rootIm = tk.Toplevel()
             rootIm.title('')
@@ -1156,26 +1160,82 @@ class tabVisualization(ttk.Frame):
             rootIm.maxsize(600, 550)
 
             w = 600
-            global img
-            img = Image.open("../results/Figures/" + filename)
-            h = int(w * img.height / img.width)
-            img = img.resize((w, h), Image.ANTIALIAS)
-            img = ImageTk.PhotoImage(img)
+            img.append(Image.open("../results/Figures/" + filename))
+            h = int(w * img[-1].height / img[-1].width)
+            img[-1] = img[-1].resize((w, h), Image.ANTIALIAS)
+            img[-1] = ImageTk.PhotoImage(img[-1])
             canvas = Canvas(rootIm, width=w, height=h)
-            canvas.create_image(0, 0, anchor=NW, image=img)
+            canvas.create_image(0, 0, anchor=NW, image=img[-1])
             canvas.grid(column=0, row=0, padx=0, pady=0)
             Label(rootIm, text=text, borderwidth=0, background=None).grid(column=0, row=1)
 
 
         # frameFigSelection
-        frameFigSelection = Frame(tabVisualization)
-        frameFigSelection.grid(sticky="W", column=0, row=0, padx=616, pady=270)
+        frameFigSelection = Frame(tabVisualization, height=510, width=1122)
+        frameFigSelection.grid(sticky="W", column=0, row=0, padx=0, pady=0)
+        frameFigSelection.grid_propagate(False)
+
+        irow, icol = 0, 0
+        Label(frameFigSelection, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1; icol+=1
+
+        Label(frameFigSelection, text="Select experiment:").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=0, pady=0); icol+=1; irow-=1
+
+        Label(frameFigSelection, text="Select figure type:").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=0, pady=0); icol+=1; irow-=1
+
+
+
 
         filename = 'EVALUATION_annualCycle_None_pcp_None_all_None.png'
         text = 'This figure represents the annual cycle for precipitation by all methods'
 
+        def callback_experiment(event):
+            self.experiment = self.experimentVar.get()
+
+            def callback_figType(event):
+                self.figType = self.figTypeVar.get()
+                return self.figType
+
+            # figType
+            figTypes = {
+                'PRECONTROL': ['correlationMap', 'correlationBoxplot', 'nansMap', 'nansMatrix', 'biasBoxplot',
+                               'evolSpaghetti', 'qqPlot', 'annualCycle', 'evolTube',],
+                'EVALUATION': ['annualCycle', 'correlationBoxplot', 'varianceBoxplot', 'qqPlot', 'r2Map', 'accuracyMap',
+                               'correlationMap', 'r2Map', 'biasBoxplot', 'obsMap', 'estMap', 'biasMap', 'scatterPlot', ],
+                'PROJECTIONS': ['evolSpaghetti', 'evolTube', 'meanChangeMap', 'stdChangeMap', 'evolTrendRaw', ]
+                        }
+
+            self.figTypeVar = tk.StringVar()
+            combobox = ttk.Combobox(frameFigSelection, textvariable=self.figTypeVar)
+            combobox['values'] = figTypes[self.experiment]
+            combobox['state'] = 'readonly'
+            combobox.grid(sticky="W", column=2, row=2, padx=0, pady=0)
+            combobox.bind('<<ComboboxSelected>>', callback_figType)
+            self.figType = self.figTypeVar.get()
+
+            return self.experiment
+
+
+
+        # experiment
+        experiments = ['PRECONTROL', 'EVALUATION', 'PROJECTIONS']
+        self.experimentVar = tk.StringVar()
+        combobox = ttk.Combobox(frameFigSelection, textvariable=self.experimentVar)
+        combobox['values'] = experiments
+        combobox['state'] = 'readonly'
+        combobox.grid(sticky="W", column=1, row=2, padx=10, pady=10)
+        combobox.bind('<<ComboboxSelected>>', callback_experiment)
+        self.experiment = self.experimentVar.get()
+
+
+
+        global img
+        img = []
         Button(tabVisualization, text="Open figure", width=10,
-               command=lambda: open_figure(filename, text), takefocus=False).grid(sticky="SE", column=0, row=0)
+               command=lambda: open_figure(img, filename, text), takefocus=False).grid(sticky="SE", column=1, row=1)
 
 
 
@@ -1232,8 +1292,6 @@ class selectionWindow():
         canvas.create_image(0, 0, anchor=NW, image=img)
         canvas.grid(sticky="W", column=0, row=1, padx=10)
 
-        # Run butnon
-        Label(notebook, text='', borderwidth=0).grid(sticky="SE", column=1, row=0, padx=480, pady=265)
         self.run = False
         def run():
 
@@ -1413,6 +1471,10 @@ class selectionWindow():
                 self.run = True
                 root.destroy()
 
+
+        # Run butnon
+        frame = Frame(notebook)
+        frame.grid(sticky="SE", column=0, row=0, padx=551, pady=272)
         Button(notebook, text="Run", width=10, command=run).grid(sticky="W", column=2, row=1, padx=20, pady=0)
 
         # Mainloop
