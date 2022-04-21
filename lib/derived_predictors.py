@@ -34,12 +34,12 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def SSI_index(model='reanalysis', scene='TESTING'):
+def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; email:ccorreag@aemet.es
     """    Showalter index:    SSI (K) = t500 - tp500   
     where:
     t500 is the measured temperature at 500 hPa
     tp500 is the temperature of the parcel at 500 hPa when lifted from 850 hPa"""
-
+    
     #from scipy.optimize import fsolve --> it was added in /config/imports.py
     
     # Prepare times
@@ -117,11 +117,15 @@ def SSI_index(model='reanalysis', scene='TESTING'):
     # Calculate SSI index
     SSI_index = t500 - tp500
 
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'SSI_index.nc', 'SSI_index', SSI_index, 'K', ext_lats, ext_lons, dates)
 
     return SSI_index
 
 ########################################################################################################################
-def LI_index(model='reanalysis', scene='TESTING'):
+def LI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; email:ccorreag@aemet.es
     """    Lifted index:    LI (K) = t500 - tp500   
     where:
     t500 is the measured temperature at 500 hPa
@@ -209,6 +213,10 @@ def LI_index(model='reanalysis', scene='TESTING'):
     # Calculate SSI index
     LI_index = t500 - tp500
 
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'LI_index.nc', 'LI_index', LI_index, 'K', ext_lats, ext_lons, dates)
 
     return LI_index
 
