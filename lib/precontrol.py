@@ -58,6 +58,7 @@ def unitplot(input_var):
     elif input_var in ['q1000','q850','q700','q500','q250']:
         unit = input_var + ' ' + '(kg*kg-1)' 
     return (unit)
+
 ########################################################################################################################
 def missing_data_check():
     """
@@ -105,9 +106,9 @@ def missing_data_check():
 
                     if np.max(perc_nan) != 0:
                         # Plot map
-                        filename = '_'.join((experiment, 'nansMap', 'daily', var0, predName, model+'-'+sceneName, 'None'))
+                        filename = '_'.join((experiment, 'nansMap', var0, predName, model+'-'+sceneName, 'None'))
                         title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
-                        plot.map(perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
+                        plot.map(var0, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
 
                     imodel += 1
                 iscene += 1
@@ -141,12 +142,12 @@ def missing_data_check():
                             xticklabels=xticklabels, yticklabels=True, square=True)
             g.tick_params(left=False, bottom=False)
             g.yaxis.set_label_position("right")
-            g.set_yticklabels(modelNames, rotation=0)
+            g.set_yticklabels(modelNames, rotation=0, fontsize=5)
             g.set_xticklabels(predNames, rotation=90)
             plt.title(sceneName + ' pertentage of NANs')
             # plt.show()
             # exit()
-            filename = '_'.join((experiment, 'nansMatrix', 'daily', var0, 'None', sceneName, 'None.png'))
+            filename = '_'.join((experiment, 'nansMatrix', var0, 'None', sceneName, 'None.png'))
             plt.savefig(pathOut + filename)
             plt.close()
 
@@ -161,11 +162,6 @@ def predictors_correlation():
 
     print('predictors_correlation...')
 
-    # For interpolation
-    interp_mode = 'bilinear'
-    i_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/i_4nn.npy')
-    j_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/j_4nn.npy')
-    w_4nn = np.load(pathAux + 'ASSOCIATION/' + interp_mode + '/w_4nn.npy')
 
     # Go through all target variables
     for var in ('tmax', 'tmin', 'pcp'):
@@ -178,6 +174,12 @@ def predictors_correlation():
             if not os.path.exists(pathOut):
                 os.makedirs(pathOut)
 
+            # For interpolation
+            interp_mode = 'bilinear'
+            i_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/i_4nn.npy')
+            j_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/j_4nn.npy')
+            w_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/w_4nn.npy')
+
             # Read data predictand
             obs = read.hres_data(var, period='calibration')['data']
 
@@ -188,7 +190,7 @@ def predictors_correlation():
             # Go through all seasons
             for season in season_dict.values():
 
-                R = np.zeros((npreds, hres_npoints))
+                R = np.zeros((npreds, hres_npoints[var[0]]))
 
                 # Calculate correlations for each predictor
                 for ipred in range(npreds):
@@ -202,7 +204,7 @@ def predictors_correlation():
                     obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
 
                     # Go through all points
-                    for ipoint in range(hres_npoints):
+                    for ipoint in range(hres_npoints[var[0]]):
 
                         # Interpolate to one point
                         X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
@@ -228,8 +230,8 @@ def predictors_correlation():
 
                     # Plot map
                     title = ' '.join((var.upper(), predName, 'correlation', season))
-                    filename = '_'.join((experiment, 'correlationMap', 'daily', var, predName, 'None', season))
-                    plot.map(abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
+                    filename = '_'.join((experiment, 'correlationMap', var, predName, 'None', season))
+                    plot.map(var[0], abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
 
                 # Boxplot
                 fig, ax = plt.subplots()
@@ -239,7 +241,7 @@ def predictors_correlation():
                 plt.title(' '.join((var.upper(), 'correlation', season)))
                 # plt.show()
                 # exit()
-                filename = '_'.join((experiment, 'correlationBoxplot', 'daily', var, 'None', 'None', season))
+                filename = '_'.join((experiment, 'correlationBoxplot', var, 'None', 'None', season))
                 plt.savefig(pathOut + filename)
 
 
@@ -451,25 +453,13 @@ def GCMs_evaluation_historical():
                     ax.set_xlabel('Reanalysis' + ' ' + unitplot(predName))
                     ax.set_ylabel(model + ' ' + unitplot(predName))
                     plt.title(' '.join(('qqPlot', predName, model, sceneName, season)))
-                    filename = '_'.join((experiment, 'qqPlot', 'all', var0, predName, model, season))
+                    filename = '_'.join((experiment, 'qqPlot', var0, predName, model, season))
                     #plt.show()
                     # exit()
                     plt.savefig(pathOut + filename)
                     plt.close()
                     
 
-                    # # Plot maps
-                    # filename = '_'.join((experiment, 'reaMap', 'all', var0, predName, 'None', season))
-                    # title = ' '.join((predName, 'reanalysis'))
-                    # plot.map(rea_mean_season, grid='pred', path=pathOut, filename=filename, title=title)
-                    # filename = '_'.join((experiment, 'modMap', 'all', var0, predName, model, season))
-                    # title = ' '.join((predName, model))
-                    # plot.map(sceneData_mean_season, grid='pred', path=pathOut, filename=filename, title=title)
-                    # bias = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'bias.npy')))
-                    # filename = '_'.join((experiment, 'biasMap', 'all', var0, predName, model, season))
-                    # title = ' '.join((predName, model, 'bias'))
-                    # plot.map(bias, grid='pred', path=pathOut, filename=filename, title=title)
-                    
                 # Saving multi-model statistics
                 if predName in ['tmax','tmin','pcp']:
                     historical_multimodel_mean = np.mean(lst_sceneData_mean_season, axis=0)
@@ -504,7 +494,7 @@ def GCMs_evaluation_historical():
                     ax.set_ylabel('pcp relative bias (%)')
                 # plt.show()
                 # exit()
-                filename = '_'.join((experiment, 'biasBoxplot', 'all', var0, predName, 'None', season))
+                filename = '_'.join((experiment, 'biasBoxplot', var0, predName, 'None', season))
                 plt.savefig(pathOut + filename)
                 plt.close()
                 
@@ -527,7 +517,7 @@ def GCMs_evaluation_historical():
                     ax.set_ylabel('standardized ' + predName)
                 plt.title(' '.join(('annual cycle', predName, sceneName)))
                 ax.legend()
-                filename = '_'.join((experiment, 'annualCycle', 'None', var0, predName, sceneName, 'None'))
+                filename = '_'.join((experiment, 'annualCycle', var0, predName, sceneName, 'None'))
                 # plt.show()
                 # exit()
                 plt.savefig(pathOut + filename)
@@ -551,7 +541,7 @@ def GCMs_evaluation_historical():
                 plt.legend()
                 # plt.show()
                 # exit()
-                filename = '_'.join((experiment, 'evolSpaghetti', 'all', var0, predName, sceneName, season))
+                filename = '_'.join((experiment, 'evolSpaghetti', var0, predName, sceneName, season))
                 plt.savefig(pathOut + filename)
                 plt.close()
                 
@@ -710,7 +700,7 @@ def GCMs_evaluation_future():
                             plt.legend()
                             # plt.show()
                             # exit()
-                            filename = '_'.join((experiment, 'evolTube', 'all', var0, predName, sceneName, season))
+                            filename = '_'.join((experiment, 'evolTube', var0, predName, sceneName, season))
                             plt.savefig(pathOut + filename)
                             plt.close()
 
@@ -885,4 +875,4 @@ def GCMs_evaluation():
     print('GCMs_evaluation...')
 
     GCMs_evaluation_historical()
-    GCMs_evaluation_future()
+    #GCMs_evaluation_future()

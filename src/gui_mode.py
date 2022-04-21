@@ -1187,41 +1187,48 @@ class tabVisualization(ttk.Frame):
         combobox.grid(sticky="W", column=icol, row=irow, padx=0, pady=0); icol+=1; irow-=1
 
 
+        self.descriptions = {
+            'PRECONTROL_correlationMap': 'Correlation between predictor and predictand.',
+            'PRECONTROL_correlationBoxplot': 'Correlation for all predictors',
+            'PRECONTROL_nansMap': 'Map with NANs (missing data)',
+            'PRECONTROL_nansMatrix': 'Percentage of NANs (spatially averaged)',
+            'PRECONTROL_biasBoxplot': 'Bias of GCMs compared to the reanalysis (in the mean value)',
+            'PRECONTROL_evolSpaghetti': 'Evolution of each predictor and GCM in the future.',
+            'PRECONTROL_qqPlot': 'QQ-plot (historical vs reanalysis)',
+            'PRECONTROL_annualCycle': 'Annual cycle (multi-model comparison: historical and future scenes)',
+            'PRECONTROL_evolTube': 'Evolution graph for the multimodel ensemble (the central line represents 50th percentile and the shaded area represents IQR).' ,
+        }
 
-
-        filename = 'EVALUATION_annualCycle_None_pcp_None_all_None.png'
-        text = 'This figure represents the annual cycle for precipitation by all methods'
 
         def callback_experiment(event):
             self.experiment = self.experimentVar.get()
 
             def callback_figType(event):
                 self.figType = self.figTypeVar.get()
-                return self.figType
+
 
             # figType
-            figTypes = {
-                'PRECONTROL': ['correlationMap', 'correlationBoxplot', 'nansMap', 'nansMatrix', 'biasBoxplot',
-                               'evolSpaghetti', 'qqPlot', 'annualCycle', 'evolTube',],
-                'EVALUATION': ['annualCycle', 'correlationBoxplot', 'varianceBoxplot', 'qqPlot', 'r2Map', 'accuracyMap',
-                               'correlationMap', 'r2Map', 'biasBoxplot', 'obsMap', 'estMap', 'biasMap', 'scatterPlot', ],
-                'PROJECTIONS': ['evolSpaghetti', 'evolTube', 'meanChangeMap', 'stdChangeMap', 'evolTrendRaw', ]
-                        }
+            figTypes = []
+            for file in os.listdir('../results/Figures/'):
+                if file.endswith(".png") and file.split('_')[0] == self.experiment and file.split('_')[1] not in figTypes:
+                    figTypes.append(file.split('_')[1])
 
             self.figTypeVar = tk.StringVar()
             combobox = ttk.Combobox(frameFigSelection, textvariable=self.figTypeVar)
-            combobox['values'] = figTypes[self.experiment]
+            combobox['values'] = figTypes
             combobox['state'] = 'readonly'
             combobox.grid(sticky="W", column=2, row=2, padx=0, pady=0)
             combobox.bind('<<ComboboxSelected>>', callback_figType)
             self.figType = self.figTypeVar.get()
 
-            return self.experiment
-
 
 
         # experiment
-        experiments = ['PRECONTROL', 'EVALUATION', 'PROJECTIONS']
+        experiments = []
+        for file in os.listdir('../results/Figures/'):
+            if file.endswith(".png") and file.split('_')[0] not in experiments:
+                experiments.append(file.split('_')[0])
+
         self.experimentVar = tk.StringVar()
         combobox = ttk.Combobox(frameFigSelection, textvariable=self.experimentVar)
         combobox['values'] = experiments
@@ -1231,6 +1238,9 @@ class tabVisualization(ttk.Frame):
         self.experiment = self.experimentVar.get()
 
 
+
+        filename = 'EVALUATION_annualCycle_None_pcp_None_all_None.png'
+        text = 'This figure represents the annual cycle for precipitation by all methods'
 
         global img
         img = []
@@ -1767,9 +1777,14 @@ def main():
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
                         saf_lat_down, model_names_list, scene_names_list)
 
+    # Write tmp_main file
     write_tmpMain_file(steps)
+
+    # Launch tmp_main
+    os.system('python3 .tmp_main.py')
+
+    # Delete tmp_main
+    os.remove('.tmp_main.py')
 
 if __name__=="__main__":
     main()
-    os.system('python3 .tmp_main.py')
-    os.remove('.tmp_main.py')

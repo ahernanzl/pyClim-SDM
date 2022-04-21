@@ -312,8 +312,7 @@ def monthly_maps(metric, var, methodName):
         est_acc[idate] = np.nansum(est[idates], axis=0)
 
 
-    filename = '_'.join(('EVALUATION', metric+'Map', 'monthly', var, 'None', methodName,
-                                'None'))
+    filename = '_'.join(('EVALUATION', metric+'MapMonthly', var, 'None', methodName, 'None'))
     # Correlation
     if metric == 'correlation':
         title = ' '.join(('monthly', metric, var.upper(), methodName))
