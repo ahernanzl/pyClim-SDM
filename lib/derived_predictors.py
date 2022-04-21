@@ -19,6 +19,7 @@ import down_day
 import down_point
 import evaluate_methods
 import grids
+import gui_lib
 import launch_jobs
 import plot
 import postpro_lib
@@ -134,7 +135,7 @@ def LI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; ema
     #from scipy.optimize import fsolve --> it was added in /config/imports.py
     
     # Prepare times
-    times = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['times']
+    times = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['times']
     if model == 'reanalysis':
         dates = calibration_dates
     else:
@@ -610,6 +611,10 @@ def reanalysis_all():
         K_index()
     if 'TT_index' in all_preds:
         TT_index()
+    if 'SSI_index' in all_preds:
+        SSI_index()
+    if 'LI_index' in all_preds:
+        LI_index()
 
     for level in preds_levels:
         print('derived predictors', level)

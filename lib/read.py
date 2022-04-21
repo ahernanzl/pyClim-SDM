@@ -18,6 +18,7 @@ import down_day
 import down_point
 import evaluate_methods
 import grids
+import gui_lib
 import launch_jobs
 import plot
 import postpro_lib
@@ -317,6 +318,10 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
                 data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'K_index.nc', 'K_index')['data']; i += 1
             if 'TT_index' in preds:
                 data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'TT_index.nc', 'TT_index')['data']; i += 1
+            if 'SSI_index' in preds:
+                data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'SSI_index.nc', 'SSI_index')['data']; i += 1
+            if 'LI_index' in preds:
+                data[i] = netCDF(pathAux + 'DERIVED_PREDICTORS/', 'LI_index.nc', 'LI_index')['data']; i += 1
     else:
 
         # var
@@ -406,6 +411,10 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
                 data[i] = derived_predictors.K_index(model=model, scene=scene); i += 1
             if 'TT_index' in preds:
                 data[i] = derived_predictors.TT_index(model=model, scene=scene); i += 1
+            if 'SSI_index' in preds:
+                data[i] = derived_predictors.SSI_index(model=model, scene=scene); i += 1
+            if 'LI_index' in preds:
+                data[i] = derived_predictors.LI_index(model=model, scene=scene); i += 1
 
     # Select grid
     if grid == None:

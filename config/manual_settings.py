@@ -192,6 +192,8 @@ preds_t_list = [
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
     # 'K_index',          # K instability index
     # 'TT_index',         # Total Totals instability index
+    # 'SSI_index',        # Showalter index
+    # 'LI_index',         # Lifted index
 ]
 
 
@@ -264,6 +266,8 @@ preds_p_list = [
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
     # 'K_index',          # K instability index
     # 'TT_index',         # Total Totals instability index
+    # 'SSI_index',        # Showalter index
+    # 'LI_index',         # Lifted index
 ]
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
@@ -338,6 +342,8 @@ saf_list = [
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
     # 'K_index',          # K instability index
     # 'TT_index',         # Total Totals instability index
+    # 'SSI_index',        # Showalter index
+    # 'LI_index',         # Lifted index
 ]
 
 
