@@ -717,8 +717,6 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
               methodName, regType, regName, xlabel):
     """Plot evolution graphs all models"""
 
-    if not os.path.exists(pathOut + 'evolution/' + subDir):
-        os.makedirs(pathOut + 'evolution/' + subDir)
     color_dict = {'ssp119': 'Greys', 'ssp126': 'Blues', 'ssp245': 'Greens', 'ssp370': 'Oranges', 'ssp585': 'Reds'}
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
         models = ssp_dict[scene]['models']
@@ -752,6 +750,8 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
         filename = '_'.join(('PROJECTIONS', 'evolSpaghetti', 'all', var, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
+        if not os.path.exists(pathOut + 'evolution/' + subDir):
+            os.makedirs(pathOut + 'evolution/' + subDir)
         filename = '_'.join(('evolSpaghetti', climdex_name, season))
         title = regName.upper() + '\n' + season
         plt.title(title)
@@ -763,8 +763,6 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
          methodName, regType, regName, xlabel):
     """Plot evolution graphs mean and spread"""
 
-    if not os.path.exists(pathOut + 'evolution/' + subDir):
-        os.makedirs(pathOut + 'evolution/' + subDir)
     color_dict = {'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
         models = ssp_dict[scene]['models']
@@ -795,6 +793,8 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
         filename = '_'.join(('PROJECTIONS', 'evolTube', 'all', var, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
+        if not os.path.exists(pathOut + 'evolution/' + subDir):
+            os.makedirs(pathOut + 'evolution/' + subDir)
         filename = '_'.join(('evolTube', climdex_name, season))
         title = regName.upper() + '\n' + season
         plt.title(title)
