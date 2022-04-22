@@ -454,7 +454,7 @@ def GCMs_evaluation_historical():
                     ax.set_xlabel('Reanalysis' + ' ' + unitplot(predName))
                     ax.set_ylabel(model + ' ' + unitplot(predName))
                     plt.title(' '.join(('qqPlot', predName, model, sceneName, season)))
-                    filename = '_'.join((experiment, 'qqPlot', var0, predName, model, season))
+                    filename = '_'.join((experiment, 'qqPlot', var0, predName, model.replace('_', '-'), season))
                     #plt.show()
                     # exit()
                     plt.savefig(pathOut + filename)
@@ -495,7 +495,7 @@ def GCMs_evaluation_historical():
                     ax.set_ylabel('pcp relative bias (%)')
                 # plt.show()
                 # exit()
-                filename = '_'.join((experiment, 'biasBoxplot', var0, predName, 'None', season))
+                filename = '_'.join((experiment, 'biasBoxplot', var0, predName, sceneName, season))
                 plt.savefig(pathOut + filename)
                 plt.close()
                 

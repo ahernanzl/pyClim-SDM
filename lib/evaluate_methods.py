@@ -154,7 +154,7 @@ def annual_cycle():
                             plt.tight_layout()
                             # plt.show()
                             # exit()
-                            plt.savefig(pathOut + '_'.join(('EVALUATION', 'annualCycle', 'None', var, 'None', 'all', 'None')))
+                            plt.savefig(pathOut + '_'.join(('EVALUATION', 'annualCycle', var, 'None', 'all', 'None')))
                             plt.close()
 
 
@@ -333,15 +333,15 @@ def climdex(by_season=True):
                                         bias_palette = palette + '_rel_bias'
 
                                     # Plot obs, est and bias (est-obs) maps
-                                    filename = '_'.join(('EVALUATION', 'obsMap', 'all', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'obsMap', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, 'obs', season))
                                     plot.map(var[0], mean_obs, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION', 'estMap', 'all', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'estMap', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, methodName, season))
                                     plot.map(var[0], mean_est, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION', 'biasMap', 'all', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'biasMap', var, climdex_name, methodName,
                                                          season))
                                     title = ' '.join((var.upper(), climdex_name, 'bias', methodName, season))
                                     plot.map(var[0], bias, bias_palette, path=pathFigures, filename=filename, title=title)
@@ -364,7 +364,7 @@ def climdex(by_season=True):
                             plt.plot(range(m, M), range(m, M))
                             # if plotAllRegions == False and season == season_dict['ANNUAL']:
 
-                            filename = '_'.join(('EVALUATION', 'scatterPlot', 'all', var, climdex_name, methodName,
+                            filename = '_'.join(('EVALUATION', 'scatterPlot', var, climdex_name, methodName,
                                                  season))
                             title = ' '.join((var.upper(), climdex_name, methodName, season))
                             plt.title(title)
