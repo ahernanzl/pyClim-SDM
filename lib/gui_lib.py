@@ -1152,26 +1152,34 @@ class tabVisualization(ttk.Frame):
         tabVisualization = ttk.Frame(notebook)
         notebook.add(tabVisualization, text='Visualization')
 
-        def open_figure(img, filename, text):
-
-            print('experiment', self.experiment)
-            print('figType', self.figType)
-
-
-            rootIm = tk.Toplevel()
-            rootIm.title('')
-            rootIm.minsize(600, 550)
-            rootIm.maxsize(600, 550)
+        def open_figure(imgs):
 
             w = 600
-            img.append(Image.open("../results/Figures/" + filename))
-            h = int(w * img[-1].height / img[-1].width)
-            img[-1] = img[-1].resize((w, h), Image.ANTIALIAS)
-            img[-1] = ImageTk.PhotoImage(img[-1])
-            canvas = Canvas(rootIm, width=w, height=h)
-            canvas.create_image(0, 0, anchor=NW, image=img[-1])
-            canvas.grid(column=0, row=0, padx=0, pady=0)
-            Label(rootIm, text=text, borderwidth=0, background=None).grid(column=0, row=1)
+
+            filename = '_'.join((self.experiment, self.figType, self.var, self.climdex_pred, self.method_model_scene,
+                                 self.season)) + '.png'
+            text = self.descriptions['_'.join((self.experiment, self.figType))]
+
+            if os.path.isfile("../results/Figures/" + filename):
+
+                imgs.append(Image.open("../results/Figures/" + filename))
+                h = int(w * imgs[-1].height / imgs[-1].width)
+                imgs[-1] = imgs[-1].resize((w, h), Image.ANTIALIAS)
+                imgs[-1] = ImageTk.PhotoImage(imgs[-1])
+
+                rootIm = tk.Toplevel()
+                rootIm.title(filename.replace('.png', '').replace('_', ' '))
+
+                canvas = Canvas(rootIm, width=w, height=h)
+                canvas.create_image(0, 0, anchor=NW, image=imgs[-1])
+                canvas.grid(column=0, row=0, padx=0, pady=0)
+                l = Label(rootIm, text=text, borderwidth=0, background=None, wraplength=w)
+                l.grid(column=0, row=1)
+
+                rootIm.resizable(width=False, height=False)
+
+            else:
+                tk.messagebox.showerror("pyClim-SDM",  "No figure has been generated matching the selection")
 
 
         # frameFigSelection
@@ -1180,36 +1188,167 @@ class tabVisualization(ttk.Frame):
         frameFigSelection.grid_propagate(False)
 
         irow, icol = 0, 0
+
+        Label(frameFigSelection, text='').grid(sticky="W", column=icol, row=5, padx=10, pady=10); irow+=1
+        Label(frameFigSelection, text='Make your selection in order to visualize existing figures:')\
+            .grid(sticky="W", column=icol, row=irow, padx=30, pady=30, columnspan=100); irow+=1
+
         Label(frameFigSelection, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1; icol+=1
 
-        Label(frameFigSelection, text="Select experiment:").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=0, pady=0); icol+=1; irow-=1
+        padx = 2
 
-        Label(frameFigSelection, text="Select figure type:").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1
+        Label(frameFigSelection, text="Select experiment:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
         combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=0, pady=0); icol+=1; irow-=1
+        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
 
+        Label(frameFigSelection, text="Select figure type:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
+
+        Label(frameFigSelection, text="Select variable:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
+
+        Label(frameFigSelection, text="Select climdex/predictor:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
+
+        Label(frameFigSelection, text="Select method/model/scene:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
+
+        Label(frameFigSelection, text="Select season:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
+        combobox = ttk.Combobox(frameFigSelection, state='disabled')
+        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
+
+        self.experiment, self.figType, self.var, self.climdex_pred, self.method_model_scene, self.season = \
+            'None', 'None', 'None', 'None', 'None', 'None'
+
+        self.l = Label(frameFigSelection, text='', anchor="e", justify=LEFT, wraplength=600)
 
         self.descriptions = {
             'PRECONTROL_correlationMap': 'Correlation between predictor and predictand.',
-            'PRECONTROL_correlationBoxplot': 'Correlation for all predictors',
-            'PRECONTROL_nansMap': 'Map with NANs (missing data)',
-            'PRECONTROL_nansMatrix': 'Percentage of NANs (spatially averaged)',
-            'PRECONTROL_biasBoxplot': 'Bias of GCMs compared to the reanalysis (in the mean value)',
+            'PRECONTROL_correlationBoxplot': 'Correlation for all predictors.',
+            'PRECONTROL_nansMap': 'Map with NANs (missing data).',
+            'PRECONTROL_nansMatrix': 'Percentage of NANs (spatially averaged).',
+            'PRECONTROL_biasBoxplot': 'Bias of GCMs compared to the reanalysis (in the mean value).',
             'PRECONTROL_evolSpaghetti': 'Evolution of each predictor and GCM in the future.',
-            'PRECONTROL_qqPlot': 'QQ-plot (historical vs reanalysis)',
-            'PRECONTROL_annualCycle': 'Annual cycle (multi-model comparison: historical and future scenes)',
-            'PRECONTROL_evolTube': 'Evolution graph for the multimodel ensemble (the central line represents 50th percentile and the shaded area represents IQR).' ,
+            'PRECONTROL_qqPlot': 'QQ-plot (historical vs reanalysis).',
+            'PRECONTROL_annualCycle': 'Annual cycle (multi-model comparison: historical and future scenes).',
+            'PRECONTROL_evolTube': 'Evolution graph for the multimodel ensemble (the central line represents 50th percentile and the shaded area represents IQR).',
+            'EVALUATION_annualCycle': 'Annual cycle.',
+            'EVALUATION_correlationBoxplot': 'Correlation (Pearson for temperature and Spearman for precipitation) of the daily series.',
+            'EVALUATION_varianceBoxplot': 'Bias (relative, %) in the variance of the daily series.',
+            'EVALUATION_qqPlot': 'QQ-plot for the daily series.',
+            'EVALUATION_r2Map': 'R2 score of the daily series (Coefficient of determination).',
+            'EVALUATION_accuracyMap': 'Accuracy score for the daily series (only for wet/dry classification. Acc=corrects/total).',
+            'EVALUATION_correlationMapMonthly': 'Correlation for the monthly accumulated series.',
+            'EVALUATION_r2MapMonthly': 'R2 score for the monthly accumulated series.',
+            'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole period.',
+            'EVALUATION_obsMap': 'Mean observed values in the whole period.',
+            'EVALUATION_estMap': 'Mean estimated (downscaled) values in the whole period.',
+            'EVALUATION_biasMap': 'Bias (absolute/relative) in the whole period.',
+            'EVALUATION_scatterPlot': 'Downscaled vs. observed climdex in the whole period.',
+            'PROJECTIONS_evolSpaghetti': 'Evolution graph for each GCM.',
+            'PROJECTIONS_evolTube': 'Evolution graph for the multimodel ensemble (the central line represents the mean and the shaded area represents the standard deviation).',
+            'PROJECTIONS_meanChangeMap': 'Change in a future period with respect to a reference period given by the multimodel ensemble mean (mean change).',
+            'PROJECTIONS_stdChangeMap': 'Standard deviation in the multimodel ensemble change (spread).',
+            'PROJECTIONS_evolTrendRaw': 'Trend given by a SDM vs raw GCMs.',
         }
-
 
         def callback_experiment(event):
             self.experiment = self.experimentVar.get()
 
             def callback_figType(event):
                 self.figType = self.figTypeVar.get()
+                Label(frameFigSelection, text='').grid(sticky="W", column=1, row=5, padx=10, pady=20)
+                text = 'Your current selection corresponds to: \n\n' + self.descriptions['_'.join((self.experiment, self.figType))]
+                self.l.destroy()
+                self.l = Label(frameFigSelection, text=text, anchor="e", justify=LEFT, wraplength=600)
+                self.l.grid(sticky="W", column=2, row=6, padx=10, pady=10, columnspan=100)
 
+                def callback_var(event):
+                    self.var = self.varVar.get()
+
+                    def callback_climdex_pred(event):
+                        self.climdex_pred = self.climdex_predVar.get()
+
+                        def callback_method_model_scene(event):
+                            self.method_model_scene = self.method_model_sceneVar.get()
+
+                            def callback_season(event):
+                                self.season = self.seasonVar.get()
+
+                            # season
+                            seasons = []
+                            for file in os.listdir('../results/Figures/'):
+                                if file.endswith(".png") and \
+                                        file.split('_')[0] == self.experiment \
+                                        and file.split('_')[1] == self.figType \
+                                        and file.split('_')[2] == self.var \
+                                        and file.split('_')[3] == self.climdex_pred \
+                                        and file.split('_')[4] == self.method_model_scene \
+                                        and file.split('_')[5].replace('.png', '') not in seasons:
+                                    seasons.append(file.split('_')[5].replace('.png', ''))
+
+                            self.seasonVar = tk.StringVar()
+                            combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
+                            combobox['values'] = seasons
+                            combobox['state'] = 'readonly'
+                            combobox.grid(sticky="W", column=6, row=4, padx=2, pady=0)
+                            combobox.bind('<<ComboboxSelected>>', callback_season)
+                            self.season = self.seasonVar.get()
+
+                        # method_model_scene
+                        method_model_scenes = []
+                        for file in os.listdir('../results/Figures/'):
+                            if file.endswith(".png") and \
+                                    file.split('_')[0] == self.experiment \
+                                    and file.split('_')[1] == self.figType \
+                                    and file.split('_')[2] == self.var \
+                                    and file.split('_')[3] == self.climdex_pred \
+                                    and file.split('_')[4] not in method_model_scenes:
+                                method_model_scenes.append(file.split('_')[4])
+
+                        self.method_model_sceneVar = tk.StringVar()
+                        combobox = ttk.Combobox(frameFigSelection, textvariable=self.method_model_sceneVar)
+                        combobox['values'] = method_model_scenes
+                        combobox['state'] = 'readonly'
+                        combobox.grid(sticky="W", column=5, row=4, padx=2, pady=0)
+                        combobox.bind('<<ComboboxSelected>>', callback_method_model_scene)
+                        self.method_model_scene = self.method_model_sceneVar.get()
+
+
+                    # climdex_pred
+                    climdex_preds = []
+                    for file in os.listdir('../results/Figures/'):
+                        if file.endswith(".png") and file.split('_')[0] == self.experiment and \
+                                file.split('_')[1] == self.figType and \
+                                file.split('_')[2] == self.var and file.split('_')[3] not in climdex_preds:
+                            climdex_preds.append(file.split('_')[3])
+
+                    self.climdex_predVar = tk.StringVar()
+                    combobox = ttk.Combobox(frameFigSelection, textvariable=self.climdex_predVar)
+                    combobox['values'] = climdex_preds
+                    combobox['state'] = 'readonly'
+                    combobox.grid(sticky="W", column=4, row=4, padx=2, pady=0)
+                    combobox.bind('<<ComboboxSelected>>', callback_climdex_pred)
+                    self.climdex_pred = self.climdex_predVar.get()
+
+                # var
+                vars = []
+                for file in os.listdir('../results/Figures/'):
+                    if file.endswith(".png") and file.split('_')[0] == self.experiment and \
+                            file.split('_')[1] == self.figType and file.split('_')[2] not in vars:
+                        vars.append(file.split('_')[2])
+
+                self.varVar = tk.StringVar()
+                combobox = ttk.Combobox(frameFigSelection, textvariable=self.varVar)
+                combobox['values'] = vars
+                combobox['state'] = 'readonly'
+                combobox.grid(sticky="W", column=3, row=4, padx=2, pady=0)
+                combobox.bind('<<ComboboxSelected>>', callback_var)
+                self.var = self.varVar.get()
 
             # figType
             figTypes = []
@@ -1221,10 +1360,9 @@ class tabVisualization(ttk.Frame):
             combobox = ttk.Combobox(frameFigSelection, textvariable=self.figTypeVar)
             combobox['values'] = figTypes
             combobox['state'] = 'readonly'
-            combobox.grid(sticky="W", column=2, row=2, padx=0, pady=0)
+            combobox.grid(sticky="W", column=2, row=4, padx=2, pady=0)
             combobox.bind('<<ComboboxSelected>>', callback_figType)
             self.figType = self.figTypeVar.get()
-
 
 
         # experiment
@@ -1237,19 +1375,16 @@ class tabVisualization(ttk.Frame):
         combobox = ttk.Combobox(frameFigSelection, textvariable=self.experimentVar)
         combobox['values'] = experiments
         combobox['state'] = 'readonly'
-        combobox.grid(sticky="W", column=1, row=2, padx=10, pady=10)
+        combobox.grid(sticky="W", column=1, row=4, padx=2, pady=10)
         combobox.bind('<<ComboboxSelected>>', callback_experiment)
         self.experiment = self.experimentVar.get()
 
 
 
-        filename = 'EVALUATION_annualCycle_None_pcp_None_all_None.png'
-        text = 'This figure represents the annual cycle for precipitation by all methods'
-
-        global img
-        img = []
+        global imgs
+        imgs = []
         Button(tabVisualization, text="Open figure", width=10,
-               command=lambda: open_figure(img, filename, text), takefocus=False).grid(sticky="SE", column=1, row=1)
+               command=lambda: open_figure(imgs), takefocus=False).grid(sticky="SE", column=1, row=1)
 
 
 
@@ -1293,8 +1428,8 @@ class selectionWindow():
             self.sspPeriodFilename_var, self.split_mode, self.grid_res_var, self.saf_lat_up_var, self.saf_lon_left_var, \
             self.saf_lon_right_var, self.saf_lat_down_var = tabDatesAndDomain(notebook).get()
 
-        # # Tab: visualization
-        # tabVisualization(notebook)
+        # Tab: visualization
+        tabVisualization(notebook)
 
         # Logo
         w = 120
