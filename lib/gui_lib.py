@@ -1155,10 +1155,12 @@ class tabVisualization(ttk.Frame):
         def open_figure(imgs):
 
             w = 600
-
             filename = '_'.join((self.experiment, self.figType, self.var, self.climdex_pred, self.method_model_scene,
                                  self.season)) + '.png'
-            text = self.descriptions['_'.join((self.experiment, self.figType))]
+            try:
+                text = self.descriptions['_'.join((self.experiment, self.figType))]
+            except:
+                text = ''
 
             if os.path.isfile("../results/Figures/" + filename):
 
@@ -1179,7 +1181,7 @@ class tabVisualization(ttk.Frame):
                 rootIm.resizable(width=False, height=False)
 
             else:
-                tk.messagebox.showerror("pyClim-SDM",  "No figure has been generated matching the selection")
+                tk.messagebox.showerror("pyClim-SDM",  "No figure has been generated matching the selection:\n" + filename)
 
 
         # frameFigSelection
@@ -1195,36 +1197,28 @@ class tabVisualization(ttk.Frame):
 
         Label(frameFigSelection, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10); irow+=1; icol+=1
 
-        padx = 2
-
-        Label(frameFigSelection, text="Select experiment:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
-
-        Label(frameFigSelection, text="Select figure type:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
-
-        Label(frameFigSelection, text="Select variable:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
-
-        Label(frameFigSelection, text="Select climdex/predictor:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
-
-        Label(frameFigSelection, text="Select method/model/scene:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
-
-        Label(frameFigSelection, text="Select season:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); irow+=1
-        combobox = ttk.Combobox(frameFigSelection, state='disabled')
-        combobox.grid(sticky="W", column=icol, row=irow, padx=padx , pady=0); icol+=1; irow-=1
+        Label(frameFigSelection, text="Select experiment:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol+=1
+        Label(frameFigSelection, text="Select figure type:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol+=1
+        Label(frameFigSelection, text="Select variable:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol+=1
+        Label(frameFigSelection, text="Select climdex/predictor:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol+=1
+        Label(frameFigSelection, text="Select method/model/scene:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol+=1
+        Label(frameFigSelection, text="Select season:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol-=5; irow+=1
 
         self.experiment, self.figType, self.var, self.climdex_pred, self.method_model_scene, self.season = \
             'None', 'None', 'None', 'None', 'None', 'None'
-
         self.l = Label(frameFigSelection, text='', anchor="e", justify=LEFT, wraplength=600)
+
+
+        def clear_combobox(first_col):
+            """delete fields and clear combobox"""
+            ncols = 6
+            irow = 4
+            for i in range(first_col, ncols+1):
+                combobox = ttk.Combobox(frameFigSelection, state='disabled')
+                combobox.grid(sticky="W", column=i, row=irow, padx=2 , pady=0)
+
+        # Clear combobox
+        clear_combobox(1)
 
         self.descriptions = {
             'PRECONTROL_correlationMap': 'Correlation between predictor and predictand.',
@@ -1257,9 +1251,11 @@ class tabVisualization(ttk.Frame):
         }
 
         def callback_experiment(event):
+            clear_combobox(2)
             self.experiment = self.experimentVar.get()
 
             def callback_figType(event):
+                clear_combobox(3)
                 self.figType = self.figTypeVar.get()
                 Label(frameFigSelection, text='').grid(sticky="W", column=1, row=5, padx=10, pady=20)
                 text = 'Your current selection corresponds to: \n\n' + self.descriptions['_'.join((self.experiment, self.figType))]
@@ -1268,12 +1264,15 @@ class tabVisualization(ttk.Frame):
                 self.l.grid(sticky="W", column=2, row=6, padx=10, pady=10, columnspan=100)
 
                 def callback_var(event):
+                    clear_combobox(4)
                     self.var = self.varVar.get()
 
                     def callback_climdex_pred(event):
+                        clear_combobox(5)
                         self.climdex_pred = self.climdex_predVar.get()
 
                         def callback_method_model_scene(event):
+                            clear_combobox(6)
                             self.method_model_scene = self.method_model_sceneVar.get()
 
                             def callback_season(event):
@@ -1290,6 +1289,13 @@ class tabVisualization(ttk.Frame):
                                         and file.split('_')[4] == self.method_model_scene \
                                         and file.split('_')[5].replace('.png', '') not in seasons:
                                     seasons.append(file.split('_')[5].replace('.png', ''))
+
+                            # sort seasons
+                            ordered_seasons = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON']
+                            for exp in ordered_seasons:
+                                if exp not in seasons:
+                                    ordered_seasons.remove(exp)
+                            seasons = ordered_seasons
 
                             self.seasonVar = tk.StringVar()
                             combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
@@ -1370,6 +1376,13 @@ class tabVisualization(ttk.Frame):
         for file in os.listdir('../results/Figures/'):
             if file.endswith(".png") and file.split('_')[0] not in experiments:
                 experiments.append(file.split('_')[0])
+
+        # sort experiments
+        ordered_experiments = ['PRECONTROL', 'EVALUATION', 'PROJECTIONS']
+        for exp in ordered_experiments:
+            if exp not in experiments:
+                ordered_experiments.remove(exp)
+        experiments = ordered_experiments
 
         self.experimentVar = tk.StringVar()
         combobox = ttk.Combobox(frameFigSelection, textvariable=self.experimentVar)
