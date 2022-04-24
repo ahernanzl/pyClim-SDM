@@ -1155,10 +1155,10 @@ class tabVisualization(ttk.Frame):
         def open_figure(imgs):
 
             w = 600
-            filename = '_'.join((self.experiment, self.figType, self.var, self.climdex_pred, self.method_model_scene,
-                                 self.season)) + '.png'
+            filename = '_'.join((self.fields[0], self.fields[1], self.fields[2], self.fields[3], self.fields[4],
+                                 self.fields[5])) + '.png'
             try:
-                text = self.descriptions['_'.join((self.experiment, self.figType))]
+                text = '\n' + self.descriptions['_'.join((self.fields[0], self.fields[1]))] + '\n'
             except:
                 text = ''
 
@@ -1204,21 +1204,24 @@ class tabVisualization(ttk.Frame):
         Label(frameFigSelection, text="Select method/model/scene:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol+=1
         Label(frameFigSelection, text="Select season:").grid(sticky="W", column=icol, row=irow, padx=0, pady=10); icol-=5; irow+=1
 
-        self.experiment, self.figType, self.var, self.climdex_pred, self.method_model_scene, self.season = \
-            'None', 'None', 'None', 'None', 'None', 'None'
+        self.fields = 6 * ['None']
+        self.last_defined_field = 0
         self.l = Label(frameFigSelection, text='', anchor="e", justify=LEFT, wraplength=600)
 
 
-        def clear_combobox(first_col):
+        def clear_comboboxes_from(icol, first_time=False):
             """delete fields and clear combobox"""
             ncols = 6
             irow = 4
-            for i in range(first_col, ncols+1):
-                combobox = ttk.Combobox(frameFigSelection, state='disabled')
-                combobox.grid(sticky="W", column=i, row=irow, padx=2 , pady=0)
+            if self.last_defined_field > icol or first_time == True:
+                for i in range(icol, ncols):
+                    self.fields[i] = 'None'
+                    combobox = ttk.Combobox(frameFigSelection, state='disabled')
+                    combobox.grid(sticky="W", column=i+1, row=irow, padx=2 , pady=0)
+            self.last_defined_field = icol
 
         # Clear combobox
-        clear_combobox(1)
+        clear_comboboxes_from(0, first_time=True)
 
         self.descriptions = {
             'PRECONTROL_correlationMap': 'Correlation between predictor and predictand.',
@@ -1251,42 +1254,44 @@ class tabVisualization(ttk.Frame):
         }
 
         def callback_experiment(event):
-            clear_combobox(2)
-            self.experiment = self.experimentVar.get()
+            clear_comboboxes_from(1)
+            self.fields[0] = self.experimentVar.get()
 
             def callback_figType(event):
-                clear_combobox(3)
-                self.figType = self.figTypeVar.get()
+                clear_comboboxes_from(2)
+                self.fields[1] = self.figTypeVar.get()
+
+                # Create label with description
                 Label(frameFigSelection, text='').grid(sticky="W", column=1, row=5, padx=10, pady=20)
-                text = 'Your current selection corresponds to: \n\n' + self.descriptions['_'.join((self.experiment, self.figType))]
+                text = 'Your current selection corresponds to: \n\n' + self.descriptions['_'.join((self.fields[0], self.fields[1]))]
                 self.l.destroy()
                 self.l = Label(frameFigSelection, text=text, anchor="e", justify=LEFT, wraplength=600)
                 self.l.grid(sticky="W", column=2, row=6, padx=10, pady=10, columnspan=100)
 
                 def callback_var(event):
-                    clear_combobox(4)
-                    self.var = self.varVar.get()
+                    clear_comboboxes_from(3)
+                    self.fields[2] = self.varVar.get()
 
                     def callback_climdex_pred(event):
-                        clear_combobox(5)
-                        self.climdex_pred = self.climdex_predVar.get()
+                        clear_comboboxes_from(4)
+                        self.fields[3] = self.climdex_predVar.get()
 
                         def callback_method_model_scene(event):
-                            clear_combobox(6)
-                            self.method_model_scene = self.method_model_sceneVar.get()
+                            clear_comboboxes_from(5)
+                            self.fields[4] = self.method_model_sceneVar.get()
 
                             def callback_season(event):
-                                self.season = self.seasonVar.get()
+                                self.fields[5] = self.seasonVar.get()
 
                             # season
                             seasons = []
                             for file in os.listdir('../results/Figures/'):
                                 if file.endswith(".png") and \
-                                        file.split('_')[0] == self.experiment \
-                                        and file.split('_')[1] == self.figType \
-                                        and file.split('_')[2] == self.var \
-                                        and file.split('_')[3] == self.climdex_pred \
-                                        and file.split('_')[4] == self.method_model_scene \
+                                        file.split('_')[0] == self.fields[0] \
+                                        and file.split('_')[1] == self.fields[1] \
+                                        and file.split('_')[2] == self.fields[2] \
+                                        and file.split('_')[3] == self.fields[3] \
+                                        and file.split('_')[4] == self.fields[4] \
                                         and file.split('_')[5].replace('.png', '') not in seasons:
                                     seasons.append(file.split('_')[5].replace('.png', ''))
 
@@ -1303,16 +1308,16 @@ class tabVisualization(ttk.Frame):
                             combobox['state'] = 'readonly'
                             combobox.grid(sticky="W", column=6, row=4, padx=2, pady=0)
                             combobox.bind('<<ComboboxSelected>>', callback_season)
-                            self.season = self.seasonVar.get()
+                            self.fields[5] = self.seasonVar.get()
 
                         # method_model_scene
                         method_model_scenes = []
                         for file in os.listdir('../results/Figures/'):
                             if file.endswith(".png") and \
-                                    file.split('_')[0] == self.experiment \
-                                    and file.split('_')[1] == self.figType \
-                                    and file.split('_')[2] == self.var \
-                                    and file.split('_')[3] == self.climdex_pred \
+                                    file.split('_')[0] == self.fields[0] \
+                                    and file.split('_')[1] == self.fields[1] \
+                                    and file.split('_')[2] == self.fields[2] \
+                                    and file.split('_')[3] == self.fields[3] \
                                     and file.split('_')[4] not in method_model_scenes:
                                 method_model_scenes.append(file.split('_')[4])
 
@@ -1322,15 +1327,15 @@ class tabVisualization(ttk.Frame):
                         combobox['state'] = 'readonly'
                         combobox.grid(sticky="W", column=5, row=4, padx=2, pady=0)
                         combobox.bind('<<ComboboxSelected>>', callback_method_model_scene)
-                        self.method_model_scene = self.method_model_sceneVar.get()
+                        self.fields[4] = self.method_model_sceneVar.get()
 
 
                     # climdex_pred
                     climdex_preds = []
                     for file in os.listdir('../results/Figures/'):
-                        if file.endswith(".png") and file.split('_')[0] == self.experiment and \
-                                file.split('_')[1] == self.figType and \
-                                file.split('_')[2] == self.var and file.split('_')[3] not in climdex_preds:
+                        if file.endswith(".png") and file.split('_')[0] == self.fields[0] and \
+                                file.split('_')[1] == self.fields[1] and \
+                                file.split('_')[2] == self.fields[2] and file.split('_')[3] not in climdex_preds:
                             climdex_preds.append(file.split('_')[3])
 
                     self.climdex_predVar = tk.StringVar()
@@ -1339,13 +1344,13 @@ class tabVisualization(ttk.Frame):
                     combobox['state'] = 'readonly'
                     combobox.grid(sticky="W", column=4, row=4, padx=2, pady=0)
                     combobox.bind('<<ComboboxSelected>>', callback_climdex_pred)
-                    self.climdex_pred = self.climdex_predVar.get()
+                    self.fields[3] = self.climdex_predVar.get()
 
                 # var
                 vars = []
                 for file in os.listdir('../results/Figures/'):
-                    if file.endswith(".png") and file.split('_')[0] == self.experiment and \
-                            file.split('_')[1] == self.figType and file.split('_')[2] not in vars:
+                    if file.endswith(".png") and file.split('_')[0] == self.fields[0] and \
+                            file.split('_')[1] == self.fields[1] and file.split('_')[2] not in vars:
                         vars.append(file.split('_')[2])
 
                 self.varVar = tk.StringVar()
@@ -1354,12 +1359,12 @@ class tabVisualization(ttk.Frame):
                 combobox['state'] = 'readonly'
                 combobox.grid(sticky="W", column=3, row=4, padx=2, pady=0)
                 combobox.bind('<<ComboboxSelected>>', callback_var)
-                self.var = self.varVar.get()
+                self.fields[2] = self.varVar.get()
 
             # figType
             figTypes = []
             for file in os.listdir('../results/Figures/'):
-                if file.endswith(".png") and file.split('_')[0] == self.experiment and file.split('_')[1] not in figTypes:
+                if file.endswith(".png") and file.split('_')[0] == self.fields[0] and file.split('_')[1] not in figTypes:
                     figTypes.append(file.split('_')[1])
 
             self.figTypeVar = tk.StringVar()
@@ -1368,7 +1373,7 @@ class tabVisualization(ttk.Frame):
             combobox['state'] = 'readonly'
             combobox.grid(sticky="W", column=2, row=4, padx=2, pady=0)
             combobox.bind('<<ComboboxSelected>>', callback_figType)
-            self.figType = self.figTypeVar.get()
+            self.fields[1] = self.figTypeVar.get()
 
 
         # experiment
@@ -1390,7 +1395,7 @@ class tabVisualization(ttk.Frame):
         combobox['state'] = 'readonly'
         combobox.grid(sticky="W", column=1, row=4, padx=2, pady=10)
         combobox.bind('<<ComboboxSelected>>', callback_experiment)
-        self.experiment = self.experimentVar.get()
+        self.fields[0] = self.experimentVar.get()
 
 
 
