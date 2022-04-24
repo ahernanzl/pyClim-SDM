@@ -10,6 +10,7 @@
 
 <br/><br/>
 ![](doc/pyClim-SDM_demo.gif)
+![](doc/pyClim-SDM_demo.mp4)
 <br/><br/>
 
 pyClim-SDM is a software for statistical downscaling of climate change projections with the following utilities:
