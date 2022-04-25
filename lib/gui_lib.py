@@ -1283,6 +1283,8 @@ class tabVisualization(ttk.Frame):
                             def callback_season(event):
                                 self.fields[5] = self.seasonVar.get()
 
+                            print(self.fields[5])
+
                             # season
                             seasons = []
                             for file in os.listdir('../results/Figures/'):
@@ -1296,11 +1298,12 @@ class tabVisualization(ttk.Frame):
                                     seasons.append(file.split('_')[5].replace('.png', ''))
 
                             # sort seasons
-                            ordered_seasons = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON']
-                            for exp in ordered_seasons:
-                                if exp not in seasons:
-                                    ordered_seasons.remove(exp)
-                            seasons = ordered_seasons
+                            ordered_seasons = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
+                            aux = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
+                            for sea in ordered_seasons:
+                                if sea not in seasons:
+                                    aux.remove(sea)
+                            seasons = aux
 
                             self.seasonVar = tk.StringVar()
                             combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
