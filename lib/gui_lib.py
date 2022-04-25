@@ -1304,7 +1304,6 @@ class tabVisualization(ttk.Frame):
                                 if sea not in seasons:
                                     aux.remove(sea)
                             seasons = aux
-
                             self.seasonVar = tk.StringVar()
                             combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
                             combobox['values'] = seasons
