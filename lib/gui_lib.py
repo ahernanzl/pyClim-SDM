@@ -1283,8 +1283,6 @@ class tabVisualization(ttk.Frame):
                             def callback_season(event):
                                 self.fields[5] = self.seasonVar.get()
 
-                            print(self.fields[5])
-
                             # season
                             seasons = []
                             for file in os.listdir('../results/Figures/'):
