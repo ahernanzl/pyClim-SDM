@@ -1,5 +1,9 @@
 # pyClim-SDM: Statistical Downscaling for Climate Change Projections with a Graphical User Interface  
 
+<br/><br/>
+![](doc/pyClim-SDM_demo.gif)
+<br/><br/>
+
 **Author:** Alfonso Hernanz Lazaro - ahernanzl@aemet.es
 
 **Institution:** Spanish Meteorological Agency (AEMET)
@@ -8,9 +12,6 @@
 
 **Citation:** Hernanz, A., García-Valero, J. A., Domínguez, M., Correa, C. and Rodríguez-Camino, E. (2022). pyClim-SDM 1.0: a software for statistical downscaling of climate change projections with a graphical user interface. Geoscientific Model Development. (Submitted)
 
-<br/><br/>
-![](doc/pyClim-SDM_demo.gif)
-<br/><br/>
 
 pyClim-SDM is a software for statistical downscaling of climate change projections with the following utilities:
 - evaluation of Global Climate Models (GCMs).
