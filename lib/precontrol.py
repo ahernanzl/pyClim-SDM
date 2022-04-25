@@ -274,6 +274,10 @@ def GCMs_evaluation_historical():
 
         # Define preds
         preds = preds_dict[var0]
+        # Adding tmax, tmin and pcp to preds
+        preds['tmax'] = {'reaName': 'mx2t', 'modName': 'tasmax'}
+        preds['tmin'] = {'reaName': 'mn2t', 'modName': 'tasmin'}
+        preds['pcp'] = {'reaName': 'tp', 'modName': 'pr'}
         npreds = len(preds)
         nmodels = len(model_list)
         nlats = pred_nlats
@@ -283,7 +287,7 @@ def GCMs_evaluation_historical():
         
         # Go through all seasons
         for season in season_dict.values():
-
+            n = 0
             # Go through all predictors
             for ipred in range(npreds):
                 predName = list(preds.keys())[ipred]
@@ -324,13 +328,16 @@ def GCMs_evaluation_historical():
                     sceneData = sceneData[time_first:time_last]
                     scene_dates = scene_dates[time_first:time_last]
 
-                    # Loading mean and std for standardizating predictors (models & reanalysis)
-                    path_standard = '../aux/STANDARDIZATION/PRED/' + var0.upper() + '/' 
-                    mean_refperiod = np.mean(np.load(path_standard + model + '_mean.npy')[ipred,:,:])
-                    std_refperiod = np.mean(np.load(path_standard + model + '_std.npy')[ipred,:,:])
+                    if predName in ['tmax','tmin','pcp']:
+                        n = n + 1 
+                    else:
+                        # Loading mean and std for standardizating predictors (models & reanalysis)
+                        path_standard = '../aux/STANDARDIZATION/PRED/' + var0.upper() + '/' 
+                        mean_refperiod = np.mean(np.load(path_standard + model + '_mean.npy')[ipred - n,:,:])
+                        std_refperiod = np.mean(np.load(path_standard + model + '_std.npy')[ipred - n,:,:])
                      
-                    rea_mean_refperiod = np.mean(np.load(path_standard + 'reanalysis' + '_mean.npy')[ipred,:,:])
-                    rea_std_refperiod = np.mean(np.load(path_standard + 'reanalysis' + '_std.npy')[ipred,:,:])
+                        rea_mean_refperiod = np.mean(np.load(path_standard + 'reanalysis' + '_mean.npy')[ipred - n,:,:])
+                        rea_std_refperiod = np.mean(np.load(path_standard + 'reanalysis' + '_std.npy')[ipred - n,:,:])
                     
                     # Calculate annual cycle
                     datevec = scene_dates
@@ -577,8 +584,12 @@ def GCMs_evaluation_future():
 
         # Define preds
         preds = preds_dict[var0]
+        # Adding tmax, tmin and pcp to preds
+        preds['tmax'] = {'reaName': 'mx2t', 'modName': 'tasmax'}
+        preds['tmin'] = {'reaName': 'mn2t', 'modName': 'tasmin'}
+        preds['pcp'] = {'reaName': 'tp', 'modName': 'pr'}
         npreds = len(preds)
-
+        n = 0
         # Go through all predictors
         for ipred in range(npreds):
             predName = list(preds.keys())[ipred]
@@ -603,10 +614,13 @@ def GCMs_evaluation_future():
                         times = aux['times']
                         sceneData = aux['data'][:, 0, :, :]
                         
-                        # Loading mean and std for standardizating predictors
-                        path_standard = '../aux/STANDARDIZATION/PRED/' + var0.upper() + '/' 
-                        mean_refperiod = np.mean(np.load(path_standard + model + '_mean.npy')[ipred,:,:])
-                        std_refperiod = np.mean(np.load(path_standard + model + '_std.npy')[ipred,:,:])
+                        if predName in ['tmax','tmin','pcp']:
+                            n = n + 1 
+                        else:
+                            # Loading mean and std for standardizating predictors 
+                            path_standard = '../aux/STANDARDIZATION/PRED/' + var0.upper() + '/' 
+                            mean_refperiod = np.mean(np.load(path_standard + model + '_mean.npy')[ipred - n,:,:])
+                            std_refperiod = np.mean(np.load(path_standard + model + '_std.npy')[ipred - n,:,:])
                         
                         # Calculate annual cycle
                         datevec = times
@@ -876,4 +890,4 @@ def GCMs_evaluation():
     print('GCMs_evaluation...')
 
     GCMs_evaluation_historical()
-    #GCMs_evaluation_future()
+    GCMs_evaluation_future()
