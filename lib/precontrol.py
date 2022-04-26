@@ -235,7 +235,7 @@ def predictors_correlation():
                     plot.map(var[0], abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
 
                 # Boxplot
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                 ax.boxplot(abs(R.T), showfliers=False)
                 ax.set_xticklabels(list(preds.keys()), rotation=90)
                 plt.ylim((0, 1))
@@ -262,7 +262,7 @@ def GCMs_evaluation_historical():
     sceneName = 'historical'
 
     # Go through all target variables
-    for var0 in ('t', 'p', ):
+    for var0 in target_vars0:
 
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/GCMs_evaluation_historical/' + var0.upper() + '/'
@@ -275,9 +275,11 @@ def GCMs_evaluation_historical():
         # Define preds
         preds = preds_dict[var0]
         # Adding tmax, tmin and pcp to preds
-        preds['tmax'] = {'reaName': 'mx2t', 'modName': 'tasmax'}
-        preds['tmin'] = {'reaName': 'mn2t', 'modName': 'tasmin'}
-        preds['pcp'] = {'reaName': 'tp', 'modName': 'pr'}
+        if var0 == 't':
+            preds['tmax'] = {reaNames['tmax'], modNames['tmax']}
+            preds['tmin'] = {reaNames['tmin'], modNames['tmin']}
+        else:
+            preds['pcp'] = {reaNames['pcp'], modNames['pcp']}
         npreds = len(preds)
         nmodels = len(model_list)
         nlats = pred_nlats
@@ -449,7 +451,7 @@ def GCMs_evaluation_historical():
                     
                     
                     # Q-Q plot 
-                    fig, ax = plt.subplots()
+                    fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                     a = rea_mean_season
                     b = sceneData_mean_season
                     percs = np.linspace(0,100,21)
@@ -491,7 +493,7 @@ def GCMs_evaluation_historical():
                 
 
                 # Boxplot
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                 ax.boxplot(matrix.T, showfliers=False)
                 ax.set_xticklabels(model_list, rotation=45, fontsize=5)
                 plt.axhline(y=0, ls='--', c='grey')
@@ -508,7 +510,7 @@ def GCMs_evaluation_historical():
                 
                     
                 # Annual cycle plot
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                 for model in model_list:
                     cycle_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle.npy')))
                     x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
@@ -517,7 +519,7 @@ def GCMs_evaluation_historical():
                 cycle_rea_load = np.load(pathTmp + '_'.join((var0, predName, 'Reanalysis', 'ANNUAL', 'cycle_rea.npy')))
                 x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                 y_cycle_rea = [i for i in cycle_rea_load]
-                ax.plot(x_months, cycle_rea, label= 'Reanalysis' )    
+                ax.plot(x_months, cycle_rea, label= 'Reanalysis', linestyle = '--', linewidth = 4, c = 'k' )    
                 ax.set_xlabel('month')
                 if predName in ['tmax','tmin', 'pcp']:
                     ax.set_ylabel(unitplot(predName))
@@ -532,7 +534,7 @@ def GCMs_evaluation_historical():
                 plt.close()
                 
                 # Evolution Spaghetti plot in reference period 
-                fig, ax = plt.subplots() 
+                fig, ax = plt.subplots(figsize=(8,6), dpi = 300) 
                 for model in model_list:
                     spaghetti_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'spaghetti.npy')))
                     y_spaghetti = [i for i in spaghetti_load]
@@ -540,7 +542,7 @@ def GCMs_evaluation_historical():
                     ax.plot(years, y_spaghetti, label= model)
                 spaghetti_rea_load = np.load(pathTmp + '_'.join((var0, predName, 'Reanalysis', sceneName, season, 'spaghetti_rea.npy')))
                 spaghetti_rea_load = gaussian_filter1d(spaghetti_rea_load, 5)
-                ax.plot(years, spaghetti_rea_load, label= 'Reanalysis' )
+                ax.plot(years, spaghetti_rea_load, label= 'Reanalysis', linestyle = '--', linewidth = 4, c = 'k'  )
                 plt.title(' '.join((predName, sceneName, season)))
                 if predName in ['tmax','tmin', 'pcp']:
                     ax.set_ylabel(unitplot(predName))
@@ -572,7 +574,7 @@ def GCMs_evaluation_future():
     nseasons = len(season_dict.keys())
 
     # Go through all target variables
-    for var0 in ('t', 'p', ):
+    for var0 in target_vars0:
 
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/GCMs_evaluation_future/' + var0.upper() + '/'
@@ -585,9 +587,11 @@ def GCMs_evaluation_future():
         # Define preds
         preds = preds_dict[var0]
         # Adding tmax, tmin and pcp to preds
-        preds['tmax'] = {'reaName': 'mx2t', 'modName': 'tasmax'}
-        preds['tmin'] = {'reaName': 'mn2t', 'modName': 'tasmin'}
-        preds['pcp'] = {'reaName': 'tp', 'modName': 'pr'}
+        if var0 == 't':
+            preds['tmax'] = {reaNames['tmax'], modNames['tmax']}
+            preds['tmin'] = {reaNames['tmin'], modNames['tmin']}
+        else:
+            preds['pcp'] = {reaNames['pcp'], modNames['pcp']}
         npreds = len(preds)
         n = 0
         # Go through all predictors
@@ -707,9 +711,9 @@ def GCMs_evaluation_future():
                             dataper75 = np.mean(dataper75.reshape(nYears, -1), axis=1)
                             hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + var0.upper() + '/' + '_'.join((var0, predName, 'historical', season, 'multimodel_mean.npy')))
                             hmmm = np.mean(hmm)
-                            fig, ax = plt.subplots()
+                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, dataper25-hmmm,dataper75-hmmm, color=color_dict[sceneName], alpha = 0.3)  
-                            plt.plot(years, dataper50-hmmm, color=color_dict[sceneName], label = 'multi-model mean')
+                            plt.plot(years, dataper50-hmmm, color=color_dict[sceneName], label = sceneName + ' ' + '(' + str(nmodels) + ')')
                             plt.title(' '.join((predName, sceneName, season)))
                             ax.set_ylabel(predName + ' ' + 'anomaly (°C)')
                             plt.legend()
@@ -742,15 +746,15 @@ def GCMs_evaluation_future():
                             dataper75 = np.mean(dataper75.reshape(nYears, -1), axis=1)
                             hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + var0.upper() + '/' + '_'.join((var0, predName, 'historical', season, 'multimodel_mean.npy')))
                             hmmm = np.mean(hmm)
-                            fig, ax = plt.subplots()
+                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, 100*(dataper25-hmmm)/hmmm,100*(dataper75-hmmm)/hmmm, color=color_dict[sceneName], alpha = 0.3)#color="k"                         
-                            plt.plot(years, 100*(dataper50-hmmm)/hmmm, color=color_dict[sceneName], label = 'multi-model mean')
+                            plt.plot(years, 100*(dataper50-hmmm)/hmmm, color=color_dict[sceneName], label = sceneName + ' ' + '(' + str(nmodels) + ')')
                             plt.title(' '.join((predName, sceneName, season)))
                             ax.set_ylabel(predName + ' ' + 'anomaly (%)')
                             plt.legend()
                             # plt.show()
                             # exit()
-                            filename = '_'.join((experiment, 'evolTube', 'all', var0, predName, sceneName, season))
+                            filename = '_'.join((experiment, 'evolTube', var0, predName, sceneName, season))
                             plt.savefig(pathOut + filename)
                             plt.close()
 
@@ -776,22 +780,22 @@ def GCMs_evaluation_future():
                             dataper50 = np.mean(dataper50.reshape(nYears, -1), axis=1)
                             dataper75 = matrix_per75models[iseason, iscene-1]
                             dataper75 = np.mean(dataper75.reshape(nYears, -1), axis=1)
-                            fig, ax = plt.subplots()
+                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, dataper25,dataper75, color=color_dict[sceneName], alpha = 0.3)#color="k"
-                            plt.plot(years, dataper50, color=color_dict[sceneName], label = 'multi-model mean')
+                            plt.plot(years, dataper50, color=color_dict[sceneName], label = sceneName + ' ' + '(' + str(nmodels) + ')')
                             plt.title(' '.join((predName, sceneName, season)))
                             ax.set_ylabel('standardized ' + predName)
                             plt.legend()
                             # plt.show()
                             # exit()
-                            filename = '_'.join((experiment, 'evolTube', 'all', var0, predName, sceneName, season))
+                            filename = '_'.join((experiment, 'evolTube', var0, predName, sceneName, season))
                             plt.savefig(pathOut + filename)
                             plt.close()
 
                             iseason += 1
 
                     # Annual cycle plot
-                    fig, ax = plt.subplots()
+                    fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                     for model in model_list:
                         cycle_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle.npy')))
                         x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
@@ -815,7 +819,7 @@ def GCMs_evaluation_future():
                         matrix = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'matrix.npy')))
                         iseason = 0
                         for season in season_dict.values():
-                            fig, ax = plt.subplots()
+                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             for imodel in range(nmodels):
                                 model = model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
@@ -829,7 +833,7 @@ def GCMs_evaluation_future():
                             plt.legend()
                             # plt.show()
                             # exit()
-                            filename = '_'.join((experiment, 'evolSpaghetti', 'all', var0, predName, sceneName, season))
+                            filename = '_'.join((experiment, 'evolSpaghetti', var0, predName, sceneName, season))
                             plt.savefig(pathOut + filename)
                             plt.close()
 
@@ -839,7 +843,7 @@ def GCMs_evaluation_future():
                         matrix = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'matrix.npy')))
                         iseason = 0
                         for season in season_dict.values():
-                            fig, ax = plt.subplots()
+                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
@@ -853,7 +857,7 @@ def GCMs_evaluation_future():
                             plt.legend()
                             # plt.show()
                             # exit()
-                            filename = '_'.join((experiment, 'evolSpaghetti', 'all', var0, predName, sceneName, season))
+                            filename = '_'.join((experiment, 'evolSpaghetti', var0, predName, sceneName, season))
                             plt.savefig(pathOut + filename)
                             plt.close()
                             
@@ -864,7 +868,7 @@ def GCMs_evaluation_future():
                         matrix = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'standardized_matrix.npy')))
                         iseason = 0
                         for season in season_dict.values():
-                            fig, ax = plt.subplots()
+                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
@@ -876,7 +880,7 @@ def GCMs_evaluation_future():
                             plt.legend()
                             # plt.show()
                             # exit()
-                            filename = '_'.join((experiment, 'evolSpaghetti', 'all', var0, predName, sceneName, season))
+                            filename = '_'.join((experiment, 'evolSpaghetti', var0, predName, sceneName, season))
                             plt.savefig(pathOut + filename)
                             plt.close()
 
