@@ -126,7 +126,7 @@ def annual_cycle():
                         methodName = method_dict['methodName']
                         if imethod == 0:
                             fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
-                            plt.plot(obs_reg[imethod], c='k', label='OBS')
+                            plt.plot(obs_reg[imethod], c='k', label='OBS', linestyle='--', linewidth=4)
                         plt.plot(est_reg[imethod], c=colors[methodName], label=methodName, linestyle=linestyles[methodName])
                         imethod += 1
 
