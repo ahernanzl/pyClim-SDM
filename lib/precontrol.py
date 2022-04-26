@@ -808,7 +808,7 @@ def GCMs_evaluation_future():
                         ax.set_ylabel('standardized ' + predName)
                     plt.title(' '.join(('annual cycle', predName)))
                     ax.legend()
-                    filename = '_'.join((experiment, 'annualCycle', 'None', var0, predName, sceneName, 'None'))
+                    filename = '_'.join((experiment, 'annualCycle', var0, predName, sceneName, 'None'))
                     # plt.show()
                     # exit()
                     plt.savefig(pathOut + filename)
