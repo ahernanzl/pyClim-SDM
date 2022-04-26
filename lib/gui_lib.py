@@ -1224,33 +1224,66 @@ class tabVisualization(ttk.Frame):
         clear_comboboxes_from(0, first_time=True)
 
         self.descriptions = {
-            'PRECONTROL_correlationMap': 'Correlation between predictor and predictand.',
-            'PRECONTROL_correlationBoxplot': 'Correlation for all predictors.',
-            'PRECONTROL_nansMap': 'Map with NANs (missing data).',
-            'PRECONTROL_nansMatrix': 'Percentage of NANs (spatially averaged).',
-            'PRECONTROL_biasBoxplot': 'Bias of GCMs compared to the reanalysis (in the mean value).',
-            'PRECONTROL_evolSpaghetti': 'Evolution of each predictor and GCM in the future.',
-            'PRECONTROL_qqPlot': 'QQ-plot (historical vs reanalysis).',
-            'PRECONTROL_annualCycle': 'Annual cycle (multi-model comparison: historical and future scenes).',
-            'PRECONTROL_evolTube': 'Evolution graph for the multimodel ensemble (the central line represents 50th percentile and the shaded area represents IQR).',
-            'EVALUATION_annualCycle': 'Annual cycle.',
-            'EVALUATION_correlationBoxplot': 'Correlation (Pearson for temperature and Spearman for precipitation) of the daily series.',
-            'EVALUATION_varianceBoxplot': 'Bias (relative, %) in the variance of the daily series.',
-            'EVALUATION_qqPlot': 'QQ-plot for the daily series.',
-            'EVALUATION_r2Map': 'R2 score of the daily series (Coefficient of determination).',
-            'EVALUATION_accuracyMap': 'Accuracy score for the daily series (only for wet/dry classification. Acc=corrects/total).',
-            'EVALUATION_correlationMapMonthly': 'Correlation for the monthly accumulated series.',
-            'EVALUATION_r2MapMonthly': 'R2 score for the monthly accumulated series.',
-            'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole period.',
+            'PRECONTROL_correlationMap': 'Correlation of the temporal daily series between one predictor and one '
+                                         'predictand (Pearson coefficient for tmax/tmin and Spearman for pcp).',
+            'PRECONTROL_correlationBoxplot': 'Correlation of the temporal daily series between all predictors and one '
+                                             'predictand (Pearson coefficient for tmax/tmin and Spearman for pcp). Each '
+                                             'box contains one value per grid point.',
+            'PRECONTROL_nansMap': 'Map with percentage of missing data for one predictor, model and scene.',
+            'PRECONTROL_nansMatrix': 'Percentage of missing data (spatially averaged) for one scene (all predictors and '
+                                     'models).',
+            'PRECONTROL_biasBoxplot': 'Bias of all models compared to the reanalysis (in the mean value) in a historical '
+                                      'period. For tmax/tmin absolute bias, for pcp relative bias and the rest '
+                                      'standardized and absolute bias. Each box contains one value per grid point.',
+            'PRECONTROL_evolSpaghetti': 'Evolution of one predictor by all models in the form of anomaly with respect to the '
+                                        'reference period (absolute anomaly for tmax/tmin, relative anomaly for pcp and '
+                                        'absolute anomaly of the standardized variables for the rest).',
+            'PRECONTROL_qqPlot': 'QQ-plot for one variable by one model in historical vs. reanalysis.',
+            'PRECONTROL_annualCycle': 'Annual cycle for one variable by all models in historical and reanalysis '
+                                      '(monthly means for tmax/tmin, monthly accumulations for pcp and monthly means of '
+                                      'the standardized variable for the rest). ',
+            'PRECONTROL_evolTube': 'Evolution graph for one variable by multimodel ensemble (the central line represents'
+                                   ' 50th percentile and the shaded area represents IQR), in the form of anomaly with '
+                                   'respect to the reference period (absolute anomaly for tmax/tmin, relative anomaly '
+                                   'for pcp and absolute anomaly of the standardized variables for the rest).',
+            'EVALUATION_annualCycle': 'Annual cycle for one variable, downscaled by all methods vs. observation '
+                                      '(monthly means for tmax/tmin and monthly accumulations for pcp).',
+            'EVALUATION_correlationBoxplot': 'Correlation (Pearson for temperature and Spearman for precipitation) of '
+                                             'the daily series (downscaled and observed) by all methods. Boxes contain '
+                                             'one value per grid point.',
+            'EVALUATION_varianceBoxplot': 'Bias (relative, %) in the variance of the daily series (downscaled and '
+                                          'observed) by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_qqPlot': 'QQ-plot for one variable by one method vs. observations.',
+            'EVALUATION_r2Map': 'R2 score of the daily series (coefficient of determination) by one method.',
+            'EVALUATION_accuracyMap': 'AAccuracy score for the daily series (only for wet/dry classification. '
+                                      'Acc=corrects/total) by one method.',
+            'EVALUATION_correlationMapMonthly': 'Correlation for the monthly (mean for tmax/tmin and accumulated for '
+                                                'pcp) series by one method with observations.  Pearson coefficient for '
+                                                'tmax/tmin and Spearman for pcp.',
+            'EVALUATION_r2MapMonthly': 'R2 score (coefficient of determination)  for the monthly (mean for tmax/tmin '
+                                       'and accumulated for pcp) series by one method with observations. ',
+            'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole testing period '
+                                             'by all methods. Boxes contain one value per grid point.',
             'EVALUATION_obsMap': 'Mean observed values in the whole period.',
-            'EVALUATION_estMap': 'Mean estimated (downscaled) values in the whole period.',
-            'EVALUATION_biasMap': 'Bias (absolute/relative) in the whole period.',
-            'EVALUATION_scatterPlot': 'Downscaled vs. observed climdex in the whole period.',
-            'PROJECTIONS_evolSpaghetti': 'Evolution graph for each GCM.',
-            'PROJECTIONS_evolTube': 'Evolution graph for the multimodel ensemble (the central line represents the mean and the shaded area represents the standard deviation).',
-            'PROJECTIONS_meanChangeMap': 'Change in a future period with respect to a reference period given by the multimodel ensemble mean (mean change).',
-            'PROJECTIONS_stdChangeMap': 'Standard deviation in the multimodel ensemble change (spread).',
-            'PROJECTIONS_evolTrendRaw': 'Trend given by a SDM vs raw GCMs.',
+            'EVALUATION_estMap': 'Mean estimated (downscaled) values in the whole period by one method.',
+            'EVALUATION_biasMap': 'Bias (absolute/relative) in the whole period by one method.',
+            'EVALUATION_scatterPlot': 'Downscaled vs. observed climdex in the whole period  each scatter point '
+                                      'corresponds to a grid point.',
+            'PROJECTIONS_evolSpaghetti': 'Evolution of one variable by all models in the form of anomaly with respect '
+                                         'to the reference period (absolute anomaly for tmax/tmin and relative anomaly '
+                                         'for pcp).',
+            'PROJECTIONS_evolTube': 'Evolution graph of one variable by the multimodel ensemble (the central line '
+                                    'represents 50th percentile and the shaded area represents IQR), in the form of '
+                                    'anomaly with respect to the reference period (absolute anomaly for tmax/tmin and '
+                                    'relative anomaly for pcp).',
+            'PROJECTIONS_meanChangeMap': 'Anomaly in a future period with respect to a reference period given by the '
+                                         'multimodel ensemble mean (mean change). Absolute anomaly for tmax/tmin and '
+                                         'relative anomaly for pcp.',
+            'PROJECTIONS_stdChangeMap': 'Standard deviation in the anomaly given by the multimodel ensemble (spread).',
+            'PROJECTIONS_evolTrendRaw': 'Evolution graph, by one method vs. raw models, of one variable by the '
+                                        'multimodel ensemble (the central line represents 50th percentile and the '
+                                        'shaded area represents IQR), in the form of anomaly with respect to the '
+                                        'reference period (absolute anomaly for tmax/tmin and relative anomaly for pcp).',
         }
 
         def callback_experiment(event):
