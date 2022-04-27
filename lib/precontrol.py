@@ -397,11 +397,11 @@ def GCMs_evaluation_historical():
                     cycle_rea = lst_months
                     
                     # Calculate rea annual values (used in spaghetti plots)
-                    datevec = postpro_lib.get_season(sceneData, scene_dates, season)['times']
+                    datevec = postpro_lib.get_season(rea, reference_dates, season)['times']
                     if predName in ['tmax','tmin','pcp']:
-                        varcy = postpro_lib.get_season(sceneData, scene_dates, season)['data']
+                        varcy = postpro_lib.get_season(rea, reference_dates, season)['data']
                     else:
-                        varcy = (postpro_lib.get_season(sceneData, scene_dates, season)['data'] - mean_refperiod)/ std_refperiod
+                        varcy = (postpro_lib.get_season(rea, reference_dates, season)['data'] - rea_mean_refperiod)/ rea_std_refperiod
                     
                     lst_years = []
                     for iyear in years:
