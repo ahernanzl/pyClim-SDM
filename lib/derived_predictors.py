@@ -19,7 +19,6 @@ import down_day
 import down_point
 import evaluate_methods
 import grids
-import gui_lib
 import launch_jobs
 import plot
 import postpro_lib
@@ -146,8 +145,8 @@ def LI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; ema
     t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
     mslp = read.one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]
     t2m = read.one_direct_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data'][idates]
-    q1000 = read.one_direct_predictor('q', level=1000, grid='ext', model=model, scene=scene)['data'][idates] # q1000 used instead of q2m (huss ESGF and 2d(ID:168) to calculate huss in ERA5 were not downloaded)
-    q2m = q1000 # q1000 is used instead of q2m because huss (ESGF) and 2d (ID:168 ERA5) were not downloaded)
+    q1000 = read.one_direct_predictor('q', level=1000, grid='ext', model=model, scene=scene)['data'][idates] # q1000 used instead of q2m (huss ESGF and 2d(ID:168) to calculate huss in ERA5 are not available)
+    q2m = q1000 # q1000 is used instead of q2m because huss (ESGF) and 2d (ID:168 ERA5) are not available)
     
     # Constants
     cp = 1005 # Isobaric specific heat in dry air
