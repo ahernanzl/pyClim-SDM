@@ -4,8 +4,6 @@
 ![](doc/pyClim-SDM_demo.gif)
 <br/><br/>
 
-**Author:** Alfonso Hernanz Lazaro - ahernanzl@aemet.es
-
 **Institution:** Spanish Meteorological Agency (AEMET)
 
 **License:** GNU General Public License v3.0
@@ -60,7 +58,7 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
 requirements.txt. Install them by executing: **python -m pip install -r requirements.txt**
 
-pyClim-SDM has been originally designed for **Linux** and might present problems over other OS.
+pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
 
 
 # How to use
