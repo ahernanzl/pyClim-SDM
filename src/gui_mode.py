@@ -1811,9 +1811,11 @@ class selectionWindow():
             write_tmpMain_file(self.steps)
 
             # Run .tmp_main
-            # import platform
-            # if platform.system() == 'Linux':
-            subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
+            if platform.system() == 'Linux':
+                subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
+            else:
+                root.destroy()
+                os.system('python3 .tmp_main.py')
 
             # Delete tmp_main
             os.remove('.tmp_main.py')

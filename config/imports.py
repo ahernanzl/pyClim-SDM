@@ -50,6 +50,7 @@ from netCDF4 import num2date
 import glob
 import random
 import subprocess
+import platform
 import geopandas as gpd
 from geopy.distance import distance as dist
 from shapely.geometry import Point, Polygon
