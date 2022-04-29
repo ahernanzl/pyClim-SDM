@@ -39,9 +39,9 @@ def quantile_mapping(obs, hist, sce, var):
    for precipitation.
 
     Args:
-    * obs (nDays, nPoints): the observational data
-    * hist (nDays, nPoints): the model data at the reference period
-    * sce (nDays, nPoints): the scenario data that shall be corrected
+    * obs (nDaysObs, nPoints): the observational data
+    * hist (nDaysHist, nPoints): the model data at the reference period
+    * sce (nDaysSce, nPoints): the scenario data that shall be corrected
 
     Themeßl, M.J., Gobiet, A. and Leuprecht, A. (2011), Empirical-statistical downscaling and error correction of daily
     precipitation from regional climate models. Int. J. Climatol., 31: 1530-1544. https://doi.org/10.1002/joc.2168
@@ -92,9 +92,9 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
     Additive correction for temperature and ratio correction for precipitation.
 
     Args:
-    * obs (nDays, nPoints): the observational data
-    * hist (nDays, nPoints): the model data at the reference period
-    * sce (nDays, nPoints): the scenario data that shall be corrected
+    * obs (nDaysObs, nPoints): the observational data
+    * hist (nDaysHist, nPoints): the model data at the reference period
+    * sce (nDaysSce, nPoints): the scenario data that shall be corrected
 
     Adapted from https://github.com/pacificclimate/ClimDown
     For temperature the implementation differs from climDown. Here series are detrended, not only substracted of their
@@ -172,9 +172,9 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
     Additive correction for temperature and ratio correction for precipitation.
 
     Args:
-    * obs (nDays, nPoints): the observational data
-    * hist (nDays, nPoints): the model data at the reference period
-    * sce (nDays, nPoints): the scenario data that shall be corrected
+    * obs (nDaysObs, nPoints): the observational data
+    * hist (nDaysHist, nPoints): the model data at the reference period
+    * sce (nDaysSce, nPoints): the scenario data that shall be corrected
 
     Adapted from https://github.com/pacificclimate/ClimDown
 
@@ -248,9 +248,9 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
     adjusted.
 
     Args:
-    * obs (nDays, nPoints): the observational data
-    * hist (nDays, nPoints): the model data at the reference period
-    * sce (nDays, nPoints): the scenario data that shall be corrected
+    * obs (nDaysObs, nPoints): the observational data
+    * hist (nDaysHist, nPoints): the model data at the reference period
+    * sce (nDaysSce, nPoints): the scenario data that shall be corrected
 
     Kwargs:
     * low_lim (float): assume values below low_lim to be zero (default: 0.1)
