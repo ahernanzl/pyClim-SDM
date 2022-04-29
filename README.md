@@ -8,7 +8,7 @@
 
 **License:** GNU General Public License v3.0
 
-**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., and Rodríguez-Camino, E. (2022). pyClim-SDM 1.0: a software for statistical downscaling of climate change projections with a graphical user interface. Geoscientific Model Development. (Submitted)
+**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., and Rodríguez-Camino, E. (2022). pyClim-SDM 2.0: a software for statistical downscaling of climate change projections with a graphical user interface. Environmental Modelling & Software. (Submitted)
 
 ___
 
