@@ -51,6 +51,11 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
     # Define paths
     pathOut = '../tmp/ESTIMATED_' + '_'.join((var, methodName, scene, model)) + '/'
 
+    if methodName == 'RAW':
+        interp = 'nearest'
+    elif methodName == 'RAW-BIL':
+        interp = 'bilinear'
+
     # Parent process reads all data, broadcasts to the other processes and creates paths for results
     if iproc == 0:
         print(var, methodName, scene, model)
@@ -58,9 +63,9 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             os.makedirs(pathOut)
 
         # Read data and converts obs to uint16 or int16 to save memory
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp+'/w_4nn.npy')
 
         # Set scene dates and predictors
         if scene == 'TESTING':
@@ -115,7 +120,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             print('downscaling', var, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp)
 
         # Apply downscaling
         est[:, ipoint_local_index] = 100 * X_test[:, 0] # Factor 100 is for coherency with other methods
@@ -134,6 +139,11 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
     """
     print('--------------------------------------')
     print(scene, model, 'collect chunks', n_chunks)
+
+    if methodName == 'RAW':
+        interp = 'nearest'
+    elif methodName == 'RAW-BIL':
+        interp = 'bilinear'
 
     # Gets scene dates
     if scene == 'TESTING':
@@ -183,8 +193,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp+'/hres_lons.npy')
 
     # Set units
     if var == 'pcp':

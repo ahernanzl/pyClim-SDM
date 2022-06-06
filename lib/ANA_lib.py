@@ -302,9 +302,9 @@ def coefficients(var, methodName, mode, iproc=0, nproc=1):
     MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
 
     # Read metadata of hres grid and the neighbour associated to each point
-    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/i_4nn.npy')
+    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/j_4nn.npy')
+    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/w_4nn.npy')
 
     # Read synoptic analogy fields and centroids
     pred = np.load(pathAux+'STANDARDIZATION/PRED/t_training.npy')
@@ -385,7 +385,7 @@ def coefficients(var, methodName, mode, iproc=0, nproc=1):
 
                 # Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
                 # interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
-                X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+                X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
                 regressor = RidgeCV()
                 regressor.fit(X, Y)
                 coef[ik, ipoint] = regressor.coef_
@@ -450,9 +450,9 @@ def correlations(var, methodName, mode, iproc=0, nproc=1, th_metric='median'):
     pcp_th_for_corr = 0.1 # mm
 
     # Read metadata of hres grid and the neighbour associated to each point
-    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/i_4nn.npy')
+    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/j_4nn.npy')
+    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/w_4nn.npy')
 
     # Read pred, saf and centroids
     pred = np.load(pathAux+'STANDARDIZATION/PRED/p_training.npy')
@@ -540,7 +540,7 @@ def correlations(var, methodName, mode, iproc=0, nproc=1, th_metric='median'):
             else:
                 # Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
                 # interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
-                X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+                X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
                 for ipred in range(n_preds_p):
                     R[ik, ipoint, ipred] = spearmanr(X[:, ipred], Y)[0]
 

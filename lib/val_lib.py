@@ -83,16 +83,16 @@ def daily_boxplots(metric, by_season):
                                 Y = est_season[:, ipoint]
                                 if var[0] == 't':
                                     r = round(pearsonr(X, Y)[0], 3)
-                                    palette = 'pearson'
                                 else:
                                     r = round(spearmanr(X, Y)[0], 3)
-                                    palette = 'spearman'
                                 matrix[ipoint] = r
                         elif metric == 'variance':
                             obs_var = np.var(obs_season, axis=0)
                             est_var = np.var(est_season, axis=0)
                             bias = 100 * (est_var - obs_var) / obs_var
                             matrix[:] = bias
+                        elif metric == 'rmse':
+                            matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
                         np.save('../tmp/'+VAR+'_'+methodName+'_'+season+'_' +metric, matrix)
                 imethod += 1
 
@@ -144,6 +144,11 @@ def daily_boxplots(metric, by_season):
                             units = ''
                         elif metric == 'variance':
                             units = '%'
+                        elif metric == 'rmse':
+                            if var[0] == 't':
+                                units = degree_sign
+                            else:
+                                units = 'mm'
 
                         fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
                         medianprops = dict(color="black")
@@ -159,6 +164,8 @@ def daily_boxplots(metric, by_season):
                             title = ' '.join((VAR.upper(), metric, season))
                         elif metric == 'variance':
                             title = ' '.join((VAR.upper(), 'bias', metric, season))
+                        elif metric == 'rmse':
+                            title = ' '.join((VAR.upper(), metric, season))
                         plt.title(title)
                         # plt.title(VAR.upper() + ' ' + metric, fontsize=20)
                         plt.ylabel(units, rotation=0)
@@ -182,6 +189,10 @@ def climdex_boxplots(by_season):
     :param by_season: boolean
     """
 
+    if apply_bc == True:
+        sufix = '_BC-'+bc_method
+    else:
+        sufix = ''
 
     vars = []
     for method in methods:
@@ -214,11 +225,11 @@ def climdex_boxplots(by_season):
                             names.append(methodName)
                             print(var, climdex_name, season, methodName)
 
-                            pathIn = '../results/EVALUATION/'+VAR.upper()+'/'+methodName+'/climdex/'
+                            pathIn = '../results/EVALUATION'+sufix+'/'+VAR.upper()+'/'+methodName+'/climdex/'
                             obs = np.mean(np.load(pathIn + '_'.join((climdex_name, 'obs', season))+'.npy'), axis=0)
                             est = np.mean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
 
-                            if VAR[0] == 't':
+                            if VAR[0] == 't' and climdex_name in ('TXm', 'TNm', 'TXx', 'TNx', 'TXn', 'TNn', ):
                                 bias = est - obs
                                 units = degree_sign
                                 colors = t_methods_colors
@@ -292,7 +303,6 @@ def monthly_maps(metric, var, methodName):
     d = postpro_lib.get_data_eval(var, methodName)
     ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
     del d
-    case = '_'.join((var, methodName))
     npoints = obs.shape[1]
     firstYear = times_scene[0].year
     lastYear = times_scene[-1].year
@@ -333,8 +343,6 @@ def QQplot(var, methodName, obs, est, pathOut, season):
     '''
     Save scatter plot of several percentiles of daily data distribution
     '''
-
-    case = var + '_' + methodName + '_' + season
 
     # Create pathOut
     if plotAllRegions == False:
@@ -418,16 +426,18 @@ def continuous(var, methodName, obs, est, pathOut, season):
     # MAE = np.round(np.nanmean(abs(est - obs), axis=0), 2)
     # plot.map(var[0], MAE,  var[0]+'_mae', path=pathOut, filename='MAE_' + filename, title='')
 
-    # # RMSE
-    # filename = '_'.join(('EVALUATION', 'rmseMap', var, 'None', methodName, season))
-    # RMSE = np.round(np.sqrt(np.nanmean((est - obs) ** 2, axis=0)), 2)
-    # plot.map(var[0], RMSE,  var[0]+'_rmse', path=pathOut, filename='RMSE_' + filename, title='')
-
-    # # R2_score
-    filename = '_'.join(('EVALUATION', 'r2Map', var, 'None', methodName, season))
-    title = ' '.join(('daily R2_score', var.upper(), methodName, season))
-    R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
-    plot.map(var[0], R2,  'r2', path=pathOut, filename=filename, title=title)
+    if var[0] == 't':
+        # RMSE
+        filename = '_'.join(('EVALUATION', 'rmseMap', var, 'None', methodName, season))
+        title = ' '.join(('daily RMSE', var.upper(), methodName, season))
+        RMSE = np.round(np.sqrt(np.nanmean((est - obs) ** 2, axis=0)), 2)
+        plot.map(var[0], RMSE,  var[0]+'_rmse', path=pathOut, filename=filename, title=title)
+    else:
+        # # R2_score
+        filename = '_'.join(('EVALUATION', 'r2Map', var, 'None', methodName, season))
+        title = ' '.join(('daily R2_score', var.upper(), methodName, season))
+        R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
+        plot.map(var[0], R2,  'r2', path=pathOut, filename=filename, title=title)
 
 
 

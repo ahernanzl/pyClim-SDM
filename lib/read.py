@@ -38,7 +38,6 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     This function reads netCDF files.
     Data with _FillValue are set to Nan.
     Return dictionary with data, times, lats, lons and calendar.
-
     Because some models have calendars not supported by datetime, non supported dates are removed. Otherwise dates
     should be managed as strings yyyymmdd in the whole project.
     """
@@ -53,7 +52,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     # 	print(nc.variables[var])
     # 	# print(nc.variables[var][:])
     # 	print(nc.variables[var][:].shape)
-    # # exit()
+    # exit()
 
 
     # Define dimension names
@@ -141,12 +140,18 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = data[:, :, ilons]
 
 
+    # Get units
+    try:
+        units = nc.variables[nc_variable].units
+    except:
+        units = 'Unknown'
+
     end = datetime.datetime.now()
     if ((end-start).seconds > 30):
         print('......................................................................')
         print(nc_variable, level, end-start, 'access to var_time very slow')
 
-    return {'data': data, 'times': times, 'lats': lats, 'lons': lons,  'calendar': calendar}
+    return {'data': data, 'times': times, 'lats': lats, 'lons': lons,  'calendar': calendar, 'units': units}
 
 
 ########################################################################################################################
@@ -187,7 +192,13 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
         filename = ncVar+'_'+modelName+'_'+scene+'_'+modelRun+'_'+periodFilename+'.nc'
 
-    return netCDF(pathIn, filename, ncVar, grid=grid, level=level)
+    nc = netCDF(pathIn, filename, ncVar, grid=grid, level=level)
+
+    # # Force units
+    # if predName in ('tmax', 'tmin'):
+    #     print(predName, nc['units'])
+
+    return nc
 
 
 
@@ -205,6 +216,8 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     GCMs the whole scene (hisotical/SSP). For reanalysis and historical GCMs also the reference period can be extracted
     by specifying period='reference'.
     Beware that different GCMs can have different calendars
+    Some variables are in different units for reanalysis and GCMs and are transformed (for example, tmax/tmin are
+    converted from K to ºC for both sources, and pcp is converted to mm/day from different units/factors
     return: data (ndays, npreds, nlats, nlons) and times
     """
 
@@ -555,4 +568,3 @@ def hres_data(var, period=None):
         exit('Predictands contain values out of range. Change predictands_codification at advanced_settings')
 
     return {'data': data, 'times': times}
-

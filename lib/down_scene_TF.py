@@ -48,71 +48,56 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
     npoints_ichunk = len(points_chunk[ichunk])
 
     # Define paths
-    pathTmp = '../tmp/TRAINED_'+ '_'.join((var, methodName, scene, model)) + '/'
     pathOut = '../tmp/ESTIMATED_' + '_'.join((var, methodName, scene, model)) + '/'
 
     # Parent process reads all data, broadcasts to the other processes and creates paths for results
     if iproc == 0:
         print(var, methodName, scene, model)
-        if not os.path.exists(pathTmp):
-            os.makedirs(pathTmp)
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
 
         # Read data and converts obs to uint16 or int16 to save memory
-        obs = read.hres_data(var, period='training')['data']
-        obs = (100 * obs).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
-        pred_calib = None
-        saf_calib = None
-        var_calib = None
-        pred_scene = None
-        saf_scene = None
-        var_scene = None
+        y_train = read.hres_data(var, period='training')['data']
+        y_train = (100 * y_train).astype(predictands_codification[var]['type'])
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
 
+        # Read X_train
         if 'pred' in fields:
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_training.npy')
             pred_calib = pred_calib.astype('float32')
+            X_train = pred_calib
         if 'saf' in fields:
             saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_training.npy')
             saf_calib = saf_calib.astype('float32')
+            X_train = saf_calib
         if 'var' in fields:
             var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-
-        # Split clf/reg in chunks
-        if var == 'pcp':
-            trained_model_names = ['clf', 'reg', ]
-        else:
-            trained_model_names = ['reg', ]
-
-        for trained_model_name in trained_model_names:
-
-            # Load trained model
-            infile = open(pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '_' +
-                          trained_model_name, 'rb')
-            trained_model = pickle.load(infile)
-            infile.close()
-
-            # Save trained_model chunks so each iproc reads its own chunck
-            for i in range(nproc):
-                outfile = open(pathTmp + 'trained_' + trained_model_name + '_' + str(i), 'wb')
-                pickle.dump(trained_model[points_chunk[i]], outfile)
-                outfile.close()
+            if 'pred' not in fields:
+                X_train = var_calib
+            else:
+                # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
+                X_train = np.concatenate((X_train, var_calib), axis=1)
 
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-
             if 'pred' in fields:
                 pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
+                X_test = pred_scene
             if 'saf' in fields:
                 saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
+                X_test = saf_scene
             if 'var' in fields:
                 var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_testing.npy')
+                if 'pred' not in fields:
+                    X_test = var_scene
+                else:
+                    # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
+                    X_test = np.concatenate((X_test, var_scene), axis=1)
         else:
             if scene == 'historical':
                 years = historical_years
@@ -132,69 +117,70 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                 pred_scene = read.lres_data(var, 'pred', model=model, scene=scene)['data'][idates]
                 pred_scene = standardization.standardize(var[0], pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
+                X_test = pred_scene
             if 'saf' in fields:
                 saf_scene = read.lres_data(var, 'saf', model=model, scene=scene)['data'][idates]
                 saf_scene = standardization.standardize(var[0], saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
+                X_test = saf_scene
             if 'var' in fields:
                 var_scene = read.lres_data(var, 'var', model=model, scene=scene)['data'][idates]
+                if 'pred' not in fields:
+                    X_test = var_scene
+                else:
+                    # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
+                    X_test = np.concatenate((X_test, var_scene), axis=1)
 
     # Declares variables for the other processes
     else:
-        obs = None
+        y_train = None
         scene_dates = None
         i_4nn = None
         j_4nn = None
         w_4nn = None
-        pred_calib = None
-        saf_calib = None
-        var_calib = None
-        pred_scene = None
-        saf_scene = None
-        var_scene = None
+        X_train = None
+        X_test = None
 
     # Share data with all subprocesses
     if nproc>1:
-        obs = MPI.COMM_WORLD.bcast(obs, root=0)
+        y_train = MPI.COMM_WORLD.bcast(y_train, root=0)
         scene_dates = MPI.COMM_WORLD.bcast(scene_dates, root=0)
         i_4nn = MPI.COMM_WORLD.bcast(i_4nn, root=0)
         j_4nn = MPI.COMM_WORLD.bcast(j_4nn, root=0)
         w_4nn = MPI.COMM_WORLD.bcast(w_4nn, root=0)
-        pred_calib = MPI.COMM_WORLD.bcast(pred_calib, root=0)
-        saf_calib = MPI.COMM_WORLD.bcast(saf_calib, root=0)
-        var_calib = MPI.COMM_WORLD.bcast(var_calib, root=0)
-        pred_scene = MPI.COMM_WORLD.bcast(pred_scene, root=0)
-        saf_scene = MPI.COMM_WORLD.bcast(saf_scene, root=0)
-        var_scene = MPI.COMM_WORLD.bcast(var_scene, root=0)
+        X_train = MPI.COMM_WORLD.bcast(X_train, root=0)
+        X_test = MPI.COMM_WORLD.bcast(X_test, root=0)
         MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
-
-    # Load regressors and classifiers of ichunk
-    infile = open(pathTmp + 'trained_reg_' + str(ichunk), 'rb')
-    trained_reg = pickle.load(infile)
-    infile.close()
-    if var == 'pcp':
-        infile = open(pathTmp + 'trained_clf_' + str(ichunk), 'rb')
-        trained_clf = pickle.load(infile)
-        infile.close()
-    else:
-        trained_clf = trained_reg.size * [None]
 
     if nproc > 1:
         MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
-    if iproc == 0:
-        shutil.rmtree(pathTmp)
 
     # Create empty array for results
     est = np.zeros((len(scene_dates), npoints_ichunk))
     est = est.astype(predictands_codification[var]['type'])
     special_value = int(100 * predictands_codification[var]['special_value'])
+    npreds = X_test.shape[1]
+    clf = None
 
     # Goes through all points of the chunk
     for ipoint in points_chunk[ichunk]:
         ipoint_local_index = points_chunk[ichunk].index(ipoint)
 
-        # Selects trained models for ipoint
-        reg_ipoint, clf_ipoint = trained_reg[ipoint_local_index], trained_clf[ipoint_local_index]
+        # Load regressor and classifier of ipoint
+        try:
+            reg = pickle.load(open(pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName +
+                                   '/reg_' + str(ipoint), 'rb'))
+        except:
+            reg = keras.models.load_model(pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName +
+                                          '/reg_' + str(ipoint) + '.h5', compile=False)
+
+        if var == 'pcp':
+            try:
+                clf = pickle.load(open(pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName +
+                                       '/clf_' + str(ipoint), 'rb'))
+            except:
+                clf = keras.models.load_model(pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName +
+                                              '/clf_' + str(ipoint) + '.h5', compile=False)
 
         # Prints for monitoring
         if ipoint_local_index % 1==0:
@@ -202,50 +188,63 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             print('ichunk:	', ichunk, '/', n_chunks)
             print('downscaling', var, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
-        # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(pred_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+
+        # Prepare X_test shape
+        if var+'_'+methodName not in methods_using_preds_from_whole_grid:
+            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+        elif methodName not in ['CNN', 'CNN-SYN']:
+            X_test_ipoint = X_test.reshape(X_test.shape[0], X_test.shape[1], -1)
+        else:
+            X_test_ipoint = X_test
 
         # Check missing predictors, remove them and recalibrate
         if recalibrating_when_missing_preds == True:
-            missing_preds = np.unique(np.where(np.isnan(X_test))[1])
+            missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
             if len(missing_preds) != 0:
-                print('Recalibrating because of missing predictors:', missing_preds)
-                Y_train = obs[:, ipoint]
+                print('Recalibrating because of missing predictors:', missing_preds%npreds)
+                y_train_ipoint = y_train[:, ipoint]
 
                 # Interpolate valid_preds
-                valid_preds = [x for x in range(X_test.shape[1]) if x not in missing_preds]
-                X_train = grids.interpolate_predictors(pred_calib[:, valid_preds, :, :], i_4nn[ipoint],
-                                                       j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+                valid_preds = [x for x in range(X_test_ipoint.shape[1]) if x not in missing_preds]
+                if var + '_' + methodName not in methods_using_preds_from_whole_grid:
+                    X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
+                                                                  j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+                elif methodName not in ['CNN', 'CNN-SYN']:
+                    X_train_ipoint = X_train[:, valid_preds, :, :].reshape(X_train.shape[0], len(valid_preds), -1)
+                else:
+                    X_train_ipoint = X_train[:, valid_preds, :, :]
 
                 # Check for missing predictands and remove them (if no missing predictors there is no need to check on
                 # predictands, because classifier/regressor are already trained
-                valid = np.where(Y_train < special_value)[0]
+                valid = np.where(y_train_ipoint < special_value)[0]
                 if valid.size < 30:
                     exit('Not enough valid predictands to train')
-                if valid.size != Y_train.size:
-                    X_train = X_train[valid]
-                    Y_train = Y_train[valid]
+                if valid.size != y_train_ipoint.size:
+                    X_train_ipoint = X_train_ipoint[valid]
+                    y_train_ipoint = y_train_ipoint[valid]
 
                 # Train regressors and classifiers without missing predictors or predictands
-                reg_ipoint, clf_ipoint = TF_lib.train_point(var, methodName, X_train, Y_train, ipoint)
+                reg, clf = TF_lib.train_point(var, methodName, X_train_ipoint, y_train_ipoint, ipoint)
 
                 # Remove missing predictors from X_test
-                X_test = X_test[:, valid_preds]
+                X_test_ipoint = X_test_ipoint[:, valid_preds]
 
         # Check for days with missing predictors to set them to np.nan later
         elif recalibrating_when_missing_preds == False:
-            idays_with_missing_preds = np.unique(np.where(np.isnan(X_test))[0])
+            idays_with_missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[0])
             if len(idays_with_missing_preds) != 0:
-                X_test[np.isnan(X_test)] = special_value
+                X_test_ipoint[np.isnan(X_test_ipoint)] = special_value
                 # if idays_with_missing_preds.shape == est[:, ipoint_local_index].shape:
                 #     exit('there is at least one predictor which is missing in all days. You should set '
                 #           'recalibrating_when_missing_preds to True at settings')
 
         # Apply downscaling
+        if methodName in ['CNN', 'CNN-SYN']:
+            X_test_ipoint = np.swapaxes(np.swapaxes(X_test_ipoint, 1, 2), 2, 3)
         if var == 'pcp':
-            est[:, ipoint_local_index] = down_point.pcp_TF(methodName, X_test, clf_ipoint, reg_ipoint)
+            est[:, ipoint_local_index] = down_point.pcp_TF(methodName, X_test_ipoint, clf, reg)
         else:
-            est[:, ipoint_local_index] = down_point.t_TF(X_test, reg_ipoint)
+            est[:, ipoint_local_index] = down_point.t_TF(X_test_ipoint, reg)
 
         # Set to np.nan days with missing predictors for TF methods
         if (recalibrating_when_missing_preds == False) and (len(idays_with_missing_preds) != 0):
@@ -314,8 +313,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lons.npy')
 
     # Set units
     if var == 'pcp':

@@ -400,7 +400,10 @@ def get_data_eval(var, methodName):
     :return: dictionaty with 'ref', 'times_ref', 'obs', 'est', 'times_scene', 'path'
     """
 
-    pathIn = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/daily_data/'
+    if apply_bc == False:
+        pathIn = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/daily_data/'
+    else:
+        pathIn = '../results/EVALUATION_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
     aux = read.hres_data(var, period='testing')
     times_scene = aux['times']
     obs = aux['data']
@@ -488,7 +491,7 @@ def figures_projections(lan='EN'):
     For evolution graphs, all the region is reduced to one value per year/model/scene.
     """
 
-    if bc_method == None:
+    if apply_bc == False:
         sufix = ''
     else:
         sufix = '_BC-' + bc_method

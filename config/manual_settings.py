@@ -12,36 +12,45 @@ experiment = 'EVALUATION'
 ####################################################################################################################
 methods = []
 
-# ---------------- TMAX --------------------------------
+# # ---------------- TMAX --------------------------------
 methods.append({'var': 'tmax', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'RAW-BIL',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'QM',      'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmax', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 methods.append({'var': 'tmax', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-# methods.append({'var': 'tmax', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmax', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmax', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-# methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
-
+# methods.append({'var': 'tmax', 'methodName': 'RF',          'family': 'TF',     'mode': 'PP',   'fields': 'pred+var'})
+# methods.append({'var': 'tmax', 'methodName': 'XGB',          'family': 'TF',     'mode': 'PP',   'fields': 'pred+var'})
+# methods.append({'var': 'tmax', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmax', 'methodName': 'CNN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+#
 # # ---------------- TMIN --------------------------------
 methods.append({'var': 'tmin', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'RAW-BIL',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmin', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 methods.append({'var': 'tmin', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-# methods.append({'var': 'tmin', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmin', 'methodName': 'SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'tmin', 'methodName': 'LS-SVM',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-# methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
-
-# ---------------- PCP --------------------------------
+# methods.append({'var': 'tmin', 'methodName': 'RF',          'family': 'TF',     'mode': 'PP',   'fields': 'pred+var'})
+# methods.append({'var': 'tmin', 'methodName': 'XGB',          'family': 'TF',     'mode': 'PP',   'fields': 'pred+var'})
+# methods.append({'var': 'tmin', 'methodName': 'ANN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'tmin', 'methodName': 'CNN',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+#
+# # ---------------- PCP --------------------------------
 methods.append({'var': 'pcp', 'methodName': 'RAW',          'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'RAW-BIL',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 # methods.append({'var': 'pcp', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'pcp', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'pcp', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
@@ -52,17 +61,21 @@ methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-1NN',    'family': 'ANA',  
 # methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
-# methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
-# methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
-# methods.append({'var': 'pcp', 'methodName': 'ANA-PCP-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-VAR-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-VAR-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANA-VAR-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'var'})
 methods.append({'var': 'pcp', 'methodName': 'GLM-LIN',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'pcp', 'methodName': 'GLM-EXP',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'pcp', 'methodName': 'GLM-CUB',      'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
-# methods.append({'var': 'pcp', 'methodName': 'ANN',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'pcp', 'methodName': 'SVM',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
 # methods.append({'var': 'pcp', 'methodName': 'LS-SVM',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'RF',          'family': 'TF',     'mode': 'PP',   'fields': 'pred+var'})
+# methods.append({'var': 'pcp', 'methodName': 'XGB',          'family': 'TF',     'mode': 'PP',   'fields': 'pred+var'})
+# methods.append({'var': 'pcp', 'methodName': 'ANN',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'CNN',          'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
+# methods.append({'var': 'pcp', 'methodName': 'CNN-SYN',          'family': 'TF',     'mode': 'PP',   'fields': 'saf'})
 # methods.append({'var': 'pcp', 'methodName': 'WG-NMM',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
-# methods.append({'var': 'pcp', 'methodName': 'WG-PDF',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
+methods.append({'var': 'pcp', 'methodName': 'WG-PDF',       'family': 'WG',     'mode': 'PP',   'fields': 'var'})
 
 
 ########################################       DATES      ##############################################################
@@ -93,7 +106,6 @@ reference_years = (1979, 2005)
 # historical_years = (1950, 2014)
 historical_years = (1979, 2005)
 ssp_years = (2015, 2100)
-biasCorr_years = (1979, 2005)
 # biasCorr_years = (1951, 2014)
 
 hresPeriodFilename = {}
@@ -116,17 +128,21 @@ saf_lon_left, saf_lon_right = -18.0, 12.0
 # IMPORTANT: do not change preds order. Otherwise, lib/read.lres_data would need to be adapted to follow the same order
 # Define, for each predictor variable, reaName and modName (variable names for reanalysis and for CMIP models)
 
-reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q', 'mslp': 'msl', 'u10': 'u10', 'v10': 'v10',
-            't2m': 't2m', 'tmax': 'mx2t', 'tmin': 'mn2t', 'pcp': 'tp'}
+reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q', 'r': 'r',
+            'mslp': 'msl', 'u10': 'u10', 'v10': 'v10', 't2m': 't2m',
+            'd2m': 'd2m', 'r2m': '-', 'q2m': '-', 'sp': 'sp', 'tcc': 'tcc',
+            'tmax': 'mx2t', 'tmin': 'mn2t', 'pcp': 'tp'}
 
-modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus', 'mslp': 'psl', 'u10': 'uas', 'v10': 'vas',
-            't2m': 'tas', 'tmax': 'tasmax', 'tmin': 'tasmin', 'pcp': 'pr'}
+modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus', 'r': 'hur',
+            'mslp': 'psl', 'u10': 'uas', 'v10': 'vas', 't2m': 'tas',
+            'd2m': 'tdps', 'r2m': 'hurs', 'q2m': 'huss', 'sp': 'ps', 'tcc': 'clt',
+            'tmax': 'tasmax', 'tmin': 'tasmin', 'pcp': 'pr'}
 
 
 preds_t_list = [
     # 'tmax',             # maximum daily temperature
     # 'tmin',             # minimum daily temperature
-    # 'pcp',              # daily predicitation
+    # 'pcp',              # daily precipitation
     'mslp',             # mean sea level pressure
     # 'mslp_trend',       # mean sea level trend from last day (derivedFrom mslp)
     # 'ins',              # theoretical insolation (derived from dates)
@@ -135,17 +151,17 @@ preds_t_list = [
     't2m',              # surface temperature
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
-    # 'u700',             # wind at pressure levels
+    'u700',             # wind at pressure levels
     'u500',             # wind at pressure levels
     # 'u250',             # wind at pressure levels
     # 'v1000',            # wind at pressure levels
     'v850',             # wind at pressure levels
-    # 'v700',             # wind at pressure levels
+    'v700',             # wind at pressure levels
     'v500',             # wind at pressure levels
     # 'v250',             # wind at pressure levels
     # 't1000',            # temperature at pressure levels
     't850',             # temperature at pressure levels
-    # 't700',             # temperature at pressure levels
+    't700',             # temperature at pressure levels
     't500',             # temperature at pressure levels
     # 't250',             # temperature at pressure levels
     # 'z1000',            # geopotential at pressure levels
@@ -200,7 +216,7 @@ preds_t_list = [
 preds_p_list = [
     # 'tmax',             # maximum daily temperature
     # 'tmin',             # minimum daily temperature
-    # 'pcp',              # daily predicitation
+    # 'pcp',              # daily precipitation
     'mslp',             # mean sea level pressure
     # 'mslp_trend',       # mean sea level trend from last day (derivedFrom mslp)
     # 'ins',              # theoretical insolation (derived from dates)
@@ -209,12 +225,12 @@ preds_p_list = [
     # 't2m',              # surface temperature
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
-    # 'u700',             # wind at pressure levels
+    'u700',             # wind at pressure levels
     'u500',             # wind at pressure levels
     # 'u250',             # wind at pressure levels
     # 'v1000',            # wind at pressure levels
     'v850',             # wind at pressure levels
-    # 'v700',             # wind at pressure levels
+    'v700',             # wind at pressure levels
     'v500',             # wind at pressure levels
     # 'v250',             # wind at pressure levels
     # 't1000',            # temperature at pressure levels
@@ -224,7 +240,7 @@ preds_p_list = [
     # 't250',             # temperature at pressure levels
     # 'z1000',            # geopotential at pressure levels
     'z850',             # geopotential at pressure levels
-    # 'z700',             # geopotential at pressure levels
+    'z700',             # geopotential at pressure levels
     'z500',             # geopotential at pressure levels
     # 'z250',             # geopotential at pressure levels
     # 'q1000',            # specifit humidity at pressure levels
@@ -234,7 +250,7 @@ preds_p_list = [
     # 'q250',             # specifit humidity at pressure levels
     # 'r1000',            # relative humidity at pressure levels (derived from t and q)
     'r850',             # relative humidity at pressure levels (derived from t and q)
-    # 'r700',             # relative humidity at pressure levels (derived from t and q)
+    'r700',             # relative humidity at pressure levels (derived from t and q)
     'r500',             # relative humidity at pressure levels (derived from t and q)
     # 'r250',             # relative humidity at pressure levels (derived from t and q)
     # 'td1000',           # dew point at pressure levels (derived from q)
@@ -276,7 +292,7 @@ preds_p_list = [
 saf_list = [
     # 'tmax',             # maximum daily temperature
     # 'tmin',             # minimum daily temperature
-    # 'pcp',              # daily predicitation
+    # 'pcp',              # daily precipitation
     # 'mslp',             # mean sea level pressure
     # 'mslp_trend',       # mean sea level trend from last day (derivedFrom mslp)
     # 'ins',              # theoretical insolation (derived from dates)
@@ -362,66 +378,85 @@ scene_names_list = [
 
 model_names_list = (
     'ACCESS-CM2_r1i1p1f1',
-    # 'ACCESS-ESM1-5_r1i1p1f1',
-    # 'AWI-CM-1-1-MR_r1i1p1f1',
-    # 'AWI-CM-1-1-LR_r1i1p1f1',
-    # 'BCC-CSM2-MR_r1i1p1f1',
-    # 'BCC-ESM1_r1i1p1f1',
-    # 'CAMS-CSM1-0_r1i1p1f1',
-    # 'CanESM5_r1i1p1f1',
-    # 'CanESM5-CanOE_r1i1p1f1',
-    # 'CESM2_r1i1p1f1',
-    # 'CESM2-FV2_r1i1p1f1',
-    # 'CESM2-WACCM_r1i1p1f1',
-    # 'CESM2-WACCM-FV2_r1i1p1f1',
-    # 'CIESM_r1i1p1f1',
-    # 'CMCC-CM2-HR4_r1i1p1f1',
-    # 'CMCC-CM2-SR5_r1i1p1f1',
-    # 'CMCC-ESM2_r1i1p1f1',
-    # 'CNRM-CM6-1_r1i1p1f1',
-    # 'CNRM-CM6-1-HR_r1i1p1f1',
-    # 'CNRM-ESM2-1_r1i1p1f1',
-    # 'E3SM-1-0_r1i1p1f1',
-    # 'E3SM-1-1_r1i1p1f1',
-    # 'E3SM-1-1-ECA_r1i1p1f1',
+    'CanESM5_r1i1p1f1',
     'EC-Earth3_r1i1p1f1',
-    # 'EC-Earth3-AerChem_r1i1p1f1',
-    # 'EC-Earth3-CC_r1i1p1f1',
-    # 'EC-Earth3-Veg_r1i1p1f1',
-    # 'EC-Earth3-Veg-LR_r1i1p1f1',
-    # 'FGOALS-f3-L_r1i1p1f1',
-    # 'FGOALS-g3_r1i1p1f1',
-    # 'FIO-ESM-2-0_r1i1p1f1',
-    # 'GFDL-CM4_r1i1p1f1',
-    # 'GFDL-ESM4_r1i1p1f1',
-    # 'GISS-E2-1-G_r1i1p1f1',
-    # 'GISS-E2-1-H_r1i1p1f1',
-    # 'HadGEM3-GC31-LL_r1i1p1f1',
-    # 'HadGEM3-GC31-MM_r1i1p1f1',
-    # 'IITM-ESM_r1i1p1f1',
-    # 'INM-CM4-8_r1i1p1f1',
-    # 'INM-CM5-0_r1i1p1f1',
-    # 'IPSL-CM5A2-INCA_r1i1p1f1',
-    # 'IPSL-CM6A-LR_r1i1p1f1',
-    # 'KACE-1-0-G_r1i1p1f1',
-    # 'KIOST-ESM_r1i1p1f1',
-    # 'MCM-UA-1-0_r1i1p1f1',
-    # 'MIROC-ES2H_r1i1p1f1',
-    # 'MIROC-ES2L_r1i1p1f1',
+    'INM-CM4-8_r1i1p1f1',
+    'INM-CM5-0_r1i1p1f1',
+    'IPSL-CM6A-LR_r1i1p1f1',
     'MIROC6_r1i1p1f1',
-    # 'MPI-ESM-1-2-HAM_r1i1p1f1',
-    # 'MPI-ESM1-2-HR_r1i1p1f1',
-    # 'MPI-ESM1-2-LR_r1i1p1f1',
-    # 'MRI-ESM2-0_r1i1p1f1',
-    # 'NESM3_r1i1p1f1',
-    # 'NorCPM1_r1i1p1f1',
-    # 'NorESM2-LM_r1i1p1f1',
-    # 'NorESM2-MM_r1i1p1f1',
-    # 'SAM0-UNICON_r1i1p1f1',
-    # 'TaiESM1_r1i1p1f1',
-    # 'UKESM1-0-LL_r1i1p1f1',
+    'MPI-ESM1-2-HR_r1i1p1f1',
+    'MPI-ESM1-2-LR_r1i1p1f1',
+    'MRI-ESM2-0_r1i1p1f1',
 )
 
+
+# model_names_list = (
+#     'ACCESS-CM2_r1i1p1f1',
+#     'ACCESS-ESM1-5_r1i1p1f1',
+#     # 'AWI-CM-1-1-MR_r1i1p1f1',
+#     # 'AWI-CM-1-1-LR_r1i1p1f1',
+#     # 'BCC-CSM2-MR_r1i1p1f1',
+#     # 'BCC-ESM1_r1i1p1f1',
+#     # 'CAMS-CSM1-0_r1i1p1f1',
+#     'CanESM5_r1i1p1f1',
+#     # 'CanESM5-CanOE_r1i1p1f1',
+#     # 'CESM2_r1i1p1f1',
+#     # 'CESM2-FV2_r1i1p1f1',
+#     # 'CESM2-WACCM_r1i1p1f1',
+#     # 'CESM2-WACCM-FV2_r1i1p1f1',
+#     # 'CIESM_r1i1p1f1',
+#     # 'CMCC-CM2-HR4_r1i1p1f1',
+#     # 'CMCC-CM2-SR5_r1i1p1f1',
+#     # 'CMCC-ESM2_r1i1p1f1',
+#     # 'CNRM-CM6-1_r1i1p1f1',
+#     # 'CNRM-CM6-1-HR_r1i1p1f1',
+#     'CMCC-ESM2_r1i1p1f1',
+#     # 'E3SM-1-0_r1i1p1f1',
+#     # 'E3SM-1-1_r1i1p1f1',
+#     # 'E3SM-1-1-ECA_r1i1p1f1',
+#     'EC-Earth3_r1i1p1f1',
+#     # 'EC-Earth3-AerChem_r1i1p1f1',
+#     # 'EC-Earth3-CC_r1i1p1f1',
+#     'EC-Earth3-Veg_r1i1p1f1',
+#     'EC-Earth3-Veg-LR_r1i1p1f1',
+#     # 'FGOALS-f3-L_r1i1p1f1',
+#     'FGOALS-g3_r1i1p1f1',
+#     # 'FIO-ESM-2-0_r1i1p1f1',
+#     # 'GFDL-CM4_r1i1p1f1',
+#     'GFDL-ESM4_r1i1p1f1',
+#     # 'GISS-E2-1-G_r1i1p1f1',
+#     # 'GISS-E2-1-H_r1i1p1f1',
+#     # 'HadGEM3-GC31-LL_r1i1p1f1',
+#     # 'HadGEM3-GC31-MM_r1i1p1f1',
+#     # 'IITM-ESM_r1i1p1f1',
+#     'INM-CM4-8_r1i1p1f1',
+#     'INM-CM5-0_r1i1p1f1',
+#     # 'IPSL-CM5A2-INCA_r1i1p1f1',
+#     'IPSL-CM6A-LR_r1i1p1f1',
+#     'KACE-1-0-G_r1i1p1f1',
+#     # 'KIOST-ESM_r1i1p1f1',
+#     # 'MCM-UA-1-0_r1i1p1f1',
+#     # 'MIROC-ES2H_r1i1p1f1',
+#     # 'MIROC-ES2L_r1i1p1f1',
+#     'MIROC6_r1i1p1f1',
+#     # 'MPI-ESM-1-2-HAM_r1i1p1f1',
+#     'MPI-ESM1-2-HR_r1i1p1f1',
+#     'MPI-ESM1-2-LR_r1i1p1f1',
+#     'MRI-ESM2-0_r1i1p1f1',
+#     # 'NESM3_r1i1p1f1',
+#     # 'NorCPM1_r1i1p1f1',
+#     'NorESM2-LM_r1i1p1f1',
+#     'NorESM2-MM_r1i1p1f1',
+#     # 'SAM0-UNICON_r1i1p1f1',
+#     'TaiESM1_r1i1p1f1',
+#     # 'UKESM1-0-LL_r1i1p1f1',
+#
+#     'CanESM5_r1i1p2f1',
+#     'CNRM-CM6-1_r1i1p1f2',
+#     'CNRM-ESM2-1_r1i1p1f2',
+#     'MIROC-ES2L_r1i1p1f2',
+#     'UKESM1-0-LL_r1i1p1f2',
+# )
 
 
 ###################################     CLIMDEX    #####################################################################
@@ -432,8 +467,8 @@ climdex_names = {
         'TXm',
         # 'TX90p',
         # 'TX10p',
-        # 'TXx',
-        # 'TXn',
+        'TXx',
+        'TXn',
         # 'p99',
         # 'p95',
         # 'p5',
@@ -446,8 +481,8 @@ climdex_names = {
         'TNm',
         # 'TN90p',
         # 'TN10p',
-        # 'TNx',
-        # 'TNn',
+        'TNx',
+        'TNn',
         # 'p99',
         # 'p95',
         # 'p5',
@@ -460,14 +495,14 @@ climdex_names = {
         # 'Pm',
         'PRCPTOT',
         'R01',
-        # 'SDII',
+        'SDII',
         # 'Rx1day',
         # 'Rx5day',
         # 'R10mm',
         # 'R20mm',
         # 'CDD',
         # 'p95',
-        # 'R95p',
+        'R95p',
         # 'R95pFRAC',
         # 'p99',
         # 'R99p',
@@ -476,8 +511,7 @@ climdex_names = {
     )}
 
 
-###################################     Bias correction projections    #################################################
-bc_method = None
-# bc_method = 'QM'
-# bc_method = 'DQM'
-# bc_method = 'PSDM'
+###################################     Bias correction   #################################################
+apply_bc = False # Apply bias correction after downscaling
+apply_bc_bySeason = False # Apply bias correction customized for each season after downcaling
+

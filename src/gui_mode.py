@@ -238,6 +238,7 @@ class tabSteps(ttk.Frame):
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
+                'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
@@ -257,8 +258,7 @@ class tabSteps(ttk.Frame):
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
-                'bias_correct_projections': {'text': 'Bias correct projections (optional)', 'info': 'Bias correct '
-                                                                                                    'downscaled projections.'},
+                'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
@@ -365,7 +365,8 @@ class tabMethods(ttk.Frame):
                 .grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4); irow+=1
 
             # Raw
-            add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling', icol, irow); irow+=1
+            add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol+=1
+            add_to_chk_list(self.chk_list, var, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow+=1; icol-=1
 
             # Bias correction
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
@@ -385,13 +386,14 @@ class tabMethods(ttk.Frame):
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
             ttk.Label(tabMethods, text="Transfer Function:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-            add_to_chk_list(self.chk_list, var, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol+=1
-            add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
+            add_to_chk_list(self.chk_list, var, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); irow+=1
             add_to_chk_list(self.chk_list, var, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol-=1; irow+=1
+            add_to_chk_list(self.chk_list, var, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol+=1; irow-=2
+            add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
+            add_to_chk_list(self.chk_list, var, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow+=2; icol-=1
 
             # Weather Generators
-            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
             ttk.Label(tabMethods, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
             add_to_chk_list(self.chk_list, var, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow+=1
 
@@ -416,7 +418,8 @@ class tabMethods(ttk.Frame):
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
 
         # Raw
-        add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling', icol, irow); irow += 1
+        add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
+        add_to_chk_list(self.chk_list, var, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
 
         # Bias correction
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -437,9 +440,9 @@ class tabMethods(ttk.Frame):
         add_to_chk_list(self.chk_list, var, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-PCP-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-PCP-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-PCP-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+        add_to_chk_list(self.chk_list, var, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
+        add_to_chk_list(self.chk_list, var, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
+        add_to_chk_list(self.chk_list, var, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
 
         # Transfer function
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -448,9 +451,13 @@ class tabMethods(ttk.Frame):
         add_to_chk_list(self.chk_list, var, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow-=2; icol+=1
-        add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); irow+=1; icol-=1
+        add_to_chk_list(self.chk_list, var, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); irow+=1
+        add_to_chk_list(self.chk_list, var, 'RF', 'TF', 'PP', 'pred+var', 'Random Forest', icol, irow); irow+=1
+        add_to_chk_list(self.chk_list, var, 'XGB', 'TF', 'PP', 'pred+var', 'eXtreme Gradient Boost', icol, irow); irow-=3; icol+=1
+        add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
+        add_to_chk_list(self.chk_list, var, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow+=1
+        add_to_chk_list(self.chk_list, var, 'CNN-SYN', 'TF', 'PP', 'pred', 'Convolutional Neural Network \nbased on synoptic fields', icol, irow); irow+=2; icol-=2
 
         # Weather Generators
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -897,37 +904,34 @@ class tabDatesAndDomain(ttk.Frame):
 
         # frameDates
         frameDates = Frame(tabDatesAndDomain)
-        frameDates.grid(sticky="W", column=0, row=0, padx=60, pady=20)
+        frameDates.grid(sticky="W", column=0, row=0, padx=80, pady=10)
 
         # frameSplitMode
         frameSplitMode = Frame(tabDatesAndDomain)
-        frameSplitMode.grid(sticky="W", column=0, row=1, padx=60, pady=20)
+        frameSplitMode.grid(sticky="W", column=0, row=1, padx=80, pady=10)
 
         # framePeriodFilenames
         framePeriodFilenames = Frame(tabDatesAndDomain)
-        framePeriodFilenames.grid(sticky="W", column=1, row=0, padx=60, pady=20)
+        framePeriodFilenames.grid(sticky="W", column=1, row=0, padx=80, pady=10)
 
         # frameDomain
         frameDomain = Frame(tabDatesAndDomain)
-        frameDomain.grid(sticky="W", column=1, row=1, padx=60, pady=20)
+        frameDomain.grid(sticky="W", column=1, row=1, padx=80, pady=10)
 
 
         icol, irow = 0, 0
-        ttk.Label(frameDates, text="Select dates:").grid(sticky="W", column=icol, row=irow, padx=30, pady=10, columnspan=100); irow+=1
-        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=30); icol += 1
+        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10, columnspan=100); irow+=1
+        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol += 1
 
         # Years
         for (text, var, info) in [
-            ('Calibration:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
+            ('Calibration years:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
                                                 'which then can be split for training and testing'),
-            ('Reference:', reference_years, 'For standardization and as reference climatology. \n'
+            ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
                                             'The choice of the reference period is constrained by availability of \n'
                                             'reanalysis, historical GCMs and hres data.'),
-            ('Historical:', historical_years, 'For historical projections'),
-            ('SSPs:', ssp_years, 'For future projections'),
-            ('Bias correction:', biasCorr_years, 'For bias correction of projections\n'
-                                            'The choice of the bias correction period is constrained by availability of \n'
-                                            'historical GCMs and hres data.'),
+            ('Historical years:', historical_years, 'For historical projections'),
+            ('SSPs years:', ssp_years, 'For future projections'),
             ]:
 
             lab = ttk.Label(frameDates, text=text)
@@ -944,36 +948,38 @@ class tabDatesAndDomain(ttk.Frame):
             lastYear_Entry = tk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
             lastYear_Entry.insert(END, lastYear)
             lastYear_Entry.grid(sticky="W", column=icol, row=irow)
+            irow+=1; icol-=1
 
-            # bc_method
-            if text == 'Bias correction:':
-                icol += 1
-                self.bc_method = StringVar()
-                bc_methods = {'None': 'Do not perform bias correction over projections', 'QM': 'Quantile Mapping',
-                              'DQM': 'Detrended Quantile Mapping', 'QDM': 'Quantile Delta Mapping',
-                              'PSDM': '(Parametric) Scaled Distribution Mapping'}
-                for bc_meth in bc_methods:
-                    c = Radiobutton(frameDates, text=str(bc_meth), variable=self.bc_method, value=bc_meth, takefocus=False)
-                    c.grid(sticky="W", column=icol, row=irow);
-                    icol += 1
-                    CreateToolTip(c, bc_methods[bc_meth])
-                    self.bc_method.set(bc_method)
-                icol-=4; irow+=1
-
-            irow+=1
-
-            if text == 'Calibration:':
+            if text == 'Calibration years:':
                 self.calibration_years = (firstYear_var, lastYear_var)
-            elif text == 'Reference:':
+            elif text == 'Reference years:':
                 self.reference_years = (firstYear_var, lastYear_var)
-            elif text == 'Historical:':
+            elif text == 'Historical years:':
                 self.historical_years = (firstYear_var, lastYear_var)
-            elif text == 'SSPs:':
+            elif text == 'SSPs years:':
                 self.ssp_years = (firstYear_var, lastYear_var)
-            elif text == 'Bias correction:':
-                self.biasCorr_years = (firstYear_var, lastYear_var)
-            icol -= 3
+            icol -= 2
 
+        # Bias correction
+        self.bc_option = StringVar()
+        bc_options = {
+            'No': 'Do not apply bias correction after downscaling.',
+            'Yes': 'Apply bias correction after downscaling.',
+            'By season': 'Apply a customized bias correction after downscaling for each season.',
+        }
+        Label(frameDates, text='').grid(sticky="E", column=icol, row=irow, padx=3, pady=5, columnspan=3); irow+=1
+        Label(frameDates, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
+        if apply_bc == False:
+            last_bc_opt = 'No'
+        elif apply_bc_bySeason == False:
+            last_bc_opt = 'Yes'
+        else:
+            last_bc_opt = 'By season'
+        for bc_opt in bc_options:
+            c = Radiobutton(frameDates, text=bc_opt, variable=self.bc_option, value=bc_opt, takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=3); irow+=1
+            CreateToolTip(c, bc_options[bc_opt])
+            self.bc_option.set(last_bc_opt)
 
         # Train/test split
         self.split_mode = StringVar()
@@ -1042,7 +1048,8 @@ class tabDatesAndDomain(ttk.Frame):
 
         icol = 0
         irow = 0
-        Label(framePeriodFilenames, text='Define the following fields:').grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=10); irow += 1
+        # Label(framePeriodFilenames, text='Define the following fields:').grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=10); irow += 1
+        # Label(framePeriodFilenames, text='').grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=10); irow += 1
 
         entriesW = 17
 
@@ -1089,7 +1096,7 @@ class tabDatesAndDomain(ttk.Frame):
         sspPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
         icol, irow = 0, 0
-        ttk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
+        # ttk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
 
         # grid_res
         self.grid_res_var = tk.StringVar()
@@ -1137,8 +1144,8 @@ class tabDatesAndDomain(ttk.Frame):
 
 
     def get(self):
-        return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.biasCorr_years, \
-               self.bc_method, self.testing_years_dict, self.hresPeriodFilename_var_t, self.hresPeriodFilename_var_p, \
+        return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.bc_option, \
+               self.testing_years_dict, self.hresPeriodFilename_var_t, self.hresPeriodFilename_var_p, \
                self.reanalysisName_var, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
                self.sspPeriodFilename_var, self.split_mode, self.grid_res_var, self.saf_lat_up_var, \
                self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var
@@ -1248,6 +1255,8 @@ class tabVisualization(ttk.Frame):
                                    'for pcp and absolute anomaly of the standardized variables for the rest).',
             'EVALUATION_annualCycle': 'Annual cycle for one variable, downscaled by all methods vs. observation '
                                       '(monthly means for tmax/tmin and monthly accumulations for pcp).',
+            'EVALUATION_rmseBoxplot': 'RMSE of the daily series (downscaled and observed) by all methods. Boxes '
+                                      'contain one value per grid point.',
             'EVALUATION_correlationBoxplot': 'Correlation (Pearson for temperature and Spearman for precipitation) of '
                                              'the daily series (downscaled and observed) by all methods. Boxes contain '
                                              'one value per grid point.',
@@ -1255,6 +1264,7 @@ class tabVisualization(ttk.Frame):
                                           'observed) by all methods. Boxes contain one value per grid point.',
             'EVALUATION_qqPlot': 'QQ-plot for one variable by one method vs. observations.',
             'EVALUATION_r2Map': 'R2 score of the daily series (coefficient of determination) by one method.',
+            'EVALUATION_rmseMap': 'RMSE of the daily series by one method.',
             'EVALUATION_accuracyMap': 'AAccuracy score for the daily series (only for wet/dry classification. '
                                       'Acc=corrects/total) by one method.',
             'EVALUATION_correlationMapMonthly': 'Correlation for the monthly (mean for tmax/tmin and accumulated for '
@@ -1479,8 +1489,8 @@ class selectionWindow():
             tabModelsAndScenes(notebook).get()
 
         # Tab: dates and Domain
-        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.biasCorr_years_chk, \
-            self.bc_method_chk, self.testing_years_dict_chk, self.hresPeriodFilename_var_t_chk, self.hresPeriodFilename_var_p_chk, \
+        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
+            self.testing_years_dict_chk, self.hresPeriodFilename_var_t_chk, self.hresPeriodFilename_var_p_chk, \
             self.reanalysisName_var_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
             self.sspPeriodFilename_var_chk, self.split_mode_chk, self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, \
             self.saf_lon_right_var_chk, self.saf_lat_down_var_chk = tabDatesAndDomain(notebook).get()
@@ -1568,7 +1578,6 @@ class selectionWindow():
             self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
             self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
             self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
-            self.aux_biasCorr_years = (int(self.biasCorr_years_chk[0].get()), int(self.biasCorr_years_chk[1].get()))
             self.all_years_hres = [x for x in range(max(int(self.hresPeriodFilename_var_t_chk.get().split('-')[0][:4]),
                                                         int(self.hresPeriodFilename_var_p_chk.get().split('-')[0][:4])),
                                                     min(int(self.hresPeriodFilename_var_t_chk.get().split('-')[1][:4]),
@@ -1653,25 +1662,6 @@ class selectionWindow():
                 else:
                     self.all_checks_ok = True
 
-            # Force bias correction years
-            if self.all_checks_ok == True:
-                year = self.aux_biasCorr_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM", "Bias correction years not available by historical GCMs or hres data.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_biasCorr_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Bias correction years not available by historical GCMs or hres data.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
             # Force all checks ok
             if self.all_checks_ok == True:
                 self.run = True
@@ -1733,12 +1723,15 @@ class selectionWindow():
                 self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
                 self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
                 self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
-                self.biasCorr_years = (self.biasCorr_years_chk[0].get(), self.biasCorr_years_chk[1].get())
 
-            # bc_method
-            self.bc_method = self.bc_method_chk.get()
-            if self.bc_method == 'None':
-                self.bc_method = None
+            # Bias correction
+            self.bc_option_chk = self.bc_option_chk.get()
+            if self.bc_option_chk == 'No':
+                self.apply_bc, self.apply_bc_bySeason = False, False
+            elif self.bc_option_chk == 'Yes':
+                self.apply_bc, self.apply_bc_bySeason = True, False
+            elif self.bc_option_chk == 'By season':
+                self.apply_bc, self.apply_bc_bySeason = True, True
 
             # split_mode and testing years
             self.split_mode = self.split_mode_chk.get()
@@ -1799,7 +1792,7 @@ class selectionWindow():
             write_settings_file(self.showWelcomeMessage, self.experiment, self.steps, self.methods,
                                 self.reaNames, self.modNames, self.preds_t_list, self.preds_p_list, self.saf_list,
                                 self.climdex_names, self.calibration_years, self.reference_years, self.historical_years,
-                                self.ssp_years, self.biasCorr_years, self.bc_method, self.single_split_testing_years,
+                                self.ssp_years, self.apply_bc, self.apply_bc_bySeason, self.single_split_testing_years,
                                 self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
                                 self.fold4_testing_years, self.fold5_testing_years, self.hresPeriodFilename_t,
                                 self.hresPeriodFilename_p, self.reanalysisName, self.reanalysisPeriodFilename,
@@ -1832,8 +1825,8 @@ class selectionWindow():
 
 ########################################################################################################################
 def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
-                        saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years, biasCorr_years,
-                        bc_method, single_split_testing_years, fold1_testing_years, fold2_testing_years,
+                        saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years,
+                        apply_bc, apply_bc_bySeason, single_split_testing_years, fold1_testing_years, fold2_testing_years,
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
@@ -1857,12 +1850,6 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
     f.write("historical_years = (" + str(historical_years[0]) + ", " + str(historical_years[1]) + ")\n")
     f.write("ssp_years = (" + str(ssp_years[0]) + ", " + str(ssp_years[1]) + ")\n")
-    f.write("biasCorr_years = (" + str(biasCorr_years[0]) + ", " + str(biasCorr_years[1]) + ")\n")
-    if bc_method == None:
-        f.write("bc_method = " + str(bc_method) + "\n")
-    else:
-        f.write("bc_method = '" + str(bc_method) + "'\n")
-
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
     f.write("fold1_testing_years = (" + str(fold1_testing_years[0]) + ", " + str(fold1_testing_years[1]) + ")\n")
     f.write("fold2_testing_years = (" + str(fold2_testing_years[0]) + ", " + str(fold2_testing_years[1]) + ")\n")
@@ -1889,6 +1876,10 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     f.write("model_names_list = " + str(model_names_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
     f.write("climdex_names = " + str(climdex_names) + "\n")
+
+
+    f.write("apply_bc = " + str(apply_bc) + "\n")
+    f.write("apply_bc_bySeason = " + str(apply_bc_bySeason) + "\n")
 
     # Close f
     f.close()

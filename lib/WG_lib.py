@@ -63,9 +63,9 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
         obs = read.hres_data(var, period='training')['data']
         var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
         var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[var[0]]))
@@ -73,7 +73,7 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
-                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])[:, 0]
+                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
         del var_calib
 
         # Save X, Y (chunks)
@@ -247,9 +247,9 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
         obs = read.hres_data(var, period='training')['data']
         var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
         var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[var[0]]))
@@ -257,7 +257,7 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
-                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])[:, 0]
+                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
         del var_calib
 
         # Save X, Y (chunks)

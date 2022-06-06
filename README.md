@@ -8,8 +8,7 @@
 
 **License:** GNU General Public License v3.0
 
-**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., and Rodríguez-Camino, E. (2022). pyClim-SDM 2.0: a software for statistical downscaling of climate change projections with a graphical user interface. Environmental Modelling & Software. (Submitted)
-
+**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Statistical downscaling in the Tropics and Mid-latitudes: a comparative assessment for generating regional information on climate change. International Journal of Climatology. Submitted.
 ___
 
 pyClim-SDM is a software for statistical downscaling of climate change projections with the following utilities:
@@ -31,9 +30,10 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **ANA-MLR**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
 - **WT-MLR**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
-- **ANN**: Artificial Neural Networks. Non-linear machine learning regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **SVM**: Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021).
 - **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021). 
+- **ANN**: Artificial Neural Networks. Non-linear machine learning regression. See García-Valero (2021) and Hernanz *et al.* (2021).
+- **CNN**: Convoltional Neural Networks. Non-linear machine learning regression.
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 
 ### For precipitation:
@@ -44,11 +44,15 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2021)
 - **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).
 - **ANA-LOC**: Same as ANA-SYN but using synoptic+local analogy. See Petisco de Lara, (2008a), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
-- **ANA-PCP**: Same as ANA-SYN but using precipitation pattern analogy.
+- **ANA-VAR**: Same as ANA-SYN but using precipitation pattern analogy.
 - **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential and **CUB** for cubic regression). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002),
-- **ANN**: Artificial Neural Networks. Non-linear machine learning classification and regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **SVM**: Support Vector Machine. Non-linear machine learning classification and regression. See Hernanz *et al.* (2021). 
-- **LS-SVM**: Least Square Support Vector Machine. Linear machine learning classification and non-linear regression. See Hernanz *et al.* (2021). 
+- **LS-SVM**: Least Square Support Vector Machine. Linear machine learning classification and non-linear regression. See Hernanz *et al.* (2021).
+- **RF**: Random Forest. Non-linear machine learning classification and regression. 
+- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification and regression. 
+- **ANN**: Artificial Neural Networks. Non-linear machine learning classification and regression. See García-Valero (2021) and Hernanz *et al.* (2021).
+- **CNN**: Convoltional Neural Networks. Non-linear machine learning classification and regression. 
+- **CNN-SYN**: Convoltional Neural Networks based on synoptic fields. Non-linear machine learning classification and regression. 
 - **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 

@@ -425,3 +425,55 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
             sce_corrected[sce_corrected < 0] = 0
 
     return sce_corrected
+
+
+
+########################################################################################################################
+def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
+    """
+    This function performs the season selection if needed and call the bc functions.
+    * obs (nDaysObs, nPoints): the observational data
+    * hist (nDaysHist, nPoints): the model data at the reference period
+    * sce (nDaysSce, nPoints): the scenario data that shall be corrected
+    :return:
+    """
+
+
+    if apply_bc_bySeason == False:
+        # Correct bias
+        if bc_method == 'QM':
+            scene_bc = quantile_mapping(obs, hist, sce, var)
+        elif bc_method == 'DQM':
+            scene_bc = detrended_quantile_mapping(obs, hist, sce, var)
+        elif bc_method == 'QDM':
+            scene_bc = quantile_delta_mapping(obs, hist, sce, var)
+        elif bc_method == 'PSDM':
+            scene_bc = scaled_distribution_mapping(obs, hist, sce, var)
+    else:
+        # print(obs.shape, hist.shape, sce.shape)
+
+        scene_bc = np.zeros(sce.shape)
+
+        # Select season
+        for season in season_dict.values():
+            if season != 'ANNUAL':
+                obs_season = postpro_lib.get_season(obs, ref_times, season)['data']
+                hist_season = postpro_lib.get_season(hist, ref_times, season)['data']
+                aux = postpro_lib.get_season(sce, sce_times, season)
+                sce_season = aux['data']
+                sce_times_season = aux['times']
+                idates = [i for i in range(len(sce_times)) if sce_times[i] in sce_times_season]
+
+                # print(season, obs_season.shape, hist_season.shape, sce_season.shape, len(idates))
+
+                # Correct bias for season
+                if bc_method == 'QM':
+                    scene_bc[idates] = quantile_mapping(obs_season, hist_season, sce_season, var)
+                elif bc_method == 'DQM':
+                    scene_bc[idates] = detrended_quantile_mapping(obs_season, hist_season, sce_season, var)
+                elif bc_method == 'QDM':
+                    scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, var)
+                elif bc_method == 'PSDM':
+                    scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, var)
+
+    return scene_bc
