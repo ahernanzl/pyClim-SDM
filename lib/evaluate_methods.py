@@ -38,7 +38,6 @@ def annual_cycle():
     Plots annual cycle by subregions (optional) for all methods together.
     """
 
-
     for VAR in target_vars:
 
         nmethods = len([x for x in methods if x['var'] == VAR])
@@ -63,7 +62,7 @@ def annual_cycle():
             var = method_dict['var']
             if var == VAR:
                 methodName = method_dict['methodName']
-                print(var, methodName)
+                print(var, methodName, 'annualCycle')
 
                 # Read data
                 d = postpro_lib.get_data_eval(var, methodName)
@@ -164,14 +163,14 @@ def daily_data(by_season=True):
     each method.
     """
 
-    # Correlation and biasVariance boxplots of all methods together
+    # RMSE, correlation and biasVariance boxplots of all methods together
+    val_lib.daily_boxplots('rmse', by_season)
     val_lib.daily_boxplots('correlation', by_season)
     val_lib.daily_boxplots('variance', by_season)
 
     # Go through all methods
     for method_dict in methods:
         var, methodName = method_dict['var'], method_dict['methodName']
-        path = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/daily_data/'
 
         # Read data
         d = postpro_lib.get_data_eval(var, methodName)
@@ -249,6 +248,11 @@ def climdex(by_season=True):
     Plots bias boxplots of all methods, and bias maps of mean climdex and scatter plot mean climdex for  each method.
     """
 
+    if apply_bc == True:
+        sufix = '_BC-'+bc_method
+    else:
+        sufix = ''
+
     # Bias boxplots of all methods together
     val_lib.climdex_boxplots(by_season)
 
@@ -279,9 +283,9 @@ def climdex(by_season=True):
                         units = degree_sign
                     elif climdex_name in ('TX90p', 'TX10p', 'TN90p', 'TN10p'):
                         units = '%'
-                    elif climdex_name in ('FD', 'WSDI', 'CSDI', 'R01', 'CDD', 'CWD'):
+                    elif climdex_name in ('SU', 'ID', 'FD', 'TR', 'WSDI', 'CSDI', 'R01', 'CDD', 'CWD', 'R10mm', 'R20mm',):
                         units = 'days'
-                    elif climdex_name in ('Pm', 'R95p', 'R95pFRAC', 'PRCPTOT', 'SDII'):
+                    elif climdex_name in ('Pm', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC', 'PRCPTOT', 'SDII', 'Rx1day', 'Rx5day',):
                         units = 'mm'
                     elif climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
                         if var == 'pcp':
@@ -297,7 +301,7 @@ def climdex(by_season=True):
                     for season in season_dict.values():
                         if season == 'ANNUAL' or by_season == True:
                             # Read data and select region
-                            pathIn = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/climdex/'
+                            pathIn = '../results/EVALUATION'+sufix+'/'+ var.upper() + '/' + methodName + '/climdex/'
 
                             # Create pathOut
                             if plotAllRegions == False:

@@ -141,10 +141,14 @@ def training(var, methodName, family, mode, fields):
 
     if methodName == 'WG-PDF':
         n = 16
-    elif methodName == 'RF':
+    elif methodName == 'RF' and var == 'pcp':
         n = 32
-    elif methodName == 'ANN':
-        n = 256
+    elif methodName == 'RF' and var[0] == 't':
+        n = 64
+    elif methodName == 'XGB':
+        n = 32
+    elif methodName in ('ANN', 'CNN', 'CNN-SYN'):
+        n = 128
     if methodName[:3] == 'GLM':
         n = 128
 
@@ -195,6 +199,14 @@ def process(var, methodName, family, mode, fields, scene, model):
     if family == 'ANA':
         n = 80
     elif family == 'BC':
+        n = 80
+    if methodName == 'XGB':
+        n = 80
+    elif methodName == 'RF' and var[0] == 't':
+        n = 128
+    elif methodName == 'ANN':
+        n = 80
+    elif methodName in ('CNN', 'CNN-SYN'):
         n = 80
 
     f = open(job_file, 'w')
@@ -302,7 +314,7 @@ def biasCorrection(model, var, methodName):
 
     # Set bc_method None to empty string
     local_bc_method = bc_method
-    if local_bc_method == None:
+    if apply_bc == False:
         local_bc_method = ''
 
     os.system('sbatch --job-name=' + model + ' ' + job_file + ' ' + ' ' + model +

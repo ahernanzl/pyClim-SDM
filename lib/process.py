@@ -61,6 +61,9 @@ def reanalisys(method_dict, scene, model):
         elif family == 'WG':
             down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
             down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
+        elif family == 'DEEP':
+            down_scene_DEEP.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+            down_scene_DEEP.collect_chunks(var, methodName, family, mode, fields, scene, model)
 
     # Parallel processing
     elif running_at_HPC == True:
@@ -108,6 +111,9 @@ def models(method_dict, scene, model):
             elif family == 'WG':
                 down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
                 down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            elif family == 'DEEP':
+                down_scene_DEEP.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_DEEP.collect_chunks(var, methodName, family, mode, fields, scene, model)
 
         # Parallel processing
         elif running_at_HPC == True:

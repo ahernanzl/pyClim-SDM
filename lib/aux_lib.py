@@ -87,6 +87,51 @@ def initial_checks():
                 os.remove(f)
 
 ########################################################################################################################
+def check_var_units():
+    """
+    Check units for the different variables by the reanalysis and by a GCM
+    """
+
+    # for var in ('tmax', 'tmin', 'pcp'):
+    for var in reaNames:
+
+        try:
+            aux = read.one_direct_predictor(var)
+            reaMin = np.nanmin(aux['data'])
+            reaMin = str(np.round(reaMin, 1))
+            reaMax = np.nanmax(aux['data'])
+            reaMax = str(np.round(reaMax, 1))
+            reaUnits=aux['units']
+        except:
+            reaUnits, reaMin, reaMax = '-', '-', '-'
+
+        model_found = False
+        for model in model_names_list:
+            for scene in scene_names_list:
+                scene = scene.lower().replace('-', '').replace('.', '')
+                try:
+                    aux=read.one_direct_predictor(var, model=model, scene=scene)
+                    modMin = np.nanmin(aux['data'])
+                    modMin = str(np.round(modMin, 1))
+                    modMax = np.nanmax(aux['data'])
+                    modMax = str(np.round(modMax, 1))
+                    modUnits=aux['units']
+                    model_found = True
+                    break
+                except:
+                    modUnits, modMin, modMax = '-', '-', '-'
+                if model_found == True:
+                    break
+            if model_found == True:
+                break
+
+        print('-------------------------------------------------------------------------------------------------------')
+        print('Variable:', var)
+        print('Reanalysis:'.ljust(15), 'Min:', reaMin.ljust(10), 'Max:', reaMax.ljust(10), 'Units:', reaUnits.ljust(15))
+        print('Models:'.ljust(15),      'Min:', modMin.ljust(10), 'Max:', modMax.ljust(10), 'Units:', modUnits.ljust(15))
+
+
+########################################################################################################################
 def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons):
     """
     Join 5 kfolds and into a single file and delete the folds.

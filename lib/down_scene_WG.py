@@ -62,9 +62,9 @@ def downscale_chunk_WG_PDF(var, methodName, family, mode, fields, scene, model, 
             os.makedirs(pathOut)
 
         # Read data
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
 
         # Split eg in chunks
         trained_model_names = ['PARAM1_reg', 'PARAM2_reg', ]
@@ -129,7 +129,7 @@ def downscale_chunk_WG_PDF(var, methodName, family, mode, fields, scene, model, 
         if ipoint % 1000 == 0:
             print('interpolating', ipoint)
         var_scene_interp[:, ipoint] = grids.interpolate_predictors(var_scene,
-                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_dict[mode])[:, 0]
+                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode)[:, 0]
     # np.save(pathTmp+'var_scene_interp', var_scene_interp)
     # var_scene_interp = np.load(pathTmp+'var_scene_interp.npy')
     del var_scene
@@ -297,9 +297,9 @@ def downscale_chunk_WG_NMM(var, methodName, family, mode, fields, scene, model, 
             os.makedirs(pathOut)
 
         # Read data
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
 
         # Split eg in chunks
         trained_model_names = ['P00', 'P01', 'P10', 'P11', 'ECDF_pcp', ]
@@ -358,7 +358,7 @@ def downscale_chunk_WG_NMM(var, methodName, family, mode, fields, scene, model, 
         if ipoint % 1000 == 0:
             print('interpolating', ipoint)
         var_scene_interp[:, ipoint] = grids.interpolate_predictors(var_scene,
-                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_dict[mode])[:, 0]
+                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode)[:, 0]
     del var_scene
     # np.save(pathTmp+'var_scene_interp', var_scene_interp)
     # var_scene_interp=np.load(pathTmp+'var_scene_interp.npy')
@@ -521,8 +521,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lons.npy')
 
     # Set units
     if var == 'pcp':

@@ -58,9 +58,9 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
 
         # Read data and converts obs to uint16 or int16 to save memory
         obs = read.hres_data(var, period='training')['data']
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
 
         # Set scene dates and predictors
         if scene == 'TESTING':
@@ -150,8 +150,8 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             print('downscaling', var, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
-        X_train = grids.interpolate_predictors(var_calib, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+        X_train = grids.interpolate_predictors(var_calib, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
         Y_train = obs[:, ipoint]
         Y_train = Y_train[:, np.newaxis]
 
@@ -229,8 +229,8 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
         pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lons.npy')
 
     # Set units
     if var == 'pcp':

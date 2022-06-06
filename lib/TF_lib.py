@@ -38,40 +38,48 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
     Calibrates regression for all points,divided in chunks if run at HPC.
     '''
 
+
     # Define pathOut
-    pathOut='../tmp/TRAINING_'  + var + '_' + methodName + '/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/'
 
     # Declares variables for father process, who creates pathOut
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        pred_calib = None
-        var_calib = None
         if 'pred' in fields:
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_training.npy')
             pred_calib = pred_calib.astype('float32')
+            X_train = pred_calib
+        if 'saf' in fields:
+            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_training.npy')
+            saf_calib = saf_calib.astype('float32')
+            X_train = saf_calib
         if 'var' in fields:
             var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-        obs = read.hres_data(var, period='training')['data']
-        obs = (100 * obs).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_dict[mode]+'/w_4nn.npy')
+            if 'pred' not in fields:
+                X_train = var_calib
+            else:
+                # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
+                X_train = np.concatenate((X_train, var_calib), axis=1)
+
+        y_train = read.hres_data(var, period='training')['data']
+        y_train = (100 * y_train).astype(predictands_codification[var]['type'])
+        i_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/i_4nn.npy')
+        j_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/j_4nn.npy')
+        w_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/w_4nn.npy')
 
     # Declares variables for the other processes
     else:
-        pred_calib = None
-        var_calib = None
-        obs = None
+        X_train = None
+        y_train = None
         i_4nn = None
         j_4nn = None
         w_4nn = None
 
     # Share data with all subprocesses
     if nproc > 1:
-        pred_calib = MPI.COMM_WORLD.bcast(pred_calib, root=0)
-        var_calib = MPI.COMM_WORLD.bcast(var_calib, root=0)
-        obs = MPI.COMM_WORLD.bcast(obs, root=0)
+        X_train = MPI.COMM_WORLD.bcast(X_train, root=0)
+        y_train = MPI.COMM_WORLD.bcast(y_train, root=0)
         i_4nn = MPI.COMM_WORLD.bcast(i_4nn, root=0)
         j_4nn = MPI.COMM_WORLD.bcast(j_4nn, root=0)
         w_4nn = MPI.COMM_WORLD.bcast(w_4nn, root=0)
@@ -86,14 +94,8 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
-    regressors = npoints_ichunk * [None]
-    classifiers = npoints_ichunk * [None]
-    if get_reg_and_clf_scores == True:
-        regressors_scores = np.zeros(npoints_ichunk)
-        classifiers_scores = np.zeros(npoints_ichunk)
-
     # If we are tuning hyperparameters only certaing points will be calculated
-    if plot_hyperparameters == True:
+    if plot_hyperparameters_epochs_nEstimators_featureImportances == True:
         points_chunk[ichunk]=[x for x in points_chunk[ichunk] if x%500==0]
 
     # loop through all points of the chunk
@@ -106,101 +108,61 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
             print('training', var, methodName, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Get preds from neighbour/s and trains model for echa point
-        Y = obs[:, ipoint]
-        valid = np.where(Y < special_value)[0]
+        y_train_ipoint = y_train[:, ipoint]
+        valid = np.where(y_train_ipoint < special_value)[0]
         if valid.size < 30:
             exit('Not enough valid predictands to train')
-        Y = Y[valid]
-        X = pred_calib[valid, :, :, :]
-        X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_dict[mode])
+        y_train_ipoint = y_train_ipoint[valid]
+        X_train_ipoint = X_train[valid, :, :, :]
+
+        # Prepare X_train shape
+        if var+'_'+methodName not in methods_using_preds_from_whole_grid:
+            X_train_ipoint = grids.interpolate_predictors(X_train_ipoint, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+        elif methodName not in ['CNN', 'CNN-SYN']:
+            X_train_ipoint = X_train_ipoint.reshape(X_train_ipoint.shape[0], X_train_ipoint.shape[1], -1)
 
         # Train TF (clf and reg)
-        regressors[ipoint_local_index], classifiers[ipoint_local_index] = train_point(var, methodName, X, Y, ipoint)
-        if get_reg_and_clf_scores == True:
-            regressors_scores[ipoint_local_index] = regressors[ipoint_local_index].score(X, Y)
-            if var == 'pcp':
-                classifiers_scores[ipoint_local_index] = classifiers[ipoint_local_index].score(X, Y)
+        reg, clf = train_point(var, methodName, X_train_ipoint, y_train_ipoint, ipoint)
 
-
-
-    # Save chunks
-    if plot_hyperparameters == False:
-        outfile = open(pathOut + 'regressors_'+str(ichunk), 'wb')
-        pickle.dump(regressors, outfile)
-        outfile.close()
-        outfile = open(pathOut + 'classifiers_'+str(ichunk), 'wb')
-        pickle.dump(classifiers, outfile)
-        outfile.close()
-        if get_reg_and_clf_scores == True:
-            np.save(pathOut + 'regressors_scores_'+str(ichunk), regressors_scores)
-            if var == 'pcp':
-                np.save(pathOut + 'classifiers_scores_'+str(ichunk), classifiers_scores)
-
-
-########################################################################################################################
-def collect_chunks(var, methodName, family, n_chunks=1):
-    """
-    This function collects the results of downscale_chunk() and saves them into a final single file.
-    """
-
-    print('--------------------------------------')
-    print('collect chunks', n_chunks)
-
-    # Define paths
-    pathIn = '../tmp/TRAINING_' + var + '_' + methodName + '/'
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/'
-    if not os.path.exists(pathOut):
-        os.makedirs(pathOut)
-
-    # Create empty regressors/classifiers to be filled
-    regressors = np.zeros((0, ))
-    classifiers = np.zeros((0, ))
-    if get_reg_and_clf_scores == True:
-        regressors_scores = np.zeros((0, ))
+        # Save clf/reg. some objects can be serialized with pickle, but keras models have their own method
+        try:
+            pickle.dump(reg, open(pathOut + 'reg_'+str(ipoint), 'wb'))
+        except:
+            reg.save(pathOut + 'reg_'+str(ipoint) + '.h5')
         if var == 'pcp':
-            classifiers_scores = np.zeros((0, ))
-
-    # Read trained models chunks and accumulate them
-    for ichunk in range(n_chunks):
-        infile = open(pathIn+'regressors_'+str(ichunk), 'rb')
-        regressors_ichunk = pickle.load(infile)
-        infile.close()
-        infile = open(pathIn+'classifiers_'+str(ichunk), 'rb')
-        classifiers_ichunk = pickle.load(infile)
-        infile.close()
-        regressors = np.append(regressors, regressors_ichunk, axis=0)
-        classifiers = np.append(classifiers, classifiers_ichunk, axis=0)
-        if get_reg_and_clf_scores == True:
-            regressors_scores_ichunk = np.load(pathIn + 'regressors_scores_' + str(ichunk) + '.npy')
-            regressors_scores = np.append(regressors_scores, regressors_scores_ichunk, axis=0)
-            if var == 'pcp':
-                classifiers_scores_ichunk = np.load(pathIn + 'classifiers_scores_' + str(ichunk) + '.npy')
-                classifiers_scores = np.append(classifiers_scores, classifiers_scores_ichunk, axis=0)
-    shutil.rmtree(pathIn)
-
-    # Save to file
-    outfile = open(pathOut + methodName + '_reg', 'wb')
-    pickle.dump(regressors, outfile)
-    outfile.close()
-    if get_reg_and_clf_scores == True:
-        np.save(pathOut + methodName + '_R2_score', regressors_scores)
-
-    if var == 'pcp':
-        outfile = open(pathOut + methodName + '_clf', 'wb')
-        pickle.dump(classifiers, outfile)
-        outfile.close()
-        if get_reg_and_clf_scores == True:
-            np.save(pathOut + methodName + '_acc_score', classifiers_scores)
+            try:
+                pickle.dump(clf, open(pathOut + 'clf_'+str(ipoint), 'wb'))
+            except:
+                clf.save(pathOut + 'clf_'+str(ipoint) + '.h5')
 
 
 ########################################################################################################################
-def train_point(var, methodName, X, Y, ipoint):
+def train_point(var, methodName, X, y, ipoint):
     '''
     Train model (classifiers and regressors)
     '''
 
     classifier = None
     regressor = None
+    history_clf = None
+    history_reg = None
+
+    # Define callbacks for neural networks training
+    tf_nn_callbacks = [
+        tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            min_delta=0,
+            patience=2,
+            verbose=0,
+            mode='auto'
+        ),
+        tf.keras.callbacks.ReduceLROnPlateau(
+            monitor='val_loss',
+            factor=0.25,
+            patience=3,
+        )
+    ]
+
 
     # For precipitation trains classier+regression, but for temperature only regression
     if var[0] == 't':
@@ -208,38 +170,74 @@ def train_point(var, methodName, X, Y, ipoint):
         # Regressor t
         if methodName == 'MLR':
             regressor = RidgeCV(cv=3)
-        elif methodName == 'ANN':
-            # regressor = GridSearchCV(MLPRegressor(activation='logistic', hidden_layer_sizes=(70,), solver='sgd',
-            #                                       learning_rate='adaptive', max_iter=10000),
-            #                                         param_grid={'alpha': [0.0001, 0.001, 0.01, 0.1]}, cv=3)
-            # regressor = MLPRegressor(hidden_layer_sizes=(10,), max_iter=100000)
-            # regressor = GridSearchCV(MLPRegressor(max_iter=100000), param_grid={'alpha': [0.00001,0.0001, 0.001, 0.01, 0.1,1,10]}, cv=3)
-            # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
-            regressor = GridSearchCV(MLPRegressor(max_iter=100000),
-                                     param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            regressor.fit(X, y)
+
         elif methodName == 'SVM':
-            regressor = GridSearchCV(svm.SVR(kernel='rbf'),
-                                param_grid={"C": np.logspace(3, 5, 3), "gamma": np.logspace(-3, 0, 3)}, cv=3)
-        elif methodName == 'LS-SVM':
-            regressor = GridSearchCV(KernelRidge(kernel='rbf'),
-                                 param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
-
-
-        # For LS-SVM and SVR uses a random sample of 5000 data
-        if methodName in ('SVM', 'LS-SVM'):
-        # if regressor_name in ('LS-SVM', 'SVR', 'MLPR'):
+            # Use a random sample of 5000 data
             nDays = X.shape[0]
             nRand = min(nDays, 5000)
             rng = np.random.default_rng()
             iDays = rng.choice(nDays, size=nRand, replace=False)
-            X, Y = X[iDays], Y[iDays]
-        regressor.fit(X, Y)
-        # if methodName in ('SVM', 'LS-SVM'):
-        #     print(regressor.best_params_)
+            X, y = X[iDays], y[iDays]
+            regressor = GridSearchCV(svm.SVR(kernel='rbf'),
+                                param_grid={"C": np.logspace(3, 5, 3), "gamma": np.logspace(-3, 0, 3)}, cv=3)
+            regressor.fit(X, y)
+
+        elif methodName == 'LS-SVM':
+            # Use a random sample of 5000 data
+            nDays = X.shape[0]
+            nRand = min(nDays, 5000)
+            rng = np.random.default_rng()
+            iDays = rng.choice(nDays, size=nRand, replace=False)
+            X, y = X[iDays], y[iDays]
+            regressor = GridSearchCV(KernelRidge(kernel='rbf'),
+                                 param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
+            regressor.fit(X, y)
+
+        elif methodName == 'RF':
+            regressor = GridSearchCV(RandomForestRegressor(), param_grid={"max_depth": [20, 60]}, cv=3)
+            regressor.fit(X, y)
+
+        elif methodName == 'XGB':
+            regressor = XGBRegressor(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
+            X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2)
+            regressor.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
+            history_reg = regressor.evals_result()
+
+        elif methodName == 'ANN':
+            # skelear implementation
+            # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
+            # regressor = GridSearchCV(MLPRegressor(max_iter=100000),
+            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            # regressor.fit(X, y)
+
+            # keras tensorflow implementation
+            regressor = tf.keras.models.Sequential([
+                keras.layers.Dense(64, activation='relu', input_shape=X.shape[1:]),
+                keras.layers.Dense(64, activation='relu'),
+                keras.layers.Dense(1), ])
+            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
+            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+
+        elif methodName in ['CNN', 'CNN-SYN']:
+            # Prepare shape for convolution layer
+            X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
+            regressor = tf.keras.models.Sequential()
+            regressor.add(layers.Conv2D(filters=64, kernel_size=(2,2), activation='relu', input_shape=X.shape[1:]))
+            # if X.shape[1] >= 10 and X.shape[2] >= 10:
+            #     regressor.add(layers.MaxPooling2D(pool_size=2))
+            #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+            regressor.add(layers.Flatten())
+            regressor.add(layers.Dense(64, activation='relu'))
+            regressor.add(layers.Dense(64, activation='relu'))
+            regressor.add(layers.Dense(1))
+            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
+            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
 
     else:
-        israiny = (Y > (100 * wetDry_th))
-        nDays = Y.size
+        # Prepare data for precipitation
+        israiny = (y > (100 * wetDry_th))
+        nDays = y.size
         # If all data are dry, clasiffiers won't work. A random data is forced into wet.
         minWetDays = 3
         allDry = False
@@ -248,76 +246,144 @@ def train_point(var, methodName, X, Y, ipoint):
         if allDry == True:
             rand = random.sample(range(nDays), minWetDays)
             israiny[rand] = True
-            Y[rand] = 100*0.1
+            y[rand] = 100*0.1
         X_rainy_days = X[israiny==True]
         if allDry == True:
             for i in range(minWetDays):
                 X_rainy_days[i] = 999 - i
-        Y_rainy_days = Y[israiny==True]
+        y_rainy_days = y[israiny==True]
 
         # Classifier pcp
         if methodName[:3] == 'GLM':
             classifier = LogisticRegressionCV(cv=3, max_iter=1000)
-            # classifier = RidgeClassifierCV(cv=3)
-        elif methodName == 'ANN':
-            # classifier = GridSearchCV(MLPClassifier(activation='logistic', hidden_layer_sizes=(10,), solver='sgd',
-            #                                       learning_rate='adaptive', max_iter=10000),
-            #                                         param_grid={'alpha': [0.1, 1, 10]}, cv=3)
-            # classifier = MLPClassifier(hidden_layer_sizes=(200,), max_iter=100000)
-            classifier = GridSearchCV(MLPClassifier(max_iter=100000),
-                                     param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            classifier = CalibratedClassifierCV(classifier, cv=5)
+            classifier.fit(X, 1*israiny)
+
         elif methodName == 'SVM':
             classifier = GridSearchCV(svm.SVC(kernel='rbf'),
                                     param_grid={"C": np.logspace(0, 1, 2), "gamma": np.logspace(-2, -1, 2)}, cv=3)
-        elif methodName == 'LS-SVM':
-            classifier = RidgeClassifierCV(cv=3)
-
-        # Transform classifier to CalibratedClassifierCV to get probabilities from classes.
-        # if classifier_mode == 'probabilistic':
-        classifier = CalibratedClassifierCV(classifier, cv=5)
-
-        if methodName == 'SVM':
-            nDays = X.shape[0]
-            nRand = min(nDays, 7500)
-            rng = np.random.default_rng()
-            iDays = rng.choice(nDays, size=nRand, replace=False)
-            classifier.fit(X[iDays], 1*israiny[iDays])
-        else:
-            # Fit
+            classifier = CalibratedClassifierCV(classifier, cv=5)
             classifier.fit(X, 1*israiny)
 
-        # Regressor t
+        elif methodName == 'LS-SVM':
+            classifier = RidgeClassifierCV(cv=3)
+            classifier = CalibratedClassifierCV(classifier, cv=5)
+            classifier.fit(X, 1*israiny)
+
+        elif methodName == 'RF':
+            classifier = GridSearchCV(RandomForestClassifier(), param_grid={"max_depth": [20, 60]}, cv=3)
+            if plot_hyperparameters_epochs_nEstimators_featureImportances == False:
+                classifier = CalibratedClassifierCV(classifier, cv=5)
+            classifier.fit(X, 1*israiny)
+
+        elif methodName == 'XGB':
+            classifier = XGBClassifier(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
+            X_train, X_valid, y_train, y_valid = train_test_split(X, israiny, test_size=0.2)
+            classifier.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
+            history_clf = classifier.evals_result()
+
+        elif methodName == 'ANN':
+            # sklearn implementation
+            # classifier = MLPClassifier(hidden_layer_sizes=(200,), max_iter=100000)
+            # classifier = GridSearchCV(MLPClassifier(max_iter=100000),
+            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            # classifier.fit(X, 1*israiny)
+
+            # keras tensorflow implementation
+            classifier = tf.keras.models.Sequential([
+                keras.layers.Dense(64, activation='relu', input_shape=X.shape[1:]),
+                keras.layers.Dense(64, activation='relu'),
+                keras.layers.Dense(1, activation='sigmoid'), ])
+            classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+
+        elif methodName in ['CNN', 'CNN-SYN']:
+            # Prepare shape for convolution
+            X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
+            classifier = tf.keras.models.Sequential()
+            classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu', input_shape=X.shape[1:]))
+            # if X.shape[1] >= 10 and X.shape[2] >= 10:
+            #     classifier.add(layers.MaxPooling2D(pool_size=2))
+            #     classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+            classifier.add(layers.Flatten())
+            classifier.add(layers.Dense(64, activation='relu'))
+            classifier.add(layers.Dense(64, activation='relu'))
+            classifier.add(layers.Dense(1, activation='sigmoid'))
+            classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+
+        # Regressor
         if methodName == 'GLM-LIN':
             regressor = RidgeCV(cv=3)
+            regressor.fit(X_rainy_days, y_rainy_days)
+
         elif methodName == 'GLM-EXP':
-            Y_rainy_days = np.log(Y_rainy_days)
+            y_rainy_days = np.log(y_rainy_days)
             regressor = RidgeCV(cv=3)
+            regressor.fit(X_rainy_days, y_rainy_days)
+
         elif methodName == 'GLM-CUB':
-            Y_rainy_days = np.cbrt(Y_rainy_days)
+            y_rainy_days = np.cbrt(y_rainy_days)
             regressor = RidgeCV(cv=3)
-        elif methodName == 'ANN':
-            # regressor = GridSearchCV(MLPRegressor(activation='logistic', hidden_layer_sizes=(10,), solver='sgd',
-            #                                       learning_rate='adaptive', max_iter=10000),
-            #                                         param_grid={'alpha': [0.1, 1, 10]}, cv=3)
-            # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
-            regressor = GridSearchCV(MLPRegressor( max_iter=100000),
-                                     param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            regressor.fit(X_rainy_days, y_rainy_days)
+
         elif methodName == 'SVM':
             regressor = GridSearchCV(svm.SVR(kernel='rbf'),
                                 param_grid={"C": np.logspace(3, 5, 3), "gamma": np.logspace(-2, 0, 3)}, cv=3)
+            regressor.fit(X_rainy_days, y_rainy_days)
+
         elif methodName == 'LS-SVM':
             regressor = GridSearchCV(KernelRidge(kernel='rbf'),
                                  param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
+            regressor.fit(X_rainy_days, y_rainy_days)
 
+        elif methodName == 'RF':
+            regressor = GridSearchCV(RandomForestRegressor(), param_grid={"max_depth": [20, 60]}, cv=3)
+            regressor.fit(X_rainy_days, y_rainy_days)
 
-        # Fit
-        regressor.fit(X_rainy_days, Y_rainy_days)
-        # if methodName == 'LS-SVM':
-        #     print(regressor.best_params_)
+        elif methodName == 'XGB':
+            regressor = XGBRegressor(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
+            X_train, X_valid, y_train, y_valid = train_test_split(X_rainy_days, y_rainy_days, test_size=0.2)
+            regressor.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
+            history_reg = regressor.evals_result()
 
-        # Plot hyperparameters
-        if plot_hyperparameters == True:
-            plot.hyperparameters(regressor, methodName, ipoint)
+        elif methodName == 'ANN':
+            # sklearn implementation
+            # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
+            # regressor = GridSearchCV(MLPRegressor( max_iter=100000),
+            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            # regressor.fit(X_rainy_days, y_rainy_days)
+
+            # keras tensorflow implementation
+            regressor = tf.keras.models.Sequential([
+                keras.layers.Dense(64, activation='relu', input_shape=X_rainy_days.shape[1:]),
+                keras.layers.Dense(64, activation='relu'),
+                keras.layers.Dense(1), ])
+            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
+            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0,
+                    callbacks=tf_nn_callbacks)
+
+        elif methodName in ['CNN', 'CNN-SYN']:
+            # Prepare shape for convolution
+            X_rainy_days = np.swapaxes(np.swapaxes(X_rainy_days, 1, 2), 2, 3)
+            regressor = tf.keras.models.Sequential()
+            regressor.add(layers.Conv2D(filters=64, kernel_size=(2,2), activation='relu', input_shape=X.shape[1:]))
+            # if X.shape[1] >= 10 and X.shape[2] >= 10:
+            #     regressor.add(layers.MaxPooling2D(pool_size=2))
+            #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+            regressor.add(layers.Flatten())
+            regressor.add(layers.Dense(64, activation='relu'))
+            regressor.add(layers.Dense(64, activation='relu'))
+            regressor.add(layers.Dense(1))
+            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
+            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+
+    # Plot hyperparameters
+    if plot_hyperparameters_epochs_nEstimators_featureImportances == True:
+        if var == 'pcp':
+            plot.hyperparameters_epochs_nEstimators_featureImportances(classifier, var, methodName, ipoint, 'classifier', history_clf)
+        plot.hyperparameters_epochs_nEstimators_featureImportances(regressor, var, methodName, ipoint, 'regressor', history_reg)
+
 
     return regressor, classifier
 
@@ -336,5 +402,3 @@ if __name__=="__main__":
 
     train_chunk(var, methodName, family, mode, fields, iproc, nproc)
     MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
-    if iproc==0:
-        collect_chunks(var, methodName, family, nproc)

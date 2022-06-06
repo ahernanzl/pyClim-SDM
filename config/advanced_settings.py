@@ -28,15 +28,16 @@ if running_at_HPC == False:
 # If min/max range is surpased, some adaptations must be made (change uint16 for uin32 for pcp, for example, which
 # needs more memory
 
-# This dictionary controls the interpolation used for each family
-interp_dict = {'RAW': 'nearest', 'PP': 'bilinear', 'MOS': 'bilinear', 'WG': 'bilinear'}
+# This parameter controls the interpolation used for predictors
+# interp_mode = 'nearest'
+interp_mode = 'bilinear'
 
 # Predictands have to be between min/max. Use uint16/uint32 for precipitation depending on your data
 predictands_codification = {
     'tmax': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
     'tmin': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
-    'pcp': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
-    # 'pcp': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
+    # 'pcp': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
+    'pcp': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
 }
 
 ###################################     PSEUDOREALITY    ###########################################################
@@ -63,15 +64,19 @@ else:
 pathFigures = '../results/Figures/'
 degree_sign = u'\N{DEGREE SIGN}C'
 
-# Set the following boolean parameters
-plot_hyperparameters = False # Plots hyperparameters when training SVR or LS-SVM. Important to see hyperparameters range
-mean_and_std_from_GCM = True # Set to False to use them from reanalysis
-get_reg_and_clf_scores = False # Computes and save R2 and accuracy at training
+# Plots hyperparameters, epochs, nEstimators and featureImportances for Machine Learning methods (and trains only one out of 500 points)
+# This is used to establish the hyperparameters range, but once that has been done, set to False to train the methods.
+# If set to True, figures will be storaged at aux/TRAINED_MODELS
+plot_hyperparameters_epochs_nEstimators_featureImportances = False
+
+# When standarizing predictors from a GCM, use its own mean and std or take them from the reanalysis
+mean_and_std_from_GCM = True
 
 exp_var_ratio_th = .95 # threshold for PCA of SAFs
 k_clusters = 250   # set to None first time, and when weather_types.set_number_of_clusters ends see elbow curve and
                     # set k_clusters properly
 anal_pcp_corr_th = 0.2 # correlation threshold for analogs pcp significant predictors
+
 min_days_corr = 30 # for analogs pcp significant predictors
 wetDry_th = 0.1 # mm. It is used for classifiers (for climdex the threshold is 1 mm)
 n_analogs_preselection = 150 # for analogs
@@ -91,6 +96,12 @@ elif experiment in ('PROJECTIONS', 'PSEUDOREALITY'):
 # If False, all days (for that point) will be calculated normally, and that particular day and point will be set to Nan
 recalibrating_when_missing_preds = False
 
+# Transfer function methods can use local predictors (nearest neightbour / bilinear) or predictors from the whole grid
+# When using the whole grid, they have more information as inputs, but that consumes more memory
+# Furthermore, when using the whole grid, a missing value affects all points, so more problems related to missing data
+# will arise.
+methods_using_preds_from_whole_grid=['tmax_CNN', 'tmin_CNN', 'pcp_CNN', 'pcp_CNN-SYN', ]
+
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the
 # climdex (projections), set to False. This parameter is used in postporcess.get_climdex_oneModel
@@ -99,6 +110,13 @@ if experiment in ('EVALUATION', 'PSEUDOREALITY'):
 elif experiment == 'PROJECTIONS':
     reference_climatology_from_observations = False
 
+
+###################################     Bias correction   #################################################
+biasCorr_years = reference_years
+# bc_method = None
+# bc_method = 'QM'
+# bc_method = 'DQM'
+bc_method = 'PSDM'
 
 ########################################       DATES      ##############################################################
 # Definition of testing_years and historical_years depending on the experiment (do not change)
@@ -192,7 +210,6 @@ shortTermPeriodFilename = str(shortTerm_years[0]) + '-' + str(shortTerm_years[1]
 longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 
-
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
 all_levels = [1000, 850, 700, 500, 250]
 
@@ -254,6 +271,8 @@ preds_levels = list(dict.fromkeys(preds_levels))
 if 'pcp' in all_preds.keys():
     print('---------------------------------------------------------------')
     print('CAUTION: predictors will be standardized, and precipitation should not be mixed with other predictors and used that way.')
+    print('Standardizing precipitation will lead to zeros being represented by different values depending on the model.')
+    print('This is not advisable and can lead to poor performance of Transfer Function methods.')
     print('---------------------------------------------------------------')
 
 # Detect target_vars0 depending on selected predictors
@@ -267,7 +286,8 @@ if n_preds_p != 0:
 target_vars = []
 for var in ('tmax', 'tmin', 'pcp'):
     for method in methods:
-        if method['var'] == var and 'var' in method['fields'] and var not in target_vars:
+        # if method['var'] == var and 'var' in method['fields'] and var not in target_vars:
+        if method['var'] == var and var not in target_vars:
             target_vars.append(var)
 
 # Check for consistency between predictors and methods
@@ -372,6 +392,7 @@ pred_lons = np.linspace(pred_lon_left, pred_lon_right, pred_nlons)
 pred_ilats = [i for i in range(ext_nlats) if ext_lats[i] in pred_lats]
 pred_ilons = [i for i in range(ext_nlons) if ext_lons[i] in pred_lons]
 
+
 ##################################      SAF WEIGHTS         ############################################################
 # Create W_saf (weights for synoptic analogy fields).Do not change
 W_saf = np.ones((nsaf, saf_nlats, saf_nlons))
@@ -432,6 +453,7 @@ plotAllRegions = False  # Set to False so only the complete region will be plott
 # ####################  COLORS AND STYLES    #####################################################
 t_methods_colors = {
     'RAW': 'lightgray',
+    'RAW-BIL': 'lightgray',
     'QM': 'orange',
     'DQM': 'orange',
     'QDM': 'orange',
@@ -439,14 +461,19 @@ t_methods_colors = {
     'ANA-MLR': 'r',
     'WT-MLR': 'r',
     'MLR': 'cyan',
-    'ANN': 'b',
     'SVM': 'b',
     'LS-SVM': 'b',
+    'RF': 'purple',
+    'XGB': 'purple',
+    'ANN-sklearn': 'magenta',
+    'ANN': 'magenta',
+    'CNN': 'magenta',
     'WG-PDF': 'g',
 }
 
 t_methods_linestyles = {
     'RAW': '-',
+    'RAW-BIL': '--',
     'QM': '-',
     'DQM': '--',
     'QDM': ':',
@@ -454,14 +481,19 @@ t_methods_linestyles = {
     'ANA-MLR': '-',
     'WT-MLR': '--',
     'MLR': '-',
+    'SVM': '-',
+    'LS-SVM': '--',
+    'RF': '-',
+    'XGB': '--',
+    'ANN-sklearn': ':',
     'ANN': '-',
-    'SVM': '--',
-    'LS-SVM': ':',
+    'CNN': '--',
     'WG-PDF': '-',
 }
 
 p_methods_colors = {
     'RAW': 'lightgray',
+    'RAW-BIL': 'lightgray',
     'QM': 'orange',
     'DQM': 'orange',
     'QDM': 'orange',
@@ -472,21 +504,27 @@ p_methods_colors = {
     'ANA-LOC-1NN': 'lightcoral',
     'ANA-LOC-kNN': 'lightcoral',
     'ANA-LOC-rand': 'lightcoral',
-    'ANA-PCP-1NN': 'darkred',
-    'ANA-PCP-kNN': 'darkred',
-    'ANA-PCP-rand': 'darkred',
+    'ANA-VAR-1NN': 'darkred',
+    'ANA-VAR-kNN': 'darkred',
+    'ANA-VAR-rand': 'darkred',
     'GLM-LIN': 'cyan',
     'GLM-EXP': 'cyan',
     'GLM-CUB': 'cyan',
-    'ANN': 'b',
     'SVM': 'b',
     'LS-SVM': 'b',
+    'RF': 'purple',
+    'XGB': 'purple',
+    'ANN-sklearn': 'magenta',
+    'ANN': 'magenta',
+    'CNN': 'magenta',
+    'CNN-SYN': 'magenta',
     'WG-NMM': 'g',
     'WG-PDF': 'g',
 }
 
 p_methods_linestyles = {
     'RAW': '-',
+    'RAW-BIL': '--',
     'QM': '-',
     'DQM': '--',
     'QDM': ':',
@@ -497,15 +535,20 @@ p_methods_linestyles = {
     'ANA-LOC-1NN': '-',
     'ANA-LOC-kNN': '--',
     'ANA-LOC-rand': ':',
-    'ANA-PCP-1NN': '-',
-    'ANA-PCP-kNN': '--',
-    'ANA-PCP-rand': ':',
+    'ANA-VAR-1NN': '-',
+    'ANA-VAR-kNN': '--',
+    'ANA-VAR-rand': ':',
     'GLM-LIN': '-',
     'GLM-EXP': '--',
     'GLM-CUB': ':',
+    'SVM': '-',
+    'RF': '-',
+    'XGB': '--',
+    'ANN-sklearn': ':',
     'ANN': '-',
-    'SVM': '--',
-    'LS-SVM': ':',
+    'CNN': '--',
+    'CNN-SYN': ':',
+    'LS-SVM': '--',
     'WG-NMM': '-',
     'WG-PDF': '--',
 }

@@ -35,18 +35,89 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def bias_correction_projections():
+def bias_correction():
     """
     Bias correction of projections and get climdex from bias corrected daily data.
     """
 
-    if experiment == 'PROJECTIONS' and bc_method != None:
-        for method_dict in methods:
-            var, methodName = method_dict['var'], method_dict['methodName']
-            bias_correction_allModels(var, methodName)
+    if apply_bc == True:
+        if bc_method == None:
+            print('Select a bc_method at advanced_settings.')
+            exit()
+        else:
+            for method_dict in methods:
+                var, methodName = method_dict['var'], method_dict['methodName']
+                if experiment == 'EVALUATION':
+                    bias_correction_renalysis(var, methodName)
+                elif experiment == 'PROJECTIONS':
+                    bias_correction_allModels(var, methodName)
+
+
+
+########################################################################################################################
+def bias_correction_renalysis(var, methodName):
+    """
+    Apply bias correction for a specific model.
+    """
+
+    print('postprocess.bias_correction_renalysis', var, methodName, bc_method)
+
+    # Define and create paths
+    pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
+    pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+
+    # Read data
+    est_aux = read.netCDF(pathIn, 'reanalysis_TESTING.nc', var)
+    est_times = est_aux['times']
+    est_data = est_aux['data']
+    obs_aux = read.hres_data(var, period='calibration')
+    obs_data = obs_aux['data']
+    obs_times = obs_aux['times']
+
+    # Select common dates
+    all_years = list(np.unique(np.array([x.year for x in est_times])))
+    idates_common = [i for i in range(len(obs_times)) if obs_times[i].year in all_years]
+    obs_data = obs_data[idates_common]
+    obs_times = np.array(obs_times)[idates_common]
+
+    # Display warning if few years
+    if len(all_years) < 30:
+        print('----------------------------------------')
+        print('WARNING: reanalysis testing will be bias corrected, but there are only', len(all_years), 'yeas avalible')
+        print('Bias correction with few years might not perform well')
+        print('----------------------------------------')
+
+    # print('obs', obs_data.shape, obs_times[0], obs_times[-1])
+    # print('est', est_data.shape, est_times[0], est_times[-1])
+
+    # Empty array for results
+    scene_bc = np.zeros(est_data.shape)
+
+    for year in all_years:
+        idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year!=year]
+        idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
+        # print(year, len(idates_ref), len(idates_sce))
+        obs = obs_data[idates_ref]
+        mod = est_data[idates_ref]
+        sce = obs_data[idates_sce]
+
+        # Correct bias for year
+        scene_bc[idates_sce] = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref],
+                                                                 est_times[idates_sce])
+
+    # Set units
+    if var == 'pcp':
+        units = 'mm'
     else:
-        print('Set experiment=PROJECTIONS and select a bc_method at settings.')
-        exit()
+        units = 'degress'
+
+    # Save bias corrected scene
+    hres_lats = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lats.npy')
+    hres_lons = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lons.npy')
+    write.netCDF(pathOut, 'reanalysis_TESTING.nc', var, scene_bc, units, hres_lats, hres_lons,
+                 est_times, regular_grid=False)
 
 
 
@@ -59,7 +130,7 @@ def bias_correction_allModels(var, methodName):
     print('postprocess.bias_correction_allModels', var, methodName, bc_method)
 
 
-    if bc_method != None:
+    if apply_bc == True:
 
         # Define and create paths
         pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
@@ -165,14 +236,7 @@ def bias_correction_oneModel(var, methodName, model):
             del aux
 
             # Correct bias for scene
-            if bc_method == 'QM':
-                scene_bc = BC_lib.quantile_mapping(obs_data, mod_data, scene_data, var)
-            elif bc_method == 'DQM':
-                scene_bc = BC_lib.detrended_quantile_mapping(obs_data, mod_data, scene_data, var)
-            elif bc_method == 'QDM':
-                scene_bc = BC_lib.quantile_delta_mapping(obs_data, mod_data, scene_data, var)
-            elif bc_method == 'PSDM':
-                scene_bc = BC_lib.scaled_distribution_mapping(obs_data, mod_data, scene_data, var)
+            scene_bc = BC_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, var, biasCorr_dates, scene_dates)
 
             # Set units
             if var == 'pcp':
@@ -181,8 +245,8 @@ def bias_correction_oneModel(var, methodName, model):
                 units = 'degress'
 
             # Save bias corrected scene
-            hres_lats = np.load(pathAux + var[0].upper()+'_bilinear/ASSOCIATION/hres_lats.npy')
-            hres_lons = np.load(pathAux + var[0].upper()+'_bilinear/ASSOCIATION/hres_lons.npy')
+            hres_lats = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lats.npy')
+            hres_lons = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lons.npy')
             write.netCDF(pathOut, model + '_' + scene + '.nc', var, scene_bc, units, hres_lats, hres_lons,
                          scene_dates, regular_grid=False)
 
@@ -214,8 +278,13 @@ def get_climdex_for_evaluation(var, methodName):
     Calculate climdex for evaluation
     """
     print(methodName)
-    pathOut = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/climdex/'
-    pathIn = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/daily_data/'
+    if apply_bc == False:
+        pathOut = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/climdex/'
+        pathIn = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/daily_data/'
+    else:
+        pathOut = '../results/EVALUATION_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/climdex/'
+        pathIn = '../results/EVALUATION_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
+
     if os.path.isfile(pathIn+'reanalysis_TESTING.nc'):
 
         # Read data
@@ -239,7 +308,7 @@ def get_climdex_allModels(var, methodName):
     if pseudoreality == True:
         path = '../results/'+experiment+'/pseudoreality_'+GCM_longName+'_'+RCM+'/'+var.upper()+'/'+methodName+'/'
     else:
-        if bc_method == None:
+        if apply_bc == False:
             path = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/'
         else:
             path = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/'
@@ -323,7 +392,7 @@ def get_climdex_oneModel(var, methodName, model):
     if pseudoreality == True:
         path = '../results/'+experiment+'/pseudoreality_'+GCM_longName+'_'+RCM+'/'+var.upper()+'/'+methodName+'/'
     else:
-        if bc_method == None:
+        if apply_bc == False:
             path = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/'
         else:
             path = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/'
@@ -348,6 +417,7 @@ def get_climdex_oneModel(var, methodName, model):
         times_ref_clim = aux['times']
     else:
         ref_clim, times_ref_clim = ref, times_ref
+
 
     # Calculate climdex for reference period
     postpro_lib.calculate_all_climdex(pathOut, 'REFERENCE_' + model, var, ref, times_ref, ref_clim, times_ref_clim)
@@ -395,7 +465,7 @@ def nc2ascii():
     netCDFs to ASCII.
     """
 
-    if experiment == 'PROJECTIONS' and bc_method != None:
+    if apply_bc == True:
         sufix = '_BC-'+bc_method
     else:
         sufix = ''

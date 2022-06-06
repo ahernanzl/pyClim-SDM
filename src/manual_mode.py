@@ -8,6 +8,9 @@ from advanced_settings import *
 
 def main():
 
+    # aux_lib.check_var_units()
+    # exit()
+
     #---------------------- INITIAL CHECKS ---------------------------------------------------------------------------------
     aux_lib.initial_checks()
 
@@ -23,11 +26,10 @@ def main():
     preprocess.preprocess()
     preprocess.train_methods()
     process.downscale()
-    postprocess.bias_correction_projections() # Only for PROJECTIONS
+    postprocess.bias_correction()
     postprocess.get_climdex()
     postprocess.plot_results()
     postprocess.nc2ascii()
-
 
 
 if __name__=="__main__":

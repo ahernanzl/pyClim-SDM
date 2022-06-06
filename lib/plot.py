@@ -33,6 +33,7 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
 def lighten_color(color, amount=0.5):
     """
@@ -53,47 +54,184 @@ def lighten_color(color, amount=0.5):
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
+
 ########################################################################################################################
-def hyperparameters(estimator, estimator_name, ipoint):
+def feature_importances(estimator, var, methodName, ipoint, estimatorType):
     '''
-    Plot hyperparameters from gridSearchCV for some points.
-    It is only prepared for regressor, not for classifiers.
+    Plot feature_importances
     '''
 
-    print('hyperparameters', estimator_name, ipoint)
-
-    # Define hyperparameters depending on regressor type
-    if estimator_name == 'LS-SVM':
-        hyp1, hyp2 = 'alpha', 'gamma'
-    elif estimator_name == 'SVR':
-        hyp1, hyp2 = 'C', 'gamma'
-    elif estimator_name == 'MLPR':
-        exit('Plot hyperparameters not implemented yed ' + estimator_name)
-
-    # Get hiyperparameters and scores from gridSearchCV
-    params = estimator.cv_results_['params']
-    x1 = np.unique(np.asarray([x[hyp1] for x in params]))
-    x2 = np.unique(np.asarray([x[hyp2] for x in params]))
-    scores = estimator.cv_results_['mean_test_score'].reshape(x1.size, x2.size)
-
-    # Plot hyperparameters matrix
-    plt.pcolor(scores.T, vmin=0)
-    plt.ticklabel_format(style="sci", scilimits=(0, 0))
-    plt.xlabel(hyp1)
-    plt.xticks(list(range(x1.size)), [str("{:.0e}".format(x)) for x in x1], rotation=70)
-    plt.ylabel(hyp2)
-    plt.yticks(list(range(x2.size)), [str("{:.0e}".format(x)) for x in x2])
-    plt.colorbar(extend='min')
-    plt.title(estimator_name)
-    # plt.show()
-    # exit()
-
-    # Creat pathOut
-    pathOut = pathAux + 'TRAINED_MODELS/PCP_regressors/Hyperparameters_' + estimator_name + '/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
-    plt.savefig(pathOut + str(ipoint) + '.png')
+
+    # Plot feature importances
+    importances = estimator.best_estimator_.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in estimator.best_estimator_.estimators_], axis=0)
+    if var == 'pcp':
+        feature_names = [x for x in preds_p_list]
+    else:
+        feature_names = [x for x in preds_t_list]
+    feature_names.append(var)
+    forest_importances = pd.Series(importances, index=feature_names)
+
+    fig, ax = plt.subplots()
+    forest_importances.plot.bar(yerr=std, ax=ax)
+    ax.set_title("Feature importances\n" + methodName + ' ' + estimatorType + ' ' + str(ipoint))
+    ax.set_xticklabels(feature_names)
+    fig.tight_layout()
+    # plt.show()
+    # exit()
+    plt.savefig(pathOut + 'featureImportances_' + estimatorType + '_' + str(ipoint) + '.png')
     plt.close('all')
+
+########################################################################################################################
+def hyperparameters(estimator, var, methodName, ipoint, estimatorType):
+    '''
+    Plot hyperparameters
+    '''
+
+    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+
+    # Read parameters from gridSearchCV
+    params = estimator.cv_results_['params']
+    hyps = list(params[0].keys())
+
+    if len(hyps) > 2:
+        print('best_parameters', estimator.best_params_)
+    elif len(hyps) == 1:
+        hyp1 = hyps[0]
+        x1 = np.unique(np.asarray([x[hyp1] for x in params]))
+        scores = estimator.cv_results_['mean_test_score']
+        plt.plot(x1, scores)
+        plt.ylim((0, 1))
+        plt.xlabel(hyp1)
+        plt.title(methodName + ' ' + str(ipoint))
+        # plt.show()
+        # exit()
+        plt.savefig(pathOut + estimatorType + '_' + str(ipoint) + '.png')
+        plt.close('all')
+
+    elif len(hyps) == 2:
+        hyp1, hyp2 = hyps[0], hyps[1]
+
+        # Get hiyperparameters and scores from gridSearchCV
+        x1 = np.unique(np.asarray([x[hyp1] for x in params]))
+        x2 = np.unique(np.asarray([x[hyp2] for x in params]))
+        scores = estimator.cv_results_['mean_test_score'].reshape(x1.size, x2.size)
+
+        # Plot hyperparameters matrix
+        g = sns.heatmap(scores.T, annot=True, vmin=0, vmax=1, fmt='.3f', xticklabels=True, yticklabels=True)
+        g.tick_params(left=False, bottom=False)
+        g.set_xticklabels([str("{:.0e}".format(x)) for x in x1], rotation=0)
+        g.set_xlabel(hyp1)
+        g.set_yticklabels([str("{:.0e}".format(x)) for x in x2], rotation=0)
+        g.set_ylabel(hyp2)
+        plt.title(methodName + ' ' + str(ipoint))
+        # plt.show()
+        # exit()
+        plt.savefig(pathOut + estimatorType + '_' + str(ipoint) + '.png')
+        plt.close('all')
+
+########################################################################################################################
+def epochs(estimator, var, methodName, ipoint, estimatorType, history):
+    '''
+    Plot loss and metric vs epochs
+    '''
+
+    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+
+    # summarize history for loss
+    if estimatorType == 'classifier':
+        metric = 'accuracy'
+        factor = 1
+    elif estimatorType == 'regressor':
+        metric = 'mse'
+        factor = 10000
+
+    # Plot history of the metric
+    try:
+        plt.plot([x/factor for x in history.history[metric]])
+    except:
+        print('Invalid metric', metric, 'not used to compile the model.')
+        exit()
+    plt.plot([x/factor for x in history.history['val_'+metric]])
+    plt.title(metric + ' ' + str(ipoint))
+    plt.ylabel(metric)
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    # plt.show()
+    # exit()
+    plt.savefig(pathOut + 'metric_' + estimatorType + '_' + str(ipoint) + '.png')
+    plt.close('all')
+
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title(estimatorType + ' loss ' + str(ipoint))
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    # plt.show()
+    # exit()
+    plt.savefig(pathOut + 'loss_' + estimatorType + '_' + str(ipoint) + '.png')
+    plt.close('all')
+
+
+########################################################################################################################
+def nEstimators(estimator, var, methodName, ipoint, estimatorType, history):
+    '''
+    Plot loss and metric vs epochs
+    '''
+
+    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+
+    # summarize history for loss
+    if estimatorType == 'classifier':
+        metric = 'logloss'
+        factor = 1
+    elif estimatorType == 'regressor':
+        metric = 'rmse'
+        factor = 10000
+
+    # Plot history of the metric
+    try:
+        plt.plot([x/factor for x in history["validation_0"][metric]])
+    except:
+        print('Invalid metric', metric, 'not used to compile the model.')
+        exit()
+    plt.plot([x/factor for x in history["validation_1"][metric]])
+    plt.axvline(estimator.best_ntree_limit, color="gray", label="Optimal tree number")
+    plt.title(metric + ' ' + str(ipoint))
+    plt.ylabel(metric)
+    plt.xlabel('n_estimators')
+    plt.legend(['train', 'test', 'Optimal tree number'], loc='upper left')
+    # plt.show()
+    # exit()
+    plt.savefig(pathOut + 'metric_' + estimatorType + '_' + str(ipoint) + '.png')
+    plt.close('all')
+
+
+########################################################################################################################
+def hyperparameters_epochs_nEstimators_featureImportances(estimator, var, methodName, ipoint, estimatorType, history):
+    '''
+    Plot hyperparameters or epochs to analyze the machine learning method tuning
+    '''
+
+    if methodName == 'RF':
+        feature_importances(estimator, var, methodName, ipoint, estimatorType)
+
+    if methodName in ('SVM', 'LS-SVM', 'RF'):
+        hyperparameters(estimator, var, methodName, ipoint, estimatorType)
+    elif methodName in ('ANN', 'CNN', 'CNN-SYN'):
+        epochs(estimator, var, methodName, ipoint, estimatorType, history)
+    elif methodName in ('XGB', ):
+        nEstimators(estimator, var, methodName, ipoint, estimatorType, history)
 
 
 ########################################################################################################################
@@ -241,6 +379,7 @@ def weights_regions():
         os.makedirs(pathOut)
     plt.savefig(pathOut + filename)
 
+
 ########################################################################################################################
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     new_cmap = colors.LinearSegmentedColormap.from_list(
@@ -250,8 +389,9 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
 
 
 ########################################################################################################################
-def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None, plot_library='Basemap',
-        regType=None, regName=None, colorbar_out=False, pointSize=None, grid=None, plot_lat_lon=True):
+def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None,
+        plot_library='Basemap',
+        regType=None, regName=None, colorbar_out=False, pointSize=None, grid=None, plot_lat_lon=True, marker='s'):
     """
     This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
     data as colormesh.
@@ -282,7 +422,7 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
-                        'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
+                                   'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
     dict.update({'tmax_TXm': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
                               'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'tmax_p10': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
@@ -414,22 +554,21 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
                                             'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
                                             'colors': None, 'ext': 'max'}})
 
-
     dict.update({'pcp_SDII': {'units': 'mm', 'bounds': np.linspace(0, 20, 9), 'cmap': 'terrain_r', 'vmin': None,
-                                 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
     dict.update({'pcp_SDII_rel_bias': {'units': '%',
-                                          'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
-                                          'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                          'ext': 'max'}})
+                                       'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+                                       'ext': 'max'}})
     dict.update({'pcp_SDII_rel_change': {'units': '%', 'bounds': np.array(
         [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                            'n_bin': None, 'colors': None, 'ext': 'max'}})
+                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
     dict.update({'pcp_SDII_rel_biasMedian': {'units': '%', 'bounds': np.array(
         [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                                'n_bin': None, 'colors': None, 'ext': 'max'}})
+                                             'n_bin': None, 'colors': None, 'ext': 'max'}})
     dict.update({'pcp_SDII_rel_biasSpread': {'units': '%', 'bounds': np.array([0, 10, 20, 30, 40, 50, 100]),
-                                                'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
-                                                'colors': None, 'ext': 'max'}})
+                                             'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
+                                             'colors': None, 'ext': 'max'}})
 
     ############ Theses palettes are to be tuned
     dict.update({'p': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 50, 'n_bin': 50,
@@ -451,21 +590,24 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     dict.update({'corrMonth': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.4, 'vmax': 1, 'n_bin': 6,
                                'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'correlation': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 10,
-                               'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
+                                 'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
     dict.update({'pearson': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10,
-                               'colors': ['r', 'y', 'g'], 'ext': 'min'}})
+                             'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'spearman': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 10,
-                               'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
-    dict.update({'probInv': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5, 'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
+                              'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
+    dict.update({'probInv': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5,
+                             'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
     dict.update({'r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': .5, 'vmax': 1, 'n_bin': 5,
                         'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'t_r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.8, 'vmax': 1, 'n_bin': 4,
-                        'colors': ['r', 'y', 'g'], 'ext': 'min'}})
+                          'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'p_r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5,
-                        'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'acc': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10, 'colors': ['r', 'y', 'g'], 'ext': 'min'}})
+                          'colors': ['r', 'y', 'g'], 'ext': 'min'}})
+    dict.update({'acc': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10,
+                         'colors': ['r', 'y', 'g'], 'ext': 'min'}})
     dict.update({'perc_nan': {'units': '%', 'bounds': np.array(
-        [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]), 'cmap': 'RdYlGn_r', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'neither'}})
+        [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]), 'cmap': 'RdYlGn_r', 'vmin': None, 'vmax': None, 'n_bin': None,
+                              'colors': None, 'ext': 'neither'}})
 
     # dict.update({'std_interp_preds': {'units': '', '': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 41, 'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     # dict.update({'abs_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 25, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
@@ -477,26 +619,27 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     # dict.update({'pcp_p95_rel_bias': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': -50, 'vmax': 50, 'n_bin': 20, 'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
     # dict.update({'pcp_p95_rel_bias': {'units': '%', 'bounds': np.array([-150, -100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
     dict.update({'change_TXm_mean': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 12,
-                                      'n_bin': 12, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
+                                     'n_bin': 12, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'change_TNm_mean': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 12,
-                                      'n_bin': 12, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
+                                     'n_bin': 12, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     # dict.update({'change_Pm_mean': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': -100, 'vmax': 100, 'n_bin': 11,
     #                                  'colors': ['r', 'y', 'g'], 'ext': 'both'}})
     dict.update({'change_PRCPTOT_mean': {'units': '%', 'bounds': np.array(
         [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                            'n_bin': None, 'colors': None, 'ext': 'max'}})
+                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
     dict.update({'change_Pm_mean': {'units': '%', 'bounds': np.array([-150, -100, -50, -40, -30, -20, -10, 0, 10, 20,
-                                      30, 40, 50, 100, 150]), 'cmap': None, 'vmin': None, 'vmax': None, 'n_bin': None,
-                                     'colors': ['r', 'y', 'g'], 'ext': 'both'}})
+                                                                      30, 40, 50, 100, 150]), 'cmap': None,
+                                    'vmin': None, 'vmax': None, 'n_bin': None,
+                                    'colors': ['r', 'y', 'g'], 'ext': 'both'}})
     dict.update({'change_TXm_std': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
-                                     'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
+                                    'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
     dict.update({'change_TNm_std': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
-                                     'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
+                                    'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
     dict.update({'change_Pm_std': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
-                                    'colors': ['g', 'y', 'r'], 'ext': 'max'}})
+                                   'colors': ['g', 'y', 'r'], 'ext': 'max'}})
     dict.update({'change_PRCPTOT_std': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
-                                    'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    
+                                        'colors': ['g', 'y', 'r'], 'ext': 'max'}})
+
     # dict.update({'none': {'units': degree_sign, 'bounds': np.array([0, 1]), 'cmap': 'bwr', 'ext': 'both'}})
     #
     # Select palette
@@ -517,7 +660,6 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     if grid == None:
         # Read lats lons
         if lats[0] == None:
-
             lats = hres_lats[var0]
             lons = hres_lons[var0]
 
@@ -528,7 +670,7 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
             lonMax = np.max(hres_lons_all) + 2
 
         if regType != None:
-            regNames = pd.read_csv(pathAux + 'ASSOCIATION/'+var0.upper()+'/association.csv')[regType].values
+            regNames = pd.read_csv(pathAux + 'ASSOCIATION/' + var0.upper() + '/association.csv')[regType].values
             iaux = [i for i in range(len(regNames)) if regNames[i] == regName]
             lats, lons = lats[iaux], lons[iaux]
 
@@ -566,7 +708,6 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
         lonmin = np.min(lons)
         lonMax = np.max(lons)
 
-
     # Create colormap
     if irregular_bins == True:
         norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
@@ -598,16 +739,17 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
                 s = pointSize
             elif pseudoreality == False:
                 # s = 1
-                s = 10
+                # s = 10
+                s = 25
             elif pseudoreality == True:
                 s = 10
             if palette == 'target_region':
                 s = .05
             X, Y = list(map(lons, lats))
             if irregular_bins == True:
-                map.scatter(X, Y, c=data, s=s, norm=norm, cmap=cmap)
+                map.scatter(X, Y, c=data, s=s, norm=norm, cmap=cmap, marker=marker)
             else:
-                map.scatter(X, Y, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax)
+                map.scatter(X, Y, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax, marker=marker)
         elif grid != None:
             x = np.linspace(0, map.urcrnrx, lons.shape[0])
             y = np.linspace(0, map.urcrnry, lats.shape[0])
@@ -653,7 +795,6 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
 
     else:
         print('plot_library', plot_library, 'not implemented')
-
 
     # Plot map
     if colorbar_out == False:

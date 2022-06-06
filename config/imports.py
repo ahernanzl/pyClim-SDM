@@ -21,6 +21,8 @@ from matplotlib.lines import Line2D
 from matplotlib.colors import LinearSegmentedColormap
 import sklearn
 from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import r2_score
 from sklearn.cluster import KMeans
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.linear_model import LinearRegression
@@ -37,6 +39,17 @@ from sklearn.decomposition import PCA
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+# import absl.logging
+# absl.logging.set_verbosity(absl.logging.ERROR)
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers, models
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import load_model
+from tensorflow.keras import backend as K
+from xgboost import XGBClassifier, XGBRegressor
 from scipy.stats import spearmanr
 from scipy.stats import pearsonr
 from scipy.ndimage import gaussian_filter1d

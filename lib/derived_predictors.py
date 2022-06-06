@@ -33,6 +33,40 @@ import val_lib
 import WG_lib
 import write
 
+
+########################################################################################################################
+def Clausius_Clapeyron(t, units_kelvin=True):
+    """
+    Calculate saturation vapor pressure from temperature
+    :param t: in Kelvin (if Celcious, set units_kelvin to False)
+    :return: saturation vapor pressure
+    """
+
+    t0 = 273.15
+    L = 2.5 * 10 ** 6
+    Rv = 461
+
+    if units_kelvin == False:
+        t += t0
+
+    es = 6.11 * np.exp((L / Rv) * (1 / t0 - 1 / t))
+
+    return es
+
+########################################################################################################################
+def Clausius_Clapeyron_inverse(es):
+    """
+    Calculate temperature from saturation vapor pressure
+    :return: temperature in Kelvin
+    """
+
+    t0 = 273.15
+    L = 2.5 * 10 ** 6
+    Rv = 461
+    t = 1 / [(1/t0) - (np.log(es / 6.11) / (L / Rv))]
+
+    return t
+
 ########################################################################################################################
 def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; email:ccorreag@aemet.es
     """    Showalter index:    SSI (K) = t500 - tp500   
@@ -275,6 +309,451 @@ def TT_index(model='reanalysis', scene='TESTING'):
 
     return TT_index
 
+
+########################################################################################################################
+def aux_r_direct(level, model, scene):
+    """get relative humidity directly
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            r = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            r = aux['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('r', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            r = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('r', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            r = aux['data']
+            
+    return r, dates
+
+
+########################################################################################################################
+def aux_r_from_q(level, model, scene):
+    """get relative humidity indirectly from specific humidity
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            q = read.one_direct_predictor('q2m', grid='ext', model=model, scene=scene)['data'][idates]
+            p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data'][idates]
+            p /= 100
+        else:
+            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            q = read.one_direct_predictor('q2m', level=level, grid='ext', model=model, scene=scene)['data']
+            p = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)['data']
+            p /= 100
+    else:
+        if model == 'reanalysis':
+            p = level
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            q = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            p = level
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            q = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data']
+
+    es = Clausius_Clapeyron(t)
+    e = q * p / (0.622 + 0.378 * q)
+    r = 100 * e / es
+
+    return r, dates
+
+
+########################################################################################################################
+def aux_r_from_Td(level, model, scene):
+    """get relative humidity indirectly from specific humidity
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            td = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            td = read.one_direct_predictor('d2m', level=level, grid='ext', model=model, scene=scene)['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            td = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            td = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)['data']
+
+    # Transform from Celcious to Kelvin
+    t0 = 273.15
+    if np.mean(t) < 100:
+        t += t0
+    if np.mean(td) < 100:
+        td += t0
+
+    e = Clausius_Clapeyron(td)
+    es = Clausius_Clapeyron(t)
+    r = 100*e/es
+
+    return r, dates
+
+########################################################################################################################
+def relative_humidity(level, model='reanalysis', scene='TESTING'):
+    """get relative humidity directly or indirectly
+    level: sfc or pressure level in mb
+    """
+
+    try:
+        r, dates = aux_r_direct(level, model='reanalysis', scene='TESTING')
+    except:
+        print('relative humidity', level, 'not available. Trying to retrieve it indirectly')
+        try:
+            r, dates = aux_r_from_q(level, model='reanalysis', scene='TESTING')
+        except:
+            try:
+                r, dates = aux_r_from_Td(level, model='reanalysis', scene='TESTING')
+            except:
+                print('relative humidity', level, 'not available neither directly nor indirectly')
+                exit()
+
+    warnings.filterwarnings("ignore", message="invalid value encountered in greater")
+    warnings.filterwarnings("ignore", message="invalid value encountered in less")
+    r[r < 0] = 0
+    r[r > 100] = 100
+
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'r' + str(level) + '.nc', 'r', r, '%', ext_lats, ext_lons, dates)
+
+    return r
+
+
+########################################################################################################################
+def aux_q_direct(level, model, scene):
+    """get specific humidity directly
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('q2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            q = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('q2m', grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            q = aux['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            q = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            q = aux['data']
+
+    return q, dates
+
+
+########################################################################################################################
+def aux_q_from_r(level, model, scene):
+    """get specific humidity indirectly from relative humidity
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            r = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)['data'][idates]
+            p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            r = read.one_direct_predictor('r2m', level=level, grid='ext', model=model, scene=scene)['data']
+            p = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)['data']
+    else:
+        if model == 'reanalysis':
+            p = level
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            r = read.one_direct_predictor('r', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            p = level
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            r = read.one_direct_predictor('r', level=level, grid='ext', model=model, scene=scene)['data']
+
+    es = Clausius_Clapeyron(t)
+    e = r*es/100
+    q = e * 0.622 / (p - e *0.378)
+
+    return q, dates
+
+
+########################################################################################################################
+def aux_q_from_Td(level, model, scene):
+    """get relative humidity indirectly from specific humidity
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            td = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('d2m', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            td = aux['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            td = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            td = aux['data']
+
+    L = 2.5 * 10 ** 6
+    Rv = 461
+    q = p * np.exp((1 / 273 - 1 /td) / (Rv / L)) / (0.622 * 6.11)
+
+    return q, dates
+
+
+########################################################################################################################
+def specific_humidity(level, model='reanalysis', scene='TESTING'):
+    """get specific humidity directly or indirectly
+    level: sfc or pressure level in mb
+    """
+
+    try:
+        r, dates = aux_r_direct(level, model='reanalysis', scene='TESTING')
+    except:
+        print('specific humidity', level, 'not available. Trying to retrieve it indirectly')
+        try:
+            q, dates = aux_q_from_r(level, model='reanalysis', scene='TESTING')
+        except:
+            try:
+                q, dates = aux_q_from_Td(level, model='reanalysis', scene='TESTING')
+            except:
+                print('specific humidity', level, 'not available neither directly nor indirectly')
+                exit()
+
+    warnings.filterwarnings("ignore", message="invalid value encountered in greater")
+    warnings.filterwarnings("ignore", message="invalid value encountered in less")
+
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'q' + str(level) + '.nc', 'q', q, '%', ext_lats, ext_lons, dates)
+
+    return q
+
+########################################################################################################################
+def aux_Td_direct(level, model, scene):
+    """get dew point directly
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            td = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            td = aux['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            td = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            td = aux['data']
+
+    return td, dates
+
+
+########################################################################################################################
+def aux_Td_from_q(level, model, scene):
+    """get dew point indirectly from specific humidity
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('q2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            q = aux['data'][idates]
+            p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data'][idates]
+            p /= 100
+        else:
+            aux = read.one_direct_predictor('q2m', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            q = aux['data']
+            p = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)['data']
+            p /= 100
+    else:
+        if model == 'reanalysis':
+            p = level
+            dates = calibration_dates
+            aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            q = aux['data'][idates]
+        else:
+            p = level
+            aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            q = aux['data']
+
+    L = 2.5 * 10 ** 6
+    Rv = 461
+    td = 1 / (1 / 273 - (Rv / L) * np.log(p * q / (0.622 * 6.11)))
+
+    return td, dates
+
+
+########################################################################################################################
+def aux_Td_from_r(level, model, scene):
+    """get dew point indirectly from relative humidity
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            r = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            r = read.one_direct_predictor('r2m', level=level, grid='ext', model=model, scene=scene)['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            t = aux['data'][idates]
+            r = read.one_direct_predictor('r', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            t = aux['data']
+            r = read.one_direct_predictor('r', level=level, grid='ext', model=model, scene=scene)['data']
+
+
+    es = Clausius_Clapeyron(t)
+    e = r*es/100
+    td = Clausius_Clapeyron_inverse(e)
+
+
+    return td, dates
+
+
+
+########################################################################################################################
+def dew_point(level, model='reanalysis', scene='TESTING'):
+    """get dew point directly or indirectly
+    level: sfc or pressure level in mb
+    """
+
+    try:
+        td, dates = aux_Td_direct(level, model='reanalysis', scene='TESTING')
+    except:
+        print('dew point ', level, 'not available. Trying to retrieve it indirectly')
+        try:
+            td, dates = aux_Td_from_q(level, model='reanalysis', scene='TESTING')
+        except:
+            try:
+                td, dates = aux_Td_from_r(level, model='reanalysis', scene='TESTING')
+            except:
+                print('dew point ', level, 'not available neither directly nor indirectly')
+                exit()
+
+    warnings.filterwarnings("ignore", message="invalid value encountered in greater")
+    warnings.filterwarnings("ignore", message="invalid value encountered in less")
+
+    # Save to netCDF file
+    if model == 'reanalysis':
+        pathOut = pathAux + 'DERIVED_PREDICTORS/'
+        write.netCDF(pathOut, 'td' + str(level) + '.nc', 'td', td, '%', ext_lats, ext_lons, dates)
+
+    return td
+
+
 ########################################################################################################################
 def q2r(level, model='reanalysis', scene='TESTING'):
     """specific humidity to relative humidity
@@ -301,7 +780,8 @@ def q2r(level, model='reanalysis', scene='TESTING'):
     Rv = 461
     p = level
 
-    es = 6.11 * np.exp((L / Rv) * (1 / 273 - 1 / t))
+    es = Clausius_Clapeyron(t)
+    # es = 6.11 * np.exp((L / Rv) * (1 / 273 - 1 / t))
     e = q * p / (0.622 + 0.378 * q)
     h = 100 * e / es
 

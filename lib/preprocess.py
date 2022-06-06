@@ -203,7 +203,6 @@ def train_methods():
             # Serial processing
             if running_at_HPC == False:
                 TF_lib.train_chunk(var, methodName, family, mode, fields)
-                TF_lib.collect_chunks(var, methodName, family)
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(var, methodName, family, mode, fields)
@@ -216,6 +215,7 @@ def train_methods():
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(var, methodName, family, mode, fields)
+
 
 
 
