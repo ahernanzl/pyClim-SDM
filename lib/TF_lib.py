@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -32,373 +33,234 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
-def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
-    '''
-    Calibrates regression for all points,divided in chunks if run at HPC.
-    '''
+def pcp_ANA(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, var_calib, obs, corr,
+            i_4nn, j_4nn, w_4nn, methodName, special_value):
+    """
 
+    :param syn_dist: (n_analogs_preselection,)
+    :param weather_type_id:
+    :param iana: (n_analogs_preselection,)
+    :param pred_scene: (1, npreds, nlats, nlons)
+    :param pred_calib: (ndays, npreds, nlats, nlons)
+    :param obs: (ndays,)
+    :param corr: (k_clusters, npreds)
+    :param estimation_method:
+    :return: est
+    """
 
-    # Define pathOut
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/'
+    mode = 'PP'
 
-    # Declares variables for father process, who creates pathOut
-    if iproc == 0:
-        if not os.path.exists(pathOut):
-            os.makedirs(pathOut)
-        if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_training.npy')
-            pred_calib = pred_calib.astype('float32')
-            X_train = pred_calib
-        if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_training.npy')
-            saf_calib = saf_calib.astype('float32')
-            X_train = saf_calib
-        if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-            if 'pred' not in fields:
-                X_train = var_calib
+    # Define analogy_mode and estimation_mode
+    analogy_mode = methodName.split('-')[1]
+    estimation_mode = methodName.split('-')[2]
+
+    # Get local distances
+    if analogy_mode in ('SYN', 'PCP'):
+        loc_dist = syn_dist
+        nSigPreds = 0
+    elif analogy_mode == 'LOC':
+        sigPreds = np.where(corr[weather_type_id] == True)[0]
+        nSigPreds = sigPreds.size
+        # Zero significant predictors, does not consider local distances
+        if nSigPreds == 0:
+            loc_dist = syn_dist
+        else:
+            # Missing values at model predictors, does not consider local distances
+            if len(np.where(np.isnan(pred_scene))[0]) != 0:
+                loc_dist = syn_dist
+            # Consider local distances
             else:
-                # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
-                X_train = np.concatenate((X_train, var_calib), axis=1)
+                pred_scene = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode)
+                pred_calib = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)
+                loc_dist = ANA_lib.get_local_distances(pred_calib, pred_scene, sigPreds)
+    elif analogy_mode == 'HYB':
+        loc_dist = syn_dist
+        nSigPreds = 0
+        var_scene = grids.interpolate_predictors(var_scene[np.newaxis, :, :, :], i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
+        var_calib = grids.interpolate_predictors(var_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
 
-        y_train = read.hres_data(var, period='training')['data']
-        y_train = (100 * y_train).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/i_4nn.npy')
-        j_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/j_4nn.npy')
-        w_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/w_4nn.npy')
+    # Remove days with no predictand, unless there is no day with predictand
+    valid = np.where(obs < special_value)[0]
+    if ((valid.size != obs.size) and (valid.size != 0)):
+        i = [i for i in range(iana.size) if iana[i] in valid]
+        syn_dist, loc_dist, iana = syn_dist[i], loc_dist[i], iana[i]
 
-    # Declares variables for the other processes
+    # Synop + local combined distance is used only if there are sigPreds
+    if nSigPreds != 0:
+        dist = (syn_dist + loc_dist) / 2
     else:
-        X_train = None
-        y_train = None
-        i_4nn = None
-        j_4nn = None
-        w_4nn = None
+        dist = syn_dist
 
-    # Share data with all subprocesses
-    if nproc > 1:
-        X_train = MPI.COMM_WORLD.bcast(X_train, root=0)
-        y_train = MPI.COMM_WORLD.bcast(y_train, root=0)
-        i_4nn = MPI.COMM_WORLD.bcast(i_4nn, root=0)
-        j_4nn = MPI.COMM_WORLD.bcast(j_4nn, root=0)
-        w_4nn = MPI.COMM_WORLD.bcast(w_4nn, root=0)
+    # Selects the most similar days
+    aux_index = np.argsort(dist)[:kNN]
+    index_final = iana[aux_index]
+
+    # Gets distances and precipitation of sorted analogs
+    dist = dist[aux_index]
+
+    # Select analogs
+    obs_analogs = obs[index_final]
+
+    if analogy_mode == 'HYB':
+        var_analogs = var_calib[aux_index]
+        dist_pcp = np.abs(var_analogs - var_scene)
+        aux_index = np.argsort(dist_pcp)
+        est = obs_analogs[aux_index][0]
+
+    else:
+        # Gets weight based on distances
+        dist[dist == 0] = 0.000000001
+        W = np.ones(dist.shape) / dist
+
+        # Estimates precipitation with one decimal
+        if estimation_mode == '1NN':
+            est = obs_analogs[0]
+        elif estimation_mode == 'kNN':
+            est = np.average(obs_analogs, weights=W)
+        elif estimation_mode == 'rand':
+            est = np.random.choice(obs_analogs, p=W / W.sum())
+
+    return est
 
 
-    # create chunks
-    n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
-    points_chunk = []
-    for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
-    ichunk = iproc
-    npoints_ichunk = len(points_chunk[ichunk])
+########################################################################################################################
+def t_ANA(iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, intercept, dist_centroid,
+          i_4nn, j_4nn, w_4nn, methodName, th_metric='median'):
+    """
+    This function downscale a particular point.
+    Return: array of estimated temperature
+    """
 
-    # If we are tuning hyperparameters only certaing points will be calculated
-    if plot_hyperparameters_epochs_nEstimators_featureImportances == True:
-        points_chunk[ichunk]=[x for x in points_chunk[ichunk] if x%500==0]
+    mode = 'PP'
 
-    # loop through all points of the chunk
-    special_value = 100 * predictands_codification[var]['special_value']
-    for ipoint in points_chunk[ichunk]:
-        ipoint_local_index = points_chunk[ichunk].index(ipoint)
-        if ipoint_local_index % 1 == 0:
-            print('--------------------')
-            print('ichunk:	', ichunk, '/', n_chunks)
-            print('training', var, methodName, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
+    # Interpolate and reshapes for regression
+    X = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode)
 
-        # Get preds from neighbour/s and trains model for echa point
-        y_train_ipoint = y_train[:, ipoint]
-        valid = np.where(y_train_ipoint < special_value)[0]
+    # If there are missing predictors, or regression is not precalibrated by clusters, or distance of problem day to
+    # centroid too large, or intercept is nan because there where not enough valid data to pre-calibrate the regression,
+    # set train_regressor to True and interpolate X_train
+    train_regressor = False
+    missing_preds = np.where(np.isnan(X))[1]
+
+    # Get dist_th
+    if th_metric == 'median':
+        dist_th = np.median(np.load(pathAux + 'WEATHER_TYPES/dist.npy'))
+    elif th_metric == 'max':
+        dist_th = np.max(np.load(pathAux + 'WEATHER_TYPES/dist.npy'))
+    elif th_metric == 'p90':
+        dist_th = np.percentile(np.load(pathAux + 'WEATHER_TYPES/dist.npy'), 90)
+
+    if (len(missing_preds) != 0) or (methodName != 'WT-MLR') \
+            or (dist_centroid > dist_th) or (np.isnan(intercept) == True):
+        train_regressor = True
+
+    if train_regressor == True:
+        X_train = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)
+        Y_train = obs[iana]
+
+    # Remove missing predictors
+    if len(missing_preds) != 0:
+        valid_preds = [x for x in range(X.shape[1]) if x not in missing_preds]
+        X_train = X_train[:, valid_preds]
+        X = X[:, valid_preds]
+
+    # Checks for missing predictands and remove them from training datasets
+    special_value = 100 * predictands_codification['tmax']['special_value']
+
+    if train_regressor == True:
+        valid = np.where(Y_train < special_value)[0]
+        # If not enough data for calibration
         if valid.size < 30:
-            exit('Not enough valid predictands to train')
-        y_train_ipoint = y_train_ipoint[valid]
-        X_train_ipoint = X_train[valid, :, :, :]
+            est = special_value
+        else:
+            # Remove missing predictands
+            if valid.size != Y_train.size:
+                X_train = X_train[valid]
+                Y_train = Y_train[valid]
 
-        # Prepare X_train shape
-        if var+'_'+methodName not in methods_using_preds_from_whole_grid:
-            X_train_ipoint = grids.interpolate_predictors(X_train_ipoint, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        elif methodName not in ['CNN', 'CNN-SYN']:
-            X_train_ipoint = X_train_ipoint.reshape(X_train_ipoint.shape[0], X_train_ipoint.shape[1], -1)
-
-        # Train TF (clf and reg)
-        reg, clf = train_point(var, methodName, X_train_ipoint, y_train_ipoint, ipoint)
-
-        # Save clf/reg. some objects can be serialized with pickle, but keras models have their own method
-        try:
-            pickle.dump(reg, open(pathOut + 'reg_'+str(ipoint), 'wb'))
-        except:
-            reg.save(pathOut + 'reg_'+str(ipoint) + '.h5')
-        if var == 'pcp':
-            try:
-                pickle.dump(clf, open(pathOut + 'clf_'+str(ipoint), 'wb'))
-            except:
-                clf.save(pathOut + 'clf_'+str(ipoint) + '.h5')
-
-
-########################################################################################################################
-def train_point(var, methodName, X, y, ipoint):
-    '''
-    Train model (classifiers and regressors)
-    '''
-
-    classifier = None
-    regressor = None
-    history_clf = None
-    history_reg = None
-
-    # Define callbacks for neural networks training
-    tf_nn_callbacks = [
-        tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss',
-            min_delta=0,
-            patience=2,
-            verbose=0,
-            mode='auto'
-        ),
-        tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_loss',
-            factor=0.25,
-            patience=3,
-        )
-    ]
-
-
-    # For precipitation trains classier+regression, but for temperature only regression
-    if var[0] == 't':
-
-        # Regressor t
-        if methodName == 'MLR':
-            regressor = RidgeCV(cv=3)
-            regressor.fit(X, y)
-
-        elif methodName == 'SVM':
-            # Use a random sample of 5000 data
-            nDays = X.shape[0]
-            nRand = min(nDays, 5000)
-            rng = np.random.default_rng()
-            iDays = rng.choice(nDays, size=nRand, replace=False)
-            X, y = X[iDays], y[iDays]
-            regressor = GridSearchCV(svm.SVR(kernel='rbf'),
-                                param_grid={"C": np.logspace(3, 5, 3), "gamma": np.logspace(-3, 0, 3)}, cv=3)
-            regressor.fit(X, y)
-
-        elif methodName == 'LS-SVM':
-            # Use a random sample of 5000 data
-            nDays = X.shape[0]
-            nRand = min(nDays, 5000)
-            rng = np.random.default_rng()
-            iDays = rng.choice(nDays, size=nRand, replace=False)
-            X, y = X[iDays], y[iDays]
-            regressor = GridSearchCV(KernelRidge(kernel='rbf'),
-                                 param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
-            regressor.fit(X, y)
-
-        elif methodName == 'RF':
-            regressor = GridSearchCV(RandomForestRegressor(), param_grid={"max_depth": [20, 60]}, cv=3)
-            regressor.fit(X, y)
-
-        elif methodName == 'XGB':
-            regressor = XGBRegressor(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
-            X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2)
-            regressor.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
-            history_reg = regressor.evals_result()
-
-        elif methodName == 'ANN':
-            # skelear implementation
-            # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
-            # regressor = GridSearchCV(MLPRegressor(max_iter=100000),
-            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
-            # regressor.fit(X, y)
-
-            # keras tensorflow implementation
-            regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(64, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(64, activation='relu'),
-                keras.layers.Dense(1), ])
-            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
-        elif methodName in ['CNN', 'CNN-SYN']:
-            # Prepare shape for convolution layer
-            X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
-            regressor = tf.keras.models.Sequential()
-            regressor.add(layers.Conv2D(filters=64, kernel_size=(2,2), activation='relu', input_shape=X.shape[1:]))
-            # if X.shape[1] >= 10 and X.shape[2] >= 10:
-            #     regressor.add(layers.MaxPooling2D(pool_size=2))
-            #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
-            regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(64, activation='relu'))
-            regressor.add(layers.Dense(64, activation='relu'))
-            regressor.add(layers.Dense(1))
-            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
+            # Train regression
+            reg = RidgeCV()
+            reg.fit(X_train, Y_train)
+            est = reg.predict(X)[0]
     else:
-        # Prepare data for precipitation
-        israiny = (y > (100 * wetDry_th))
-        nDays = y.size
-        # If all data are dry, clasiffiers won't work. A random data is forced into wet.
-        minWetDays = 3
-        allDry = False
-        if len(np.where(israiny==False)[0]) == nDays:
-            allDry = True
-        if allDry == True:
-            rand = random.sample(range(nDays), minWetDays)
-            israiny[rand] = True
-            y[rand] = 100*0.1
-        X_rainy_days = X[israiny==True]
-        if allDry == True:
-            for i in range(minWetDays):
-                X_rainy_days[i] = 999 - i
-        y_rainy_days = y[israiny==True]
+        # Regression by clusters precalibrated, apply coefficients
+        est = np.sum(X * coef) + intercept[0]
 
-        # Classifier pcp
-        if methodName[:3] == 'GLM':
-            classifier = LogisticRegressionCV(cv=3, max_iter=1000)
-            classifier = CalibratedClassifierCV(classifier, cv=5)
-            classifier.fit(X, 1*israiny)
+    return est
 
-        elif methodName == 'SVM':
-            classifier = GridSearchCV(svm.SVC(kernel='rbf'),
-                                    param_grid={"C": np.logspace(0, 1, 2), "gamma": np.logspace(-2, -1, 2)}, cv=3)
-            classifier = CalibratedClassifierCV(classifier, cv=5)
-            classifier.fit(X, 1*israiny)
-
-        elif methodName == 'LS-SVM':
-            classifier = RidgeClassifierCV(cv=3)
-            classifier = CalibratedClassifierCV(classifier, cv=5)
-            classifier.fit(X, 1*israiny)
-
-        elif methodName == 'RF':
-            classifier = GridSearchCV(RandomForestClassifier(), param_grid={"max_depth": [20, 60]}, cv=3)
-            if plot_hyperparameters_epochs_nEstimators_featureImportances == False:
-                classifier = CalibratedClassifierCV(classifier, cv=5)
-            classifier.fit(X, 1*israiny)
-
-        elif methodName == 'XGB':
-            classifier = XGBClassifier(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
-            X_train, X_valid, y_train, y_valid = train_test_split(X, israiny, test_size=0.2)
-            classifier.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
-            history_clf = classifier.evals_result()
-
-        elif methodName == 'ANN':
-            # sklearn implementation
-            # classifier = MLPClassifier(hidden_layer_sizes=(200,), max_iter=100000)
-            # classifier = GridSearchCV(MLPClassifier(max_iter=100000),
-            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
-            # classifier.fit(X, 1*israiny)
-
-            # keras tensorflow implementation
-            classifier = tf.keras.models.Sequential([
-                keras.layers.Dense(64, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(64, activation='relu'),
-                keras.layers.Dense(1, activation='sigmoid'), ])
-            classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
-        elif methodName in ['CNN', 'CNN-SYN']:
-            # Prepare shape for convolution
-            X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
-            classifier = tf.keras.models.Sequential()
-            classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu', input_shape=X.shape[1:]))
-            # if X.shape[1] >= 10 and X.shape[2] >= 10:
-            #     classifier.add(layers.MaxPooling2D(pool_size=2))
-            #     classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
-            classifier.add(layers.Flatten())
-            classifier.add(layers.Dense(64, activation='relu'))
-            classifier.add(layers.Dense(64, activation='relu'))
-            classifier.add(layers.Dense(1, activation='sigmoid'))
-            classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
-        # Regressor
-        if methodName == 'GLM-LIN':
-            regressor = RidgeCV(cv=3)
-            regressor.fit(X_rainy_days, y_rainy_days)
-
-        elif methodName == 'GLM-EXP':
-            y_rainy_days = np.log(y_rainy_days)
-            regressor = RidgeCV(cv=3)
-            regressor.fit(X_rainy_days, y_rainy_days)
-
-        elif methodName == 'GLM-CUB':
-            y_rainy_days = np.cbrt(y_rainy_days)
-            regressor = RidgeCV(cv=3)
-            regressor.fit(X_rainy_days, y_rainy_days)
-
-        elif methodName == 'SVM':
-            regressor = GridSearchCV(svm.SVR(kernel='rbf'),
-                                param_grid={"C": np.logspace(3, 5, 3), "gamma": np.logspace(-2, 0, 3)}, cv=3)
-            regressor.fit(X_rainy_days, y_rainy_days)
-
-        elif methodName == 'LS-SVM':
-            regressor = GridSearchCV(KernelRidge(kernel='rbf'),
-                                 param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
-            regressor.fit(X_rainy_days, y_rainy_days)
-
-        elif methodName == 'RF':
-            regressor = GridSearchCV(RandomForestRegressor(), param_grid={"max_depth": [20, 60]}, cv=3)
-            regressor.fit(X_rainy_days, y_rainy_days)
-
-        elif methodName == 'XGB':
-            regressor = XGBRegressor(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
-            X_train, X_valid, y_train, y_valid = train_test_split(X_rainy_days, y_rainy_days, test_size=0.2)
-            regressor.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
-            history_reg = regressor.evals_result()
-
-        elif methodName == 'ANN':
-            # sklearn implementation
-            # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
-            # regressor = GridSearchCV(MLPRegressor( max_iter=100000),
-            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
-            # regressor.fit(X_rainy_days, y_rainy_days)
-
-            # keras tensorflow implementation
-            regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(64, activation='relu', input_shape=X_rainy_days.shape[1:]),
-                keras.layers.Dense(64, activation='relu'),
-                keras.layers.Dense(1), ])
-            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0,
-                    callbacks=tf_nn_callbacks)
-
-        elif methodName in ['CNN', 'CNN-SYN']:
-            # Prepare shape for convolution
-            X_rainy_days = np.swapaxes(np.swapaxes(X_rainy_days, 1, 2), 2, 3)
-            regressor = tf.keras.models.Sequential()
-            regressor.add(layers.Conv2D(filters=64, kernel_size=(2,2), activation='relu', input_shape=X.shape[1:]))
-            # if X.shape[1] >= 10 and X.shape[2] >= 10:
-            #     regressor.add(layers.MaxPooling2D(pool_size=2))
-            #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
-            regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(64, activation='relu'))
-            regressor.add(layers.Dense(64, activation='relu'))
-            regressor.add(layers.Dense(1))
-            regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
-    # Plot hyperparameters
-    if plot_hyperparameters_epochs_nEstimators_featureImportances == True:
-        if var == 'pcp':
-            plot.hyperparameters_epochs_nEstimators_featureImportances(classifier, var, methodName, ipoint, 'classifier', history_clf)
-        plot.hyperparameters_epochs_nEstimators_featureImportances(regressor, var, methodName, ipoint, 'regressor', history_reg)
-
-
-    return regressor, classifier
 
 ########################################################################################################################
+def t_TF(X, reg_ipoint):
+    """
+    This function downscale a particular point.
+    Return: array of estimated temperature
+    """
 
-if __name__=="__main__":
+    try:
+        Y = reg_ipoint.predict(X, verbose=0)
+    except:
+        Y = reg_ipoint.predict(X)
 
-    nproc = MPI.COMM_WORLD.Get_size()         # Size of communicator
-    iproc = MPI.COMM_WORLD.Get_rank()         # Ranks in communicator
-    inode = MPI.Get_processor_name()          # Node where this MPI process runs
-    var = sys.argv[1]
-    methodName = sys.argv[2]
-    family = sys.argv[3]
-    mode = sys.argv[4]
-    fields = sys.argv[5]
+    if Y.ndim > 1:
+        Y = Y[:, 0]
 
-    train_chunk(var, methodName, family, mode, fields, iproc, nproc)
-    MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
+    return Y
+
+
+########################################################################################################################
+def pcp_TF(methodName, X, clf_ipoint, reg_ipoint):
+    """
+    This function downscale a particular point.
+    Return: array of estimated precipitation
+    """
+
+    if 'sklearn' in str(type(clf_ipoint)):
+        if classifier_mode == 'probabilistic':
+            # A point is rainy if its probability of pcp is greater or equal than a random number between 0 and 1.
+            odds_rainy = clf_ipoint.predict_proba(X)
+            israiny = (odds_rainy[:, 1] >= np.random.uniform(size=(odds_rainy[:, 1].shape)))
+        elif classifier_mode == 'deterministic':
+            # A point is rainy if so it is classified
+            israiny = clf_ipoint.predict(X)
+    else:
+        try:
+            odds_rainy = clf_ipoint.predict(X, verbose=0)
+        except:
+            odds_rainy = clf_ipoint.predict(X)
+        if classifier_mode == 'probabilistic':
+            # A point is rainy if its probability of pcp is greater or equal than a random number between 0 and 1.
+            israiny = (odds_rainy[:, 0] >= np.random.uniform(size=(odds_rainy[:, 0].shape)))
+        elif classifier_mode == 'deterministic':
+            # A point is rainy if its probability of pcp is greater or equal than 0.5
+            israiny = (odds_rainy[:, 0] >= .5)
+
+    # Predicts estimated target
+    try:
+        Y = reg_ipoint.predict(X, verbose=0)
+    except:
+        Y = reg_ipoint.predict(X)
+
+    if Y.ndim > 1:
+        Y = Y[:, 0]
+
+    # Transforms target if exponential regression
+    if methodName == 'GLM-EXP':
+        Y = np.exp(Y, dtype=float128)
+    elif methodName == 'GLM-CUB':
+        Y = Y ** 3
+
+    # # Set to 0.99 mm points classified as not rainy, set to 1 mm points classified as rainy where the regression
+    # # predicts no rain, and set to zero negative values
+    # Y[(Y >= 100*wetDry_th)*(israiny == False)] = 99*wetDry_th
+    # Y[(Y < 100*wetDry_th)*(israiny == True)] = 100*wetDry_th
+    # Y[Y < 0] = 0
+
+    # Set to zero points classified as not rainy
+    Y[(Y >= 100 * wetDry_th) * (israiny == False)] = 0
+
+    # Set to zero negative values
+    Y[Y < 0] = 0
+
+    return Y
