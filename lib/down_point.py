@@ -197,7 +197,12 @@ def t_TF(X, reg_ipoint):
     This function downscale a particular point.
     Return: array of estimated temperature
     """
-    Y = reg_ipoint.predict(X)
+
+    try:
+        Y = reg_ipoint.predict(X, verbose=0)
+    except:
+        Y = reg_ipoint.predict(X)
+
     if Y.ndim > 1:
         Y = Y[:, 0]
 
@@ -219,7 +224,10 @@ def pcp_TF(methodName, X, clf_ipoint, reg_ipoint):
             # A point is rainy if so it is classified
             israiny = clf_ipoint.predict(X)
     else:
-        odds_rainy = clf_ipoint.predict(X)
+        try:
+            odds_rainy = clf_ipoint.predict(X, verbose=0)
+        except:
+            odds_rainy = clf_ipoint.predict(X)
         if classifier_mode == 'probabilistic':
             # A point is rainy if its probability of pcp is greater or equal than a random number between 0 and 1.
             israiny = (odds_rainy[:, 0] >= np.random.uniform(size=(odds_rainy[:, 0].shape)))
@@ -228,7 +236,11 @@ def pcp_TF(methodName, X, clf_ipoint, reg_ipoint):
             israiny = (odds_rainy[:, 0] >= .5)
 
     # Predicts estimated target
-    Y = reg_ipoint.predict(X)
+    try:
+        Y = reg_ipoint.predict(X, verbose=0)
+    except:
+        Y = reg_ipoint.predict(X)
+
     if Y.ndim > 1:
         Y = Y[:, 0]
 
