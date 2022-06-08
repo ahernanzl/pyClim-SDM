@@ -328,6 +328,7 @@ def get_climdex_allModels(var, methodName):
                     filenames.append(pathOut + '_'.join((climdex_name, scene, model, season)) + '.npy')
         climdex_already_calculated = True
         for filename in filenames:
+            filename = filename.split('/')[-1]
             scene = filename.split('_')[1]
             model = filename.split('_')[2] + '_' + filename.split('_')[3]
             if ((os.path.isfile(pathIn + model + '_' + scene + '.nc')) and (not os.path.isfile(filename))):
@@ -335,7 +336,6 @@ def get_climdex_allModels(var, methodName):
         if climdex_already_calculated == False:
             # Check if model historical exists
             if os.path.isfile(pathIn + model + '_historical.nc'):
-
                 # Serial processing
                 if running_at_HPC == False:
                     print(var, methodName, model, 'calculating climdex')
