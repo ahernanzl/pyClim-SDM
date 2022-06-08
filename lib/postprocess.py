@@ -96,6 +96,7 @@ def bias_correction_renalysis(var, methodName):
     scene_bc = np.zeros(est_data.shape)
 
     for year in all_years:
+        print('bias_correcting reanalysis', methodName, bc_method, testing_years, year)
         idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year!=year]
         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
         # print(year, len(idates_ref), len(idates_sce))
@@ -553,8 +554,5 @@ if __name__ == "__main__":
     if task == 'climdex':
         get_climdex_oneModel(var, methodName, model)
     elif task == 'bias_correction':
-        bc_method = sys.argv[5]
-        if bc_method == 'None':
-            bc_method = None
-        bias_correction_oneModel(var, methodName, model, bc_method)
+        bias_correction_oneModel(var, methodName, model)
 

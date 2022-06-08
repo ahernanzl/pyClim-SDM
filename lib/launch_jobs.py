@@ -312,11 +312,5 @@ def biasCorrection(model, var, methodName):
     f.writelines('echo "end"\n')
     f.close()
 
-    # Set bc_method None to empty string
-    local_bc_method = bc_method
-    if apply_bc == False:
-        local_bc_method = ''
-
-    os.system('sbatch --job-name=' + model + ' ' + job_file + ' ' + ' ' + model +
-              ' ' ' ' + var + ' ' + methodName + ' ' + local_bc_method)
+    os.system('sbatch --job-name=' + model + ' ' + job_file + ' ' + ' ' + model + ' ' + var + ' ' + methodName)
 

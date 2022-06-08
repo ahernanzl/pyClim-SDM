@@ -1421,6 +1421,8 @@ class tabVisualization(ttk.Frame):
 
         # experiment
         experiments = []
+        if not os.path.exists('../results/Figures/'):
+            os.makedirs('../results/Figures/')
         for file in os.listdir('../results/Figures/'):
             if file.endswith(".png") and file.split('_')[0] not in experiments:
                 experiments.append(file.split('_')[0])

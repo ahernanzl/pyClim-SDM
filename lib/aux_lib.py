@@ -154,7 +154,7 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
     write.netCDF(path, '_'.join((model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times, regular_grid=False)
     # os.system('rm ' + path + '*fold*')
     for ifold in range(5):
-        os.remove(path + model + '_' + scene + '_fold' + str(ifold) + '.nc')
+        os.remove(path + model + '_' + scene + '_fold' + str(ifold+1) + '.nc')
 
 
 ########################################################################################################################

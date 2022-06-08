@@ -129,18 +129,23 @@ def annual_cycle():
                         imethod += 1
 
                         if imethod == nmethods:
-                            if var[0] == 't':
-                                if nmethods > 10:
-                                    plt.legend(ncol=1, bbox_to_anchor = (1.05, .99), fontsize=18)
-                                else:
-                                    plt.legend()
-                                title_size = 25
+
+                            if nmethods > 10:
+                                plt.legend(ncol=3, bbox_to_anchor=(0.06, 1.1))
                             else:
-                                if nmethods > 10:
-                                    plt.legend(ncol=3, bbox_to_anchor = (0.06, 1.1))
-                                else:
-                                    plt.legend()
-                                title_size = 15
+                                plt.legend()
+                            # if var[0] == 't':
+                            #     if nmethods > 10:
+                            #         plt.legend(ncol=1, bbox_to_anchor = (1.05, .99), fontsize=18)
+                            #     else:
+                            #         plt.legend()
+                            #     title_size = 25
+                            # else:
+                            #     if nmethods > 10:
+                            #         plt.legend(ncol=3, bbox_to_anchor = (0.06, 1.1))
+                            #     else:
+                            #         plt.legend()
+                            #     title_size = 15
 
                             # plt.title(var.upper(), fontsize=title_size)
                             plt.title(var.upper() + ' annual cycle')
