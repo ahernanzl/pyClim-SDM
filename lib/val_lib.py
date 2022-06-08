@@ -145,7 +145,7 @@ def daily_boxplots(metric, by_season):
                         elif metric == 'variance':
                             units = '%'
                         elif metric == 'rmse':
-                            if var[0] == 't':
+                            if VAR[0] == 't':
                                 units = degree_sign
                             else:
                                 units = 'mm'

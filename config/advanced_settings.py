@@ -113,9 +113,9 @@ elif experiment == 'PROJECTIONS':
 
 ###################################     Bias correction   #################################################
 biasCorr_years = reference_years
-# bc_method = None
 # bc_method = 'QM'
 # bc_method = 'DQM'
+# bc_method = 'QDM'
 bc_method = 'PSDM'
 
 ########################################       DATES      ##############################################################
