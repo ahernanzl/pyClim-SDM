@@ -1,4 +1,7 @@
 import sys
+
+import numpy as np
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -32,6 +35,7 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
 def quantile_mapping(obs, hist, sce, var):
     """
@@ -49,12 +53,12 @@ def quantile_mapping(obs, hist, sce, var):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
-    sce_corrected = 1*sce
+    sce_corrected = 1 * sce
 
     # Go through all points
     for ipoint in range(nPoints):
         # if ipoint % 100 == 0:
-            # print(ipoint)
+        # print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -64,25 +68,26 @@ def quantile_mapping(obs, hist, sce, var):
         # Remove missing data from obs and hist
         obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
 
-        # Select valid data from sce
-        ivalid = np.where(np.isnan(sce_data) == False)
-        sce_data = sce_data[ivalid]
+        if hist_data.size == 0:
+            sce_corrected[ipoint] = np.nan
+        else:
+            # Select valid data from sce
+            ivalid = np.where(np.isnan(sce_data) == False)
+            sce_data = sce_data[ivalid]
 
-        # Calculate correction
-        hist_ecdf = ECDF(hist_data)
-        p = hist_ecdf(sce_data) * 100
-        corr = np.percentile(obs_data, p) - np.percentile(hist_data, p)
+            # Calculate correction
+            hist_ecdf = ECDF(hist_data)
+            p = hist_ecdf(sce_data) * 100
+            corr = np.percentile(obs_data, p) - np.percentile(hist_data, p)
 
-        # Add correction
-        sce_corrected.T[ipoint][ivalid] = sce_data + corr
+            # Add correction
+            sce_corrected.T[ipoint][ivalid] = sce_data + corr
 
     # For precipitation, set negative values to zero
     if var == 'pcp':
         sce_corrected[sce_corrected < 0] = 0
 
     return sce_corrected
-
-
 
 
 ########################################################################################################################
@@ -107,12 +112,12 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
-    sce_corrected = 1*sce
+    sce_corrected = 1 * sce
 
     # Go through all points
     for ipoint in range(nPoints):
         # if ipoint % 100 == 0:
-            # print(ipoint)
+        # print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -122,41 +127,47 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
         # Remove missing data from obs and hist
         obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
 
-        # Select valid data from sce
-        ivalid = np.where(np.isnan(sce_data) == False)
-        sce_data = sce_data[ivalid]
-
-        if var[0] == 't':
-            # Remove mean and detrend
-            obs_detrended = detrend(obs_data)
-            hist_detrended = detrend(hist_data)
-            sce_detrended = detrend(sce_data)
-
-            # Calculate correction using data without mean and trend
-            hist_ecdf = ECDF(hist_detrended)
-            p = hist_ecdf(sce_detrended) * 100
-            corr = np.percentile(obs_detrended, p) - np.percentile(hist_detrended, p)
-
-            # Add correction and mean values removed while detrending
-            sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs) - np.mean(hist)
-
+        if hist_data.size == 0:
+            sce_corrected[ipoint] = np.nan
         else:
-            # Treat zeros
-            obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
-            hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
-            sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
+            # Select valid data from sce
+            ivalid = np.where(np.isnan(sce_data) == False)
+            sce_data = sce_data[ivalid]
 
-            # Remove change in the mean value
-            sce_mean = np.mean(sce_data)
-            sce_data *= np.mean(hist) / np.mean(sce)
+            if var[0] == 't':
+                # Remove mean and detrend
+                obs_detrended = detrend(obs_data)
+                hist_detrended = detrend(hist_data)
+                sce_detrended = detrend(sce_data)
 
-            # Calculate correction
-            hist_ecdf = ECDF(hist_data)
-            p = hist_ecdf(sce_data) * 100
-            corr = np.percentile(obs_data, p) / np.percentile(hist_data, p)
+                # Calculate correction using data without mean and trend
+                hist_ecdf = ECDF(hist_detrended)
+                p = hist_ecdf(sce_detrended) * 100
+                corr = np.percentile(obs_detrended, p) - np.percentile(hist_detrended, p)
 
-            # Add correction and change in the mean value
-            sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist)
+                # Add correction and mean values removed while detrending
+                sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs) - np.mean(hist)
+
+            else:
+                # Treat zeros
+                obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th,
+                                                            size=(np.where(obs_data < th)[0].shape))
+                hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th,
+                                                              size=(np.where(hist_data < th)[0].shape))
+                sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th,
+                                                            size=(np.where(sce_data < th)[0].shape))
+
+                # Remove change in the mean value
+                sce_mean = np.mean(sce_data)
+                sce_data *= np.mean(hist) / np.mean(sce)
+
+                # Calculate correction
+                hist_ecdf = ECDF(hist_data)
+                p = hist_ecdf(sce_data) * 100
+                corr = np.percentile(obs_data, p) / np.percentile(hist_data, p)
+
+                # Add correction and change in the mean value
+                sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist)
 
     # For precipitation, set negative values to zero
     if var == 'pcp':
@@ -190,7 +201,7 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
-    sce_corrected = 1*sce
+    sce_corrected = 1 * sce
 
     # Add a small amount of noise to accomodate ties due to limited precision
     obs += np.random.uniform(low=-jitter, high=jitter, size=obs.shape)
@@ -200,7 +211,7 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
     # Go through all points
     for ipoint in range(nPoints):
         # if ipoint % 100 == 0:
-            # print(ipoint)
+        # print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -210,27 +221,33 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
         # Remove missing data from obs and hist
         obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
 
-        # Select valid data from sce
-        ivalid = np.where(np.isnan(sce_data) == False)
-        sce_data = sce_data[ivalid]
-
-        # Treat zeros
-        if var == 'pcp':
-            obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
-            hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
-            sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
-
-        # Calculate percentiles
-        sce_ecdf = ECDF(sce_data)
-        p = sce_ecdf(sce_data) * 100
-
-        # Calculate and apply delta correction
-        if var[0] == 't':
-            delta = sce_data - np.percentile(hist_data, p)
-            sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
+        if hist_data.size == 0:
+            sce_corrected[ipoint] = np.nan
         else:
-            delta = sce_data / np.percentile(hist_data, p)
-            sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
+            # Select valid data from sce
+            ivalid = np.where(np.isnan(sce_data) == False)
+            sce_data = sce_data[ivalid]
+
+            # Treat zeros
+            if var == 'pcp':
+                obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th,
+                                                            size=(np.where(obs_data < th)[0].shape))
+                hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th,
+                                                              size=(np.where(hist_data < th)[0].shape))
+                sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th,
+                                                            size=(np.where(sce_data < th)[0].shape))
+
+            # Calculate percentiles
+            sce_ecdf = ECDF(sce_data)
+            p = sce_ecdf(sce_data) * 100
+
+            # Calculate and apply delta correction
+            if var[0] == 't':
+                delta = sce_data - np.percentile(hist_data, p)
+                sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
+            else:
+                delta = sce_data / np.percentile(hist_data, p)
+                sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
 
     # For precipitation, set negative values to zero
     if var == 'pcp':
@@ -271,12 +288,12 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
-    sce_corrected = 1*sce
+    sce_corrected = 1 * sce
 
     # Go through all points
     for ipoint in range(nPoints):
-        # if ipoint % 100 == 0:
-        #     print(ipoint)
+        if ipoint % 100 == 0:
+            print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -324,8 +341,10 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
             sce_cdf = np.maximum(np.minimum(sce_cdf, cdf_th), 1 - cdf_th)
 
             # interpolate cdf-values for obs and hist to the length of the scenario
-            obs_cdf_interpol = np.interp(np.linspace(1, obs_lenth, sce_lenth), np.linspace(1, obs_lenth, obs_lenth), obs_cdf)
-            hist_cdf_interpol = np.interp(np.linspace(1, hist_lenth, sce_lenth), np.linspace(1, hist_lenth, hist_lenth), hist_cdf)
+            obs_cdf_interpol = np.interp(np.linspace(1, obs_lenth, sce_lenth), np.linspace(1, obs_lenth, obs_lenth),
+                                         obs_cdf)
+            hist_cdf_interpol = np.interp(np.linspace(1, hist_lenth, sce_lenth), np.linspace(1, hist_lenth, hist_lenth),
+                                          hist_cdf)
 
             # adapt the observation cdfs split the tails of the cdfs around the center
             obs_cdf_shift = obs_cdf_interpol - .5
@@ -339,7 +358,7 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
             adapted_cdf = np.maximum(np.minimum(adapted_cdf, cdf_th), 1 - cdf_th)
 
             x_vals = norm.ppf(np.sort(adapted_cdf), *obs_norm) + obs_norm[-1] / hist_norm[-1] \
-                    * (norm.ppf(sce_cdf, *sce_norm) - norm.ppf(sce_cdf, *hist_norm))
+                     * (norm.ppf(sce_cdf, *sce_norm) - norm.ppf(sce_cdf, *hist_norm))
             x_vals -= x_vals.mean()
             x_vals += obs_mean + (sce_mean - hist_mean)
 
@@ -402,8 +421,8 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
 
             # correct by adapted observation cdf-values
             x_vals = gamma.ppf(np.sort(adapted_cdf), *obs_gamma) * \
-                    gamma.ppf(sce_cdf, *sce_gamma) / \
-                    gamma.ppf(sce_cdf, *hist_gamma)
+                     gamma.ppf(sce_cdf, *sce_gamma) / \
+                     gamma.ppf(sce_cdf, *hist_gamma)
 
             # interpolate to the expected length of future raindays
             correction = np.zeros(len(sce_data))
@@ -427,7 +446,6 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
     return sce_corrected
 
 
-
 ########################################################################################################################
 def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
     """
@@ -437,7 +455,6 @@ def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
     * sce (nDaysSce, nPoints): the scenario data that shall be corrected
     :return:
     """
-
 
     if apply_bc_bySeason == False:
         # Correct bias

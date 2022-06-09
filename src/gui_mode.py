@@ -368,9 +368,9 @@ class tabMethods(ttk.Frame):
             add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol+=1
             add_to_chk_list(self.chk_list, var, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow+=1; icol-=1
 
-            # Bias correction
+            # Model Output Statistics
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
-            ttk.Label(tabMethods, text="Bias Correction:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
+            ttk.Label(tabMethods, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
             add_to_chk_list(self.chk_list, var, 'QM', 'BC', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow+=1
             add_to_chk_list(self.chk_list, var, 'DQM', 'BC', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow-=1
             add_to_chk_list(self.chk_list, var, 'QDM', 'BC', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow+=1
@@ -421,9 +421,9 @@ class tabMethods(ttk.Frame):
         add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
         add_to_chk_list(self.chk_list, var, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
 
-        # Bias correction
+        # Model Output Statistics
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Bias Correction:")\
+        ttk.Label(tabMethods, text="Model Output Statistics:")\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_to_chk_list(self.chk_list, var, 'QM', 'BC', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
         add_to_chk_list(self.chk_list, var, 'DQM', 'BC', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow -= 1
@@ -960,7 +960,7 @@ class tabDatesAndDomain(ttk.Frame):
                 self.ssp_years = (firstYear_var, lastYear_var)
             icol -= 2
 
-        # Bias correction
+        # Model Output Statistics
         self.bc_option = StringVar()
         bc_options = {
             'No': 'Do not apply bias correction after downscaling.',
@@ -1726,13 +1726,13 @@ class selectionWindow():
                 self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
                 self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
 
-            # Bias correction
-            self.bc_option_chk = self.bc_option_chk.get()
-            if self.bc_option_chk == 'No':
+            # Model Output Statistics
+            self.bc_option_str = self.bc_option_chk.get()
+            if self.bc_option_str == 'No':
                 self.apply_bc, self.apply_bc_bySeason = False, False
-            elif self.bc_option_chk == 'Yes':
+            elif self.bc_option_str == 'Yes':
                 self.apply_bc, self.apply_bc_bySeason = True, False
-            elif self.bc_option_chk == 'By season':
+            elif self.bc_option_str == 'By season':
                 self.apply_bc, self.apply_bc_bySeason = True, True
 
             # split_mode and testing years
@@ -1805,12 +1805,23 @@ class selectionWindow():
             # Write tmp_main file
             write_tmpMain_file(self.steps)
 
-            # Run .tmp_main
-            if platform.system() == 'Linux':
-                subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
-            else:
-                root.destroy()
-                os.system('python3 .tmp_main.py')
+            # # Run .tmp_main
+            # if platform.system() == 'Linux':
+            #     # subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
+            #
+            #     err_log = '../tmp/err_log.txt'
+            #     subprocess.call(['xterm', '-e', 'python .tmp_main.py 2>'+err_log])
+            #     try:
+            #         if os.path.getsize(err_log) != 0:
+            #             subprocess.call(['xterm', '-e', 'tail -f '+err_log])
+            #     except:
+            #         pass
+            # else:
+            #     root.destroy()
+            #     os.system('python3 .tmp_main.py')
+
+            root.destroy()
+            os.system('python3 .tmp_main.py')
 
             # Delete tmp_main
             os.remove('.tmp_main.py')
