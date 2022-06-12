@@ -1807,15 +1807,7 @@ class selectionWindow():
 
             # # Run .tmp_main
             # if platform.system() == 'Linux':
-            #     # subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
-            #
-            #     err_log = '../tmp/err_log.txt'
-            #     subprocess.call(['xterm', '-e', 'python .tmp_main.py 2>'+err_log])
-            #     try:
-            #         if os.path.getsize(err_log) != 0:
-            #             subprocess.call(['xterm', '-e', 'tail -f '+err_log])
-            #     except:
-            #         pass
+            #     subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
             # else:
             #     root.destroy()
             #     os.system('python3 .tmp_main.py')

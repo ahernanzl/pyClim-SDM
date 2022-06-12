@@ -642,7 +642,7 @@ def aux_Td_direct(level, model, scene):
 ########################################################################################################################
 def aux_Td_from_q(level, model, scene):
     """get dew point indirectly from specific humidity
-    level: sfc or pressure level in mb
+    level: sfc or pressure level in mb (if sfc, surface pressure will be converted to mb)
     """
 
     if level == 'sfc':
@@ -652,14 +652,24 @@ def aux_Td_from_q(level, model, scene):
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
             q = aux['data'][idates]
-            p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data'][idates]
-            p /= 100
+            aux = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)
+            units = aux['units']
+            p = aux['data'][idates]
         else:
             aux = read.one_direct_predictor('q2m', level=level, grid='ext', model=model, scene=scene)
             dates = aux['times']
             q = aux['data']
-            p = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)['data']
+            aux = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)
+            units = aux['units']
+            p = aux['data']
+        # Convert to hPa/mb
+        if units == 'Pa':
             p /= 100
+        elif units in ('hPa', 'mb'):
+            pass
+        else:
+            print('Unknown units for surface pressure', units)
+            exit()
     else:
         if model == 'reanalysis':
             p = level

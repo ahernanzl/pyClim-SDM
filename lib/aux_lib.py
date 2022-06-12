@@ -92,7 +92,9 @@ def check_var_units():
     Check units for the different variables by the reanalysis and by a GCM
     """
 
-    # for var in ('tmax', 'tmin', 'pcp'):
+    print('Comparison of reanalysis data with one GCM:')
+
+    # for var in ('z', 'tcc', 'tmax', 'tmin', 'pcp'):
     for var in reaNames:
 
         try:
