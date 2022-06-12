@@ -161,6 +161,8 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
     etc., each time a predictor is read, so they can be read easily no matter whether we are using reanalysis or models.
     tmax, tmin and pcp are explicitly defined too because they are used (for RAW, BC, WG...) even if they are not in
     pred_list for TF.
+    Check units and forces tmax and tmin to Celcious degrees, pcp to mm/day, tcc to %, and z to m
+    When using different reanalysis some modifications might be needed (for pcp)
     :param predName: as defined in preds dictionaries in settings
     :return: dictionary with data, times, lats, lons and calendar
     """
@@ -194,10 +196,32 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
     nc = netCDF(pathIn, filename, ncVar, grid=grid, level=level)
 
-    # # Force units
-    # if predName in ('tmax', 'tmin'):
-    #     print(predName, nc['units'])
-
+    # Force units
+    # print(predName, nc['units'], print(np.nanmean(nc['data'])))
+    if predName in ('tmax', 'tmin'):
+        if nc['units'] == 'K':
+            nc.update({'data': nc['data']-273.15})
+            nc.update({'units': degree_sign})
+        elif (nc['units'] == 'Unknown') and (np.nanmean(nc['data']) > 100):
+            nc.update({'data': nc['data']-273.15})
+            nc.update({'units': degree_sign})
+    elif predName == 'pcp':
+        if nc['units'] == 'kg m-2 s-1':
+            nc.update({'data': 24 * 60 * 60 * nc['data']}) # from mm/s to mm/day
+            nc.update({'units': 'mm'})
+        elif (nc['units'] == 'Unknown') and (model == 'reanalysis'):
+            nc.update({'data': 1000 * nc['data']}) # from m/day to mm/day
+            nc.update({'units': 'mm'})
+    elif predName == 'tcc':
+        if nc['units'] != '%' and (int(np.nanmax(nc['data'])) <= 1):
+            nc.update({'data': 100 * nc['data']})
+            nc.update({'units': '%'})
+    elif predName == 'z':
+        if nc['units'] != 'm':
+            nc.update({'data': nc['data'] / 9.8}) # from m2/s2 to m
+            nc.update({'units': 'm'})
+    # print(predName, nc['units'], print(np.nanmean(nc['data'])))
+    # exit()
     return nc
 
 
@@ -266,9 +290,9 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
         # var
         if field == 'var':
             if var[0] == 't':
-                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15
+                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
             else:
-                data[0] = 1000 * one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
+                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
 
 
         # pred / saf
@@ -277,13 +301,13 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
 
             # tmax
             if 'tmax' in preds:
-                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # tmin
             if 'tmin' in preds:
-                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'][idates] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # pcp
             if 'pcp' in preds:
-                data[i] = 1000 * one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # mslp
             if 'mslp' in preds:
                 data[i] = one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
@@ -339,22 +363,22 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
         # var
         if field == 'var':
             if var[0] == 't':
-                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'] - 273.15
+                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
             else:
-                data[0] = 24 * 60 * 60 * one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
+                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
 
         # pred / saf
         elif field in ('pred', 'saf'):
             i = 0
             # tmax
             if 'tmax' in preds:
-                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # tmin
             if 'tmin' in preds:
-                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'] - 273.15; i += 1
+                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # pcp
             if 'pcp' in preds:
-                data[i] = 24 * 60 * 60 * one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # mslp
             if 'mslp' in preds:
                 data[i] = one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
@@ -380,7 +404,6 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
             # z
             for level in preds_levels:
                 if 'z' + str(level) in preds:
-                    # data[i] = (1/9.8) * one_direct_predictor('z', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
                     data[i] = one_direct_predictor('z', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
             # q
             for level in preds_levels:

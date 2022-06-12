@@ -47,12 +47,100 @@ def bias_correction():
         else:
             for method_dict in methods:
                 var, methodName = method_dict['var'], method_dict['methodName']
+
                 if experiment == 'EVALUATION':
-                    bias_correction_renalysis(var, methodName)
+                    # Serial processing
+                    if running_at_HPC == False:
+                        bias_correction_oneModel(var, methodName, 'reanalysis')
+
+                    # Parallel processing
+                    elif running_at_HPC == True:
+                        launch_jobs.biasCorrection('reanalysis', var, methodName)
+
                 elif experiment == 'PROJECTIONS':
                     bias_correction_allModels(var, methodName)
 
 
+
+#
+# ########################################################################################################################
+# def bias_correction_renalysis(var, methodName):
+#     """
+#     Apply bias correction for a specific model.
+#     """
+#
+#     print('postprocess.bias_correction_renalysis', var, methodName, bc_method)
+#
+#     # Define and create paths
+#     pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
+#     pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
+#     if not os.path.exists(pathOut):
+#         os.makedirs(pathOut)
+#     pathTmp = '../tmp/'+'_'.join((var, methodName, bc_method)) + '/'
+#     if not os.path.exists(pathTmp):
+#         os.makedirs(pathTmp)
+#
+#     # Read data
+#     est_aux = read.netCDF(pathIn, 'reanalysis_TESTING.nc', var)
+#     est_times = est_aux['times']
+#     est_data = est_aux['data']
+#     obs_aux = read.hres_data(var, period='calibration')
+#     obs_data = obs_aux['data']
+#     obs_times = obs_aux['times']
+#
+#     # Select common dates
+#     all_years = list(np.unique(np.array([x.year for x in est_times])))
+#     idates_common = [i for i in range(len(obs_times)) if obs_times[i].year in all_years]
+#     obs_data = obs_data[idates_common]
+#     obs_times = np.array(obs_times)[idates_common]
+#
+#     # Display warning if few years
+#     if len(all_years) < 30:
+#         print('----------------------------------------')
+#         print('WARNING: reanalysis testing will be bias corrected, but there are only', len(all_years), 'yeas avalible')
+#         print('Bias correction with few years might not perform well')
+#         print('----------------------------------------')
+#
+#     # print('obs', obs_data.shape, obs_times[0], obs_times[-1])
+#     # print('est', est_data.shape, est_times[0], est_times[-1])
+#
+#
+#     # Bias correct each year and save results
+#     for year in all_years:
+#         print('bias_correcting reanalysis', methodName, bc_method, testing_years, year)
+#         idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year!=year]
+#         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
+#         # print(year, len(idates_ref), len(idates_sce))
+#         obs = obs_data[idates_ref]
+#         mod = est_data[idates_ref]
+#         sce = est_data[idates_sce]
+#
+#         # Correct bias for year
+#         scene_bc = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref], est_times[idates_sce])
+#
+#         # Save results year
+#         np.save(pathTmp+str(year), scene_bc)
+#
+#     # Collect results for all years
+#     scene_bc = np.zeros(est_data.shape)
+#     for year in all_years:
+#         print('bias_correcting reanalysis', methodName, bc_method, testing_years, year)
+#         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
+#         scene_bc[idates_sce] = np.load(pathTmp+str(year)+'.npy')
+#     # shutil.rmtree(pathTmp)
+#
+#     # Set units
+#     if var == 'pcp':
+#         units = 'mm'
+#     else:
+#         units = 'degress'
+#
+#     # Save bias corrected scene
+#     hres_lats = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lats.npy')
+#     hres_lons = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lons.npy')
+#     write.netCDF(pathOut, 'reanalysis_TESTING.nc', var, scene_bc, units, hres_lats, hres_lons,
+#                  est_times, regular_grid=False)
+#
 
 ########################################################################################################################
 def bias_correction_renalysis(var, methodName):
@@ -67,6 +155,9 @@ def bias_correction_renalysis(var, methodName):
     pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
+    pathTmp = '../tmp/'+'_'.join((var, methodName, bc_method)) + '/'
+    if not os.path.exists(pathTmp):
+        os.makedirs(pathTmp)
 
     # Read data
     est_aux = read.netCDF(pathIn, 'reanalysis_TESTING.nc', var)
@@ -78,35 +169,40 @@ def bias_correction_renalysis(var, methodName):
 
     # Select common dates
     all_years = list(np.unique(np.array([x.year for x in est_times])))
+    nyears = len(all_years)
     idates_common = [i for i in range(len(obs_times)) if obs_times[i].year in all_years]
     obs_data = obs_data[idates_common]
     obs_times = np.array(obs_times)[idates_common]
 
     # Display warning if few years
-    if len(all_years) < 30:
+    if nyears < 30:
         print('----------------------------------------')
-        print('WARNING: reanalysis testing will be bias corrected, but there are only', len(all_years), 'yeas avalible')
+        print('WARNING: reanalysis testing will be bias corrected, but there are only', nyears, 'yeas avalible')
         print('Bias correction with few years might not perform well')
         print('----------------------------------------')
 
     # print('obs', obs_data.shape, obs_times[0], obs_times[-1])
     # print('est', est_data.shape, est_times[0], est_times[-1])
 
+    fold_years = []
+    fold_years.append(all_years[0: int(nyears/2)])
+    fold_years.append([x for x in all_years if x not in fold_years[0]])
+
     # Empty array for results
     scene_bc = np.zeros(est_data.shape)
 
-    for year in all_years:
-        print('bias_correcting reanalysis', methodName, bc_method, testing_years, year)
-        idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year!=year]
-        idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
-        # print(year, len(idates_ref), len(idates_sce))
+    # Go through the two folds
+    for ifold in [0, 1]:
+        print('bias_correcting reanalysis', methodName, bc_method, testing_years, ifold+1, '/ 2')
+        idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year in fold_years[ifold]]
+        idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year not in fold_years[ifold]]
+        # print(ifold, len(idates_ref), len(idates_sce))
         obs = obs_data[idates_ref]
         mod = est_data[idates_ref]
-        sce = obs_data[idates_sce]
+        sce = est_data[idates_sce]
 
-        # Correct bias for year
-        scene_bc[idates_sce] = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref],
-                                                                 est_times[idates_sce])
+        # Correct bias for ifold
+        scene_bc[idates_sce] = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref], est_times[idates_sce])
 
     # Set units
     if var == 'pcp':
@@ -121,6 +217,79 @@ def bias_correction_renalysis(var, methodName):
                  est_times, regular_grid=False)
 
 
+# ########################################################################################################################
+# def bias_correction_renalysis(var, methodName):
+#     """
+#     Apply bias correction for a specific model.
+#     """
+#
+#     print('postprocess.bias_correction_renalysis', var, methodName, bc_method)
+#
+#     # Define and create paths
+#     pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
+#     pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
+#     if not os.path.exists(pathOut):
+#         os.makedirs(pathOut)
+#
+#     # Read data
+#     est_aux = read.netCDF(pathIn, 'reanalysis_TESTING.nc', var)
+#     est_times = est_aux['times']
+#     est_data = est_aux['data']
+#     obs_aux = read.hres_data(var, period='calibration')
+#     obs_data = obs_aux['data']
+#     obs_times = obs_aux['times']
+#
+#     # Display warning if few years
+#     if len(obs_times) != len(est_times):
+#         print('----------------------------------------')
+#         print('Bias correction of reanalysis is only possible if the whole calibration period has been downscaled ')
+#         print('by using k-folds')
+#         print('----------------------------------------')
+#         exit()
+#
+#
+#     # Empty array for results
+#     scene_bc = np.zeros(est_data.shape)
+#
+#     # Go through all folds
+#     for ifold in range(5):
+#         print('bias_correcting reanalysis', methodName, bc_method, 'fold', ifold+1, '/5')
+#         if ifold == 0:
+#             fold_years = fold1_testing_years
+#         elif ifold == 1:
+#             fold_years = fold2_testing_years
+#         elif ifold == 2:
+#             fold_years = fold3_testing_years
+#         elif ifold == 3:
+#             fold_years = fold4_testing_years
+#         elif ifold == 4:
+#             fold_years = fold5_testing_years
+#         first_year, last_year = fold_years[0], fold_years[-1]
+#         idates_sce = [i for i in range(len(obs_times)) if (obs_times[i].year>=first_year) and (obs_times[i].year<=last_year)]
+#         idates_ref = [i for i in range(len(obs_times)) if i not in idates_sce]
+#         # print(ifold, len(idates_ref), len(idates_sce))
+#         obs = obs_data[idates_ref]
+#         mod = est_data[idates_ref]
+#         sce = est_data[idates_sce]
+#         obs_times_fold = list(np.array(obs_times)[idates_ref])
+#         est_times_fold = list(np.array(est_times)[idates_sce])
+#
+#         # Correct bias for year
+#         scene_bc[idates_sce] = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times_fold, est_times_fold)
+#
+#     # Set units
+#     if var == 'pcp':
+#         units = 'mm'
+#     else:
+#         units = 'degress'
+#
+#     # Save bias corrected scene
+#     hres_lats = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lats.npy')
+#     hres_lons = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lons.npy')
+#     write.netCDF(pathOut, 'reanalysis_TESTING.nc', var, scene_bc, units, hres_lats, hres_lons,
+#                  est_times, regular_grid=False)
+
+
 
 ########################################################################################################################
 def bias_correction_allModels(var, methodName):
@@ -131,73 +300,71 @@ def bias_correction_allModels(var, methodName):
     print('postprocess.bias_correction_allModels', var, methodName, bc_method)
 
 
-    if apply_bc == True:
+    # Define and create paths
+    pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
+    pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
 
-        # Define and create paths
-        pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
-        pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
-        if not os.path.exists(pathOut):
-            os.makedirs(pathOut)
+    # Go through all models
+    for model in model_list:
 
-        # Go through all models
-        for model in model_list:
+        # Check if model historical exists
+        if os.path.isfile(pathIn + model + '_historical.nc'):
 
-            # Check if model historical exists
-            if os.path.isfile(pathIn + model + '_historical.nc'):
+            # Check if all scenes by model have already been corrected
+            to_be_corrected = False
+            for scene in scene_list:
+                if os.path.isfile(pathIn + model + '_' + scene + '.nc') and \
+                        not os.path.isfile(pathOut + model + '_' + scene + '.nc'):
+                    to_be_corrected = True
 
-                # Check if all scenes by model have already been corrected
-                to_be_corrected = False
-                for scene in scene_list:
-                    if os.path.isfile(pathIn + model + '_' + scene + '.nc') and \
-                            not os.path.isfile(pathOut + model + '_' + scene + '.nc'):
-                        to_be_corrected = True
+            if to_be_corrected == True:
 
-                if to_be_corrected == True:
+                print(var, methodName, model, bc_method, 'bias_correction')
 
-                    print(var, methodName, model, bc_method, 'bias_correction')
+                # Serial processing
+                if running_at_HPC == False:
+                    bias_correction_oneModel(var, methodName, model)
 
-                    # Serial processing
-                    if running_at_HPC == False:
-                        bias_correction_oneModel(var, methodName, model)
+                # Parallel processing
+                elif running_at_HPC == True:
+                    while 1:
+                        # Check for error files, save them and kill erroneous jobs
+                        # for file in os.listdir('../job/'):
+                        #     if file.endswith(".err"):
+                        #         filename = os.path.join('../job/', file)
+                        #         filesize = os.path.getsize(filename)
+                        #         if filesize != 0:
+                        #             jobid = filename.split('/')[-1].split('.')[0]
+                        #             print('-----------------------')
+                        #             print(filename, filesize)
+                        #             os.system('mv ' + filename + ' ../job/err/')
+                        #             os.system('mv ' + filename[:-3] + 'out ../job/err/')
+                        #             os.system('scancel ' + str(jobid))
 
-                    # Parallel processing
-                    elif running_at_HPC == True:
-                        while 1:
-                            # Check for error files, save them and kill erroneous jobs
-                            # for file in os.listdir('../job/'):
-                            #     if file.endswith(".err"):
-                            #         filename = os.path.join('../job/', file)
-                            #         filesize = os.path.getsize(filename)
-                            #         if filesize != 0:
-                            #             jobid = filename.split('/')[-1].split('.')[0]
-                            #             print('-----------------------')
-                            #             print(filename, filesize)
-                            #             os.system('mv ' + filename + ' ../job/err/')
-                            #             os.system('mv ' + filename[:-3] + 'out ../job/err/')
-                            #             os.system('scancel ' + str(jobid))
+                        # Check for correctly finished jobs
+                        for file in os.listdir('../job/'):
+                            if file.endswith(".out"):
+                                filename = os.path.join('../job/', file)
+                                if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
+                                    print('-----------------------')
+                                    print(filename, 'end')
+                                    os.system('mv ' + filename + ' ../job/out/')
+                                    os.system('mv ' + filename[:-3] + 'err ../job/out/')
 
-                            # Check for correctly finished jobs
-                            for file in os.listdir('../job/'):
-                                if file.endswith(".out"):
-                                    filename = os.path.join('../job/', file)
-                                    if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
-                                        print('-----------------------')
-                                        print(filename, 'end')
-                                        os.system('mv ' + filename + ' ../job/out/')
-                                        os.system('mv ' + filename[:-3] + 'err ../job/out/')
+                        # Check number of living jobs
+                        os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
+                        f = open('../log/nJobs.txt', 'r')
+                        nJobs = int(f.read()) - 1
+                        f.close()
+                        time.sleep(1)
+                        if nJobs < max_nJobs:
+                            print('nJobs', nJobs)
+                            break
 
-                            # Check number of living jobs
-                            os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
-                            f = open('../log/nJobs.txt', 'r')
-                            nJobs = int(f.read()) - 1
-                            f.close()
-                            time.sleep(1)
-                            if nJobs < max_nJobs:
-                                print('nJobs', nJobs)
-                                break
-
-                        # Send new job
-                        launch_jobs.biasCorrection(model, var, methodName)
+                    # Send new job
+                    launch_jobs.biasCorrection(model, var, methodName)
 
 
 
@@ -209,47 +376,50 @@ def bias_correction_oneModel(var, methodName, model):
 
     print('postprocess.bias_correction_oneModel', model, var, methodName, bc_method)
 
-    # Define and create paths
-    pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
-    pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
-    if not os.path.exists(pathOut):
-        os.makedirs(pathOut)
+    if model == 'reanalysis':
+        bias_correction_renalysis(var, methodName)
+    else:
+        # Define and create paths
+        pathIn = '../results/'+experiment+'/' + var.upper() + '/' + methodName + '/daily_data/'
+        pathOut = '../results/'+experiment+'_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
 
-    # Read obs and mod in bias correction period
-    obs_data = read.hres_data(var, period='biasCorr')['data']
-    aux = read.netCDF(pathIn, model + '_historical.nc', var)
-    idates = [i for i in range(len(aux['times'])) if
-              aux['times'][i].year in range(biasCorr_years[0], biasCorr_years[1] + 1)]
-    mod_data = aux['data'][idates]
+        # Read obs and mod in bias correction period
+        obs_data = read.hres_data(var, period='biasCorr')['data']
+        aux = read.netCDF(pathIn, model + '_historical.nc', var)
+        idates = [i for i in range(len(aux['times'])) if
+                  aux['times'][i].year in range(biasCorr_years[0], biasCorr_years[1] + 1)]
+        mod_data = aux['data'][idates]
 
-    # Go through all scenes
-    for scene in scene_list:
+        # Go through all scenes
+        for scene in scene_list:
 
-        # Check if scene/model exists
-        if os.path.isfile(pathIn + model + '_' + scene + '.nc'):
+            # Check if scene/model exists
+            if os.path.isfile(pathIn + model + '_' + scene + '.nc'):
 
-            print(scene)
+                print(scene)
 
-            # Read scene data
-            aux = read.netCDF(pathIn, model + '_' + scene + '.nc', var)
-            scene_dates = aux['times']
-            scene_data = aux['data']
-            del aux
+                # Read scene data
+                aux = read.netCDF(pathIn, model + '_' + scene + '.nc', var)
+                scene_dates = aux['times']
+                scene_data = aux['data']
+                del aux
 
-            # Correct bias for scene
-            scene_bc = BC_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, var, biasCorr_dates, scene_dates)
+                # Correct bias for scene
+                scene_bc = BC_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, var, biasCorr_dates, scene_dates)
 
-            # Set units
-            if var == 'pcp':
-                units = 'mm'
-            else:
-                units = 'degress'
+                # Set units
+                if var == 'pcp':
+                    units = 'mm'
+                else:
+                    units = 'degress'
 
-            # Save bias corrected scene
-            hres_lats = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lats.npy')
-            hres_lons = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lons.npy')
-            write.netCDF(pathOut, model + '_' + scene + '.nc', var, scene_bc, units, hres_lats, hres_lons,
-                         scene_dates, regular_grid=False)
+                # Save bias corrected scene
+                hres_lats = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lats.npy')
+                hres_lons = np.load(pathAux + 'ASSOCIATION/' + var[0].upper()+'_bilinear/hres_lons.npy')
+                write.netCDF(pathOut, model + '_' + scene + '.nc', var, scene_bc, units, hres_lats, hres_lons,
+                             scene_dates, regular_grid=False)
 
 
 ########################################################################################################################
