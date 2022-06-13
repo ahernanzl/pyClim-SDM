@@ -681,7 +681,8 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         # plt.show()
         # exit()
         filename = '_'.join(('PROJECTIONS', 'evolTrendRaw', var, climdex_name, methodName, season))
-        if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
+        # if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
+        if (plotAllRegions == False):
             plt.title(methodName, fontsize=title_size)
             if not os.path.exists(pathFigures):
                 os.makedirs(pathFigures)
