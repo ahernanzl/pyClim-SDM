@@ -92,8 +92,8 @@ fold5_testing_years = (2015, 2020)
 
 # Activate one of the following training/testing split options
 # split_mode  = 'all_training'
-split_mode = 'all_testing'
-# split_mode = 'single_split'
+# split_mode = 'all_testing'
+split_mode = 'single_split'
 # split_mode = 'fold1'
 # split_mode = 'fold2'
 # split_mode = 'fold3'
@@ -106,7 +106,6 @@ reference_years = (1979, 2005)
 # historical_years = (1950, 2014)
 historical_years = (1979, 2005)
 ssp_years = (2015, 2100)
-# biasCorr_years = (1951, 2014)
 
 hresPeriodFilename = {}
 hresPeriodFilename.update({'t': '19510101-20201231'})
@@ -128,14 +127,14 @@ saf_lon_left, saf_lon_right = -18.0, 12.0
 # IMPORTANT: do not change preds order. Otherwise, lib/read.lres_data would need to be adapted to follow the same order
 # Define, for each predictor variable, reaName and modName (variable names for reanalysis and for CMIP models)
 
-reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q', 'r': 'r',
+reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q',
             'mslp': 'msl', 'u10': 'u10', 'v10': 'v10', 't2m': 't2m',
-            'd2m': 'd2m', 'r2m': '-', 'q2m': '-', 'sp': 'sp', 'tcc': 'tcc',
+            # 'd2m': 'd2m', 'r2m': '-', 'q2m': '-', 'sp': 'sp', 'tcc': 'tcc', 'r': 'r',
             'tmax': 'mx2t', 'tmin': 'mn2t', 'pcp': 'tp'}
 
-modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus', 'r': 'hur',
+modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus',
             'mslp': 'psl', 'u10': 'uas', 'v10': 'vas', 't2m': 'tas',
-            'd2m': 'tdps', 'r2m': 'hurs', 'q2m': 'huss', 'sp': 'ps', 'tcc': 'clt',
+            # 'd2m': 'tdps', 'r2m': 'hurs', 'q2m': 'huss', 'sp': 'ps', 'tcc': 'clt', 'r': 'hur',
             'tmax': 'tasmax', 'tmin': 'tasmin', 'pcp': 'pr'}
 
 
