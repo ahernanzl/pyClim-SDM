@@ -88,7 +88,7 @@ def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; em
     t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     z850 = read.one_direct_predictor('z', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 =q2Td(850, model=model, scene=scene)
+    td850 =dew_point(850, model=model, scene=scene)['data'][idates]
     
     # Constants
     cp = 1005 # Isobaric specific heat in dry air
