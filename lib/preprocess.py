@@ -7,10 +7,9 @@ from advanced_settings import *
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
-import BC_lib
 import derived_predictors
 import down_scene_ANA
-import down_scene_BC
+import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
 import down_scene_WG
@@ -19,6 +18,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import MOS_lib
 import plot
 import postpro_lib
 import postprocess
@@ -56,10 +56,6 @@ def common():
     for var0 in target_vars0:
         for interp_mode in ('nearest', 'bilinear', ):
             grids.association(interp_mode, var0)
-
-    # Calculate indirect predictors for reanalysis
-    if pseudoreality == False:
-        derived_predictors.reanalysis_all()
 
     # Calculates mean and std for all predictors both at reanalysis and models (standardization period)
     for grid in ('pred', 'saf', ):

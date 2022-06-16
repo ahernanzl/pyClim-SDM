@@ -8,10 +8,9 @@ from advanced_settings import *
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
-import BC_lib
 import derived_predictors
 import down_scene_ANA
-import down_scene_BC
+import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
 import down_scene_WG
@@ -20,6 +19,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import MOS_lib
 import plot
 import postpro_lib
 import postprocess

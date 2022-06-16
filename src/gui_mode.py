@@ -371,10 +371,10 @@ class tabMethods(ttk.Frame):
             # Model Output Statistics
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
             ttk.Label(tabMethods, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-            add_to_chk_list(self.chk_list, var, 'QM', 'BC', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'DQM', 'BC', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow-=1
-            add_to_chk_list(self.chk_list, var, 'QDM', 'BC', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'PSDM', 'BC', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol-=1; irow+=1
+            add_to_chk_list(self.chk_list, var, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow+=1
+            add_to_chk_list(self.chk_list, var, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow-=1
+            add_to_chk_list(self.chk_list, var, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow+=1
+            add_to_chk_list(self.chk_list, var, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol-=1; irow+=1
 
             # Analogs / Weather Typing
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -425,10 +425,10 @@ class tabMethods(ttk.Frame):
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
         ttk.Label(tabMethods, text="Model Output Statistics:")\
             .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_to_chk_list(self.chk_list, var, 'QM', 'BC', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
-        add_to_chk_list(self.chk_list, var, 'DQM', 'BC', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow -= 1
-        add_to_chk_list(self.chk_list, var, 'QDM', 'BC', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
-        add_to_chk_list(self.chk_list, var, 'PSDM', 'BC', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol-=1; irow += 1
+        add_to_chk_list(self.chk_list, var, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
+        add_to_chk_list(self.chk_list, var, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow -= 1
+        add_to_chk_list(self.chk_list, var, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
+        add_to_chk_list(self.chk_list, var, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol-=1; irow += 1
 
         # Analogs / Weather Typing
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1

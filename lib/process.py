@@ -7,10 +7,9 @@ from advanced_settings import *
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
-import BC_lib
 import derived_predictors
 import down_scene_ANA
-import down_scene_BC
+import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
 import down_scene_WG
@@ -19,6 +18,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import MOS_lib
 import plot
 import postpro_lib
 import postprocess
@@ -55,9 +55,9 @@ def reanalisys(method_dict, scene, model):
         elif family == 'RAW':
             down_scene_RAW.downscale_chunk(var, methodName, family, mode, fields, scene, model)
             down_scene_RAW.collect_chunks(var, methodName, family, mode, fields, scene, model)
-        elif family == 'BC':
-            down_scene_BC.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_BC.collect_chunks(var, methodName, family, mode, fields, scene, model)
+        elif family == 'MOS':
+            down_scene_MOS.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+            down_scene_MOS.collect_chunks(var, methodName, family, mode, fields, scene, model)
         elif family == 'WG':
             down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
             down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
@@ -105,9 +105,9 @@ def models(method_dict, scene, model):
             elif family == 'RAW':
                 down_scene_RAW.downscale_chunk(var, methodName, family, mode, fields, scene, model)
                 down_scene_RAW.collect_chunks(var, methodName, family, mode, fields, scene, model)
-            elif family == 'BC':
-                down_scene_BC.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_BC.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            elif family == 'MOS':
+                down_scene_MOS.downscale_chunk(var, methodName, family, mode, fields, scene, model)
+                down_scene_MOS.collect_chunks(var, methodName, family, mode, fields, scene, model)
             elif family == 'WG':
                 down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
                 down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
