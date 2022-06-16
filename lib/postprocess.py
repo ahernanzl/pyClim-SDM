@@ -9,10 +9,9 @@ from advanced_settings import *
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
-import BC_lib
 import derived_predictors
 import down_scene_ANA
-import down_scene_BC
+import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
 import down_scene_WG
@@ -21,6 +20,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import MOS_lib
 import plot
 import postpro_lib
 import postprocess
@@ -116,7 +116,7 @@ def bias_correction():
 #         sce = est_data[idates_sce]
 #
 #         # Correct bias for year
-#         scene_bc = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref], est_times[idates_sce])
+#         scene_bc = MOS_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref], est_times[idates_sce])
 #
 #         # Save results year
 #         np.save(pathTmp+str(year), scene_bc)
@@ -202,7 +202,7 @@ def bias_correction_renalysis(var, methodName):
         sce = est_data[idates_sce]
 
         # Correct bias for ifold
-        scene_bc[idates_sce] = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref], est_times[idates_sce])
+        scene_bc[idates_sce] = MOS_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times[idates_ref], est_times[idates_sce])
 
     # Set units
     if var == 'pcp':
@@ -275,7 +275,7 @@ def bias_correction_renalysis(var, methodName):
 #         est_times_fold = list(np.array(est_times)[idates_sce])
 #
 #         # Correct bias for year
-#         scene_bc[idates_sce] = BC_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times_fold, est_times_fold)
+#         scene_bc[idates_sce] = MOS_lib.biasCorrect_as_postprocess(obs, mod, sce, var, obs_times_fold, est_times_fold)
 #
 #     # Set units
 #     if var == 'pcp':
@@ -407,7 +407,7 @@ def bias_correction_oneModel(var, methodName, model):
                 del aux
 
                 # Correct bias for scene
-                scene_bc = BC_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, var, biasCorr_dates, scene_dates)
+                scene_bc = MOS_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, var, biasCorr_dates, scene_dates)
 
                 # Set units
                 if var == 'pcp':

@@ -8,10 +8,9 @@ from advanced_settings import *
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
-import BC_lib
 import derived_predictors
 import down_scene_ANA
-import down_scene_BC
+import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
 import down_scene_WG
@@ -20,6 +19,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import MOS_lib
 import plot
 import postpro_lib
 import postprocess
@@ -88,7 +88,7 @@ def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; em
     t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     z850 = read.one_direct_predictor('z', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 =q2Td(850, model=model, scene=scene)
+    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
     
     # Constants
     cp = 1005 # Isobaric specific heat in dry air
@@ -151,12 +151,7 @@ def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; em
     # Calculate SSI index
     SSI_index = t500 - tp500
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'SSI_index.nc', 'SSI_index', SSI_index, 'K', ext_lats, ext_lons, dates)
-
-    return SSI_index
+    return {'data': SSI_index, 'times': dates}
 
 ########################################################################################################################
 def LI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; email:ccorreag@aemet.es
@@ -247,12 +242,7 @@ def LI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; ema
     # Calculate SSI index
     LI_index = t500 - tp500
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'LI_index.nc', 'LI_index', LI_index, 'K', ext_lats, ext_lons, dates)
-
-    return LI_index
+    return {'data': LI_index, 'times': dates}
 
 ########################################################################################################################
 def K_index(model='reanalysis', scene='TESTING'):
@@ -270,17 +260,12 @@ def K_index(model='reanalysis', scene='TESTING'):
     t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     t700 = read.one_direct_predictor('t', level=700, grid='ext', model=model, scene=scene)['data'][idates]
     t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 = q2Td(850, model=model, scene=scene)
-    td700 = q2Td(700, model=model, scene=scene)
+    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
+    td700 = dew_point(700, model=model, scene=scene)['data'][idates]
 
     K_index = (t850 - t500) + td850 - (t700 - td700)
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'K_index.nc', 'K_index', K_index, 'K', ext_lats, ext_lons, dates)
-
-    return K_index
+    return {'data': K_index, 'times': dates}
 
 
 ########################################################################################################################
@@ -298,17 +283,11 @@ def TT_index(model='reanalysis', scene='TESTING'):
     # Read data
     t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 = q2Td(850, model=model, scene=scene)
+    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
 
     TT_index = t850 + td850 - 2*t500
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'TT_index.nc', 'TT_index', TT_index, 'K', ext_lats, ext_lons, dates)
-
-    return TT_index
-
+    return {'data': TT_index, 'times': dates}
 
 ########################################################################################################################
 def aux_r_direct(level, model, scene):
@@ -339,7 +318,8 @@ def aux_r_direct(level, model, scene):
             dates = aux['times']
             r = aux['data']
             
-    return r, dates
+    return {'data': r, 'times': dates}
+
 
 
 ########################################################################################################################
@@ -359,11 +339,11 @@ def aux_r_from_q(level, model, scene):
             p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data'][idates]
             p /= 100
         else:
-            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
             dates = aux['times']
             t = aux['data']
-            q = read.one_direct_predictor('q2m', level=level, grid='ext', model=model, scene=scene)['data']
-            p = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)['data']
+            q = read.one_direct_predictor('q2m', grid='ext', model=model, scene=scene)['data']
+            p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data']
             p /= 100
     else:
         if model == 'reanalysis':
@@ -385,7 +365,7 @@ def aux_r_from_q(level, model, scene):
     e = q * p / (0.622 + 0.378 * q)
     r = 100 * e / es
 
-    return r, dates
+    return {'data': r, 'times': dates}
 
 
 ########################################################################################################################
@@ -403,10 +383,10 @@ def aux_r_from_Td(level, model, scene):
             t = aux['data'][idates]
             td = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)['data'][idates]
         else:
-            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
             dates = aux['times']
             t = aux['data']
-            td = read.one_direct_predictor('d2m', level=level, grid='ext', model=model, scene=scene)['data']
+            td = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
             dates = calibration_dates
@@ -432,7 +412,7 @@ def aux_r_from_Td(level, model, scene):
     es = Clausius_Clapeyron(t)
     r = 100*e/es
 
-    return r, dates
+    return {'data': r, 'times': dates}
 
 ########################################################################################################################
 def relative_humidity(level, model='reanalysis', scene='TESTING'):
@@ -441,14 +421,17 @@ def relative_humidity(level, model='reanalysis', scene='TESTING'):
     """
 
     try:
-        r, dates = aux_r_direct(level, model='reanalysis', scene='TESTING')
+        aux = aux_r_direct(level, model=model, scene=scene)
+        r, dates = aux['data'], aux['times']
     except:
         print('relative humidity', level, 'not available. Trying to retrieve it indirectly')
         try:
-            r, dates = aux_r_from_q(level, model='reanalysis', scene='TESTING')
+            aux = aux_r_from_q(level, model=model, scene=scene)
+            r, dates = aux['data'], aux['times']
         except:
             try:
-                r, dates = aux_r_from_Td(level, model='reanalysis', scene='TESTING')
+                aux = aux_r_from_Td(level, model=model, scene=scene)
+                r, dates = aux['data'], aux['times']
             except:
                 print('relative humidity', level, 'not available neither directly nor indirectly')
                 exit()
@@ -458,13 +441,7 @@ def relative_humidity(level, model='reanalysis', scene='TESTING'):
     r[r < 0] = 0
     r[r > 100] = 100
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'r' + str(level) + '.nc', 'r', r, '%', ext_lats, ext_lons, dates)
-
-    return r
-
+    return {'data': r, 'times': dates}
 
 ########################################################################################################################
 def aux_q_direct(level, model, scene):
@@ -495,7 +472,7 @@ def aux_q_direct(level, model, scene):
             dates = aux['times']
             q = aux['data']
 
-    return q, dates
+    return {'data': q, 'times': dates}
 
 
 ########################################################################################################################
@@ -514,11 +491,11 @@ def aux_q_from_r(level, model, scene):
             r = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)['data'][idates]
             p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data'][idates]
         else:
-            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('t2m',  grid='ext', model=model, scene=scene)
             dates = aux['times']
             t = aux['data']
-            r = read.one_direct_predictor('r2m', level=level, grid='ext', model=model, scene=scene)['data']
-            p = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)['data']
+            r = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)['data']
+            p = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
             p = level
@@ -539,13 +516,13 @@ def aux_q_from_r(level, model, scene):
     e = r*es/100
     q = e * 0.622 / (p - e *0.378)
 
-    return q, dates
+    return {'data': q, 'times': dates}
 
 
 ########################################################################################################################
 def aux_q_from_Td(level, model, scene):
     """get relative humidity indirectly from specific humidity
-    level: sfc or pressure level in mb
+    level: sfc or pressure level in mb (if sfc, surface pressure will be converted to mb)
     """
 
     if level == 'sfc':
@@ -555,10 +532,24 @@ def aux_q_from_Td(level, model, scene):
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
             td = aux['data'][idates]
+            aux = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)
+            units = aux['units']
+            p = aux['data'][idates]
         else:
-            aux = read.one_direct_predictor('d2m', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('d2m', grid='ext', model=model, scene=scene)
             dates = aux['times']
             td = aux['data']
+            aux = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)
+            units = aux['units']
+            p = aux['data']
+        # Convert to hPa/mb
+        if units == 'Pa':
+            p /= 100
+        elif units in ('hPa', 'mb'):
+            pass
+        else:
+            print('Unknown units for surface pressure', units)
+            exit()
     else:
         if model == 'reanalysis':
             dates = calibration_dates
@@ -566,16 +557,19 @@ def aux_q_from_Td(level, model, scene):
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
             td = aux['data'][idates]
+            p = level
         else:
             aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
             dates = aux['times']
             td = aux['data']
+            p = level
 
     L = 2.5 * 10 ** 6
     Rv = 461
-    q = p * np.exp((1 / 273 - 1 /td) / (Rv / L)) / (0.622 * 6.11)
+    q = (0.622 * 6.11 / p) * np.exp((1/273.15 - 1/td) / (Rv / L))
 
-    return q, dates
+    return {'data': q, 'times': dates}
+
 
 
 ########################################################################################################################
@@ -585,14 +579,16 @@ def specific_humidity(level, model='reanalysis', scene='TESTING'):
     """
 
     try:
-        r, dates = aux_r_direct(level, model='reanalysis', scene='TESTING')
+        aux = aux_q_direct(level, model=model, scene=scene)
+        q, dates = aux['data'], aux['times']
     except:
-        print('specific humidity', level, 'not available. Trying to retrieve it indirectly')
         try:
-            q, dates = aux_q_from_r(level, model='reanalysis', scene='TESTING')
+            aux = aux_q_from_r(level, model=model, scene=scene)
+            q, dates = aux['data'], aux['times']
         except:
             try:
-                q, dates = aux_q_from_Td(level, model='reanalysis', scene='TESTING')
+                aux = aux_q_from_Td(level, model=model, scene=scene)
+                q, dates = aux['data'], aux['times']
             except:
                 print('specific humidity', level, 'not available neither directly nor indirectly')
                 exit()
@@ -600,12 +596,7 @@ def specific_humidity(level, model='reanalysis', scene='TESTING'):
     warnings.filterwarnings("ignore", message="invalid value encountered in greater")
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'q' + str(level) + '.nc', 'q', q, '%', ext_lats, ext_lons, dates)
-
-    return q
+    return {'data': q, 'times': dates}
 
 ########################################################################################################################
 def aux_Td_direct(level, model, scene):
@@ -627,16 +618,16 @@ def aux_Td_direct(level, model, scene):
     else:
         if model == 'reanalysis':
             dates = calibration_dates
-            aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('Td', grid='ext', model=model, scene=scene)
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
             td = aux['data'][idates]
         else:
-            aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('Td', grid='ext', model=model, scene=scene)
             dates = aux['times']
             td = aux['data']
 
-    return td, dates
+    return {'data': td, 'times': dates}
 
 
 ########################################################################################################################
@@ -656,10 +647,10 @@ def aux_Td_from_q(level, model, scene):
             units = aux['units']
             p = aux['data'][idates]
         else:
-            aux = read.one_direct_predictor('q2m', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('q2m', grid='ext', model=model, scene=scene)
             dates = aux['times']
             q = aux['data']
-            aux = read.one_direct_predictor('sp', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('sp', grid='ext', model=model, scene=scene)
             units = aux['units']
             p = aux['data']
         # Convert to hPa/mb
@@ -688,7 +679,7 @@ def aux_Td_from_q(level, model, scene):
     Rv = 461
     td = 1 / (1 / 273 - (Rv / L) * np.log(p * q / (0.622 * 6.11)))
 
-    return td, dates
+    return {'data': td, 'times': dates}
 
 
 ########################################################################################################################
@@ -706,10 +697,10 @@ def aux_Td_from_r(level, model, scene):
             t = aux['data'][idates]
             r = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)['data'][idates]
         else:
-            aux = read.one_direct_predictor('t2m', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('t2m', grid='ext', model=model, scene=scene)
             dates = aux['times']
             t = aux['data']
-            r = read.one_direct_predictor('r2m', level=level, grid='ext', model=model, scene=scene)['data']
+            r = read.one_direct_predictor('r2m', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
             dates = calibration_dates
@@ -729,10 +720,7 @@ def aux_Td_from_r(level, model, scene):
     e = r*es/100
     td = Clausius_Clapeyron_inverse(e)
 
-
-    return td, dates
-
-
+    return {'data': td, 'times': dates}
 
 ########################################################################################################################
 def dew_point(level, model='reanalysis', scene='TESTING'):
@@ -741,111 +729,25 @@ def dew_point(level, model='reanalysis', scene='TESTING'):
     """
 
     try:
-        td, dates = aux_Td_direct(level, model='reanalysis', scene='TESTING')
+        aux = aux_Td_direct(level, model=model, scene=scene)
+        td, dates = aux['data'], aux['times']
     except:
-        print('dew point ', level, 'not available. Trying to retrieve it indirectly')
+        print('dew point', level, 'not available. Trying to retrieve it indirectly')
         try:
-            td, dates = aux_Td_from_q(level, model='reanalysis', scene='TESTING')
+            aux = aux_Td_from_q(level, model=model, scene=scene)
+            td, dates = aux['data'], aux['times']
         except:
             try:
-                td, dates = aux_Td_from_r(level, model='reanalysis', scene='TESTING')
+                aux = aux_Td_from_r(level, model=model, scene=scene)
+                td, dates = aux['data'], aux['times']
             except:
-                print('dew point ', level, 'not available neither directly nor indirectly')
+                print('dew point', level, 'not available neither directly nor indirectly')
                 exit()
 
     warnings.filterwarnings("ignore", message="invalid value encountered in greater")
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'td' + str(level) + '.nc', 'td', td, '%', ext_lats, ext_lons, dates)
-
-    return td
-
-
-########################################################################################################################
-def q2r(level, model='reanalysis', scene='TESTING'):
-    """specific humidity to relative humidity
-    p in mb (hPa)
-    t in Kelvin
-    q dimensionless
-    """
-
-    # Read data
-    if model == 'reanalysis':
-        dates = calibration_dates
-        aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
-        times = aux['times']
-        idates = [i for i in range(len(times)) if times[i] in dates]
-        t = aux['data'][idates]
-        q = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data'][idates]
-    else:
-        aux = read.one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)
-        dates = aux['times']
-        t = aux['data']
-        q = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)['data']
-
-    L = 2.5 * 10 ** 6
-    Rv = 461
-    p = level
-
-    es = Clausius_Clapeyron(t)
-    # es = 6.11 * np.exp((L / Rv) * (1 / 273 - 1 / t))
-    e = q * p / (0.622 + 0.378 * q)
-    h = 100 * e / es
-
-    # r = e / (p-e)
-    # rs =  es / (p - es)
-    # h = 100*r/rs
-
-    warnings.filterwarnings("ignore", message="invalid value encountered in greater")
-    warnings.filterwarnings("ignore", message="invalid value encountered in less")
-    h[h < 0] = 0
-    h[h > 100] = 100
-
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'r' + str(level) + '.nc', 'r', h, '%', ext_lats, ext_lons, dates)
-
-    return h
-
-
-# ########################################################################################################################
-def q2Td(level, model='reanalysis', scene='TESTING'):
-    """specific humidity to relative humidity
-    p in mb (hPa)
-    t in Kelvin
-    q dimensionless
-    """
-
-    # Read data
-    if model == 'reanalysis':
-        dates = calibration_dates
-
-        aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
-        times = aux['times']
-        idates = [i for i in range(len(times)) if times[i] in dates]
-        q = aux['data'][idates]
-    else:
-        aux = read.one_direct_predictor('q', level=level, grid='ext', model=model, scene=scene)
-        dates = aux['times']
-        q = aux['data']
-
-    L = 2.5 * 10 ** 6
-    Rv = 461
-    p = level
-
-    td = 1 / (1 / 273 - (Rv / L) * np.log(p * q / (0.622 * 6.11)))
-
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'td' + str(level) + '.nc', 'td', td, 'K', ext_lats, ext_lons, dates)
-
-    return td
-
+    return {'data': td, 'times': dates}
 
 ########################################################################################################################
 def vtg(level0, level1, model='reanalysis', scene='TESTING'):
@@ -869,14 +771,7 @@ def vtg(level0, level1, model='reanalysis', scene='TESTING'):
     # Calculate GTV
     vtg = t_level0 - t_level1
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'vtg_' + str(level0) + '_' + str(level1) + '.nc',
-                     'vtg_' + str(level0) + '_' + str(level1), vtg, 'K',
-                     ext_lats, ext_lons, dates)
-
-    return vtg
+    return {'data': vtg, 'times': dates}
 
 
 ########################################################################################################################
@@ -887,12 +782,11 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
     if model == 'reanalysis':
         if level == 'sl':
             dates = calibration_dates
-            aux = read.netCDF(pathAux + 'DERIVED_PREDICTORS/', 'ugsl.nc', 'u', grid='ext')
+            aux = geostrophic(model=model, scene=scene)
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
-            u = aux['data'][idates]
-            v = read.netCDF(pathAux + 'DERIVED_PREDICTORS/', 'vgsl.nc', 'v', grid='ext')['data'][idates]
-            sufix = 'gsl'
+            u = aux['data']['ugsl'][idates]
+            v = aux['data']['vgsl'][idates]
         else:
             dates = calibration_dates
             aux = read.one_direct_predictor('u', level=level, grid='ext', model=model, scene=scene)
@@ -900,20 +794,24 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             idates = [i for i in range(len(times)) if times[i] in dates]
             u = aux['data'][idates]
             v = read.one_direct_predictor('v', level=level, grid='ext', model=model, scene=scene)['data'][idates]
-            sufix = str(level)
     else:
         if level == 'sl':
-            ncName = list(preds_dict['p'].keys())[0]
-            dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+            datesDefined = False
+            for ipred in range(len(all_preds.keys())):
+                try:
+                    ncName = list(all_preds.keys())[ipred]
+                    dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+                    datesDefined = True
+                    continue
+                except:
+                    pass
             aux = geostrophic(model=model, scene=scene)
-            u, v = aux['ugsl'], aux['vgsl']
-            sufix = 'gsl'
+            u, v = aux['data']['ugsl'], aux['data']['vgsl']
         else:
             aux = read.one_direct_predictor('u', level=level, grid='ext', model=model, scene=scene)
             dates = aux['times']
             u = aux['data']
             v = read.one_direct_predictor('v', level=level, grid='ext', model=model, scene=scene)['data']
-            sufix = str(level)
 
     # Calculate wind gradients
     ndates = len(dates)
@@ -935,13 +833,7 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
     grad_vy = -np.gradient(u)[2] / delta_y
     div = grad_ux + grad_vy
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'vort' + sufix + '.nc', 'vort', vort, 's-1', ext_lats, ext_lons, dates)
-        write.netCDF(pathOut, 'div' + sufix + '.nc', 'div', div, 's-1', ext_lats, ext_lons, dates)
-
-    return {'vort': vort, 'div': div}
+    return {'data': {'vort': vort, 'div': div}, 'times': dates}
 
 
 ########################################################################################################################
@@ -965,12 +857,8 @@ def mslp_trend(model='reanalysis', scene='TESTING'):
     mslp_dayBefore[1:][:][:] = mslp[:-1][:][:]
     mslp_trend = mslp - mslp_dayBefore
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'mslp_trend.nc', 'mslp_trend', mslp_trend, 'Pa', ext_lats, ext_lons, dates)
+    return {'data': mslp_trend, 'times': dates}
 
-    return mslp_trend
 
 
 ########################################################################################################################
@@ -982,8 +870,18 @@ def insolation(model='reanalysis', scene='TESTING'):
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        ncName = list(preds_dict['p'].keys())[0]
-        dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+        datesDefined = False
+        for ipred in range(len(all_preds.keys())):
+            try:
+                ncName = list(all_preds.keys())[ipred]
+                dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+                datesDefined = True
+                continue
+            except:
+                pass
+        if datesDefined == False:
+            print('At least one direct predictors is needed, not only derived predictors.')
+            exit()
 
     # Calculate ins
     ins = []
@@ -998,12 +896,7 @@ def insolation(model='reanalysis', scene='TESTING'):
     ins = np.repeat(ins, ext_nlats, axis=1)
     ins = np.repeat(ins, ext_nlons, axis=2)
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'ins.nc', 'ins', ins, '', ext_lats, ext_lons, dates)
-
-    return ins
+    return {'data': ins, 'times': dates}
 
 
 ########################################################################################################################
@@ -1062,58 +955,5 @@ def geostrophic(model='reanalysis', scene='TESTING'):
     ugsl /= denssl
     vgsl /= denssl
 
-    # Save to netCDF file
-    if model == 'reanalysis':
-        pathOut = pathAux + 'DERIVED_PREDICTORS/'
-        write.netCDF(pathOut, 'ugsl.nc', 'u', ugsl, 'm/s', ext_lats, ext_lons, dates)
-        write.netCDF(pathOut, 'vgsl.nc', 'v', vgsl, 'm/s', ext_lats, ext_lons, dates)
-
-    return {'ugsl': ugsl, 'vgsl': vgsl}
-
-
-########################################################################################################################
-def reanalysis_all():
-    """
-    Calls to all derived predictors so .nc files are generated
-    """
-
-    print('calculating derived predictors reanalysis')
-
-    # Create pathOut
-    pathOut = pathAux + 'DERIVED_PREDICTORS/'
-    if not os.path.exists(pathOut):
-        os.makedirs(pathOut)
-
-
-    if 'gsl' in all_preds:
-        geostrophic()
-    for (level0, level1) in [(1000, 850), (850, 700), (700, 500)]:
-        if 'vtg_' + str(level0) + '_' + str(level1) in all_preds:
-            vtg(level0, level1)
-    if ('vorgtsl' in all_preds) or ('divgsl' in all_preds):
-        vorticity_and_divergence(level='sl')
-    if 'mslp_trend' in all_preds:
-        mslp_trend()
-    if 'ins' in all_preds:
-        insolation()
-    if 'K_index' in all_preds:
-        K_index()
-    if 'TT_index' in all_preds:
-        TT_index()
-    if 'SSI_index' in all_preds:
-        SSI_index()
-    if 'LI_index' in all_preds:
-        LI_index()
-
-    for level in preds_levels:
-        print('derived predictors', level)
-        if ('vort' + str(level) in all_preds) or ('div' + str(level) in all_preds):
-            vorticity_and_divergence(level=level)
-        if 'r' + str(level) in all_preds:
-            q2r(level)
-        if ('td' + str(level) in all_preds) or ('Dtd' + str(level) in all_preds):
-            q2Td(level)
-
-
-
+    return {'data': {'ugsl': ugsl, 'vgsl': vgsl} , 'times': dates}
 

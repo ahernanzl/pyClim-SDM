@@ -15,10 +15,10 @@ methods = []
 # # ---------------- TMAX --------------------------------
 methods.append({'var': 'tmax', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'RAW-BIL',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
-# methods.append({'var': 'tmax', 'methodName': 'QM',      'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmax', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'QM',      'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'DQM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmax', 'methodName': 'QDM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+methods.append({'var': 'tmax', 'methodName': 'PSDM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmax', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmax', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 methods.append({'var': 'tmax', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
@@ -33,10 +33,10 @@ methods.append({'var': 'tmax', 'methodName': 'WG-PDF',  'family': 'WG',     'mod
 # ---------------- TMIN --------------------------------
 methods.append({'var': 'tmin', 'methodName': 'RAW',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'RAW-BIL',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
-# methods.append({'var': 'tmin', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmin', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'QM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'DQM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'tmin', 'methodName': 'QDM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+methods.append({'var': 'tmin', 'methodName': 'PSDM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
 # methods.append({'var': 'tmin', 'methodName': 'ANA-MLR', 'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 # methods.append({'var': 'tmin', 'methodName': 'WT-MLR',  'family': 'ANA',    'mode': 'PP',   'fields': 'pred+saf'})
 methods.append({'var': 'tmin', 'methodName': 'MLR',     'family': 'TF',     'mode': 'PP',   'fields': 'pred'})
@@ -51,10 +51,10 @@ methods.append({'var': 'tmin', 'methodName': 'WG-PDF',  'family': 'WG',     'mod
 # ---------------- PCP --------------------------------
 methods.append({'var': 'pcp', 'methodName': 'RAW',          'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
 # methods.append({'var': 'pcp', 'methodName': 'RAW-BIL',     'family': 'RAW',    'mode': 'RAW',  'fields': 'var'})
-# methods.append({'var': 'pcp', 'methodName': 'QM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'pcp', 'methodName': 'DQM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-# methods.append({'var': 'pcp', 'methodName': 'QDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
-methods.append({'var': 'pcp', 'methodName': 'PSDM',     'family': 'BC',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'QM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'DQM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+# methods.append({'var': 'pcp', 'methodName': 'QDM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
+methods.append({'var': 'pcp', 'methodName': 'PSDM',     'family': 'MOS',     'mode': 'MOS',  'fields': 'var'})
 methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-1NN',    'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
 # methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-kNN',    'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
 # methods.append({'var': 'pcp', 'methodName': 'ANA-SYN-rand',  'family': 'ANA',    'mode': 'PP',   'fields': 'saf'})
@@ -129,12 +129,12 @@ saf_lon_left, saf_lon_right = -18.0, 12.0
 
 reaNames = {'u': 'u', 'v': 'v', 't': 't', 'z': 'z', 'q': 'q',
             'mslp': 'msl', 'u10': 'u10', 'v10': 'v10', 't2m': 't2m',
-            # 'd2m': 'd2m', 'r2m': '-', 'q2m': '-', 'sp': 'sp', 'tcc': 'tcc', 'r': 'r',
+            # 'd2m': 'd2m', 'r2m': '-', 'q2m': '-', 'sp': 'sp', 'tcc': 'tcc', 'r': 'r', 'td': '-',
             'tmax': 'mx2t', 'tmin': 'mn2t', 'pcp': 'tp'}
 
 modNames = {'u': 'ua', 'v': 'va', 't': 'ta', 'z': 'zg', 'q': 'hus',
             'mslp': 'psl', 'u10': 'uas', 'v10': 'vas', 't2m': 'tas',
-            # 'd2m': 'tdps', 'r2m': 'hurs', 'q2m': 'huss', 'sp': 'ps', 'tcc': 'clt', 'r': 'hur',
+            # 'd2m': 'tdps', 'r2m': 'hurs', 'q2m': 'huss', 'sp': 'psl', 'tcc': 'clt', 'r': 'hur', 'td': '-',
             'tmax': 'tasmax', 'tmin': 'tasmin', 'pcp': 'pr'}
 
 
@@ -148,6 +148,9 @@ preds_t_list = [
     # 'u10',              # surface wind
     # 'v10',              # surface wind
     't2m',              # surface temperature
+    # 'd2m',              # surface dew point
+    # 'q2m',              # surface specific humidity
+    # 'r2m',              # surface relative humidity
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
     'u700',             # wind at pressure levels
@@ -222,6 +225,9 @@ preds_p_list = [
     # 'u10',              # surface wind
     # 'v10',              # surface wind
     # 't2m',              # surface temperature
+    # 'd2m',              # surface dew point
+    # 'q2m',              # surface specific humidity
+    # 'r2m',              # surface relative humidity
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
     'u700',             # wind at pressure levels
@@ -284,6 +290,7 @@ preds_p_list = [
     # 'SSI_index',        # Showalter index
     # 'LI_index',         # Lifted index
 ]
+
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
 
@@ -513,4 +520,14 @@ climdex_names = {
 ###################################     Bias correction   #################################################
 apply_bc = False # Apply bias correction after downscaling
 apply_bc_bySeason = False # Apply bias correction customized for each season after downcaling
+
+
+# ###################################     Seasons           #################################################
+# # Season values can be adapted, but once they have been set do not change, because they are used both for filenames
+# # and for titles in figures. Never change keys of dictionary, that is what the program uses internally. Just change
+# # the values of the dictionary
+# # season_dict = {'INVIERNO': [12, 1, 2], 'PRIMAVERA': [3, 4, 5], 'VERANO': [6, 7, 8], 'OTOÑO': [9, 10, 11]}
+# # annualName = 'ANUAL'
+# season_dict = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
+# annualName = 'ANNUAL'
 
