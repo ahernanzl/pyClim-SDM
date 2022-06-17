@@ -210,10 +210,10 @@ def daily_data(by_season=True):
                     est_reg = est[:, iaux]
 
                 # Select season
-                for season in season_dict.values():
-                    if season == 'ANNUAL' or by_season == True:
-                        print(season)
-                        if season == season_dict['ANNUAL']:
+                for season in season_dict:
+                    if season == annualName or by_season == True:
+                        print('season', season)
+                        if season == season_dict[annualName]:
                             obs_reg_season = obs_reg
                             est_reg_season = est_reg
                             times = times_scene
@@ -303,8 +303,8 @@ def climdex(by_season=True):
                         # exit()
 
                     # Select season
-                    for season in season_dict.values():
-                        if season == 'ANNUAL' or by_season == True:
+                    for season in season_dict:
+                        if season == annualName or by_season == True:
                             # Read data and select region
                             pathIn = '../results/EVALUATION'+sufix+'/'+ var.upper() + '/' + methodName + '/climdex/'
 
@@ -370,7 +370,7 @@ def climdex(by_season=True):
                             m -= 5
                             M += 5
                             plt.plot(range(m, M), range(m, M))
-                            # if plotAllRegions == False and season == season_dict['ANNUAL']:
+                            # if plotAllRegions == False and season == season_dict[annualName]:
 
                             filename = '_'.join(('EVALUATION', 'scatterPlot', var, climdex_name, methodName,
                                                  season))

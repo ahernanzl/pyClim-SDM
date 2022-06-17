@@ -492,7 +492,7 @@ def get_climdex_allModels(var, methodName):
         # Check if model climdex has already been calculated
         filenames = []
         for climdex_name in climdex_names[var]:
-            for season in season_dict.values():
+            for season in season_dict:
                 # filenames.append(pathOut + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')
                 for scene in scene_list:
                     filenames.append(pathOut + '_'.join((climdex_name, scene, model, season)) + '.npy')
@@ -689,7 +689,7 @@ def nc2ascii():
                 # Climdex
                 pathIn = '../results/'+experiment+sufix+'/'+var.upper()+'/'+methodName+'/climdex/'
                 for climdex in climdex_names[var]:
-                    for season in season_dict.values():
+                    for season in season_dict:
                         if scene == 'TESTING':
                             fileIn = '_'.join((climdex, 'est', season))
                         else:

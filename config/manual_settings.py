@@ -153,17 +153,17 @@ preds_t_list = [
     # 'r2m',              # surface relative humidity
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
-    'u700',             # wind at pressure levels
+    # 'u700',             # wind at pressure levels
     'u500',             # wind at pressure levels
     # 'u250',             # wind at pressure levels
     # 'v1000',            # wind at pressure levels
     'v850',             # wind at pressure levels
-    'v700',             # wind at pressure levels
+    # 'v700',             # wind at pressure levels
     'v500',             # wind at pressure levels
     # 'v250',             # wind at pressure levels
     # 't1000',            # temperature at pressure levels
     't850',             # temperature at pressure levels
-    't700',             # temperature at pressure levels
+    # 't700',             # temperature at pressure levels
     't500',             # temperature at pressure levels
     # 't250',             # temperature at pressure levels
     # 'z1000',            # geopotential at pressure levels
@@ -230,12 +230,12 @@ preds_p_list = [
     # 'r2m',              # surface relative humidity
     # 'u1000',            # wind at pressure levels
     'u850',             # wind at pressure levels
-    'u700',             # wind at pressure levels
+    # 'u700',             # wind at pressure levels
     'u500',             # wind at pressure levels
     # 'u250',             # wind at pressure levels
     # 'v1000',            # wind at pressure levels
     'v850',             # wind at pressure levels
-    'v700',             # wind at pressure levels
+    # 'v700',             # wind at pressure levels
     'v500',             # wind at pressure levels
     # 'v250',             # wind at pressure levels
     # 't1000',            # temperature at pressure levels
@@ -245,7 +245,7 @@ preds_p_list = [
     # 't250',             # temperature at pressure levels
     # 'z1000',            # geopotential at pressure levels
     'z850',             # geopotential at pressure levels
-    'z700',             # geopotential at pressure levels
+    # 'z700',             # geopotential at pressure levels
     'z500',             # geopotential at pressure levels
     # 'z250',             # geopotential at pressure levels
     # 'q1000',            # specifit humidity at pressure levels
@@ -255,7 +255,7 @@ preds_p_list = [
     # 'q250',             # specifit humidity at pressure levels
     # 'r1000',            # relative humidity at pressure levels (derived from t and q)
     'r850',             # relative humidity at pressure levels (derived from t and q)
-    'r700',             # relative humidity at pressure levels (derived from t and q)
+    # 'r700',             # relative humidity at pressure levels (derived from t and q)
     'r500',             # relative humidity at pressure levels (derived from t and q)
     # 'r250',             # relative humidity at pressure levels (derived from t and q)
     # 'td1000',           # dew point at pressure levels (derived from q)
@@ -522,12 +522,19 @@ apply_bc = False # Apply bias correction after downscaling
 apply_bc_bySeason = False # Apply bias correction customized for each season after downcaling
 
 
-# ###################################     Seasons           #################################################
-# # Season values can be adapted, but once they have been set do not change, because they are used both for filenames
-# # and for titles in figures. Never change keys of dictionary, that is what the program uses internally. Just change
-# # the values of the dictionary
-# # season_dict = {'INVIERNO': [12, 1, 2], 'PRIMAVERA': [3, 4, 5], 'VERANO': [6, 7, 8], 'OTOÑO': [9, 10, 11]}
-# # annualName = 'ANUAL'
-# season_dict = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
-# annualName = 'ANNUAL'
+###################################     Seasons           #################################################
+# Season values can be adapted, but once they have been set do not change, because they are used both for filenames
+# and for titles in figures. Never change keys of dictionary, that is what the program uses internally. Just change
+# the values of the dictionary
+# inverse_seasonNames = ['ANUAL',
+#                        'INVIERNO', 'INVIERNO', 'PRIMAVERA',
+#                        'PRIMAVERA', 'PRIMAVERA', 'VERANO',
+#                        'VERANO', 'VERANO', 'OTOÑO',
+#                        'OTOÑO',  'OTOÑO',  'INVIERNO']
+inverse_seasonNames = ['ANNUAL',
+                       'DJF', 'DJF', 'MAM',
+                       'MAM', 'MAM', 'JJA',
+                       'JJA', 'JJA', 'SON',
+                       'SON',  'SON',  'DJF']
+
 

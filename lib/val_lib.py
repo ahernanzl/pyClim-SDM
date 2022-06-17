@@ -65,9 +65,9 @@ def daily_boxplots(metric, by_season):
                 del d
 
                 # Select season
-                for season in season_dict.values():
-                    if season == 'ANNUAL' or by_season == True:
-                        if season == season_dict['ANNUAL']:
+                for season in season_dict:
+                    if season == annualName or by_season == True:
+                        if season == season_dict[annualName]:
                             obs_season = obs
                             est_season = est
                             times = times_scene
@@ -98,8 +98,8 @@ def daily_boxplots(metric, by_season):
 
 
     # Select season
-    for season in season_dict.values():
-        if season == 'ANNUAL' or by_season == True:
+    for season in season_dict:
+        if season == annualName or by_season == True:
             for VAR in vars:
             # for VAR in ('pcp', ):
                 nmethods = len([x for x in methods if x['var'] == VAR])
@@ -211,8 +211,8 @@ def climdex_boxplots(by_season):
         for climdex_name in climdex_names[VAR]:
 
             # Select season
-            for season in season_dict.values():
-                if season == 'ANNUAL' or by_season == True:
+            for season in season_dict:
+                if season == annualName or by_season == True:
 
                     # Go through all methods
                     imethod = 0

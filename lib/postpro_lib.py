@@ -55,14 +55,14 @@ def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
         elif climdex_name in ('R95p', 'R95pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
             perc95Calendar = {}
-            for season in season_dict.values():
+            for season in season_dict:
                 aux = get_season(ref, times_ref, season)['data']
                 aux[aux < 1] = np.nan
                 perc95Calendar.update({season: np.repeat(np.nanpercentile(aux, 95, axis=0)[np.newaxis, :], 365, axis=0)})
         elif climdex_name in ('R99p', 'R99pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
             perc99Calendar = {}
-            for season in season_dict.values():
+            for season in season_dict:
                 aux = get_season(ref, times_ref, season)['data']
                 aux[aux < 1] = np.nan
                 perc99Calendar.update({season: np.repeat(np.nanpercentile(aux, 99, axis=0)[np.newaxis, :], 365, axis=0)})
@@ -71,7 +71,7 @@ def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
 
 
         # Select season
-        for season in season_dict.values():
+        for season in season_dict:
             aux = get_season(data, times, season)
             data_season = aux['data']
             times_season = aux['times']
@@ -337,16 +337,13 @@ def get_season(data, times, season):
     """
     :param data: (ndays, npoints)
     :param times: list of dates
-    :param season: 'ANNUAL', 'DJF', 'MMA', 'JJA', 'SON' taken from season_dict defined at settings
+    :param season: taken from season_dict defined at settings
     :return: data: (ndays_season, npoints)
             times_season: list of dates season
     """
 
-    # Define season months
-    season_months = {season_dict['ANNUAL']: range(1, 13), season_dict['DJF']: (12, 1, 2), season_dict['MAM']: (3, 4, 5), season_dict['JJA']: (6, 7, 8), season_dict['SON']: (9, 10, 11)}
-
     # Get season positions
-    idates = [i for i in range(len(times)) if times[i].month in season_months[season]]
+    idates = [i for i in range(len(times)) if times[i].month in season_dict[season]]
     data = data[idates]
     times = [times[i] for i in idates]
 
@@ -595,7 +592,7 @@ def figures_projections(lan='EN'):
                 # Go through all climdex, seasons, scenes and models
                 for climdex_name in climdex_names[var]:
                     if climdex_name in implemented_climdex:
-                        for season in season_dict.values():
+                        for season in season_dict:
 
                             # Get data
                             ssp_dict = get_data_projections(nYears, npoints, climdex_name, season, pathIn, iaux)
@@ -607,7 +604,7 @@ def figures_projections(lan='EN'):
                                           ylim_dict[climdex_name], ylabel_dict[climdex_name], season, var, methodName, xlabel)
 
                             # Csv with data for evolution graphs
-                            # if (season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                            # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
                             csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season)
 
                             # Spaghetti plot
@@ -616,7 +613,7 @@ def figures_projections(lan='EN'):
                                                   ylabel_dict[climdex_name], season, var, methodName, regType, regName, xlabel)
 
                             # Mean and spread ensemble tube plot
-                            # if (season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                            # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
                             tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
                                  ylabel_dict[climdex_name], season, var, methodName, regType, regName, xlabel)
 
@@ -681,7 +678,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         # plt.show()
         # exit()
         filename = '_'.join(('PROJECTIONS', 'evolTrendRaw', var, climdex_name, methodName, season))
-        # if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
+        # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
         if (plotAllRegions == False):
             plt.title(methodName, fontsize=title_size)
             if not os.path.exists(pathFigures):
@@ -750,7 +747,7 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
     plt.legend(loc='upper left', fontsize='xx-small', ncol=3)
     # plt.show()
     # exit()
-    if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
+    if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
         filename = '_'.join(('PROJECTIONS', 'evolSpaghetti', var, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
@@ -793,7 +790,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
     plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
     # plt.show()
     # exit()
-    if (plotAllRegions == False) and ((season == season_dict['ANNUAL']) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
+    if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
         filename = '_'.join(('PROJECTIONS', 'evolTube', var, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
@@ -908,7 +905,7 @@ def format_web_AEMET():
 
         # Define fields for seasons
         df_seasons = pd.DataFrame(columns=['season', 'nameForMaps', 'nameForFigAndCsv'])
-        df_seasons = df_seasons.append({'season': 'ANNUAL', 'nameForMaps': 'anu', 'nameForFigAndCsv': 'Anual'}, ignore_index=True)
+        df_seasons = df_seasons.append({'season': annualName, 'nameForMaps': 'anu', 'nameForFigAndCsv': 'Anual'}, ignore_index=True)
         df_seasons = df_seasons.append({'season': 'DJF', 'nameForMaps': 'inv', 'nameForFigAndCsv': 'Invierno'}, ignore_index=True)
         df_seasons = df_seasons.append({'season': 'MAM', 'nameForMaps': 'pri', 'nameForFigAndCsv': 'Primavera'}, ignore_index=True)
         df_seasons = df_seasons.append({'season': 'JJA', 'nameForMaps': 'ver', 'nameForFigAndCsv': 'Verano'}, ignore_index=True)
@@ -1025,7 +1022,7 @@ def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_se
                             shutil.copyfile(pathOld+fileOld, pathNew+fileNew)
 
                         # Tubes
-                        if (climdex in ('TXm', 'TNm', 'Pm')) or (row_seasons['season'] == 'ANNUAL'):
+                        if (climdex in ('TXm', 'TNm', 'Pm')) or (row_seasons['season'] == annualName):
                             pathOld = pathIn+'evolution/'+row_regions['subDir']
                             pathNew = pathOut+'JPEG/'+row_regions['regType']+'/'
                             fileOld = '_'. join(('evolTube', climdex, season_dict[row_seasons['season']])) + '.png'
@@ -1035,7 +1032,7 @@ def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_se
                             shutil.copyfile(pathOld+fileOld, pathNew+fileNew)
 
                         # Csv (they are duplicated to go both with spaghettis and tubes)
-                        if (climdex in ('TXm', 'TNm', 'Pm')) or (row_seasons['season'] == 'ANNUAL'):
+                        if (climdex in ('TXm', 'TNm', 'Pm')) or (row_seasons['season'] == annualName):
                             pathOld = pathIn+'csv/'+row_regions['subDir']
                             pathNew = pathOut+'CSV/'+row_regions['regType']+'/'
                             fileOld = '_'. join((climdex, season_dict[row_seasons['season']])) + '.csv'

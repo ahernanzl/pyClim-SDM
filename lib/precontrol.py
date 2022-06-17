@@ -188,7 +188,7 @@ def predictors_correlation():
             npreds = len(preds)
 
             # Go through all seasons
-            for season in season_dict.values():
+            for season in season_dict:
 
                 R = np.zeros((npreds, hres_npoints[var[0]]))
 
@@ -287,7 +287,7 @@ def GCMs_evaluation_historical():
         
         
         # Go through all seasons
-        for season in season_dict.values():
+        for season in season_dict:
             n = 0
             # Go through all predictors
             for ipred in range(npreds):
@@ -442,8 +442,8 @@ def GCMs_evaluation_historical():
                     
                     # Save results
                     np.save(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'bias')), bias)
-                    np.save(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle')), cycle)
-                    np.save(pathTmp + '_'.join((var0, predName, 'Reanalysis', 'ANNUAL', 'cycle_rea')), cycle_rea)
+                    np.save(pathTmp + '_'.join((var0, predName, model, sceneName, annualName, 'cycle')), cycle)
+                    np.save(pathTmp + '_'.join((var0, predName, 'Reanalysis', annualName, 'cycle_rea')), cycle_rea)
                     np.save(pathTmp + '_'.join((var0, predName, model, sceneName, season, 'spaghetti')), spaghetti)
                     np.save(pathTmp + '_'.join((var0, predName, 'Reanalysis', sceneName, season, 'spaghetti_rea')), spaghetti_rea)
                     print(var0, predName, model, sceneName, season)
@@ -511,11 +511,11 @@ def GCMs_evaluation_historical():
                 # Annual cycle plot
                 fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                 for model in model_list:
-                    cycle_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle.npy')))
+                    cycle_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, annualName, 'cycle.npy')))
                     x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                     y_cycle = [i for i in cycle_load]
                     ax.plot(x_months, y_cycle, label= model )
-                cycle_rea_load = np.load(pathTmp + '_'.join((var0, predName, 'Reanalysis', 'ANNUAL', 'cycle_rea.npy')))
+                cycle_rea_load = np.load(pathTmp + '_'.join((var0, predName, 'Reanalysis', annualName, 'cycle_rea.npy')))
                 x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                 y_cycle_rea = [i for i in cycle_rea_load]
                 ax.plot(x_months, cycle_rea, label= 'Reanalysis', linestyle = '--', linewidth = 4, c = 'k' )    
@@ -643,11 +643,11 @@ def GCMs_evaluation_future():
                                 monsum = varcy[kkmon,:,:].sum(axis=0)/nyears
                                 lst_months.append(monsum.mean())
                         cycle = lst_months
-                        np.save(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle')), cycle)
+                        np.save(pathTmp + '_'.join((var0, predName, model, sceneName, annualName, 'cycle')), cycle)
 
                         # Go through all seasons
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             # Select season data
                             aux = postpro_lib.get_season(sceneData, times, season)
                             data_season, times_season = aux['data'], aux['times']
@@ -697,7 +697,7 @@ def GCMs_evaluation_future():
                         matrix_per50models = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'per50models.npy')))
                         matrix_per75models = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'per75models.npy')))
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             #datamean = matrix_meanmodels[iseason, iscene-1]
                             #datamean = np.mean(datamean.reshape(nYears, -1), axis=1)
                             #datastd = matrix_stdmodels[iseason, iscene-1]
@@ -732,7 +732,7 @@ def GCMs_evaluation_future():
                         matrix_per50models = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'per50models.npy')))
                         matrix_per75models = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'per75models.npy')))
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             #datamean = matrix_meanmodels[iseason, iscene-1]
                             #datamean = np.mean(datamean.reshape(nYears, -1), axis=1)
                             #datastd = matrix_stdmodels[iseason, iscene-1]
@@ -768,7 +768,7 @@ def GCMs_evaluation_future():
                         matrix_per50models = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'standardized_per50models.npy')))
                         matrix_per75models = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'standardized_per75models.npy')))
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             #datamean = matrix_meanmodels[iseason, iscene-1]
                             #datamean = np.mean(datamean.reshape(nYears, -1), axis=1)
                             #datastd = matrix_stdmodels[iseason, iscene-1]
@@ -796,7 +796,7 @@ def GCMs_evaluation_future():
                     # Annual cycle plot
                     fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                     for model in model_list:
-                        cycle_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, 'ANNUAL', 'cycle.npy')))
+                        cycle_load = np.load(pathTmp + '_'.join((var0, predName, model, sceneName, annualName, 'cycle.npy')))
                         x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                         y_cycle = [i for i in cycle_load]
                         ax.plot(x_months, y_cycle, label= model )
@@ -817,7 +817,7 @@ def GCMs_evaluation_future():
                     if predName in ['tmax','tmin']:
                         matrix = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'matrix.npy')))
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             for imodel in range(nmodels):
                                 model = model = model_list[imodel]
@@ -841,7 +841,7 @@ def GCMs_evaluation_future():
                     elif predName in ['pcp']:
                         matrix = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'matrix.npy')))
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
@@ -866,7 +866,7 @@ def GCMs_evaluation_future():
                     else:
                         matrix = np.load(pathTmp + '_'.join((var0, predName, sceneName, 'standardized_matrix.npy')))
                         iseason = 0
-                        for season in season_dict.values():
+                        for season in season_dict:
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
