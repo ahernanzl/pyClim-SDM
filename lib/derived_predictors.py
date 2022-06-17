@@ -73,7 +73,7 @@ def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; em
     where:
     t500 is the measured temperature at 500 hPa
     tp500 is the temperature of the parcel at 500 hPa when lifted from 850 hPa"""
-    
+    from scipy.optimize import fmin
     #from scipy.optimize import fsolve --> it was added in /config/imports.py
     
     # Prepare times
@@ -88,7 +88,7 @@ def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; em
     t850 = read.one_direct_predictor('t', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     z850 = read.one_direct_predictor('z', level=850, grid='ext', model=model, scene=scene)['data'][idates]
     t500 = read.one_direct_predictor('t', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
+    td850 =dew_point(850, model=model, scene=scene)['data'][idates]
     
     # Constants
     cp = 1005 # Isobaric specific heat in dry air
@@ -96,61 +96,86 @@ def SSI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; em
     g = 9.8  # Gravity
     L = 2.5 * 10 ** 6 # Latent heat of vaporization of water
     
-    # Calculate Lifted Condensation Level using Lawrence's simple formula 
-    '''(visit: https://journals.ametsoc.org/downloadpdf/journals/bams/86/2/bams-86-2-225.pdf)'''
-    LCL = 125*(t850 - td850) + z850
-
-    # Calculate LCL temperature
-    tLCL = t850 - LCL * g / cp
-
-    # Define Magnus equation
-    def magnus(t):
-        return 6.11 * 100 * pow(10, 7.4475 * (t -273.15) / (234.07 + (t -273.15)))
-	
-    # Calculate saturation vapour pressure at LCL temperature
-    es_tLCL = magnus(tLCL)
-
-    # Calculate mixing ratio at t850
-    r_t850 = 0.622 * magnus(td850) / (850 * 100 - magnus(td850))
-
-    '''
-    # Calculate mean value of lifting virtual temperature:
-    (1) tvm = ((1 + 0.605 * r_t850) * t850 + (1 + 0.605 * rs_tLCL) * tLCL ) / 2
-    # Calculate LCL pressure (hypsometric equation):
-    (2) pLCL = 850 * 100 * np.exp(g * (z850 - LCL) / (R * tvm))
-    # Calculate saturation mixing ratio at LCL temperature:
-    (3) rs_tLCL = 0.622 * es_tLCL / (pLCL - es_tLCL)
-    '''
+    SSI_index_lst = []
     
-    # Calculate LCL pressure solving implicit equation resulting from merging (1)&(2)&(3)
-    def f_pLCL(pLCL):
-        return pLCL - 850 * 100 * np.exp(g * (z850 - LCL) / (R * ((1 + 0.605 * r_t850) * t850 + (1 + 0.605 * 0.622 * es_tLCL / (pLCL - es_tLCL)) * tLCL ) / 2))
-    pLCL = fsolve(f_pLCL,850 * 100)
-
-    '''
-    Calculation pseudoadiabatic equation constant KK: 
-    cp * ln(t) - R * ln(p-es) + rs * L / t = constant value 
-    where:
-    cp is the isobaric specific heat in dry air
-    T is the virtual temperature
-    R is the dry air constant
-    p is pressure
-    es is saturation vapour pressure at t
-    r is the mixing ratio at T and p
-    L is the heat of vaporization of water at t
-    '''
+    # convert arrays into 1-D vectors
+    ravelz850=z850.ravel()
+    ravelt850=t850.ravel()
+    ravelt500=t500.ravel()
+    raveltd850=td850.ravel()
     
-    # Calculate pseudoadiabatic equation constant
-    KK = cp * np.log(tLCL) - R * np.log(pLCL - es_tLCL) + (0.622 * es_tLCL / (pLCL - es_tLCL)) * L / tLCL
+    for j in range(0,len(ravelt500)):   
+        
+        # % completed
+        if j % 20000 == 0:
+            print('calculating SSI_index: ' + str(round(j/len(ravelt500)*100,1))+' %')
+        
+        # select element
+        jz850 = ravelz850[j]
+        jt850 = ravelt850[j]
+        jt500 = ravelt500[j]
+        jtd850 = raveltd850[j]
+        
+        # Calculate Lifted Condensation Level using Lawrence's simple formula 
+        '''(visit: https://journals.ametsoc.org/downloadpdf/journals/bams/86/2/bams-86-2-225.pdf)'''
+        LCL = 125*(jt850 - jtd850) + jz850
+        
 
-    # Calculate Tp500 solving implicit pseudoadiabatic equation
-    def f_tp500(tp500):
-        return KK - cp * np.log(tp500) + R * np.log(500*100 - magnus(tp500)) - (0.622 * magnus(tp500) / (pLCL - magnus(tp500))) * L / tp500
-    tp500 = fsolve(f_tp500,t500)
+        # Calculate LCL temperature
+        tLCL = jt850 - LCL * g / cp
+        
+
+        # Define Magnus equation
+        def magnus(t):
+            return 6.11 * 100 * pow(10, 7.4475 * (t -273.15) / (234.07 + (t -273.15)))
+
+        # Calculate saturation vapour pressure at LCL temperature
+        es_tLCL = magnus(tLCL)
+        
+        # Calculate mixing ratio at t850
+        r_t850 = 0.622 * magnus(jtd850) / (850 * 100 - magnus(jtd850))
+        
+        '''
+        # Calculate mean value of lifting virtual temperature:
+        (1) tvm = ((1 + 0.605 * r_t850) * t850 + (1 + 0.605 * rs_tLCL) * tLCL ) / 2
+        # Calculate LCL pressure (hypsometric equation):
+        (2) pLCL = 850 * 100 * np.exp(g * (z850 - LCL) / (R * tvm))
+        # Calculate saturation mixing ratio at LCL temperature:
+        (3) rs_tLCL = 0.622 * es_tLCL / (pLCL - es_tLCL)
+        '''
+
+        # Calculate LCL pressure solving implicit equation resulting from merging (1)&(2)&(3)     
+        def f_pLCL(pLCL):
+            return pLCL - 850 * 100 * np.exp(g * (jz850 - LCL) / (R * ((1 + 0.605 * r_t850) * jt850 + (1 + 0.605 * 0.622 * es_tLCL / (pLCL - es_tLCL)) * tLCL) / 2))
+        pLCL = fsolve(f_pLCL, 850 * 100 )
+        
+        '''
+        Calculation pseudoadiabatic equation constant KK: 
+        cp * ln(t) - R * ln(p-es) + rs * L / t = constant value 
+        where:
+        cp is the isobaric specific heat in dry air
+        T is the virtual temperature
+        R is the dry air constant
+        p is pressure
+        es is saturation vapour pressure at t
+        r is the mixing ratio at T and p
+        L is the heat of vaporization of water at t
+        '''
+        
+        # Calculate pseudoadiabatic equation constant
+        KK = cp * np.log(tLCL) - R * np.log(pLCL - es_tLCL) + (0.622 * es_tLCL / (pLCL - es_tLCL)) * L / tLCL
+        
+        # Calculate Tp500 solving implicit pseudoadiabatic equation
+        def f_tp500(tp500):
+            return KK - cp * np.log(tp500) + R * np.log(500*100 - magnus(tp500)) - (0.622 * magnus(tp500) / (pLCL - magnus(tp500))) * L / tp500
+        tp500 = fsolve(f_tp500,jt500)
  
-    # Calculate SSI index
-    SSI_index = t500 - tp500
+        # Calculate SSI index
+        jSSI_index = jt500 - tp500
+        SSI_index_lst.append(jSSI_index)
 
+    SSI_index = np.array(SSI_index_lst).reshape(t500.shape)
+    
     return {'data': SSI_index, 'times': dates}
 
 ########################################################################################################################
@@ -184,65 +209,89 @@ def LI_index(model='reanalysis', scene='TESTING'): # author: Carlos Correa ; ema
     g = 9.8  # Gravity
     L = 2.5 * 10 ** 6 # Latent heat of vaporization of water
     
-    # Calculate dew point
-    td2m = 1 / (1 / 273 - (Rv / L) * np.log(mslp * q2m / (0.622 * 6.11 * 100)))
+    LI_index_lst = []
     
-    # Calculate Lifted Condensation Level using Lawrence's simple formula 
-    '''(visit: https://journals.ametsoc.org/downloadpdf/journals/bams/86/2/bams-86-2-225.pdf)'''
-    LCL = 125*(t2m - td2m)
-
-    # Calculate LCL temperature
-    tLCL = t2m - LCL * g / cp
-
-    # Define Magnus equation
-    def magnus(t):
-        return 6.11 * 100 * pow(10, 7.4475 * (t -273.15) / (234.07 + (t -273.15)))
-	
-    # Calculate saturation vapour pressure at LCL temperature
-    es_tLCL = magnus(tLCL)
-
-    # Calculate mixing ratio at the surface
-    r_t2m = 0.622 * magnus(td2m) / ( mslp - magnus(td2m))
-
-    '''
-    # Calculate mean value of lifting virtual temperature:
-    (1) tvm = ((1 + 0.605 * r_t2m) * t2m + (1 + 0.605 * rs_tLCL) * tLCL ) / 2
-    # Calculate LCL pressure (hypsometric equation):
-    (2) pLCL =  mslp * np.exp(g * (0 - LCL) / (R * tvm))
-    # Calculate saturation mixing ratio at LCL temperature:
-    (3) rs_tLCL = 0.622 * es_tLCL / (pLCL - es_tLCL)
-    '''
+    # convert arrays into 1-D vectors
+    ravelt500 = t500.ravel()
+    ravelmslp = mslp.ravel()
+    ravelt2m  = t2m .ravel()
+    ravelq2m = q2m.ravel()
     
-    # Calculate LCL pressure solving implicit equation resulting from merging (1)&(2)&(3)
-    def f_pLCL(pLCL):
-        return pLCL - mslp * np.exp(g * (0 - LCL) / (R * ((1 + 0.605 * r_t2m) * t2m + (1 + 0.605 * 0.622 * es_tLCL / (pLCL - es_tLCL)) * tLCL ) / 2))
-    pLCL = fsolve(f_pLCL,mslp)
-
-    '''
-    Calculation pseudoadiabatic equation constant KK: 
-    cp * ln(t) - R * ln(p-es) + rs * L / t = constant value 
-    where:
-    cp is the isobaric specific heat in dry air
-    T is the virtual temperature
-    R is the dry air constant
-    p is pressure
-    es is saturation vapour pressure at t
-    r is the mixing ratio at T and p
-    L is the heat of vaporization of water at t
-    '''
+    for j in range(0,len(ravelt500)):
+        
+        # % completed
+        if j % 20000 == 0:
+            print('calculating LI_index: ' + str(round(j/len(ravelt500)*100,1))+' %')
+        
+        # select element
+        jt500 = ravelt500[j]
+        jmslp = ravelmslp[j]
+        jt2m = ravelt2m[j]
+        jq2m = ravelq2m[j]
     
-    # Calculate pseudoadiabatic equation constant
-    KK = cp * np.log(tLCL) - R * np.log(pLCL - es_tLCL) + (0.622 * es_tLCL / (pLCL - es_tLCL)) * L / tLCL
+        # Calculate dew point
+        td2m = 1 / (1 / 273 - (Rv / L) * np.log(jmslp * jq2m / (0.622 * 6.11 * 100)))
+    
+        # Calculate Lifted Condensation Level using Lawrence's simple formula 
+        '''(visit: https://journals.ametsoc.org/downloadpdf/journals/bams/86/2/bams-86-2-225.pdf)'''
+        LCL = 125*(jt2m - td2m)
 
-    # Calculate Tp500 solving implicit pseudoadiabatic equation
-    def f_tp500(tp500):
-        return KK - cp * np.log(tp500) + R * np.log(500*100 - magnus(tp500)) - (0.622 * magnus(tp500) / (pLCL - magnus(tp500))) * L / tp500
-    tp500 = fsolve(f_tp500,t500)
+        # Calculate LCL temperature
+        tLCL = jt2m - LCL * g / cp
+
+        # Define Magnus equation
+        def magnus(t):
+            return 6.11 * 100 * pow(10, 7.4475 * (t -273.15) / (234.07 + (t -273.15)))
+
+        # Calculate saturation vapour pressure at LCL temperature
+        es_tLCL = magnus(tLCL)
+
+        # Calculate mixing ratio at the surface
+        r_t2m = 0.622 * magnus(td2m) / ( jmslp - magnus(td2m))
+
+        '''
+        # Calculate mean value of lifting virtual temperature:
+        (1) tvm = ((1 + 0.605 * r_t2m) * t2m + (1 + 0.605 * rs_tLCL) * tLCL ) / 2
+        # Calculate LCL pressure (hypsometric equation):
+        (2) pLCL =  mslp * np.exp(g * (0 - LCL) / (R * tvm))
+        # Calculate saturation mixing ratio at LCL temperature:
+        (3) rs_tLCL = 0.622 * es_tLCL / (pLCL - es_tLCL)
+        '''
+    
+        # Calculate LCL pressure solving implicit equation resulting from merging (1)&(2)&(3)
+        def f_pLCL(pLCL):
+            return pLCL - jmslp * np.exp(g * (0 - LCL) / (R * ((1 + 0.605 * r_t2m) * jt2m + (1 + 0.605 * 0.622 * es_tLCL / (pLCL - es_tLCL)) * tLCL ) / 2))
+        pLCL = fsolve(f_pLCL,jmslp)
+
+        '''
+        Calculation pseudoadiabatic equation constant KK: 
+        cp * ln(t) - R * ln(p-es) + rs * L / t = constant value 
+        where:
+        cp is the isobaric specific heat in dry air
+        T is the virtual temperature
+        R is the dry air constant
+        p is pressure
+        es is saturation vapour pressure at t
+        r is the mixing ratio at T and p
+        L is the heat of vaporization of water at t
+        '''
+    
+        # Calculate pseudoadiabatic equation constant
+        KK = cp * np.log(tLCL) - R * np.log(pLCL - es_tLCL) + (0.622 * es_tLCL / (pLCL - es_tLCL)) * L / tLCL
+
+        # Calculate Tp500 solving implicit pseudoadiabatic equation
+        def f_tp500(tp500):
+            return KK - cp * np.log(tp500) + R * np.log(500*100 - magnus(tp500)) - (0.622 * magnus(tp500) / (pLCL - magnus(tp500))) * L / tp500
+        tp500 = fsolve(f_tp500,jt500)
  
-    # Calculate SSI index
-    LI_index = t500 - tp500
-
+        # Calculate LI index
+        jLI_index = jt500 - tp500
+        LI_index_lst.append(jLI_index)
+        
+    LI_index = np.array(LI_index_lst).reshape(t500.shape)
+    
     return {'data': LI_index, 'times': dates}
+
 
 ########################################################################################################################
 def K_index(model='reanalysis', scene='TESTING'):
