@@ -147,11 +147,6 @@ if experiment == 'PSEUDOREALITY':
 shortTerm_years = (2040, 2069)
 longTerm_years = (2071, 2100)
 
-# Season values can be adapted, but once they have been set do not change, because they are used both for filenames
-# and for titles in figures. Never change keys of dictionary, that is what the program uses internally. Just change
-# the values of the dictionary
-# season_dict = {'ANNUAL': 'ANUAL', 'DJF': 'INVIERNO', 'MAM': 'PRIMAVERA', 'JJA': 'VERANO', 'SON': 'OTOÑO'}
-season_dict = {'ANNUAL': 'ANNUAL', 'DJF': 'DJF', 'MAM': 'MAM', 'JJA': 'JJA', 'SON': 'SON'}
 
 # Hereafter different dates will be defined (do not change)
 # Calibration (this will be separated later into training and testing)
@@ -208,6 +203,21 @@ if ((pseudoreality==True) and (GCM_shortName == 'IPSL-CM5A-MR')):
 # Short and long term
 shortTermPeriodFilename = str(shortTerm_years[0]) + '-' + str(shortTerm_years[1])
 longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
+
+
+###################################     Seasons           #################################################
+seasonNames = []
+for seasonName in inverse_seasonNames:
+    if seasonName not in seasonNames:
+        seasonNames.append(seasonName)
+season_dict = {}
+for seasonName in seasonNames:
+    months = []
+    for month in range(1, 13):
+        if inverse_seasonNames[month] == seasonName:
+            months.append(month)
+    season_dict.update({seasonName: months})
+season_dict.update({inverse_seasonNames[0]: range(1, 13)})
 
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################

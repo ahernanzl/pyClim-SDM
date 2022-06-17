@@ -901,22 +901,27 @@ class tabDatesAndDomain(ttk.Frame):
     def __init__(self, notebook):
         tabDatesAndDomain = ttk.Frame(notebook)
         notebook.add(tabDatesAndDomain, text='Dates and Domain')
+        padx = 40
 
         # frameDates
         frameDates = Frame(tabDatesAndDomain)
-        frameDates.grid(sticky="W", column=0, row=0, padx=80, pady=10)
+        frameDates.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
 
         # frameSplitMode
         frameSplitMode = Frame(tabDatesAndDomain)
-        frameSplitMode.grid(sticky="W", column=0, row=1, padx=80, pady=10)
+        frameSplitMode.grid(sticky="W", column=0, row=1, padx=padx, pady=10)
 
         # framePeriodFilenames
         framePeriodFilenames = Frame(tabDatesAndDomain)
-        framePeriodFilenames.grid(sticky="W", column=1, row=0, padx=80, pady=10)
+        framePeriodFilenames.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
 
         # frameDomain
         frameDomain = Frame(tabDatesAndDomain)
-        frameDomain.grid(sticky="W", column=1, row=1, padx=80, pady=10)
+        frameDomain.grid(sticky="W", column=1, row=1, padx=padx, pady=10)
+
+        # frameSeasons
+        frameSeasons = Frame(tabDatesAndDomain)
+        frameSeasons.grid(sticky="W", column=2, row=0, padx=padx, pady=10, rowspan=2)
 
 
         icol, irow = 0, 0
@@ -1143,12 +1148,46 @@ class tabDatesAndDomain(ttk.Frame):
         lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
 
 
+        # season_dict
+        self.seasons = []
+        def add_season(xMonth, text, seasonName, irow, icol):
+            monthsVar = tk.StringVar()
+            Label(frameSeasons, text=text).grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            seasonName_Entry = tk.Entry(frameSeasons, textvariable=monthsVar, width=10, justify='right',
+                                        takefocus=False)
+            seasonName_Entry.insert(END, seasonName)
+            seasonName_Entry.grid(sticky="E", column=icol, row=irow)
+            self.seasons.append(monthsVar)
+            icol -= 1
+
+        icol, irow = 0, 0
+        Label(frameSeasons, text='Defina season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
+        for (xMonth, text, seasonName) in [
+            (0, 'All year:', inverse_seasonNames[0]),
+            (1, 'Jan:', inverse_seasonNames[1]),
+            (2, 'Feb:', inverse_seasonNames[2]),
+            (3, 'Mar:', inverse_seasonNames[3]),
+            (4, 'Apr:', inverse_seasonNames[4]),
+            (5, 'May:', inverse_seasonNames[5]),
+            (6, 'Jun:', inverse_seasonNames[6]),
+            (7, 'Jul:', inverse_seasonNames[7]),
+            (8, 'Aug:', inverse_seasonNames[8]),
+            (9, 'Sep:', inverse_seasonNames[9]),
+            (10, 'Oct:', inverse_seasonNames[10]),
+            (11, 'Nov:', inverse_seasonNames[11]),
+            (12, 'Dec:', inverse_seasonNames[12]),
+            ]:
+            add_season(xMonth, text, seasonName, irow, icol)
+            irow += 1
+
+
+
     def get(self):
         return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.bc_option, \
                self.testing_years_dict, self.hresPeriodFilename_var_t, self.hresPeriodFilename_var_p, \
                self.reanalysisName_var, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
                self.sspPeriodFilename_var, self.split_mode, self.grid_res_var, self.saf_lat_up_var, \
-               self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var
+               self.saf_lon_left_var, self.saf_lon_right_var, self.saf_lat_down_var, self.seasons
 
 
 ########################################################################################################################
@@ -1495,7 +1534,7 @@ class selectionWindow():
             self.testing_years_dict_chk, self.hresPeriodFilename_var_t_chk, self.hresPeriodFilename_var_p_chk, \
             self.reanalysisName_var_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
             self.sspPeriodFilename_var_chk, self.split_mode_chk, self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, \
-            self.saf_lon_right_var_chk, self.saf_lat_down_var_chk = tabDatesAndDomain(notebook).get()
+            self.saf_lon_right_var_chk, self.saf_lat_down_var_chk, self.seasons_chk = tabDatesAndDomain(notebook).get()
 
         # Tab: visualization
         tabVisualization(notebook)
@@ -1765,6 +1804,12 @@ class selectionWindow():
             self.saf_lon_right = self.saf_lon_right_var_chk.get()
             self.saf_lat_down = self.saf_lat_down_var_chk.get()
 
+            # seasons
+            self.inverse_seasonNames = []
+            for i in range(len(self.seasons_chk)):
+                seasonName = self.seasons_chk[i].get()
+                self.inverse_seasonNames.append(seasonName)
+
             # Models
             self.model_names_list = []
             for model in self.chk_dict_models:
@@ -1800,7 +1845,7 @@ class selectionWindow():
                                 self.hresPeriodFilename_p, self.reanalysisName, self.reanalysisPeriodFilename,
                                 self.historicalPeriodFilename, self.sspPeriodFilename, self.split_mode,
                                 self.grid_res, self.saf_lat_up, self.saf_lon_left, self.saf_lon_right,
-                                self.saf_lat_down, self.model_names_list, self.scene_names_list)
+                                self.saf_lat_down, self.inverse_seasonNames, self.model_names_list, self.scene_names_list)
 
             # Write tmp_main file
             write_tmpMain_file(self.steps)
@@ -1835,7 +1880,7 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
                         fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
                         reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
                         sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
-                        saf_lat_down, model_names_list, scene_names_list):
+                        saf_lat_down, inverse_seasonNames, model_names_list, scene_names_list):
 
     """This function prepares a new settings file with the user selected options"""
 
@@ -1885,6 +1930,8 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
 
     f.write("apply_bc = " + str(apply_bc) + "\n")
     f.write("apply_bc_bySeason = " + str(apply_bc_bySeason) + "\n")
+
+    f.write("inverse_seasonNames = " + str(inverse_seasonNames) + "\n")
 
     # Close f
     f.close()

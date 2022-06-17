@@ -468,8 +468,8 @@ def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
         scene_bc = np.zeros(sce.shape)
 
         # Select season
-        for season in season_dict.values():
-            if season != 'ANNUAL':
+        for season in season_dict:
+            if season != annualName:
                 print('bias correction by season', season)
                 obs_season = postpro_lib.get_season(obs, ref_times, season)['data']
                 hist_season = postpro_lib.get_season(hist, ref_times, season)['data']
@@ -478,7 +478,7 @@ def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
                 sce_times_season = aux['times']
                 idates = [i for i in range(len(sce_times)) if sce_times[i] in sce_times_season]
 
-                # print(season, obs_season.shape, hist_season.shape, sce_season.shape, len(idates))
+                # print('season', season, obs_season.shape, hist_season.shape, sce_season.shape, len(idates))
 
                 # Correct bias for season
                 if bc_method == 'QM':
