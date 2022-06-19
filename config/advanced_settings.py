@@ -218,6 +218,7 @@ for seasonName in seasonNames:
             months.append(month)
     season_dict.update({seasonName: months})
 season_dict.update({inverse_seasonNames[0]: range(1, 13)})
+annualName = inverse_seasonNames[0]
 
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
@@ -504,6 +505,8 @@ t_methods_linestyles = {
 p_methods_colors = {
     'RAW': 'lightgray',
     'RAW-BIL': 'lightgray',
+    'RAW-BIL+PSDM': 'lightgray',
+    'RAW-BIL+PSDMs': 'lightgray',
     'QM': 'orange',
     'DQM': 'orange',
     'QDM': 'orange',
@@ -524,6 +527,8 @@ p_methods_colors = {
     'LS-SVM': 'b',
     'RF': 'purple',
     'XGB': 'purple',
+    'XGB+PSDM': 'purple',
+    'XGB+PSDMs': 'purple',
     'ANN-sklearn': 'magenta',
     'ANN': 'magenta',
     'CNN': 'magenta',
@@ -535,6 +540,8 @@ p_methods_colors = {
 p_methods_linestyles = {
     'RAW': '-',
     'RAW-BIL': '--',
+    'RAW-BIL+PSDM': ':',
+    'RAW-BIL+PSDMs': ':',
     'QM': '-',
     'DQM': '--',
     'QDM': ':',
@@ -554,6 +561,8 @@ p_methods_linestyles = {
     'SVM': '-',
     'RF': '-',
     'XGB': '--',
+    'XGB+PSDM': ':',
+    'XGB+PSDMs': ':',
     'ANN-sklearn': ':',
     'ANN': '-',
     'CNN': '--',
