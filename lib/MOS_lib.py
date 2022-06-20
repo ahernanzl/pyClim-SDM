@@ -128,7 +128,6 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
         # Remove missing data from obs and hist
         obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
 
-
         if hist_data.size == 0:
             sce_corrected.T[ipoint] = np.nan
         else:
@@ -148,7 +147,7 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
                 corr = np.percentile(obs_detrended, p) - np.percentile(hist_detrended, p)
 
                 # Add correction and mean values removed while detrending
-                sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs) - np.mean(hist)
+                sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs_data) - np.mean(hist_data)
 
             else:
                 # Treat zeros
@@ -158,7 +157,7 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
 
                 # Remove change in the mean value
                 sce_mean = np.mean(sce_data)
-                sce_data *= np.mean(hist) / np.mean(sce)
+                sce_data *= np.mean(hist_data) / np.mean(sce_data)
 
                 # Calculate correction
                 hist_ecdf = ECDF(hist_data)
@@ -166,7 +165,7 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
                 corr = np.percentile(obs_data, p) / np.percentile(hist_data, p)
 
                 # Add correction and change in the mean value
-                sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist)
+                sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist_data)
 
     # For precipitation, set negative values to zero
     if var == 'pcp':
