@@ -8,7 +8,7 @@
 
 **License:** GNU General Public License v3.0
 
-**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Statistical downscaling in the Tropics and Mid-latitudes: a comparative assessment for generating regional information on climate change. Journal of Climate. Submitted.
+**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Statistical downscaling in the Tropics and Mid-latitudes: a comparative assessment for generating regional information on climate change. Journal of Applied Meteorology and Climatology. Submitted.
 ___
 
 pyClim-SDM is a software for statistical downscaling of climate change projections with the following utilities:
@@ -28,7 +28,7 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **QDM**: Quantile Delta Mapping in (Cannon *et al.*, 2015). Delta change over quantiles.
 - **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2021).
 - **ANA-MLR**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
-- **WT-MLR**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
+- **MLR-WT**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
 - **SVM**: Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021).
 - **RF**: Random Forest. Non-linear machine learning regression. 
