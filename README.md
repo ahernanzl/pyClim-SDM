@@ -37,7 +37,7 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **ANN**: Artificial Neural Networks. Non-linear machine learning regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **CNN**: Convoltional Neural Networks. Non-linear machine learning regression.
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
-
+ 
 ### For precipitation:
 - **RAW**: no downscaling (nearest grid point).
 - **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).
