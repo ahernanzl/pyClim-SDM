@@ -31,9 +31,9 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **MLR-WT**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
 - **SVM**: Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021).
+- **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021).
 - **RF**: Random Forest. Non-linear machine learning regression. 
-- **XGB**: eXtreme Gradient Boost. Non-linear machine learning regression. 
-- **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021). 
+- **XGB**: eXtreme Gradient Boost. Non-linear machine learning regression.  
 - **ANN**: Artificial Neural Networks. Non-linear machine learning regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **CNN**: Convoltional Neural Networks. Non-linear machine learning regression.
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
