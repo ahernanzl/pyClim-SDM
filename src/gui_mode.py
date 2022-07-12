@@ -238,7 +238,7 @@ class tabSteps(ttk.Frame):
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
-                'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
+                #'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
@@ -1977,15 +1977,15 @@ def write_tmpMain_file(steps):
     if 'downscale' in steps:
         noSteps = False
         f.write("    process.downscale()\n")
+    if 'bias_correct_projections' in steps:
+        noSteps = False
+        f.write("    postprocess.bias_correction()\n")
     if 'calculate_climdex' in steps:
         noSteps = False
         f.write("    postprocess.get_climdex()\n")
     if 'plot_results' in steps:
         noSteps = False
         f.write("    postprocess.plot_results()\n")
-    if 'bias_correct_projections' in steps:
-        noSteps = False
-        f.write("    postprocess.bias_correction_projections()\n")
     if 'nc2ascii' in steps:
         noSteps = False
         f.write("    postprocess.nc2ascii()\n")
