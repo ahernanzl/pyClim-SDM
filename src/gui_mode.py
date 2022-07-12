@@ -2001,7 +2001,7 @@ def write_tmpMain_file(steps):
     f.write("    main()\n")
     f.write("    end = datetime.datetime.now()\n")
     f.write("    print('Elapsed time: ' + str(end - start))\n")
-    f.write("    input('')\n")
+    #f.write("    input('')\n")
 
     # Close f
     f.close()
