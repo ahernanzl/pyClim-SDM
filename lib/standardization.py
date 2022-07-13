@@ -80,61 +80,8 @@ def get_mean_and_std_allModels(var0, grid):
             if os.path.isfile('../input_data/models/'+modNames[var_aux]+'_' + modelName + '_' + scene + '_' + modelRun + '_' +
                               periodFilename + '.nc'):
                 print('get_mean_and_std', var0, grid, scene, model)
-
-                # Serial processing
-                if running_at_HPC == False:
-                    get_mean_and_std_oneModel(var0, grid, model, scene)
-
-                # Parallel processing
-                elif running_at_HPC == True:
-                    while 1:
-                        # Check for error files, save them and kill erroneous jobs
-                        for file in os.listdir('../job/'):
-                            if file.endswith(".err"):
-                                filename = os.path.join('../job/', file)
-                                filesize = os.path.getsize(filename)
-                                if filesize != 0:
-                                    jobid = filename.split('/')[-1].split('.')[0]
-                                    print('-----------------------')
-                                    print(filename, filesize)
-                                    os.system('mv ' + filename + ' ../job/err/')
-                                    os.system('mv ' + filename[:-3] + 'out ../job/err/')
-                                    os.system('scancel ' + str(jobid))
-
-                        # Check for correctly finished jobs
-                        for file in os.listdir('../job/'):
-                            if file.endswith(".out"):
-                                filename = os.path.join('../job/', file)
-                                if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
-                                    print('-----------------------')
-                                    print(filename, 'end')
-                                    os.system('mv ' + filename + ' ../job/out/')
-                                    os.system('mv ' + filename[:-3] + 'err ../job/out/')
-
-                        # Check number of living jobs
-                        os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
-                        f = open('../log/nJobs.txt', 'r')
-                        nJobs = int(f.read()) - 1
-                        f.close()
-                        time.sleep(1)
-                        if nJobs < max_nJobs:
-                            print('nJobs', nJobs)
-                            break
-
-                    # Send new job
-                    launch_jobs.standardize(var0, grid, model, scene)
-
-    # Check if all jobs have ended successfully
-    if running_at_HPC == True:
-        while 1:
-            # Wait for all jobs to end
-            os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
-            f = open('../log/nJobs.txt', 'r')
-            nJobs = int(f.read()) - 1
-            f.close()
-            time.sleep(1)
-            if nJobs == 0:
-                break
+                get_mean_and_std_oneModel(var0, grid, model, scene)
+                
 
     # Check if expected files have been created
     for model in expected_models:
