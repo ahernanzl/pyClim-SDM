@@ -62,10 +62,6 @@ def common():
         for var0 in target_vars0:
             print(grid, var0, 'get_mean_and_std_allModels')
             standardization.get_mean_and_std_allModels(var0, grid)
-    if running_at_HPC == True:
-        exit('\n-----------------------------------------------------------------------\n'
-             'Wait until get_mean_and_std jobs have finished.\n'
-             'Check files at jobs/err/ and solve problems with those model/scene files')
 
 
 ########################################################################################################################
