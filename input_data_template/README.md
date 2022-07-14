@@ -16,18 +16,21 @@ Beware tmax, tmin and pcp by reanalysis/GCMs are mandatory files.
 
 This folder must contain predictands information with the following format:
 
-For temperature:
-- t_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
-- tmax_$hresPeriodFilename['t'].txt
-- tmin_$hresPeriodFilename['t'].txt
+For maximum temperature:
+- tasmax_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
+- tasmax_$hresPeriodFilename['taxmas'].txt
+
+For minimum temperature:
+- tasmin_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
+- tasmin_$hresPeriodFilename['tasmin'].txt
 
 For precipitation:
-- p_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
-- pcp_$hresPeriodFilename['p'].txt 
+- pr_hres_metadata.txt: one row per grid point with columns: id, lon, lat, in order.
+- pr_$hresPeriodFilename['pr'].txt 
 
-Example: pcp_19510101-20191231.txt
+Example: pr_19510101-20191231.txt
 
-tmax/tmin in degrees and precipitation in mm. One row per date. 
+tas/tasmax/tasmin in degrees, pr in mm, uas/vas in m/s, hurs in %, clt in %. One row per date. 
 The first column corresponds to the date yyyymmdd, and the other rows (as many as grid points) containing data. 
 Missing data must be coded as -999.
 
@@ -41,7 +44,7 @@ follow the following format: $var_$reanalysisName_$reanalysisPeriodFilename.nc
 
 Example: t_ERA5_19790101-20201231.nc ...
 
-Tmax/tmin/pcp in low resolution given by the reanalysis are mandatory files
+Target variables in low resolution given by the reanalysis are mandatory files for many purposes
 
 
 
