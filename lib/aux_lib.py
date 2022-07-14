@@ -161,7 +161,7 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
 
 
 ########################################################################################################################
-def prepare_hres_data_ascii2npy(var):
+def prepare_hres_data_ascii2npy(targetVar):
     """
     This function prepares hres_data: ascci to npy
     When run for the first time, reads data from large txt file, which is too slow.
@@ -180,11 +180,11 @@ def prepare_hres_data_ascii2npy(var):
 
     """
 
-    filename = pathHres + var + '_' + hresPeriodFilename[var[0]]
+    filename = pathHres + targetVar + '_' + hresPeriodFilename[targetVar]
     fill_value_txt = -999 # This is the value in the txt file, and this function convert it to np.nan for the .npy file
 
-    minYear = int(hresPeriodFilename[var[0]].split('-')[0][:4])
-    maxYear = int(hresPeriodFilename[var[0]].split('-')[1][:4])
+    minYear = int(hresPeriodFilename[targetVar].split('-')[0][:4])
+    maxYear = int(hresPeriodFilename[targetVar].split('-')[1][:4])
 
     tmp='../tmp/'
     if not os.path.exists(tmp):
@@ -196,7 +196,7 @@ def prepare_hres_data_ascii2npy(var):
     if pseudoreality == True:
         exit('Do not run read.hres_data first time True for pseudoreality')
     num_lines = sum(1 for line in open(filename + '.txt'))
-    lon_line=hres_npoints[var[0]]+1
+    lon_line=hres_npoints[targetVar]+1
     data=np.zeros((0))
     chunk=0
     CHUNK=0
@@ -211,7 +211,7 @@ def prepare_hres_data_ascii2npy(var):
         if len(line) != lon_line:
             exit(line)
 
-        year = int(line[0][:4])
+        year = int(str(int(float(line[0])))[:4])
         if year in range(minYear, maxYear+1):
             # Appends line to array
             data = np.append(data, np.asanyarray(line, dtype=float), axis=0)

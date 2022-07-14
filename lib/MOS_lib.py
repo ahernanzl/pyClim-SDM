@@ -36,10 +36,9 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def quantile_mapping(obs, hist, sce, var):
+def quantile_mapping(obs, hist, sce, targetVar):
     """
-   Quantile Mapping. Basic version of empirical QM (Themeßl et al., 2011). Additive correction both for temperature and
-   for precipitation.
+   Quantile Mapping. Basic version of empirical QM (Themeßl et al., 2011). Additive correction both all target variables
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
@@ -82,9 +81,12 @@ def quantile_mapping(obs, hist, sce, var):
             # Add correction
             sce_corrected.T[ipoint][ivalid] = sce_data + corr
 
-    # For precipitation, set negative values to zero
-    if var == 'pcp':
-        sce_corrected[sce_corrected < 0] = 0
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        sce_corrected[sce_corrected < minAllowed] == minAllowed
+    if  maxAllowed != None:
+        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
@@ -92,10 +94,10 @@ def quantile_mapping(obs, hist, sce, var):
 
 
 ########################################################################################################################
-def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
+def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
     """
     Detrendend Quantile Mapping: remove trend and mean, and then apply empirical quantile mapping (Cannon et al., 2015).
-    Additive correction for temperature and ratio correction for precipitation.
+    Ratio correction for precipitation and additive correction for the rest
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
@@ -135,21 +137,9 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
 
-            if var[0] == 't':
-                # Remove mean and detrend
-                obs_detrended = detrend(obs_data)
-                hist_detrended = detrend(hist_data)
-                sce_detrended = detrend(sce_data)
+            # For precipitation or non additive customized target variables
+            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
 
-                # Calculate correction using data without mean and trend
-                hist_ecdf = ECDF(hist_detrended)
-                p = hist_ecdf(sce_detrended) * 100
-                corr = np.percentile(obs_detrended, p) - np.percentile(hist_detrended, p)
-
-                # Add correction and mean values removed while detrending
-                sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs_data) - np.mean(hist_data)
-
-            else:
                 # Treat zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
@@ -167,18 +157,38 @@ def detrended_quantile_mapping(obs, hist, sce, var, th=0.05):
                 # Add correction and change in the mean value
                 sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist_data)
 
-    # For precipitation, set negative values to zero
-    if var == 'pcp':
-        sce_corrected[sce_corrected < th] = 0
+            # For the other target variables or for additive customized target variable
+            else:
+
+                # Remove mean and detrend
+                obs_detrended = detrend(obs_data)
+                hist_detrended = detrend(hist_data)
+                sce_detrended = detrend(sce_data)
+
+                # Calculate correction using data without mean and trend
+                hist_ecdf = ECDF(hist_detrended)
+                p = hist_ecdf(sce_detrended) * 100
+                corr = np.percentile(obs_detrended, p) - np.percentile(hist_detrended, p)
+
+                # Add correction and mean values removed while detrending
+                sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs_data) - np.mean(hist_data)
+
+
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        sce_corrected[sce_corrected < minAllowed] == minAllowed
+    if  maxAllowed != None:
+        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
 
 ########################################################################################################################
-def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
+def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
-    Additive correction for temperature and ratio correction for precipitation.
+    Ratio correction for precipitation and additive correction for the rest
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
@@ -192,7 +202,7 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
     https://doi.org/10.1175/JCLI-D-14-00754.1
     """
 
-    # if var == 'pcp':
+    # if targetVar == 'pr':
     #     print('quantile_delta_mapping only implemented with additive correction for temperature')
     #     print('Current version not recomended for precipitation')
     #     exit()
@@ -227,7 +237,7 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
             sce_data = sce_data[ivalid]
 
             # Treat zeros
-            if var == 'pcp':
+            if targetVar == 'pr':
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
@@ -237,27 +247,33 @@ def quantile_delta_mapping(obs, hist, sce, var, th=0.05, jitter=0.01):
             p = sce_ecdf(sce_data) * 100
 
             # Calculate and apply delta correction
-            if var[0] == 't':
-                delta = sce_data - np.percentile(hist_data, p)
-                sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
-            else:
+            # For precipitation or non additive customized target variables
+            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
+            # For the other target variables or for additive customized target variable
+            else:
+                delta = sce_data - np.percentile(hist_data, p)
+                sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
 
-    # For precipitation, set negative values to zero
-    if var == 'pcp':
-        sce_corrected[sce_corrected < th] = 0
+
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        sce_corrected[sce_corrected < minAllowed] == minAllowed
+    if  maxAllowed != None:
+        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
 
 ########################################################################################################################
-def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
+def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
     """
     Scaled Distribution Mapping (Switanek et al., 2021)
-    Parametric adjustment using a normal distribution for temperature and a gamma distribution for precipitation.
-    For temperature, data is previously detrended, and for precipitation the relative frequency is explicitly
-    adjusted.
+    Parametric adjustment using a gamma distribution for precipitation and a normal distribution for the rest
+    For all variables except for precipitation, data is previously detrended, and for precipitation the relative
+    frequency is explicitly adjusted.
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
@@ -277,7 +293,7 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
     """
 
     cdf_th = kwargs.get('cdf_th', 0.99999)
-    if var == 'pcp':
+    if targetVar == 'pr':
         low_lim = kwargs.get('low_lim', 0.1)
         min_sample_size = kwargs.get('min_sample_size', 10)
 
@@ -303,7 +319,7 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
         sce_data = sce_data[ivalid]
 
         # Temperature
-        if var[0] == 't':
+        if targetVar != 'pr':
 
             # Extract info from data
             obs_lenth = len(obs_data)
@@ -361,7 +377,7 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
             sce_corrected.T[ipoint][ivalid] = correction
 
         # Precipitation
-        elif var == 'pcp':
+        else:
 
             obs_wetdays = obs_data[obs_data >= low_lim]
             hist_wetdays = hist_data[hist_data >= low_lim]
@@ -433,15 +449,19 @@ def scaled_distribution_mapping(obs, hist, sce, var, *args, **kwargs):
             correction[sce_argsort[-expected_sce_wetdays:]] = x_vals
             sce_corrected.T[ipoint][ivalid] = correction
 
-            # Correct negative values
-            sce_corrected[sce_corrected < 0] = 0
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if minAllowed != None:
+        sce_corrected[sce_corrected < minAllowed] == minAllowed
+    if maxAllowed != None:
+        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
 
 
 ########################################################################################################################
-def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
+def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     """
     This function performs the season selection if needed and call the bc functions.
     * obs (nDaysObs, nPoints): the observational data
@@ -454,13 +474,13 @@ def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
     if apply_bc_bySeason == False:
         # Correct bias
         if bc_method == 'QM':
-            scene_bc = quantile_mapping(obs, hist, sce, var)
+            scene_bc = quantile_mapping(obs, hist, sce, targetVar)
         elif bc_method == 'DQM':
-            scene_bc = detrended_quantile_mapping(obs, hist, sce, var)
+            scene_bc = detrended_quantile_mapping(obs, hist, sce, targetVar)
         elif bc_method == 'QDM':
-            scene_bc = quantile_delta_mapping(obs, hist, sce, var)
+            scene_bc = quantile_delta_mapping(obs, hist, sce, targetVar)
         elif bc_method == 'PSDM':
-            scene_bc = scaled_distribution_mapping(obs, hist, sce, var)
+            scene_bc = scaled_distribution_mapping(obs, hist, sce, targetVar)
     else:
         # print(obs.shape, hist.shape, sce.shape)
 
@@ -481,12 +501,12 @@ def biasCorrect_as_postprocess(obs, hist, sce, var, ref_times, sce_times):
 
                 # Correct bias for season
                 if bc_method == 'QM':
-                    scene_bc[idates] = quantile_mapping(obs_season, hist_season, sce_season, var)
+                    scene_bc[idates] = quantile_mapping(obs_season, hist_season, sce_season, targetVar)
                 elif bc_method == 'DQM':
-                    scene_bc[idates] = detrended_quantile_mapping(obs_season, hist_season, sce_season, var)
+                    scene_bc[idates] = detrended_quantile_mapping(obs_season, hist_season, sce_season, targetVar)
                 elif bc_method == 'QDM':
-                    scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, var)
+                    scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, targetVar)
                 elif bc_method == 'PSDM':
-                    scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, var)
+                    scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, targetVar)
 
     return scene_bc

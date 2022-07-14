@@ -38,29 +38,25 @@ def annual_cycle():
     Plots annual cycle by subregions (optional) for all methods together.
     """
 
-    for VAR in target_vars:
+    for targetVar in targetVars:
 
-        nmethods = len([x for x in methods if x['var'] == VAR])
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+
+
 
         # Create empty array to accumulate results
-        obs_matrix = np.zeros((nmethods, 12, hres_npoints[VAR[0]]))
-        est_matrix = np.zeros((nmethods, 12, hres_npoints[VAR[0]]))
+        obs_matrix = np.zeros((nmethods, 12, hres_npoints[targetVar]))
+        est_matrix = np.zeros((nmethods, 12, hres_npoints[targetVar]))
+
 
         # Define plot style
-        if VAR[0] == 't':
-            units = degree_sign
-            colors = t_methods_colors
-            linestyles = t_methods_linestyles
-        else:
-            units = 'mm'
-            colors = p_methods_colors
-            linestyles = p_methods_linestyles
+        units = predictands_units[targetVar]
 
         # Go through all methods
         imethod = 0
         for method_dict in methods:
             var = method_dict['var']
-            if var == VAR:
+            if var == targetVar:
                 methodName = method_dict['methodName']
                 print(var, methodName, 'annualCycle')
 
@@ -74,22 +70,22 @@ def annual_cycle():
                 # Calculate monthly data
                 for imonth in range(12):
                     idates = [i for i in range(len(times_scene)) if times_scene[i].month == imonth+1]
-                    if var[0] == 't':
-                        obs_matrix[imethod, imonth] = np.mean(obs[idates], axis=0)
-                        est_matrix[imethod, imonth] = np.mean(est[idates], axis=0)
-                    else:
+                    if var == 'pr':
                         obs_matrix[imethod, imonth] = np.sum(obs[idates], axis=0) / nYears
                         est_matrix[imethod, imonth] = np.sum(est[idates], axis=0) / nYears
+                    else:
+                        obs_matrix[imethod, imonth] = np.mean(obs[idates], axis=0)
+                        est_matrix[imethod, imonth] = np.mean(est[idates], axis=0)
 
                 imethod += 1
 
-        np.save('../tmp/obs_matrix_'+VAR, obs_matrix)
-        np.save('../tmp/est_matrix_'+VAR, est_matrix)
-        obs_matrix = np.load('../tmp/obs_matrix_'+VAR+'.npy')
-        est_matrix = np.load('../tmp/est_matrix_'+VAR+'.npy')
+        np.save('../tmp/obs_matrix_'+targetVar, obs_matrix)
+        np.save('../tmp/est_matrix_'+targetVar, est_matrix)
+        obs_matrix = np.load('../tmp/obs_matrix_'+targetVar+'.npy')
+        est_matrix = np.load('../tmp/est_matrix_'+targetVar+'.npy')
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+VAR[0].upper()+'/regions.csv')
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -103,7 +99,7 @@ def annual_cycle():
                 if plotAllRegions == False:
                     pathOut = pathFigures
                 else:
-                    path = pathFigures + 'annual_cycle/' + VAR.upper() + '/'
+                    path = pathFigures + 'annual_cycle/' + targetVar.upper() + '/'
                     pathOut = path + subDir
                 if not os.path.exists(pathOut):
                     os.makedirs(pathOut)
@@ -120,32 +116,22 @@ def annual_cycle():
                 imethod = 0
                 for method_dict in methods:
                     var = method_dict['var']
-                    if var == VAR:
+                    if var == targetVar:
                         methodName = method_dict['methodName']
                         if imethod == 0:
                             fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
                             plt.plot(obs_reg[imethod], c='k', label='OBS', linestyle='--', linewidth=4)
-                        plt.plot(est_reg[imethod], c=colors[methodName], label=methodName, linestyle=linestyles[methodName])
+                        plt.plot(est_reg[imethod], c=methods_colors[methodName], label=methodName,
+                                 linestyle=methods_linestyles[methodName])
                         imethod += 1
 
                         if imethod == nmethods:
 
                             if nmethods > 10:
-                                plt.legend(ncol=3, bbox_to_anchor=(0.06, 1.1))
+                                plt.legend(ncol=2, bbox_to_anchor=(0.06, 1.1))
                             else:
                                 plt.legend()
-                            # if var[0] == 't':
-                            #     if nmethods > 10:
-                            #         plt.legend(ncol=1, bbox_to_anchor = (1.05, .99), fontsize=18)
-                            #     else:
-                            #         plt.legend()
-                            #     title_size = 25
-                            # else:
-                            #     if nmethods > 10:
-                            #         plt.legend(ncol=3, bbox_to_anchor = (0.06, 1.1))
-                            #     else:
-                            #         plt.legend()
-                            #     title_size = 15
+                            title_size = 15
 
                             # plt.title(var.upper(), fontsize=title_size)
                             plt.title(var.upper() + ' annual cycle')
@@ -183,7 +169,7 @@ def daily_data(by_season=True):
         del d
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+var[0].upper()+'/regions.csv')
+        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -241,10 +227,9 @@ def monthly_data():
     for method_dict in methods:
         var, methodName = method_dict['var'], method_dict['methodName']
 
-        # Monthly correlation and R2 for precipitation
-        if var == 'pcp':
-            val_lib.monthly_maps('correlation', var, methodName)
-            val_lib.monthly_maps('R2', var, methodName)
+        # Monthly correlation and R2
+        val_lib.monthly_maps('correlation', var, methodName)
+        val_lib.monthly_maps('R2', var, methodName)
 
 
 ########################################################################################################################
@@ -253,23 +238,15 @@ def climdex(by_season=True):
     Plots bias boxplots of all methods, and bias maps of mean climdex and scatter plot mean climdex for  each method.
     """
 
-    if apply_bc == True:
-        sufix = '_BC-'+bc_method
-    else:
-        sufix = ''
-
     # Bias boxplots of all methods together
     val_lib.climdex_boxplots(by_season)
 
     # Go through all methods
     for method_dict in methods:
-        var, methodName = method_dict['var'], method_dict['methodName']
-
-        # bias_type = 'abs'
-        bias_type = 'rel'
+        targetVar, methodName = method_dict['var'], method_dict['methodName']
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+var[0].upper()+'/regions.csv')
+        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -280,24 +257,11 @@ def climdex(by_season=True):
                 print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
 
                 # Select climdex
-                for climdex_name in climdex_names[var]:
-                    print(climdex_name)
-
-                    # Define palette and units
-                    if climdex_name in ('TXm', 'TNm', 'TXx', 'TNx', 'TXn', 'TNn', ):
-                        units = degree_sign
-                    elif climdex_name in ('TX90p', 'TX10p', 'TN90p', 'TN10p'):
-                        units = '%'
-                    elif climdex_name in ('SU', 'ID', 'FD', 'TR', 'WSDI', 'CSDI', 'R01', 'CDD', 'CWD', 'R10mm', 'R20mm',):
-                        units = 'days'
-                    elif climdex_name in ('Pm', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC', 'PRCPTOT', 'SDII', 'Rx1day', 'Rx5day',):
-                        units = 'mm'
-                    elif climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
-                        if var == 'pcp':
-                            units = 'mm'
-                        else:
-                            units = degree_sign
-                    else:
+                for climdex_name in climdex_names[targetVar]:
+                    print(methodName, targetVar, climdex_name)
+                    try:
+                        units = myTargetVarUnits
+                    except:
                         units = ''
                         print('define climdex units')
                         # exit()
@@ -306,13 +270,13 @@ def climdex(by_season=True):
                     for season in season_dict:
                         if season == annualName or by_season == True:
                             # Read data and select region
-                            pathIn = '../results/EVALUATION'+sufix+'/'+ var.upper() + '/' + methodName + '/climdex/'
+                            pathIn = '../results/EVALUATION'+bc_sufix+'/'+ targetVar.upper() + '/' + methodName + '/climdex/'
 
                             # Create pathOut
                             if plotAllRegions == False:
                                 pathOut = pathFigures
                             else:
-                                path = pathFigures + 'biasScatterPlot/' + var.upper() + '/'
+                                path = pathFigures + 'biasScatterPlot/' + targetVar.upper() + '/'
                                 pathOut = path + subDir
                                 if not os.path.exists(pathOut):
                                     os.makedirs(pathOut)
@@ -322,11 +286,14 @@ def climdex(by_season=True):
 
                             # Calculate mean for obs  and est (remember that climdex whith no annaul value, such as p10, p95, etc)
                             # have the same value for all years
-                            mean_obs = np.mean(obs_climdex, axis=0)
-                            mean_est = np.mean(est_climdex, axis=0)
-                            if ((bias_type == 'abs') or (var[0] == 't')):
+                            mean_obs = np.nanmean(obs_climdex, axis=0)
+                            mean_est = np.nanmean(est_climdex, axis=0)
+
+
+                            biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                            if biasMode == 'abs':
                                 bias = mean_est - mean_obs
-                            else:
+                            elif biasMode == 'rel':
                                 mean_obs[mean_obs==0] = 0.001
                                 bias = 100 * (mean_est - mean_obs) / mean_obs
 
@@ -334,25 +301,25 @@ def climdex(by_season=True):
                             if plotAllRegions == False or index == 0:
                                 if climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01', 'R95p'):
 
-                                    palette = var + '_' + climdex_name
-                                    if ((bias_type == 'abs') or (var[0] == 't')):
+                                    palette = targetVar + '_' + climdex_name
+                                    if (biasMode == 'abs'):
                                         bias_palette = palette + '_bias'
                                     else:
                                         bias_palette = palette + '_rel_bias'
 
                                     # Plot obs, est and bias (est-obs) maps
-                                    filename = '_'.join(('EVALUATION', 'obsMap', var, climdex_name, methodName,
+                                    filename = '_'.join(('EVALUATION', 'obsMap', targetVar, climdex_name, methodName,
                                                          season))
-                                    title = ' '.join((var.upper(), climdex_name, 'obs', season))
-                                    plot.map(var[0], mean_obs, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION', 'estMap', var, climdex_name, methodName,
+                                    title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
+                                    plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
+                                    filename = '_'.join(('EVALUATION', 'estMap', targetVar, climdex_name, methodName,
                                                          season))
-                                    title = ' '.join((var.upper(), climdex_name, methodName, season))
-                                    plot.map(var[0], mean_est, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION', 'biasMap', var, climdex_name, methodName,
+                                    title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
+                                    plot.map(targetVar, mean_est, palette, path=pathFigures, filename=filename, title=title)
+                                    filename = '_'.join(('EVALUATION', 'biasMap', targetVar, climdex_name, methodName,
                                                          season))
-                                    title = ' '.join((var.upper(), climdex_name, 'bias', methodName, season))
-                                    plot.map(var[0], bias, bias_palette, path=pathFigures, filename=filename, title=title)
+                                    title = ' '.join((targetVar.upper(), climdex_name, 'bias', methodName, season))
+                                    plot.map(targetVar, bias, bias_palette, path=pathFigures, filename=filename, title=title)
 
                             #-------------------- Scatter plot mean values -----------------------------------------------------
                             m = int(min(np.min(mean_obs), np.min(mean_est)))
@@ -372,9 +339,9 @@ def climdex(by_season=True):
                             plt.plot(range(m, M), range(m, M))
                             # if plotAllRegions == False and season == season_dict[annualName]:
 
-                            filename = '_'.join(('EVALUATION', 'scatterPlot', var, climdex_name, methodName,
+                            filename = '_'.join(('EVALUATION', 'scatterPlot', targetVar, climdex_name, methodName,
                                                  season))
-                            title = ' '.join((var.upper(), climdex_name, methodName, season))
+                            title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
                             plt.title(title)
                             if plotAllRegions == False:
                                 # plt.show()

@@ -54,7 +54,6 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 - **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification and regression. 
 - **ANN**: Artificial Neural Networks. Non-linear machine learning classification and regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **CNN**: Convoltional Neural Networks. Non-linear machine learning classification and regression. 
-- **CNN-SYN**: Convoltional Neural Networks based on synoptic fields. Non-linear machine learning classification and regression. 
 - **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 

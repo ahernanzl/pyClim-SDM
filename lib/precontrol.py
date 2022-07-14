@@ -68,10 +68,12 @@ def missing_data_check():
     print('missing_data_check...')
 
     # Go through all target variables
-    for var0 in target_vars0:
+    for targetVar in targetVars:
+
+        targetGroup = targetGroups_dict[targetVar]
 
         # Define pathTmp
-        pathTmp = '../results/' + experiment + '/missing_data_check/' + var0.upper() + '/'
+        pathTmp = '../results/' + experiment + '/missing_data_check/' + targetVar.upper() + '/'
         if not os.path.exists(pathTmp):
             os.makedirs(pathTmp)
         pathOut = pathFigures
@@ -79,7 +81,7 @@ def missing_data_check():
             os.makedirs(pathOut)
 
         # Define preds
-        preds = preds_dict[var0]
+        preds = preds_dict[targetGroup]
         npreds = len(preds)
         nscenes = len(scene_list)
         nmodels = len(model_list)
@@ -97,18 +99,18 @@ def missing_data_check():
                 for model in model_list:
 
                     # Read data
-                    data = read.lres_data(var0, 'pred', model=model, scene=sceneName, predName=predName)['data']
+                    data = read.lres_data(targetVar, 'pred', model=model, scene=sceneName, predName=predName)['data']
 
                     # Calculate percentaje of nans
                     perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
                     PERC_NAN[ipred, iscene, imodel] = perc_nan
-                    print(var0, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
+                    print(targetVar, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
 
                     if np.max(perc_nan) != 0:
                         # Plot map
-                        filename = '_'.join((experiment, 'nansMap', var0, predName, model+'-'+sceneName, 'None'))
+                        filename = '_'.join((experiment, 'nansMap', targetVar, predName, model+'-'+sceneName, 'None'))
                         title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
-                        plot.map(var0, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
+                        plot.map(targetVar, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
 
                     imodel += 1
                 iscene += 1
@@ -147,7 +149,7 @@ def missing_data_check():
             plt.title(sceneName + ' pertentage of NANs')
             # plt.show()
             # exit()
-            filename = '_'.join((experiment, 'nansMatrix', var0, 'None', sceneName, 'None.png'))
+            filename = '_'.join((experiment, 'nansMatrix', targetVar, 'None', sceneName, 'None.png'))
             plt.savefig(pathOut + filename)
             plt.close()
 
@@ -164,8 +166,11 @@ def predictors_correlation():
 
 
     # Go through all target variables
-    for var in ('tmax', 'tmin', 'pcp'):
-        if var[0] in target_vars0:
+    for targetVar in all_possible_targetVars:
+        if targetVar in targetVars:
+
+            targetGroup = targetGroups_dict[targetVar]
+
             # Define pathTmp
             pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
             if not os.path.exists(pathTmp):
@@ -176,48 +181,48 @@ def predictors_correlation():
 
             # For interpolation
             interp_mode = 'bilinear'
-            i_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/i_4nn.npy')
-            j_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/j_4nn.npy')
-            w_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/w_4nn.npy')
+            i_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/i_4nn.npy')
+            j_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/j_4nn.npy')
+            w_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/w_4nn.npy')
 
             # Read data predictand
             obs = read.hres_data(var, period='calibration')['data']
 
             # Define preds
-            preds = preds_dict[var[0]]
+            preds = preds_dict[targetGroup]
             npreds = len(preds)
 
             # Go through all seasons
             for season in season_dict:
 
-                R = np.zeros((npreds, hres_npoints[var[0]]))
+                R = np.zeros((npreds, hres_npoints[targetVar]))
 
                 # Calculate correlations for each predictor
                 for ipred in range(npreds):
                     predName = list(preds.keys())[ipred]
 
                     # Read data predictor
-                    data = read.lres_data(var, 'pred', predName=predName)['data']
+                    data = read.lres_data(targetVar, 'pred', predName=predName)['data']
 
                     # Select season
                     data_season = postpro_lib.get_season(data, calibration_dates, season)['data']
                     obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
 
                     # Go through all points
-                    for ipoint in range(hres_npoints[var[0]]):
+                    for ipoint in range(hres_npoints[targetVar]):
 
                         # Interpolate to one point
                         X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
                         y = obs_season[:, ipoint]
 
                         # Calculate correlation
-                        if var == 'pcp':
+                        if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
                             R[ipred, ipoint] = spearmanr(X, y)[0]
                         else:
                             R[ipred, ipoint] = pearsonr(X, y)[0]
 
                     # Save results
-                    print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
+                    print(targetVar, predName, 'correlation', season, np.mean(abs(R[ipred])))
                     np.save(pathTmp + '_'.join((predName, 'correlation', season)), R[ipred])
 
                 # Plot correlation maps and boxplots
@@ -229,19 +234,19 @@ def predictors_correlation():
                     print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
 
                     # Plot map
-                    title = ' '.join((var.upper(), predName, 'correlation', season))
-                    filename = '_'.join((experiment, 'correlationMap', var, predName, 'None', season))
-                    plot.map(var[0], abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
+                    title = ' '.join((targetVar.upper(), predName, 'correlation', season))
+                    filename = '_'.join((experiment, 'correlationMap', targetVar, predName, 'None', season))
+                    plot.map(targetVar, abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
 
                 # Boxplot
                 fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                 ax.boxplot(abs(R.T), showfliers=False)
                 ax.set_xticklabels(list(preds.keys()), rotation=90)
                 plt.ylim((0, 1))
-                plt.title(' '.join((var.upper(), 'correlation', season)))
+                plt.title(' '.join((targetVar.upper(), 'correlation', season)))
                 # plt.show()
                 # exit()
-                filename = '_'.join((experiment, 'correlationBoxplot', var, 'None', 'None', season))
+                filename = '_'.join((experiment, 'correlationBoxplot', targetVar, 'None', 'None', season))
                 plt.savefig(pathOut + filename)
 
 
@@ -261,7 +266,7 @@ def GCMs_evaluation_historical():
     sceneName = 'historical'
 
     # Go through all target variables
-    for var0 in target_vars0:
+    for var0 in targetVars:
 
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/GCMs_evaluation_historical/' + var0.upper() + '/'
@@ -573,7 +578,7 @@ def GCMs_evaluation_future():
     nseasons = len(season_dict.keys())
 
     # Go through all target variables
-    for var0 in target_vars0:
+    for var0 in targetVars:
 
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/GCMs_evaluation_future/' + var0.upper() + '/'

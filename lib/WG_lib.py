@@ -33,14 +33,14 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
+def train_chunk_WG_PDF(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
     '''
     Calibrates regression for all points, divided in chunks if run at HPC, for different distribution parameters,
     aggregating in three moths blocks: TOT, MEAN, VAR, P1, P00, P01, P10, P11.
     '''
 
     # Define pathOut
-    pathOut = '../tmp/TRAINING_'  + var + '_' + methodName + '/'
+    pathOut = '../tmp/TRAINING_'  + targetVar + '_' + methodName + '/'
 
     aggMonths = aggregation_pcp_WG_PDF
 
@@ -52,10 +52,10 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[targetVar]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[targetVar]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
@@ -63,13 +63,13 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
-        obs = read.hres_data(var, period='training')['data']
-        var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[var[0]]))
-        for ipoint in range(hres_npoints[var[0]]):
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
+        obs = read.hres_data(targetVar, period='training')['data']
+        var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[targetVar]))
+        for ipoint in range(hres_npoints[targetVar]):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
@@ -102,7 +102,7 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
         for month in range(1, 13):
             print('i_block', i_block, '/', n_blocks)
 
-            if (var[0] == 't') or (aggMonths == 1):
+            if (aggMonths == 1):
                 # For monthly aggregations
                 idates = [i for i in range(len(times)) if (times[i].year == year) and (times[i].month == month)]
             else:
@@ -127,7 +127,7 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
             X_month = X[idates]
             Y_month = Y[idates]
 
-            if var[0] == 't':
+            if targetVar != 'pr':
                 # mean and std
                 PARAM1_X[i_block] = np.nanmean(X_month, axis=0)
                 PARAM1_Y[i_block] = np.nanmean(Y_month, axis=0)
@@ -177,7 +177,7 @@ def train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
 
 ########################################################################################################################
-def collect_chunks_WG_PDF(var, methodName, family, n_chunks=1):
+def collect_chunks_WG_PDF(targetVar, methodName, family, n_chunks=1):
     """
     This function collects the results of downscale_chunk() and saves them into a final single file.
     """
@@ -186,8 +186,8 @@ def collect_chunks_WG_PDF(var, methodName, family, n_chunks=1):
     print('collect chunks', n_chunks)
 
     # Define paths
-    pathIn = '../tmp/TRAINING_'  + var + '_' + methodName + '/'
-    pathOut = pathAux + 'TRAINED_'+methodName+'/' + var.upper() + '/'
+    pathIn = '../tmp/TRAINING_'  + targetVar + '_' + methodName + '/'
+    pathOut = pathAux + 'TRAINED_'+methodName+'/' + targetVar.upper() + '/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
@@ -218,13 +218,13 @@ def collect_chunks_WG_PDF(var, methodName, family, n_chunks=1):
 
 
 ########################################################################################################################
-def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
+def train_chunk_WG_NMM(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
     '''
     Calculates, for different intervals of pcp given by the reanalysis, the transition probabilities and ECDF.
     '''
 
     # Define pathOut
-    pathOut = '../tmp/TRAINING_'  + var + '_' + methodName + '/'
+    pathOut = '../tmp/TRAINING_'  + targetVar + '_' + methodName + '/'
 
     thresholds = thresholds_WG_NMM
     nthresholds = len(thresholds)
@@ -236,10 +236,10 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[targetVar]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[targetVar]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
@@ -247,13 +247,13 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
-        obs = read.hres_data(var, period='training')['data']
-        var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
-        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[var[0]]))
-        for ipoint in range(hres_npoints[var[0]]):
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
+        obs = read.hres_data(targetVar, period='training')['data']
+        var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+        var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[targetVar]))
+        for ipoint in range(hres_npoints[targetVar]):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
@@ -359,7 +359,7 @@ def train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
 
 ########################################################################################################################
-def collect_chunks_WG_NMM(var, methodName, family, n_chunks=1):
+def collect_chunks_WG_NMM(targetVar, methodName, family, n_chunks=1):
     """
     This function collects the results of downscale_chunk() and saves them into a final single file.
     """
@@ -368,8 +368,8 @@ def collect_chunks_WG_NMM(var, methodName, family, n_chunks=1):
     print('collect chunks', n_chunks)
 
     # Define paths
-    pathIn = '../tmp/TRAINING_'  + var + '_' + methodName + '/'
-    pathOut = pathAux + 'TRAINED_'+methodName+'/' + var.upper() + '/'
+    pathIn = '../tmp/TRAINING_'  + targetVar + '_' + methodName + '/'
+    pathOut = pathAux + 'TRAINED_'+methodName+'/' + targetVar.upper() + '/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
@@ -378,11 +378,11 @@ def collect_chunks_WG_NMM(var, methodName, family, n_chunks=1):
     nthresholds = len(thresholds)
 
     # Create empty arrays for probabilities of transition and ECDFs with 101 intervals
-    P00 = np.zeros((hres_npoints[var[0]], nthresholds))
-    P01 = np.zeros((hres_npoints[var[0]], nthresholds))
-    P10 = np.zeros((hres_npoints[var[0]], nthresholds))
-    P11 = np.zeros((hres_npoints[var[0]], nthresholds))
-    ECDF_pcp = np.zeros((hres_npoints[var[0]], nthresholds, 101))
+    P00 = np.zeros((hres_npoints[targetVar], nthresholds))
+    P01 = np.zeros((hres_npoints[targetVar], nthresholds))
+    P10 = np.zeros((hres_npoints[targetVar], nthresholds))
+    P11 = np.zeros((hres_npoints[targetVar], nthresholds))
+    ECDF_pcp = np.zeros((hres_npoints[targetVar], nthresholds, 101))
 
     # Read trained models chunks and accumulate them
     ipoint = 0
@@ -412,20 +412,20 @@ def collect_chunks_WG_NMM(var, methodName, family, n_chunks=1):
 
 
 ########################################################################################################################
-def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
+def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
     """This function redirects to one or another WG method"""
     if methodName == 'WG-PDF':
-        train_chunk_WG_PDF(var, methodName, family, mode, fields, iproc, nproc)
+        train_chunk_WG_PDF(targetVar, methodName, family, mode, fields, iproc, nproc)
     elif methodName == 'WG-NMM':
-        train_chunk_WG_NMM(var, methodName, family, mode, fields, iproc, nproc)
+        train_chunk_WG_NMM(targetVar, methodName, family, mode, fields, iproc, nproc)
 
 ########################################################################################################################
-def collect_chunks(var, methodName, family, n_chunks=1):
+def collect_chunks(targetVar, methodName, family, n_chunks=1):
     """This function redirects to one or another WG method"""
     if methodName == 'WG-PDF':
-        collect_chunks_WG_PDF(var, methodName, family, n_chunks)
+        collect_chunks_WG_PDF(targetVar, methodName, family, n_chunks)
     elif methodName == 'WG-NMM':
-        collect_chunks_WG_NMM(var, methodName, family, n_chunks)
+        collect_chunks_WG_NMM(targetVar, methodName, family, n_chunks)
 
 
 
@@ -436,13 +436,13 @@ if __name__=="__main__":
     nproc = MPI.COMM_WORLD.Get_size()         # Size of communicator
     iproc = MPI.COMM_WORLD.Get_rank()         # Ranks in communicator
     inode = MPI.Get_processor_name()          # Node where this MPI process runs
-    var = sys.argv[1]
+    targetVar = sys.argv[1]
     methodName = sys.argv[2]
     family = sys.argv[3]
     mode = sys.argv[4]
     fields = sys.argv[5]
 
-    train_chunk(var, methodName, family, mode, fields, iproc, nproc)
+    train_chunk(targetVar, methodName, family, mode, fields, iproc, nproc)
     MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
     if iproc==0:
-        collect_chunks(var, methodName, family, nproc)
+        collect_chunks(targetVar, methodName, family, nproc)
