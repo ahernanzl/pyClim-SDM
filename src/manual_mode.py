@@ -23,10 +23,10 @@ def main():
 
     #-------------------- experiment = EVALUATION / PROJECTIONS ------------------------------------------------------
     preprocess.preprocess()
-    # preprocess.train_methods()
-    # process.downscale()
+    preprocess.train_methods()
+    process.downscale()
     # postprocess.bias_correction()
-    # postprocess.get_climdex()
+    postprocess.get_climdex()
     # postprocess.plot_results()
     # postprocess.nc2ascii()
 
