@@ -105,4 +105,3 @@ pyClim-SDM has been originally designed for **Linux** and might present problems
 - Wilby, R., Dawson, C. and Barrow, E.M. (2002). SDSM—a decision support tool for the assessment of regional climate change impacts. Environmental Modelling & Software, 17, 145–157. https://doi.org/10.1016/S1364-8152(01)00060-3
 
 
-
