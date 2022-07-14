@@ -44,7 +44,7 @@ def train_PCA():
         os.makedirs(pathOut)
 
     # Get synoptic fields and weights
-    saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/p_training.npy')
+    saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/'+targetVars0[0]+'_training.npy')
     saf_train = saf_train.astype('float32')
 
     # Prepare data for PCA
