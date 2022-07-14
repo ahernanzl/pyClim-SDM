@@ -33,7 +33,7 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def pcp_ANA(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, var_calib, obs, corr,
+def ANA_pr(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, var_calib, obs, corr,
              i_4nn, j_4nn, w_4nn, methodName, special_value):
     """
 
@@ -124,7 +124,7 @@ def pcp_ANA(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, 
 
 
 ########################################################################################################################
-def t_ANA(iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, intercept, dist_centroid,
+def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, intercept, dist_centroid,
            i_4nn, j_4nn, w_4nn, methodName, th_metric='median'):
 
     """
@@ -151,7 +151,7 @@ def t_ANA(iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, interce
     elif th_metric == 'p90':
         dist_th = np.percentile(np.load(pathAux + 'WEATHER_TYPES/dist.npy'), 90)
 
-    if (len(missing_preds) != 0) or (methodName!='WT-MLR') \
+    if (len(missing_preds) != 0) or (methodName!='MLR-WT') \
             or (dist_centroid>dist_th) or (np.isnan(intercept) == True):
         train_regressor=True
 
@@ -166,7 +166,7 @@ def t_ANA(iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, interce
         X = X[:,valid_preds]
 
     # Checks for missing predictands and remove them from training datasets
-    special_value = 100*predictands_codification['tmax']['special_value']
+    special_value = 100*predictands_codification[targetVar]['special_value']
 
     if train_regressor == True:
         valid = np.where(Y_train < special_value)[0]
@@ -191,7 +191,7 @@ def t_ANA(iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, interce
 
 
 ########################################################################################################################
-def t_TF(X, reg_ipoint):
+def TF_others(X, reg_ipoint):
 
     """
     This function downscale a particular point.
@@ -209,7 +209,7 @@ def t_TF(X, reg_ipoint):
     return Y
 
 ########################################################################################################################
-def pcp_TF(methodName, X, clf_ipoint, reg_ipoint):
+def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
     """
     This function downscale a particular point.
     Return: array of estimated precipitation
@@ -246,7 +246,7 @@ def pcp_TF(methodName, X, clf_ipoint, reg_ipoint):
 
     # Transforms target if exponential regression
     if methodName == 'GLM-EXP':
-        Y = np.exp(Y, dtype=float128)
+        Y = np.exp(Y, dtype='float128')
     elif methodName == 'GLM-CUB':
         Y = Y**3
 

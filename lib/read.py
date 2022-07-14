@@ -159,10 +159,10 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
     """
     Reads one direct predictor from reanalysis or model. The purpose of this function is to avoid defining path, filename,
     etc., each time a predictor is read, so they can be read easily no matter whether we are using reanalysis or models.
-    tmax, tmin and pcp are explicitly defined too because they are used (for RAW, MOS, WG...) even if they are not in
+    tasmax, tasmin and pr are explicitly defined too because they are used (for RAW, MOS, WG...) even if they are not in
     pred_list for TF.
-    Check units and forces tmax and tmin to Celcious degrees, pcp to mm/day, tcc to %, and z to m
-    When using different reanalysis some modifications might be needed (for pcp)
+    Check units and forces tasmax and tasmin to Celcious degrees, pr to mm/day, tcc to %, and z to m
+    When using different reanalysis some modifications might be needed (for pr)
     :param predName: as defined in preds dictionaries in settings
     :return: dictionary with data, times, lats, lons and calendar
     """
@@ -172,7 +172,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
     if model == 'reanalysis':
         pathIn = '../input_data/reanalysis/'
-        if predName in ('tmax', 'tmin', 'pcp'):
+        if predName in ('tasmax', 'tasmin', 'pr'):
             ncVar = reaNames[predName]
         else:
             for aux_level in all_levels:
@@ -185,7 +185,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
         else:
             periodFilename = sspPeriodFilename
         pathIn = '../input_data/models/'
-        if predName in ('tmax', 'tmin', 'pcp'):
+        if predName in ('tasmax', 'tasmin', 'pr'):
             ncVar = modNames[predName]
         else:
             for aux_level in all_levels:
@@ -198,25 +198,25 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
     # Force units
     # print(predName, nc['units'], print(np.nanmean(nc['data'])))
-    if predName in ('tmax', 'tmin'):
+    if predName in ('tasmax', 'tasmin', 'tas'):
         if nc['units'] == 'K':
             nc.update({'data': nc['data']-273.15})
             nc.update({'units': degree_sign})
         elif (nc['units'] == 'Unknown') and (np.nanmean(nc['data']) > 100):
             nc.update({'data': nc['data']-273.15})
             nc.update({'units': degree_sign})
-    elif predName == 'pcp':
+    elif predName == 'pr':
         if nc['units'] == 'kg m-2 s-1':
             nc.update({'data': 24 * 60 * 60 * nc['data']}) # from mm/s to mm/day
             nc.update({'units': 'mm'})
         elif (nc['units'] == 'Unknown') and (model == 'reanalysis'):
             nc.update({'data': 1000 * nc['data']}) # from m/day to mm/day
             nc.update({'units': 'mm'})
-    elif predName == 'tcc':
+    elif predName == 'clt':
         if nc['units'] != '%' and (int(np.nanmax(nc['data'])) <= 1):
             nc.update({'data': 100 * nc['data']})
             nc.update({'units': '%'})
-    elif predName == 'z':
+    elif predName == 'zg':
         if nc['units'] != 'm':
             nc.update({'data': nc['data'] / 9.8}) # from m2/s2 to m
             nc.update({'units': 'm'})
@@ -229,9 +229,9 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
 
 ########################################################################################################################
-def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=None, period=None):
+def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predName=None, period=None):
     """
-    var: tmax, tmin or pcp, in order to use one or another predictor list
+    targetGroup: tasmax, tasmin or pr, in order to use one or another predictor list
     If no grid is specified, each field will use its own grid. But a grid can be specified so, for example, this
     function can read preds in a saf_grid, or any other combination.
     Possible fields: var, pred, saf
@@ -244,20 +244,17 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     return: data (ndays, npreds, nlats, nlons) and times
     """
 
+    targetGroup = targetGroups_dict[targetVar]
+
     # Define variables
-    var0 = var[0]
     if field == 'var':
         nvar = 1
     elif field == 'saf':
         nvar = nsaf
         preds = saf_dict
     elif field == 'pred':
-        if var0 == 'p':
-            nvar = n_preds_p
-            preds = preds_dict['p']
-        if var0 == 't':
-            nvar = n_preds_t
-            preds = preds_dict['t']
+        preds = preds_dict[targetGroup]
+        nvar = len(preds)
         if predName != None:
             nvar = 1
             try:
@@ -269,17 +266,19 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
         print('field', field, 'not valid.')
         exit()
 
-    # Define var_aux for dates
-    if var0 == 'p':
-        var_aux = 'pcp'
-    else:
-        var_aux = 'tmax'
-
     # Define dates
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        dates = np.ndarray.tolist(read.one_direct_predictor(var_aux, grid='ext', model=model, scene=scene)['times'])
+        for aux_targetVar in targetVars:
+            if targetGroups_dict[targetVar] == targetGroup:
+                try:
+                    dates = np.ndarray.tolist(
+                        read.one_direct_predictor(aux_targetVar, grid='ext', model=model, scene=scene)['times'])
+                    break
+                except:
+                    pass
+        
     ndates = len(dates)
 
     data = np.zeros((nvar, ndates, ext_nlats, ext_nlons))
@@ -287,69 +286,83 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
-        aux_times = one_direct_predictor(var_aux, grid='ext', model=model, scene=scene)['times']
+        for aux_targetVar in all_possible_targetVars:
+            if targetGroups_dict[aux_targetVar] == targetGroup:
+                try:
+                    if targetGroup == 'humidity':
+                        aux_times = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['times']
+                    else:
+                        aux_times = one_direct_predictor(aux_targetVar, grid='ext', model=model, scene=scene)['times']
+                    break
+                except:
+                    pass
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var
         if field == 'var':
-            if var[0] == 't':
-                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
+            if targetGroup == 'humidity':
+                data[0] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data'][idates]
             else:
-                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]
-
+                data[0] = one_direct_predictor(targetVar, level=None, grid='ext', model=model, scene=scene)['data'][idates]
 
         # pred / saf
         elif field in ('pred', 'saf'):
             i = 0
 
-            # tmax
-            if 'tmax' in preds:
-                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # tmin
-            if 'tmin' in preds:
-                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # pcp
-            if 'pcp' in preds:
-                data[i] = one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # mslp
-            if 'mslp' in preds:
-                data[i] = one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # mslp_trend
-            if 'mslp_trend' in preds:
-                data[i] = derived_predictors.mslp_trend(model=model, scene=scene)['data'][idates]; i += 1
+            # tasmax
+            if 'tasmax' in preds:
+                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # tasmin
+            if 'tasmin' in preds:
+                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # pr
+            if 'pr' in preds:
+                data[i] = one_direct_predictor('pr', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # psl
+            if 'psl' in preds:
+                data[i] = one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # psl_trend
+            if 'psl_trend' in preds:
+                data[i] = derived_predictors.psl_trend(model=model, scene=scene)['data'][idates]; i += 1
+            # ps
+            if 'ps' in preds:
+                data[i] = one_direct_predictor('ps', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
             # ins
             if 'ins' in preds:
                 data[i] = derived_predictors.insolation(model=model, scene=scene)['data'][idates]; i += 1
-            # u10, v10
-            for var in ('u10', 'v10'):
+            # clt
+            if 'clt' in preds:
+                data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # uas, vas
+            for var in ('uas', 'vas'):
                 if var in preds:
                     data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # t2m
-            if 't2m' in preds:
-                data[i] = one_direct_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # d2m
-            if 'd2m' in preds:
+            # tas
+            if 'tas' in preds:
+                data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # tdps
+            if 'tdps' in preds:
                 data[i] = derived_predictors.dew_point('sfc')['data'][idates]; i += 1
-            # q2m
-            if 'q2m' in preds:
+            # huss
+            if 'huss' in preds:
                 data[i] = derived_predictors.specific_humidity('sfc')['data'][idates]; i += 1
-            # r2m
-            if 'r2m' in preds:
+            # hurs
+            if 'hurs' in preds:
                 data[i] = derived_predictors.relative_humidity('sfc')['data'][idates]; i += 1
 
-            # u, v, t, z (direct predictors)
-            for var in ['u', 'v', 't', 'z']:
+            # ua, va, ta, zg (direct predictors)
+            for var in ['ua', 'va', 'ta', 'zg']:
                 for level in preds_levels:
                     if var + str(level) in preds:
                         data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
-            # q
-            var = 'q'
+            # hus
+            var = 'hus'
             for level in preds_levels:
                 if var + str(level) in preds:
                     data[i] = derived_predictors.specific_humidity(level)['data'][idates]; i += 1
 
-            # r
-            var = 'r'
+            # hur
+            var = 'hur'
             for level in preds_levels:
                 if var + str(level) in preds:
                     data[i] = derived_predictors.relative_humidity(level)['data'][idates]; i += 1
@@ -400,65 +413,72 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
 
         # var
         if field == 'var':
-            if var[0] == 't':
-                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
+            if targetGroup == 'humidity':
+                data[0] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data']
             else:
-                data[0] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']
+                data[0] = one_direct_predictor(targetVar, level=None, grid='ext', model=model, scene=scene)['data']
+
 
         # pred / saf
         elif field in ('pred', 'saf'):
             i = 0
-            # tmax
-            if 'tmax' in preds:
-                data[i] = one_direct_predictor('tmax', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
-            # tmin
-            if 'tmin' in preds:
-                data[i] = one_direct_predictor('tmin', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
-            # pcp
-            if 'pcp' in preds:
-                data[i] = one_direct_predictor('pcp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
-            # mslp
-            if 'mslp' in preds:
-                data[i] = one_direct_predictor('mslp', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
-            # mslp_trend
-            if 'mslp_trend' in preds:
-                data[i] = derived_predictors.mslp_trend(model=model,scene=scene)['data']; i += 1
+            # tasmax
+            if 'tasmax' in preds:
+                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # tasmin
+            if 'tasmin' in preds:
+                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # pr
+            if 'pr' in preds:
+                data[i] = one_direct_predictor('pr', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # psl
+            if 'psl' in preds:
+                data[i] = one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # psl_trend
+            if 'psl_trend' in preds:
+                data[i] = derived_predictors.psl_trend(model=model,scene=scene)['data']; i += 1
+            # ps
+            if 'ps' in preds:
+                data[i] = one_direct_predictor('ps', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
             # ins
             if 'ins' in preds:
                 data[i] = derived_predictors.insolation(model=model,scene=scene)['data']; i += 1
-            # u10, v10
-            for var in ('u10', 'v10'):
+            # clt
+            if 'clt' in preds:
+                data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # uas, vas
+            for var in ('uas', 'vas'):
                 if var in preds:
                     data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']; i += 1
-            # t2m
-            if 't2m' in preds:
-                data[i] = one_direct_predictor('t2m', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
-            # d2m
-            if 'd2m' in preds:
+            # tas
+            if 'tas' in preds:
+                data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # tdps
+            if 'tdps' in preds:
                 data[i] = derived_predictors.dew_point('sfc', model=model, scene=scene)['data']; i += 1
-            # q2m
-            if 'q2m' in preds:
+            # huss
+            if 'huss' in preds:
                 data[i] = derived_predictors.specific_humidity('sfc', model=model, scene=scene)['data']; i += 1
-            # r2m
-            if 'r2m' in preds:
+            # hurs
+            if 'hurs' in preds:
                 data[i] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data']; i += 1
 
-            # u, v, t (direct predictors)
-            for var in ['u', 'v', 't']:
+            # ua, va, ta (direct predictors)
+            for var in ['ua', 'va', 'ta']:
                 for level in preds_levels:
                     if var + str(level) in preds:
                         data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data']; i += 1
-            # z
+            # zg
             for level in preds_levels:
-                if 'z' + str(level) in preds:
-                    data[i] = one_direct_predictor('z', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
-            # q
+                if 'zg' + str(level) in preds:
+                    data[i] = one_direct_predictor('zg', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+            # hus
             for level in preds_levels:
-                if 'q' + str(level) in preds:
+                if 'hus' + str(level) in preds:
                     data[i] = derived_predictors.specific_humidity(level, model=model, scene=scene)['data']; i += 1
-            # r
+            # hur
             for level in preds_levels:
-                if 'r' + str(level) in preds:
+                if 'hur' + str(level) in preds:
                     data[i] = derived_predictors.relative_humidity(level, model=model, scene=scene)['data']; i += 1
             # td
             for level in preds_levels:
@@ -505,6 +525,8 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
         ilats, ilons = pred_ilats, pred_ilons
     elif grid == 'saf':
         ilats, ilons = saf_ilats, saf_ilons
+    elif grid == 'ext':
+        ilats, ilons = ext_ilats, ext_ilons
     data = data[:, :, ilats]
     data = data[:, :, :, ilons]
     data = np.swapaxes(data, 0, 1)
@@ -534,7 +556,7 @@ def lres_data(var, field, grid=None, model='reanalysis', scene=None, predName=No
 
 
 ########################################################################################################################
-def hres_metadata(var0, GCM_local=None, RCM_local=None, pathIn=None):
+def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     """
     Read metadata of stations (high resolution grid) and returns a pandas dataframe with id, lon, lat and height
     :return:
@@ -547,7 +569,7 @@ def hres_metadata(var0, GCM_local=None, RCM_local=None, pathIn=None):
     else:
         dataPath = pathHres
 
-    masterFile = dataPath + var0 + '_hres_metadata.txt'
+    masterFile = dataPath + targetVar + '_hres_metadata.txt'
 
     #------------------------
     # read master file
@@ -561,7 +583,7 @@ def hres_metadata(var0, GCM_local=None, RCM_local=None, pathIn=None):
     return df
 
 ########################################################################################################################
-def hres_data(var, period=None):
+def hres_data(targetVar, period=None):
     """
     This function reads hres_data and returs dates and data in a dictionary.
     When there are predictands out of their codification range, it will inform and codification range might be changed
@@ -569,14 +591,14 @@ def hres_data(var, period=None):
     PeriodFilename: returns only data from selected period
     """
 
-    filename = pathHres + var + '_' + hresPeriodFilename[var[0]]
+    filename = pathHres + targetVar + '_' + hresPeriodFilename[targetVar]
 
-    minYear = int(hresPeriodFilename[var[0]].split('-')[0][:4])
-    maxYear = int(hresPeriodFilename[var[0]].split('-')[1][:4])
+    minYear = int(hresPeriodFilename[targetVar].split('-')[0][:4])
+    maxYear = int(hresPeriodFilename[targetVar].split('-')[1][:4])
 
     # If data is in ASCII, binary files are created for a faster reading
     if not os.path.isfile(filename +'.npy'):
-        aux_lib.prepare_hres_data_ascii2npy(var)
+        aux_lib.prepare_hres_data_ascii2npy(targetVar)
 
     # ------------------------
     # read data
@@ -619,10 +641,10 @@ def hres_data(var, period=None):
     times = [times[i] for i in range(len(times)) if i in idates]
 
     # Checks for values out of range and counts percentage of missing data
-    out_of_range = np.where((data < predictands_codification[var]['min_valid']) |
-                         (data > predictands_codification[var]['max_valid']))[0].size
-    data[np.isnan(data)] = predictands_codification[var]['special_value']
-    special_value = predictands_codification[var]['special_value']
+    out_of_range = np.where((data < predictands_codification[targetVar]['min_valid']) |
+                         (data > predictands_codification[targetVar]['max_valid']))[0].size
+    data[np.isnan(data)] = predictands_codification[targetVar]['special_value']
+    special_value = predictands_codification[targetVar]['special_value']
     missing_data = np.where(data == special_value)[0].size
     if missing_data > 0:
         perc = np.round(100*missing_data/data.size, 2)

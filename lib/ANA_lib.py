@@ -34,34 +34,39 @@ import write
 
 ########################################################################################################################
 def train_PCA():
-    """
-    Train PCA of sinoptic analogy fields preserving n_components needed to explain exp_var_ratio_th (advanced_settings)
-    """
+	"""
+	Train PCA of sinoptic analogy fields preserving n_components needed to explain exp_var_ratio_th (advanced_settings)
+	"""
 
-    # Define pathOut
-    pathOut = pathAux + 'PCA/'
-    if not os.path.exists(pathOut):
-        os.makedirs(pathOut)
+	# Define pathOut
+	pathOut = pathAux + 'PCA/'
+	if not os.path.exists(pathOut):
+		os.makedirs(pathOut)
 
-    # Get synoptic fields and weights
-    saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/p_training.npy')
-    saf_train = saf_train.astype('float32')
+	# Get synoptic fields and weights
+	for targetGroup in targetGroups:
+		try:
+			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+			saf_train = saf_train.astype('float32')
+			break
+		except:
+			pass
 
-    # Prepare data for PCA
-    ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
-    saf_train = saf_train.reshape(ndays, -1)
-    W = W_saf[np.newaxis, :]
-    W = np.repeat(W, ndays, axis=0)
-    saf_train *= W
+	# Prepare data for PCA
+	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
+	saf_train = saf_train.reshape(ndays, -1)
+	W = W_saf[np.newaxis, :]
+	W = np.repeat(W, ndays, axis=0)
+	saf_train *= W
 
-    # Perform PCA
-    pca = PCA(exp_var_ratio_th)
-    pca.fit(saf_train)
+	# Perform PCA
+	pca = PCA(exp_var_ratio_th)
+	pca.fit(saf_train)
 
-    # Save trained pca object
-    outfile = open(pathOut + 'pca', 'wb')
-    pickle.dump(pca, outfile)
-    outfile.close()
+	# Save trained pca object
+	outfile = open(pathOut + 'pca', 'wb')
+	pickle.dump(pca, outfile)
+	outfile.close()
 
 
 ########################################################################################################################
@@ -82,8 +87,13 @@ def set_number_of_weather_types():
 	clustering_method = 'MiniBatchKmeans'
 
 	# Get synoptic fields and weights
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/p_training.npy')
-	saf_train = saf_train.astype('float32')
+	for targetGroup in targetGroups:
+		try:
+			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetGroup + '_training.npy')
+			saf_train = saf_train.astype('float32')
+			break
+		except:
+			pass
 
 	# Prepare data for PCA
 	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
@@ -159,8 +169,13 @@ def get_weather_types_centroids():
 	# clustering_method = 'MiniBatchKmeans'
 
 	# Get synoptic fields and weights
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/p_training.npy')
-	saf_train = saf_train.astype('float32')
+	for targetGroup in targetGroups:
+		try:
+			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetGroup + '_training.npy')
+			saf_train = saf_train.astype('float32')
+			break
+		except:
+			pass
 
 	# Prepare data for PCA
 	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
@@ -225,372 +240,391 @@ def get_weather_types_centroids():
 
 ########################################################################################################################
 def get_weather_type_id(scene, centroids):
-    """
-    This function determines the weather type of the particular date
-    :param scene: (ndays, n_syn_anal_fields, nlats, nlons)
-    :param centroids: (k_clusters, n_syn_anal_fields, nlats, nlons)
-    :param W: (n_syn_anal_fields, nlats, nlons)
-    :return: the id of the weather type and the distance to the centroid
-    """
+	"""
+	This function determines the weather type of the particular date
+	:param scene: (ndays, n_syn_anal_fields, nlats, nlons)
+	:param centroids: (k_clusters, n_syn_anal_fields, nlats, nlons)
+	:param W: (n_syn_anal_fields, nlats, nlons)
+	:return: the id of the weather type and the distance to the centroid
+	"""
 
-    # Format to scene and centroids
-    scene = np.repeat(scene, k_clusters, 0)
-    scene = scene.reshape(scene.shape[0], -1)
-    centroids = centroids.reshape(centroids.shape[0], -1)
+	# Format to scene and centroids
+	scene = np.repeat(scene, k_clusters, 0)
+	scene = scene.reshape(scene.shape[0], -1)
+	centroids = centroids.reshape(centroids.shape[0], -1)
 
-    # Calculate distances and get minimum
-    dist = np.sqrt(np.average((scene-centroids)**2, axis=1))
-    k_index = np.argsort(dist)[0]
+	# Calculate distances and get minimum
+	dist = np.sqrt(np.average((scene-centroids)**2, axis=1))
+	k_index = np.argsort(dist)[0]
 
-    return {'k_index': k_index, 'dist': dist.min()}
+	return {'k_index': k_index, 'dist': dist.min()}
 
 
 ########################################################################################################################
 def get_synoptic_distances(calib, scene):
-    '''
-    Returns array of synoptic distance for each calibration day.
-    :param calib: (ndays, nPC)
-    :param scene: (1, nPC)
-    :return: dist: (ndays)
-    '''
+	'''
+	Returns array of synoptic distance for each calibration day.
+	:param calib: (ndays, nPC)
+	:param scene: (1, nPC)
+	:return: dist: (ndays)
+	'''
 
-    # Format to scene and calib
-    scene = np.repeat(scene, calib.shape[0], 0)
-    scene = scene.reshape(scene.shape[0], -1)
-    calib = calib.reshape(calib.shape[0], -1)
+	# Format to scene and calib
+	scene = np.repeat(scene, calib.shape[0], 0)
+	scene = scene.reshape(scene.shape[0], -1)
+	calib = calib.reshape(calib.shape[0], -1)
 
-    # Calculate distances
-    dist = np.sqrt(np.average((scene-calib)**2, axis=1))
+	# Calculate distances
+	dist = np.sqrt(np.average((scene-calib)**2, axis=1))
 
-    return dist
+	return dist
 
 
 ########################################################################################################################
 def get_local_distances(pred_calib, pred_scene, ipred):
-    """
-    Returns array of local distance for each calibration day and point.
-    :param pred_calib: (n_analogs_preselection, npreds)
-    :param pred_scene:  (, npreds)
-    :param ipred:
-    :return: dist: (n_analogs_preselection,)
-    """
+	"""
+	Returns array of local distance for each calibration day and point.
+	:param pred_calib: (n_analogs_preselection, npreds)
+	:param pred_scene:  (, npreds)
+	:param ipred:
+	:return: dist: (n_analogs_preselection,)
+	"""
 
-    # Format to pred_calib and pred_scene
-    pred_calib = pred_calib[:,ipred]
-    pred_scene = pred_scene[:,ipred]
-    pred_scene = np.repeat(pred_scene, pred_calib.shape[0], 0)
+	# Format to pred_calib and pred_scene
+	pred_calib = pred_calib[:,ipred]
+	pred_scene = pred_scene[:,ipred]
+	pred_scene = np.repeat(pred_scene, pred_calib.shape[0], 0)
 
-    # Calculate local distance
-    dist = np.sqrt(np.mean((pred_scene - pred_calib)**2, axis=1))
-    # print len(np.where(dist<0.75)[0])
+	# Calculate local distance
+	dist = np.sqrt(np.mean((pred_scene - pred_calib)**2, axis=1))
+	# print len(np.where(dist<0.75)[0])
 
-    return dist
-
-
-########################################################################################################################
-def coefficients(var, methodName, mode, iproc=0, nproc=1):
-    """
-    """
-
-    mode = 'PP'
-    var0 = var[0]
-
-    # Define pathOut
-    pathOut = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
-    if not os.path.exists(pathOut) and iproc==0:
-        os.makedirs(pathOut)
-    MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
-
-    # Read metadata of hres grid and the neighbour associated to each point
-    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/i_4nn.npy')
-    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/j_4nn.npy')
-    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/w_4nn.npy')
-
-    # Read synoptic analogy fields and centroids
-    pred = np.load(pathAux+'STANDARDIZATION/PRED/t_training.npy')
-    saf_train = np.load(pathAux+'STANDARDIZATION/SAF/t_training.npy')
-    centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
-
-    # Prepare data for PCA
-    ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
-    saf_train = saf_train.reshape(ndays, -1)
-    W = W_saf[np.newaxis, :]
-    W = np.repeat(W, ndays, axis=0)
-    saf_train *= W
-
-    # Load pca object
-    infile = open(pathAux + 'PCA/pca', 'rb')
-    pca = pickle.load(infile)
-    infile.close()
-
-    # Transform sat_train to PCA
-    saf_train = pca.transform(saf_train)
-
-    # Read high resolution data and transform to int to save memory and to be homogeneous with downscale scene
-    if iproc == 0:
-        obs = read.hres_data(var, period='training')['data']
-        obs = (100 * obs).astype(predictands_codification[var]['type'])
-    else:
-        obs = None
-    MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
-
-    if nproc > 1:
-        obs = MPI.COMM_WORLD.bcast(obs, root=0)
-    special_value = 100*predictands_codification[var]['special_value']
-
-    # Create chunks
-    n_chunks = nproc
-    len_chunk = int(math.ceil(float(k_clusters) / n_chunks))
-    ik = [i for i in range(k_clusters)]
-
-    k_chunk = []
-    for ichunk in range(n_chunks):
-        k_chunk.append(ik[ichunk * len_chunk:(ichunk + 1) * len_chunk])
-    len_chunk = []
-    for ichunk in range(n_chunks):
-        len_chunk.append(len(k_chunk[ichunk]))
-
-    # Create empty array to accumulate correlation coefficients
-    coef = np.zeros((len_chunk[iproc], hres_npoints[var[0]], n_preds_t))
-    intercept = np.zeros((len_chunk[iproc], hres_npoints[var[0]], 1))
-
-    # Go through k clusters
-    for ik in range(len_chunk[iproc]):
-        k_global = k_chunk[iproc][ik]
-
-        print(var, methodName, 'coefficients. k=', k_global,' (', round(100*ik/len_chunk[iproc]), '%)')
-
-        # Searches synoptic analogs to the centroid
-        i_centroid = centroids[k_global][np.newaxis, :]
-        dist = ANA_lib.get_synoptic_distances(saf_train, i_centroid)
-        iana = np.argsort(dist)[:n_analogs_preselection]
-
-        # Selects analogs only with certain amount of precipitation
-        obs_array=obs[iana, :]
-        pred_array=pred[iana]
-
-        # Calculate partial correlations for each point and predictor
-        for ipoint in range(hres_npoints):
-            Y = obs_array[:, ipoint]
-            valid = np.where(Y < special_value)[0]
-
-            # If not enough data for calibration, fill with np.nan
-            if valid.size < 150:
-                print('Not enough valid predictands')
-                coef[ik, ipoint] = np.nan
-                intercept[ik, ipoint] = np.nan
-            else:
-                X = pred_array[valid, :, :, :]
-                Y = Y[valid]
-
-                # Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
-                # interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
-                X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-                regressor = RidgeCV()
-                regressor.fit(X, Y)
-                coef[ik, ipoint] = regressor.coef_
-                intercept[ik, ipoint] = regressor.intercept_
-
-    # Save coefficients
-    np.save(pathOut+'coef_ichunk_' + str(iproc), coef)
-    np.save(pathOut+'intercept_ichunk_' + str(iproc), intercept)
+	return dist
 
 
 ########################################################################################################################
-def coefficients_collect_chunks(var, methodName, mode, nproc=1):
+def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
+	"""
+	"""
 
-    # Define pathOut
-    pathOut=pathAux+'COEFFICIENTS/'
-    if not os.path.exists(pathOut):
-        os.makedirs(pathOut)
+	mode = 'PP'
+	targetGroup = targetGroups_dict[targetVar]
 
-    n_chunks = nproc
+	# Define pathOut
+	pathOut = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
+	if not os.path.exists(pathOut) and iproc==0:
+		os.makedirs(pathOut)
 
-    print('--------------------------------------')
-    print(var, methodName, 'cluster collect chunks', n_chunks)
+	if nproc > 1:
+		MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
 
-    # Create empty array and accumulate
-    coef=np.zeros((0, hres_npoints, n_preds_t))
-    intercept=np.zeros((0, hres_npoints, 1))
-    for ichunk in range(n_chunks):
-        path = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
-        filename = path + 'coef_ichunk_' + str(ichunk) + '.npy'
-        coef = np.append(coef, np.load(filename), axis=0)
-        filename = path + 'intercept_ichunk_' + str(ichunk) + '.npy'
-        intercept = np.append(intercept, np.load(filename), axis=0)
-    shutil.rmtree(path)
+	# Read metadata of hres grid and the neighbour associated to each point
+	i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
+	j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
+	w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
 
-    np.save(pathOut+var+'_'+methodName+'_coefficients', coef)
-    np.save(pathOut+var+'_'+methodName+'_intercept', intercept)
+	# Read synoptic analogy fields and centroids
+	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
+	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+	centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
 
-########################################################################################################################
-def correlations(var, methodName, mode, iproc=0, nproc=1, th_metric='median'):
-    """
-    Searches significant predictors for each grid point and weather type.
+	# Prepare data for PCA
+	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
+	saf_train = saf_train.reshape(ndays, -1)
+	W = W_saf[np.newaxis, :]
+	W = np.repeat(W, ndays, axis=0)
+	saf_train *= W
 
-    For each weather type selects all the synoptic analogs (those given by dist_th, which correspond to th_metric of the
-    train set).
-    Then, for each grid point calculates partial correlations with all possible predictors.
-    Correlation will be computed only using precipitation data greater than "pcp_th_for_corr".
-    Correlation will be computed only when having more than "min_days_corr".
-    Nevertheless no regression will be performed. These predictors will be used only to search analogy in them.
+	# Load pca object
+	infile = open(pathAux + 'PCA/pca', 'rb')
+	pca = pickle.load(infile)
+	infile.close()
 
-    """
+	# Transform sat_train to PCA
+	saf_train = pca.transform(saf_train)
 
-    mode = 'PP'
-    var0 = var[0]
+	# Read high resolution data and transform to int to save memory and to be homogeneous with downscale scene
+	if iproc == 0:
+		obs = read.hres_data(targetVar, period='training')['data']
+		obs = (100 * obs).astype(predictands_codification[targetVar]['type'])
+	else:
+		obs = None
 
-    # Define pathOut
-    pathOut = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
-    if not os.path.exists(pathOut) and iproc==0:
-        os.makedirs(pathOut)
+	if nproc > 1:
+		MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
 
-    MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
+	if nproc > 1:
+		obs = MPI.COMM_WORLD.bcast(obs, root=0)
+	special_value = 100*predictands_codification[targetVar]['special_value']
 
-    pcp_th_for_corr = 0.1 # mm
+	# Create chunks
+	n_chunks = nproc
+	len_chunk = int(math.ceil(float(k_clusters) / n_chunks))
+	ik = [i for i in range(k_clusters)]
 
-    # Read metadata of hres grid and the neighbour associated to each point
-    i_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/i_4nn.npy')
-    j_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/j_4nn.npy')
-    w_4nn = np.load(pathAux+'ASSOCIATION/'+var0.upper()+'_'+interp_mode+'/w_4nn.npy')
+	k_chunk = []
+	for ichunk in range(n_chunks):
+		k_chunk.append(ik[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+	len_chunk = []
+	for ichunk in range(n_chunks):
+		len_chunk.append(len(k_chunk[ichunk]))
 
-    # Read pred, saf and centroids
-    pred = np.load(pathAux+'STANDARDIZATION/PRED/p_training.npy')
-    saf_train = np.load(pathAux+'STANDARDIZATION/SAF/p_training.npy')
-    centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
+	# Create empty array to accumulate correlation coefficients
+	coef = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	intercept = np.zeros((len_chunk[iproc], hres_npoints[targetVar], 1))
 
-    # Prepare data for PCA
-    ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
-    saf_train = saf_train.reshape(ndays, -1)
-    W = W_saf[np.newaxis, :]
-    W = np.repeat(W, ndays, axis=0)
-    saf_train *= W
+	# Go through k clusters
+	for ik in range(len_chunk[iproc]):
+		k_global = k_chunk[iproc][ik]
 
-    # Load pca object
-    infile = open(pathAux + 'PCA/pca', 'rb')
-    pca = pickle.load(infile)
-    infile.close()
+		print(targetVar, methodName, 'coefficients. k=', k_global,' (', round(100*ik/len_chunk[iproc]), '%)')
 
-    # Transform sat_train to PCA
-    saf_train = pca.transform(saf_train)
+		# Searches synoptic analogs to the centroid
+		i_centroid = centroids[k_global][np.newaxis, :]
+		dist = ANA_lib.get_synoptic_distances(saf_train, i_centroid)
+		iana = np.argsort(dist)[:n_analogs_preselection]
 
-    # Read high resolution data and transform to int to save memory
-    if iproc == 0:
-        obs=read.hres_data(var, period='training')['data']
-        obs = (100 * obs).astype(predictands_codification[var]['type'])
-    else:
-        obs = None
-    MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
+		# Selects analogs only with certain amount of precipitation
+		obs_array=obs[iana, :]
+		pred_array=pred[iana]
 
-    if nproc>1:
-        obs = MPI.COMM_WORLD.bcast(obs, root=0)
+		# Calculate partial correlations for each point and predictor
+		for ipoint in range(hres_npoints[targetVar]):
+			Y = obs_array[:, ipoint]
+			valid = np.where(Y < special_value)[0]
 
-    special_value = 100*predictands_codification[var]['special_value']
+			# If not enough data for calibration, fill with np.nan
+			if valid.size < 150:
+				print('Not enough valid predictands')
+				coef[ik, ipoint] = np.nan
+				intercept[ik, ipoint] = np.nan
+			else:
+				X = pred_array[valid, :, :, :]
+				Y = Y[valid]
 
+				# Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
+				# interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
+				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+				regressor = RidgeCV()
+				regressor.fit(X, Y)
+				coef[ik, ipoint] = regressor.coef_
+				intercept[ik, ipoint] = regressor.intercept_
 
-    # Create chunks
-    n_chunks = nproc
-    len_chunk = int(math.ceil(float(k_clusters) / n_chunks))
-    ik = [i for i in range(k_clusters)]
-
-    k_chunk = []
-    for ichunk in range(n_chunks):
-        k_chunk.append(ik[ichunk * len_chunk:(ichunk + 1) * len_chunk])
-    len_chunk = []
-    for ichunk in range(n_chunks):
-        len_chunk.append(len(k_chunk[ichunk]))
-
-    # Create empty array to accumulate correlation coefficients
-    R = np.zeros((len_chunk[iproc], hres_npoints, n_preds_p))
-
-    # Get dist_th
-    if th_metric == 'median':
-        dist_th = np.median(np.load(pathAux + 'WEATHER_TYPES/dist.npy'))
-    elif th_metric == 'max':
-        dist_th = np.max(np.load(pathAux + 'WEATHER_TYPES/dist.npy'))
-    elif th_metric == 'p90':
-        dist_th = np.percentile(np.load(pathAux + 'WEATHER_TYPES/dist.npy'), 90)
-
-    # Go through k clusters
-    for ik in range(len_chunk[iproc]):
-        k_global = k_chunk[iproc][ik]
-
-        # Searches synoptica analogs to the centroid
-        i_centroid = centroids[k_global][np.newaxis, :]
-        dist = ANA_lib.get_synoptic_distances(saf_train, i_centroid)
-        iana = np.where(dist < dist_th)[0]
-        print('k =', k_global, ',', iana.size, 'days  (', round(100*ik/len_chunk[iproc]), '%)')
-
-        # Selects analogs only with certain amount of precipitation
-        obs_array=obs[iana, :]
-        pred_array=pred[iana]
-
-        # Calculate partial correlations for each point and predictor
-        for ipoint in range(hres_npoints):
-
-            # Select only rainy data
-            Y = obs_array[:, ipoint]
-            valid = np.where((Y > 100. * pcp_th_for_corr) * (Y < special_value))[0]
-            X = pred_array[valid, :, :, :]
-            Y = Y[valid]
-
-            # If not enogh data to establish correlation Nan
-            if Y.size < min_days_corr:
-                R[ik, ipoint, :] = np.nan
-            else:
-                # Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
-                # interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
-                X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-                for ipred in range(n_preds_p):
-                    R[ik, ipoint, ipred] = spearmanr(X[:, ipred], Y)[0]
-
-    # Save results
-    np.save(pathOut+'ichunk_' + str(iproc), R)
-
+	# Save coefficients
+	np.save(pathOut+'coef_ichunk_' + str(iproc), coef)
+	np.save(pathOut+'intercept_ichunk_' + str(iproc), intercept)
 
 
 ########################################################################################################################
-def correlations_collect_chunks(var, methodName, mode, nproc=1):
+def coefficients_collect_chunks(targetVar, methodName, mode, nproc=1):
 
-    # Define pathOut
-    pathOut=pathAux+'COEFFICIENTS/'
-    if not os.path.exists(pathOut):
-        os.makedirs(pathOut)
+	# Define pathOut
+	pathOut=pathAux+'COEFFICIENTS/'
+	if not os.path.exists(pathOut):
+		os.makedirs(pathOut)
 
-    n_chunks = nproc
+	n_chunks = nproc
+	targetGroup = targetGroups_dict[targetVar]
 
-    print('--------------------------------------')
-    print(var, methodName, 'cluster collect chunks', n_chunks)
+	print('--------------------------------------')
+	print(targetVar, methodName, 'cluster collect chunks', n_chunks)
 
-    # Create empty array and accumulate
-    R = np.zeros((0, hres_npoints, n_preds_p))
-    for ichunk in range(n_chunks):
-        path = '../tmp/cluster_' + '_'.join(((var, methodName))) + '/'
-        filename = path + 'ichunk_' + str(ichunk) + '.npy'
-        R = np.append(R, np.load(filename), axis=0)
-    shutil.rmtree(path)
+	# Create empty array and accumulate
+	coef=np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	intercept=np.zeros((0, hres_npoints[targetVar], 1))
+	for ichunk in range(n_chunks):
+		path = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
+		filename = path + 'coef_ichunk_' + str(ichunk) + '.npy'
+		coef = np.append(coef, np.load(filename), axis=0)
+		filename = path + 'intercept_ichunk_' + str(ichunk) + '.npy'
+		intercept = np.append(intercept, np.load(filename), axis=0)
+	shutil.rmtree(path)
 
-    np.save(pathOut+'pcp_ANA_correlations', R)
+	np.save(pathOut+targetVar+'_'+methodName+'_coefficients', coef)
+	np.save(pathOut+targetVar+'_'+methodName+'_intercept', intercept)
+
+
+########################################################################################################################
+def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='median'):
+	"""
+	Searches significant predictors for each grid point and weather type.
+
+	For each weather type selects all the synoptic analogs (those given by dist_th, which correspond to th_metric of the
+	train set).
+	Then, for each grid point calculates partial correlations with all possible predictors.
+	Correlation will be computed only using precipitation data greater than "pr_th_for_corr".
+	Correlation will be computed only when having more than "min_days_corr".
+	Nevertheless no regression will be performed. These predictors will be used only to search analogy in them.
+
+	"""
+
+	pr_th_for_corr = 0.1 # mm
+
+	mode = 'PP'
+	targetGroup = targetGroups_dict[targetVar]
+
+	# Define pathOut
+	pathOut = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
+	if not os.path.exists(pathOut) and iproc==0:
+		os.makedirs(pathOut)
+
+	if nproc > 1:
+		MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
+
+
+	# Read metadata of hres grid and the neighbour associated to each point
+	i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
+	j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
+	w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
+
+	# Read pred, saf and centroids
+	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
+	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+	centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
+
+	# Prepare data for PCA
+	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
+	saf_train = saf_train.reshape(ndays, -1)
+	W = W_saf[np.newaxis, :]
+	W = np.repeat(W, ndays, axis=0)
+	saf_train *= W
+
+	# Load pca object
+	infile = open(pathAux + 'PCA/pca', 'rb')
+	pca = pickle.load(infile)
+	infile.close()
+
+	# Transform sat_train to PCA
+	saf_train = pca.transform(saf_train)
+
+	# Read high resolution data and transform to int to save memory
+	if iproc == 0:
+		obs=read.hres_data(targetVar, period='training')['data']
+		obs = (100 * obs).astype(predictands_codification[targetVar]['type'])
+	else:
+		obs = None
+
+	if nproc > 1:
+		MPI.COMM_WORLD.Barrier()  # Waits for all subprocesses to complete last step
+
+	if nproc > 1:
+		obs = MPI.COMM_WORLD.bcast(obs, root=0)
+
+	special_value = 100*predictands_codification[targetVar]['special_value']
+
+
+	# Create chunks
+	n_chunks = nproc
+	len_chunk = int(math.ceil(float(k_clusters) / n_chunks))
+	ik = [i for i in range(k_clusters)]
+
+	k_chunk = []
+	for ichunk in range(n_chunks):
+		k_chunk.append(ik[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+	len_chunk = []
+	for ichunk in range(n_chunks):
+		len_chunk.append(len(k_chunk[ichunk]))
+
+	# Create empty array to accumulate correlation coefficients
+	R = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetGroup]))
+
+	# Get dist_th
+	if th_metric == 'median':
+		dist_th = np.median(np.load(pathAux + 'WEATHER_TYPES/dist.npy'))
+	elif th_metric == 'max':
+		dist_th = np.max(np.load(pathAux + 'WEATHER_TYPES/dist.npy'))
+	elif th_metric == 'p90':
+		dist_th = np.percentile(np.load(pathAux + 'WEATHER_TYPES/dist.npy'), 90)
+
+	# Go through k clusters
+	for ik in range(len_chunk[iproc]):
+		k_global = k_chunk[iproc][ik]
+
+		# Searches synoptica analogs to the centroid
+		i_centroid = centroids[k_global][np.newaxis, :]
+		dist = ANA_lib.get_synoptic_distances(saf_train, i_centroid)
+		iana = np.where(dist < dist_th)[0]
+		print('k =', k_global, ',', iana.size, 'days  (', round(100*ik/len_chunk[iproc]), '%)')
+
+		# Selects analogs only with certain amount of precipitation
+		obs_array=obs[iana, :]
+		pred_array=pred[iana]
+
+		# Calculate partial correlations for each point and predictor
+		for ipoint in range(hres_npoints[targetVar]):
+
+			# Select only rainy data
+			Y = obs_array[:, ipoint]
+			if targetVar == 'pr':
+				valid = np.where((Y > 100. * pr_th_for_corr) * (Y < special_value))[0]
+			else:
+				valid = np.where(Y < special_value)[0]
+
+			X = pred_array[valid, :, :, :]
+			Y = Y[valid]
+
+			# If not enogh data to establish correlation Nan
+			if Y.size < min_days_corr:
+				R[ik, ipoint, :] = np.nan
+			else:
+				# Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
+				# interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
+				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+				for ipred in range(n_preds_dict[targetGroup]):
+					if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
+						R[ik, ipoint, ipred] = spearmanr(X[:, ipred], Y)[0]
+					else:
+						R[ik, ipoint, ipred] = pearsonr(X[:, ipred], Y)[0]
+
+	# Save results
+	np.save(pathOut+'ichunk_' + str(iproc), R)
+
+
+
+########################################################################################################################
+def correlations_collect_chunks(targetVar, methodName, mode, nproc=1):
+
+	# Define pathOut
+	pathOut=pathAux+'COEFFICIENTS/'
+	if not os.path.exists(pathOut):
+		os.makedirs(pathOut)
+
+	n_chunks = nproc
+	targetGroup = targetGroups_dict[targetVar]
+
+	print('--------------------------------------')
+	print(targetVar, methodName, 'cluster collect chunks', n_chunks)
+
+	# Create empty array and accumulate
+	R = np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	for ichunk in range(n_chunks):
+		path = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
+		filename = path + 'ichunk_' + str(ichunk) + '.npy'
+		R = np.append(R, np.load(filename), axis=0)
+	shutil.rmtree(path)
+	print(targetVar, methodName, anal_corr_th_dict[targetGroup], 100.*np.count_nonzero(R)/R.size,'%')
+
+	np.save(pathOut+targetVar+'_'+methodName+'_correlations', R)
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    nproc = MPI.COMM_WORLD.Get_size()  # Size of communicator
-    iproc = MPI.COMM_WORLD.Get_rank()  # Ranks in communicator
-    inode = MPI.Get_processor_name()  # Node where this MPI process runs
+	nproc = MPI.COMM_WORLD.Get_size()  # Size of communicator
+	iproc = MPI.COMM_WORLD.Get_rank()  # Ranks in communicator
+	inode = MPI.Get_processor_name()  # Node where this MPI process runs
 
-    var = sys.argv[1]
-    methodName = sys.argv[2]
-    mode = sys.argv[3]
-    func = sys.argv[4]
+	targetVar = sys.argv[1]
+	methodName = sys.argv[2]
+	mode = sys.argv[3]
+	func = sys.argv[4]
 
-    if func == 'correlations':
-        correlations(var, methodName, mode, iproc, nproc)
-        MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
-        if iproc==0:
-            correlations_collect_chunks(var, methodName, mode, nproc)
-    elif func == 'coefficients':
-        coefficients(var, methodName, mode, iproc, nproc)
-        MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
-        if iproc==0:
-            coefficients_collect_chunks(var, methodName, mode, nproc)
+	if func == 'correlations':
+		correlations(targetVar, methodName, mode, iproc, nproc)
+		MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
+		if iproc==0:
+			correlations_collect_chunks(targetVar, methodName, mode, nproc)
+	elif func == 'coefficients':
+		coefficients(targetVar, methodName, mode, iproc, nproc)
+		MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
+		if iproc==0:
+			coefficients_collect_chunks(targetVar, methodName, mode, nproc)

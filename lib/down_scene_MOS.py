@@ -32,7 +32,7 @@ import val_lib
 import WG_lib
 import write
 
-def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0, nproc=1):
+def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, iproc=0, nproc=1):
     """
     This function goes through all points (regression).
     The result is saved as npy file (each chunk is one file).
@@ -40,33 +40,33 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[targetVar]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[targetVar]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
     # Define paths
-    pathOut = '../tmp/ESTIMATED_' + '_'.join((var, methodName, scene, model)) + '/'
+    pathOut = '../tmp/ESTIMATED_' + '_'.join((targetVar, methodName, scene, model)) + '/'
 
     # Parent process reads all data, broadcasts to the other processes and creates paths for results
     if iproc == 0:
-        print(var, methodName, scene, model)
+        print(targetVar, methodName, scene, model)
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
 
         # Read data and converts obs to uint16 or int16 to save memory
-        obs = read.hres_data(var, period='training')['data']
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
+        obs = read.hres_data(targetVar, period='training')['data']
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
 
         # Set scene dates and predictors
         if scene == 'TESTING':
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
+            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_testing.npy')
+            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -74,13 +74,10 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                 years = ssp_years
 
             # Read var_calib (from model)
-            aux = read.lres_data(var, 'var', model=model, scene='historical')
+            aux = read.lres_data(targetVar, 'var', model=model, scene='historical')
             dates = aux['times']
             var_calib = aux['data']
-            if var[0] == 'p':
-                preds = preds_dict['p']
-            elif var[0] == 't':
-                preds = preds_dict['t']
+            preds = preds_dict[targetGroup]
             ncName = list(preds.keys())[0]
             calendar = read.one_direct_predictor(ncName, model=model, scene=scene)['calendar']
 
@@ -104,7 +101,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             var_calib = var_calib[idates_calib]
 
             # Read var_scene (from model)
-            aux = read.lres_data(var, 'var', model=model, scene=scene)
+            aux = read.lres_data(targetVar, 'var', model=model, scene=scene)
             scene_dates = aux['times']
             idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
             scene_dates = list(np.array(scene_dates)[idates])
@@ -136,7 +133,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
 
     # Create empty array for results
     est = np.zeros((len(scene_dates), npoints_ichunk))
-    special_value = int(predictands_codification[var]['special_value'])
+    special_value = int(predictands_codification[targetVar]['special_value'])
 
     # Goes through all points of the chunk
     for ipoint in range(len(points_chunk[ichunk])):
@@ -147,7 +144,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         if ipoint_local_index % 10==0:
             print('--------------------')
             print('ichunk:	', ichunk, '/', n_chunks)
-            print('downscaling', var, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
+            print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
         X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
@@ -158,13 +155,13 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
 
         # Apply downscaling
         if methodName == 'QM':
-            est[:, ipoint_local_index] = MOS_lib.quantile_mapping(Y_train, X_train, X_test, var)[:, 0]
+            est[:, ipoint_local_index] = MOS_lib.quantile_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
         if methodName == 'DQM':
-            est[:, ipoint_local_index] = MOS_lib.detrended_quantile_mapping(Y_train, X_train, X_test, var)[:, 0]
+            est[:, ipoint_local_index] = MOS_lib.detrended_quantile_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
         if methodName == 'QDM':
-            est[:, ipoint_local_index] = MOS_lib.quantile_delta_mapping(Y_train, X_train, X_test, var)[:, 0]
+            est[:, ipoint_local_index] = MOS_lib.quantile_delta_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
         elif methodName == 'PSDM':
-            est[:, ipoint_local_index] = MOS_lib.scaled_distribution_mapping(Y_train, X_train, X_test, var)[:, 0]
+            est[:, ipoint_local_index] = MOS_lib.scaled_distribution_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
 
     # Undo converssion
     est = est.astype('float64')
@@ -174,7 +171,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
 
 
 ########################################################################################################################
-def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks=1):
+def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_chunks=1):
     """
     This function collects the results of downscale_chunk() and saves them into a final single file.
     """
@@ -194,7 +191,7 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
             scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
-        ncVar = modNames[var]
+        ncVar = modNames[targetVar]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
         filename = ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename + '.nc'
         model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
@@ -203,60 +200,66 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
     # Create empty array and accumulate results
     est = np.zeros((len(model_dates), 0))
     for ichunk in range(n_chunks):
-        path = '../tmp/ESTIMATED_'+ '_'.join((var, methodName, scene, model)) + '/'
+        path = '../tmp/ESTIMATED_'+ '_'.join((targetVar, methodName, scene, model)) + '/'
         filename = path + '/ichunk_' + str(ichunk) + '.npy'
         est = np.append(est, np.load(filename), axis=1)
     shutil.rmtree(path)
 
     # Save to file
     if experiment == 'EVALUATION':
-        pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
+        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
     elif experiment == 'PSEUDOREALITY':
-        aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
+        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
         aux[:] = np.nan
         idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
         aux[idates] = est
         est = aux
         del aux
-        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+var.upper()+'/'+methodName+'/daily_data/'
+        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+targetVar.upper()+'/'+methodName+'/daily_data/'
     else:
-        aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
+        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
         aux[:] = np.nan
         idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
         aux[idates] = est
         est = aux
         del aux
-        pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
+        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lons.npy')
 
     # Set units
-    if var == 'pcp':
-        units = 'mm'
-    else:
-        units = 'degress'
+    units = predictands_units[targetVar]
+    if units == None:
+        units = ''
 
     if split_mode[:4] == 'fold':
-        sufix = '_' + split_mode
+        fold_sufix = '_' + split_mode
     else:
-        sufix = ''
+        fold_sufix = ''
 
     # Special values are set to nan
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
-    est[np.abs(est-predictands_codification[var]['special_value']) < 0.01] = np.nan
+    est[np.abs(est-predictands_codification[targetVar]['special_value']) < 0.01] = np.nan
     print('-------------------------------------------------------------------------')
-    print('results contain', np.where(np.isnan(est))[0].size, 'nans out of', est.size)
+    print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
 
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        est[est < minAllowed] == minAllowed
+    if  maxAllowed != None:
+        est[est > maxAllowed] == maxAllowed
+
     # Save data to netCDF file
-    write.netCDF(pathOut, model+'_'+scene+sufix+'.nc', var, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
+    write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
     # print(est[0, :10], est.shape)
 
     # If using k-folds, join them
     if split_mode == 'fold5':
-        aux_lib.join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons)
+        aux_lib.join_kfolds(targetVar, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons)
 
 ########################################################################################################################
 
@@ -265,7 +268,7 @@ if __name__=="__main__":
     nproc = MPI.COMM_WORLD.Get_size()         # Size of communicator
     iproc = MPI.COMM_WORLD.Get_rank()         # Ranks in communicator
     inode = MPI.Get_processor_name()          # Node where this MPI process runs
-    var = sys.argv[1]
+    targetVar = sys.argv[1]
     methodName = sys.argv[2]
     family = sys.argv[3]
     mode = sys.argv[4]
@@ -273,7 +276,7 @@ if __name__=="__main__":
     scene = sys.argv[6]
     model = sys.argv[7]
 
-    downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc, nproc)
+    downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, iproc, nproc)
     MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
     if iproc==0:
-        collect_chunks(var, methodName, family, mode, fields, scene, model, nproc)
+        collect_chunks(targetVar, methodName, family, mode, fields, scene, model, nproc)

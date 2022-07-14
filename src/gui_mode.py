@@ -238,7 +238,7 @@ class tabSteps(ttk.Frame):
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
-                #'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
+                'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
@@ -380,7 +380,7 @@ class tabMethods(ttk.Frame):
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
             ttk.Label(tabMethods, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
             add_to_chk_list(self.chk_list, var, 'ANA-MLR', 'ANA', 'PP', 'pred+saf', 'Analog Multiple Linear Regression', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'WT-MLR', 'ANA', 'PP', 'pred+saf', 'Weather Typing Multiple Linear Regression', icol, irow); irow+=1
+            add_to_chk_list(self.chk_list, var, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Weather Typing Multiple Linear Regression', icol, irow); irow+=1
 
             # Transfer function
             ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
@@ -457,7 +457,6 @@ class tabMethods(ttk.Frame):
         add_to_chk_list(self.chk_list, var, 'XGB', 'TF', 'PP', 'pred+var', 'eXtreme Gradient Boost', icol, irow); irow-=3; icol+=1
         add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
         add_to_chk_list(self.chk_list, var, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'CNN-SYN', 'TF', 'PP', 'pred', 'Convolutional Neural Network \nbased on synoptic fields', icol, irow); irow+=2; icol-=2
 
         # Weather Generators
         ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -1566,13 +1565,13 @@ class selectionWindow():
             for x in self.preds:
                 if self.preds[x].get() == True and x.split('_')[0] not in self.selected_all_preds:
                     self.selected_all_preds.append(x.split('_')[0])
-            self.target_vars0 = [x for x in self.selected_all_preds if x != 'saf']
+            self.targetVars0 = [x for x in self.selected_all_preds if x != 'saf']
 
             # Read methods
-            self.target_vars = []
+            self.targetVars = []
             for meth in self.methods_chk:
-                if meth['checked'].get() == True and meth['var'] not in self.target_vars:
-                    self.target_vars.append(meth['var'])
+                if meth['checked'].get() == True and meth['var'] not in self.targetVars:
+                    self.targetVars.append(meth['var'])
 
             # Force to select at least one saf
             if 'saf' not in self.selected_all_preds:
@@ -1583,16 +1582,16 @@ class selectionWindow():
 
             # Force to select at least one pred
             if self.all_checks_ok == True:
-                if len(self.target_vars0) == 0:
+                if len(self.targetVars0) == 0:
                     self.all_checks_ok = False
                     tk.messagebox.showerror("pyClim-SDM",  "At least one predictor (for temperature and/or precipitation) must be selected (Predictors tab)")
                 else:
                     self.all_checks_ok = True
 
-            # Force consistency between target_vars and target_vars0
+            # Force consistency between targetVars and targetVars0
             for var in ('tmax', 'tmin', 'pcp',):
                 if self.all_checks_ok == True:
-                    if (var in self.target_vars) and (var[0] not in self.target_vars0) and (self.exp != 'PRECONTROL'):
+                    if (var in self.targetVars) and (var[0] not in self.targetVars0) and (self.exp != 'PRECONTROL'):
                         self.all_checks_ok = False
                         tk.messagebox.showerror("pyClim-SDM",  'Your selection includes some methods for ' + var + ' but no predictor has been selected')
                     else:
@@ -1600,7 +1599,7 @@ class selectionWindow():
 
             # Force consistency between methods and experiment
             if self.all_checks_ok == True:
-                if len(self.target_vars) == 0 and self.exp != 'PRECONTROL':
+                if len(self.targetVars) == 0 and self.exp != 'PRECONTROL':
                     self.all_checks_ok = False
                     tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
                 else:
@@ -1977,15 +1976,15 @@ def write_tmpMain_file(steps):
     if 'downscale' in steps:
         noSteps = False
         f.write("    process.downscale()\n")
-    if 'bias_correct_projections' in steps:
-        noSteps = False
-        f.write("    postprocess.bias_correction()\n")
     if 'calculate_climdex' in steps:
         noSteps = False
         f.write("    postprocess.get_climdex()\n")
     if 'plot_results' in steps:
         noSteps = False
         f.write("    postprocess.plot_results()\n")
+    if 'bias_correct_projections' in steps:
+        noSteps = False
+        f.write("    postprocess.bias_correction()\n")
     if 'nc2ascii' in steps:
         noSteps = False
         f.write("    postprocess.nc2ascii()\n")

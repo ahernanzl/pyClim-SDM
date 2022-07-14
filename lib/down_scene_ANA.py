@@ -32,30 +32,33 @@ import val_lib
 import WG_lib
 import write
 
-def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0, nproc=1):
+def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, iproc=0, nproc=1):
     """
     This function goes through all days.
     It previously divides a scene in nproc chunks and processes the chunk number iproc in parallel.
     The result is saved as npy file (each chunk is one file).
     """
 
+
+    targetGroup = targetGroups_dict[targetVar]
+
     # Define path
-    pathOut='../tmp/'+var+'_'+methodName+'_'+ model + '_' + scene + '/'
+    pathOut='../tmp/'+targetVar+'_'+methodName+'_'+ model + '_' + scene + '/'
 
     # Define analogy_mode
     analogy_mode = methodName.split('-')[1]
 
     # Parent process reads all data, broadcasts to the other processes and creates paths for results
     if iproc == 0:
-        print(scene, model, var, methodName)
+        print(scene, model, targetVar, methodName)
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
         # Read data and converts obs to uint16 or int16 to save memory
-        obs = read.hres_data(var, period='training')['data']
-        obs = (100 * obs).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/i_4nn.npy')
-        j_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/j_4nn.npy')
-        w_4nn = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/w_4nn.npy')
+        obs = read.hres_data(targetVar, period='training')['data']
+        obs = (100 * obs).astype(predictands_codification[targetVar]['type'])
+        i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
+        j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
+        w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
         pred_calib = None
         saf_calib = None
         var_calib = None
@@ -68,10 +71,10 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         corr = None
 
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_training.npy')
+            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
             pred_calib = pred_calib.astype('float32')
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_training.npy')
+            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             saf_calib = saf_calib.reshape(saf_calib.shape[0], -1)
             W = W_saf[np.newaxis, :]
@@ -82,28 +85,28 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
             infile.close()
             saf_calib = pca.transform(saf_calib)
         if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
+            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
 
-        if methodName == 'WT-MLR':
+        if methodName == 'MLR-WT':
             centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
-            coef = np.load(pathAux+'COEFFICIENTS/'+var+'_'+methodName+'_coefficients.npy')
-            intercept = np.load(pathAux+'COEFFICIENTS/'+var+'_'+methodName+'_intercept.npy')
+            coef = np.load(pathAux+'COEFFICIENTS/'+targetVar+'_'+methodName+'_coefficients.npy')
+            intercept = np.load(pathAux+'COEFFICIENTS/'+targetVar+'_'+methodName+'_intercept.npy')
         elif analogy_mode == 'LOC':
             centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
-            corr = np.load(pathAux+'COEFFICIENTS/pcp_ANA_correlations.npy')
+            corr = np.load(pathAux+'COEFFICIENTS/'+targetVar+'_'+methodName+'_correlations.npy')
             corr[np.isnan(corr)]=0
-            corr = abs(corr) >= anal_pcp_corr_th
-            print('corr_th', anal_pcp_corr_th, 100.*np.count_nonzero(corr)/corr.size,'%')
+            corr = abs(corr) >= anal_corr_th_dict[targetGroup]
+            print('corr_th', anal_corr_th_dict[targetGroup], 100.*np.count_nonzero(corr)/corr.size,'%')
 
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
 
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_testing.npy')
+                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
             if 'saf' in fields:
-                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_testing.npy')
+                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
                 saf_scene = saf_scene.reshape(saf_scene.shape[0], -1)
                 W = W_saf[np.newaxis, :]
@@ -114,7 +117,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                 infile.close()
                 saf_scene = pca.transform(saf_scene)
             if 'var' in fields:
-                var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_testing.npy')
+                var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -122,18 +125,18 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                 years = ssp_years
 
             # Read dates (can be different for different calendars)
-            aux = read.lres_data(var, 'var', model=model, scene=scene)
+            aux = read.lres_data(targetVar, 'var', model=model, scene=scene)
             scene_dates = aux['times']
             idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
-                pred_scene = read.lres_data(var, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(var[0], pred_scene, model, 'pred')
+                pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
+                pred_scene = standardization.standardize(targetGroup, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 del aux
             if 'saf' in fields:
-                saf_scene = read.lres_data(var, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = standardization.standardize(var[0], saf_scene, model, 'saf')
+                saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
+                saf_scene = standardization.standardize(targetGroup, saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
                 saf_scene = saf_scene.reshape(saf_scene.shape[0], -1)
                 W = W_saf[np.newaxis, :]
@@ -142,21 +145,25 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
                 infile = open(pathAux + 'PCA/pca', 'rb')
                 pca = pickle.load(infile)
                 infile.close()
+                global_days_with_nan = np.where(np.isnan(saf_scene))[0]
+                global_days_with_nan = list(dict.fromkeys(global_days_with_nan))
+                saf_scene[global_days_with_nan] = predictands_codification[targetVar]['special_value']
                 saf_scene = pca.transform(saf_scene)
+                saf_scene[global_days_with_nan] = predictands_codification[targetVar]['special_value']
             if 'var' in fields:
-                var_scene = read.lres_data(var, 'var', model=model, scene=scene)['data'][idates]
+                var_scene = read.lres_data(targetVar, 'var', model=model, scene=scene)['data'][idates]
 
-        # Trick the program so it uses 'var' (PCP) as 'saf'
-        if analogy_mode == 'PCP':
+        # Trick the program so it uses 'var' (VAR) as 'saf'
+        if analogy_mode == 'VAR':
             saf_calib, saf_scene = var_calib, var_scene
 
-        # Check for missing data at SAFs
-        if np.where(np.isnan(saf_scene))[0].size != 0:
-            exit('\n-------------------------------------------------------\n'
-                 'There are missing data at Synoptic Analogy Fields (SAFs)\n'
-                 'The program is not prepared to handle np.nan at SAFs (synoptic distances to all days would be infinite):'
-                 '  - If the problem exists only in one model, maybe that model should not be used.'
-                 '  - If the problem exists in many models, a different set of SAFs must be used.')
+        # # Check for missing data at SAFs
+        # if np.where(np.isnan(saf_scene))[0].size != 0:
+        #     exit('\n-------------------------------------------------------\n'
+        #          'There are missing data at Synoptic Analogy Fields (SAFs)\n'
+        #          'The program is not prepared to handle np.nan at SAFs (synoptic distances to all days would be infinite):'
+        #          '  - If the problem exists only in one model, maybe that model should not be used.'
+        #          '  - If the problem exists in many models, a different set of SAFs must be used.')
 
     # Declares variables for the other processes
     else:
@@ -233,15 +240,15 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         pred_scene = pred_scene_chunk[ichunk]
     if 'var' in fields:
         var_scene = var_scene_chunk[ichunk]
-    est = np.zeros((scene_ndates, hres_npoints[var[0]]))
-    est = est.astype(predictands_codification[var]['type'])
+    est = np.zeros((scene_ndates, hres_npoints[targetVar]))
+    est = est.astype(predictands_codification[targetVar]['type'])
 
     # Goes throuch all dates
     for idate in range(scene_ndates):
         date = scene_dates[idate]
-        if idate%1==0:
+        if idate % 1==0:
             print('----------------------------------------')
-            print(scene, model, var, methodName)
+            print(scene, model, targetVar, methodName)
             print('ichunk:	', ichunk, '/', n_chunks)
             print('day:', idate, '/', scene_ndates, '(', int(100*idate/scene_ndates), '% )')
             # print(date.date())
@@ -255,17 +262,16 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
         if 'var' in fields:
             var_scene_idate = var_scene[idate]
 
-
-        # Trick the program so it uses 'var' (PCP) as 'saf'
-        if analogy_mode == 'PCP':
+        # Trick the program so it uses 'var' (VAR) as 'saf'
+        if analogy_mode == 'VAR':
             saf_scene_idate = var_scene_idate
 
-        if var=='pcp':
-            est[idate] = down_day.pcp(pred_scene_idate, saf_scene_idate, var_scene_idate, pred_calib, saf_calib,
-                                      var_calib, obs, corr, centroids, i_4nn, j_4nn, w_4nn, methodName)
+        # If saf_scene does not contain nans, process. Otherwise, fill est with nans
+        if np.count_nonzero(np.isnan(saf_scene[idate])) == 0:
+            est[idate] = down_day.down_day(targetVar, pred_scene_idate, saf_scene_idate, var_scene_idate, pred_calib, saf_calib,
+                                    var_calib, obs, corr, coef, intercept, centroids, i_4nn, j_4nn, w_4nn, methodName)
         else:
-            est[idate] = down_day.t(pred_scene_idate, saf_scene_idate, var_scene_idate, pred_calib, saf_calib,
-                                    var_calib, obs, coef, intercept, centroids, i_4nn, j_4nn, w_4nn, methodName)
+            est[idate] = 100 * predictands_codification[targetVar]['special_value']
 
     # Undo converssion
     est = est.astype('float64') / 100.
@@ -275,7 +281,7 @@ def downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc=0
     np.save(pathOut + 'ichunk_'+ str(ichunk) + '.npy', est)
 
 ########################################################################################################################
-def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks=1):
+def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_chunks=1):
     """
     This function collects the results of downscale_chunk() and saves them into a final single file.
     """
@@ -283,9 +289,9 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
     print(scene, model, 'collect chunks', n_chunks)
 
     # Create empty array and accumulate
-    est = np.zeros((0, hres_npoints[var[0]]))
+    est = np.zeros((0, hres_npoints[targetVar]))
     for ichunk in range(n_chunks):
-        path ='../tmp/'+var+'_'+methodName+'_'+ model + '_' + scene + '/'
+        path ='../tmp/'+targetVar+'_'+methodName+'_'+ model + '_' + scene + '/'
         filename = path + 'ichunk_' + str(ichunk) + '.npy'
         est = np.append(est, np.load(filename), axis=0)
     shutil.rmtree(path)
@@ -302,11 +308,11 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
             scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
-        ncVar = modNames[var]
+        ncVar = modNames[targetVar]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
         filename = ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename + '.nc'
         model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
-        aux = np.zeros((len(scene_dates), hres_npoints[var[0]]))
+        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
         aux[:] = np.nan
         idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
         aux[idates] = est
@@ -316,40 +322,47 @@ def collect_chunks(var, methodName, family, mode, fields, scene, model, n_chunks
 
     # Save to file
     if experiment == 'PSEUDOREALITY':
-        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+var.upper()+'/'+methodName+'/daily_data/'
+        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+targetVar.upper()+'/'+methodName+'/daily_data/'
     else:
-        pathOut = '../results/'+experiment+'/'+var.upper()+'/'+methodName+'/daily_data/'
+        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
 
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+var[0].upper()+'_'+interp_mode+'/hres_lons.npy')
+    hres_lats = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lats.npy')
+    hres_lons = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lons.npy')
 
-    if var == 'pcp':
-        units = 'mm'
-    else:
-        units = 'degress'
+    # Set units
+    units = predictands_units[targetVar]
+    if units == None:
+        units = ''
 
     if split_mode[:4] == 'fold':
-        sufix = '_' + split_mode
+        fold_sufix = '_' + split_mode
     else:
-        sufix = ''
+        fold_sufix = ''
 
     # Special values are set to nan
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
-    est[np.abs(est-predictands_codification[var]['special_value']) < 0.01] = np.nan
+    est[np.abs(est-predictands_codification[targetVar]['special_value']) < 0.01] = np.nan
     print('-------------------------------------------------------------------------')
-    print('results contain', np.where(np.isnan(est))[0].size, 'nans out of', est.size)
+    print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
 
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        est[est < minAllowed] == minAllowed
+    if  maxAllowed != None:
+        est[est > maxAllowed] == maxAllowed
+
     # Save data to netCDF file
-    write.netCDF(pathOut, model+'_'+scene+sufix+'.nc', var, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
+    write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
 
     # If using k-folds, join them
     if split_mode == 'fold5':
-        aux_lib.join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons)
+        aux_lib.join_kfolds(targetVar, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons)
 
 
 ########################################################################################################################
@@ -359,7 +372,7 @@ if __name__=="__main__":
     nproc = MPI.COMM_WORLD.Get_size()         # Size of communicator
     iproc = MPI.COMM_WORLD.Get_rank()         # Ranks in communicator
     inode = MPI.Get_processor_name()          # Node where this MPI process runs
-    var = sys.argv[1]
+    targetVar = sys.argv[1]
     methodName = sys.argv[2]
     family = sys.argv[3]
     mode = sys.argv[4]
@@ -367,7 +380,7 @@ if __name__=="__main__":
     scene = sys.argv[6]
     model = sys.argv[7]
 
-    downscale_chunk(var, methodName, family, mode, fields, scene, model, iproc, nproc)
+    downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, iproc, nproc)
     MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step
     if iproc==0:
-        collect_chunks(var, methodName, family, mode, fields, scene, model, nproc)
+        collect_chunks(targetVar, methodName, family, mode, fields, scene, model, nproc)

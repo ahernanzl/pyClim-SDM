@@ -38,9 +38,9 @@ def preprocess():
     Calls to common and to common_fold_dependent
     """
 
-    # If using kfolds, preprocess common is done only for fold1
-    if split_mode not in ['fold2', 'fold3', 'fold4', 'fold5']:
-        common()
+    # # If using kfolds, preprocess common is done only for fold1
+    # if split_mode not in ['fold2', 'fold3', 'fold4', 'fold5']:
+    #     common()
     common_fold_dependent()
 
 
@@ -53,19 +53,16 @@ def common():
     """
 
     # Association between high resolution and low resolution grids, and regions labels.
-    for var0 in target_vars0:
+    for targetVar in targetVars:
         for interp_mode in ('nearest', 'bilinear', ):
-            grids.association(interp_mode, var0)
+            grids.association(interp_mode, targetVar)
 
     # Calculates mean and std for all predictors both at reanalysis and models (standardization period)
-    for grid in ('pred', 'saf', ):
-        for var0 in target_vars0:
-            print(grid, var0, 'get_mean_and_std_allModels')
-            standardization.get_mean_and_std_allModels(var0, grid)
-    if running_at_HPC == True:
-        exit('\n-----------------------------------------------------------------------\n'
-             'Wait until get_mean_and_std jobs have finished.\n'
-             'Check files at jobs/err/ and solve problems with those model/scene files')
+    for grid in ('pred', 'saf'):
+        for targetGroup in targetGroups:
+            print(grid, targetGroup, 'get_mean_and_std_allModels')
+            standardization.get_mean_and_std_allModels(targetGroup, grid)
+
 
 
 ########################################################################################################################
@@ -79,18 +76,18 @@ def common_fold_dependent():
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
-    # Split train/test var
-    for var in target_vars:
-        print('train/test split', var)
+    # Split train/test targetVar
+    for targetVar in targetVars:
+        print('train/test split', targetVar)
 
         # Reanalysis
         if pseudoreality == False:
-            data_calib = read.lres_data(var, 'var')['data']
+            data_calib = read.lres_data(targetVar, 'var')['data']
 
         # Model with pseudoreality
         elif pseudoreality == True:
             scene = scene_list[0]
-            aux = read.lres_data(var, 'var', model=GCM_shortName, scene=scene)
+            aux = read.lres_data(targetVar, 'var', model=GCM_shortName, scene=scene)
             dates = aux['times']
             data = aux['data']
             time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
@@ -103,49 +100,55 @@ def common_fold_dependent():
             [i for i in range(years.size) if ((years[i] < testing_years[0]) | (years[i] > testing_years[1]))])
         if idates_test.size > 0:
             testing = data_calib[idates_test]
-            np.save(pathOut + var + '_testing', testing)
+            np.save(pathOut + targetVar + '_testing', testing)
         else:
             print('testing period is null, testing.npy will not be generated')
         training = data_calib[idates_train]
-        np.save(pathOut + var + '_training', training)
+        np.save(pathOut + targetVar + '_training', training)
 
     # Standarizes ERA-Int predictors and saves them to files divided by training and testing
     # This is done for the two grids: pred and saf
-    for grid in ('saf', 'pred', ):
-        for var0 in target_vars0:
-            print(grid, var0, 'standardize and split train/test')
+    for grid in ('pred', 'saf'):
+        for targetGroup in targetGroups:
+            print(grid, targetGroup, 'standardize and split train/test')
 
-            # Reanalysis
-            if pseudoreality == False:
-                data = read.lres_data(var0, grid)['data']
+            for aux_targetVar in all_possible_targetVars:
+                if targetGroups_dict[aux_targetVar] == targetGroup:
+                    try:
+                        # Reanalysis
+                        if pseudoreality == False:
+                            data = read.lres_data(aux_targetVar, grid)['data']
 
-            # Model with pseudoreality
-            else:
-                scene = scene_list[0]
-                aux = read.lres_data(var0, grid, model=GCM_shortName, scene=scene)
-                dates = aux['times']
-                data = aux['data']
-                time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
-                data = data[time_first:time_last]
+                        # Model with pseudoreality
+                        else:
+                            scene = scene_list[0]
+                            aux = read.lres_data(aux_targetVar, grid, model=GCM_shortName, scene=scene)
+                            dates = aux['times']
+                            data = aux['data']
+                            time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
+                            data = data[time_first:time_last]
+                        break
+                    except:
+                        pass
 
             # Check whether predictors for calibration contain no-data
             if np.where(np.isnan(data))[0].size != 0:
                 exit('Predictors for calibration contain no-data and that is not allowed by the program')
 
             # Standarize pred/saf and splits in training/testing
-            data = standardization.standardize(var0, data, 'reanalysis', grid)
-            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+var0+'_reanalysis_standardized', data)
-            data_calib = np.load(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+var0+'_reanalysis_standardized.npy')
+            data = standardization.standardize(targetGroup, data, 'reanalysis', grid)
+            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup+'_reanalysis_standardized', data)
+            data_calib = np.load(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup+'_reanalysis_standardized.npy')
             years = np.array([x.year for x in calibration_dates])
             idates_test = np.array([i for i in range(years.size) if ((years[i]>=testing_years[0])*(years[i]<=testing_years[1]))])
             idates_train = np.array([i for i in range(years.size) if ((years[i]<testing_years[0])|(years[i]>testing_years[1]))])
             if idates_test.size > 0:
                 testing = data_calib[idates_test]
-                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + var0 + '_testing', testing)
+                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetGroup + '_testing', testing)
             else:
                 print('testing period is null, testing.npy will not be generated')
             training = data_calib[idates_train]
-            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + var0 + '_training', training)
+            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetGroup + '_training', training)
 
     # Fit PCA to SAFs
     ANA_lib.train_PCA()
@@ -165,52 +168,52 @@ def train_methods():
 
     # Go through all methods
     for method_dict in methods:
-        var = method_dict['var']
+        targetVar = method_dict['var']
         methodName = method_dict['methodName']
         family = method_dict['family']
         mode = method_dict['mode']
         fields = method_dict['fields']
 
-        print('preprocess train_method', var, methodName)
+        print('preprocess train_method', targetVar, methodName)
 
         if family == 'ANA':
             # Get significant predictors for each grid point and weather type. It is the same for 1/N/PDF, no need to repeat it
             if methodName.split('-')[1] == 'LOC':
                 # Serial processing
                 if running_at_HPC == False:
-                    ANA_lib.correlations(var, methodName, mode)
-                    ANA_lib.correlations_collect_chunks(var, methodName, mode)
+                    ANA_lib.correlations(targetVar, methodName, mode)
+                    ANA_lib.correlations_collect_chunks(targetVar, methodName, mode)
                 # Parallel processing
                 elif running_at_HPC == True:
-                    launch_jobs.cluster(var, methodName, mode, 'correlations')
+                    launch_jobs.cluster(targetVar, methodName, mode, 'correlations')
 
             # Calibrate regression coefficients
-            if methodName == 'WT-MLR':
+            if methodName == 'MLR-WT':
                 # Serial processing
                 if running_at_HPC == False:
-                    ANA_lib.coefficients(var, methodName, mode)
-                    ANA_lib.coefficients_collect_chunks(var, methodName, mode)
+                    ANA_lib.coefficients(targetVar, methodName, mode)
+                    ANA_lib.coefficients_collect_chunks(targetVar, methodName, mode)
                 # Parallel processing
                 elif running_at_HPC == True:
-                    launch_jobs.cluster(var, methodName, mode, 'coefficients')
+                    launch_jobs.cluster(targetVar, methodName, mode, 'coefficients')
 
         # Calibrate classifiers and regressorss models, and save coefficients
         if family == 'TF':
             # Serial processing
             if running_at_HPC == False:
-                TF_lib.train_chunk(var, methodName, family, mode, fields)
+                TF_lib.train_chunk(targetVar, methodName, family, mode, fields)
             # Parallel processing
             elif running_at_HPC == True:
-                launch_jobs.training(var, methodName, family, mode, fields)
+                launch_jobs.training(targetVar, methodName, family, mode, fields)
 
         if family == 'WG':
             # Serial processing
             if running_at_HPC == False:
-                WG_lib.train_chunk(var, methodName, family, mode, fields)
-                WG_lib.collect_chunks(var, methodName, family)
+                WG_lib.train_chunk(targetVar, methodName, family, mode, fields)
+                WG_lib.collect_chunks(targetVar, methodName, family)
             # Parallel processing
             elif running_at_HPC == True:
-                launch_jobs.training(var, methodName, family, mode, fields)
+                launch_jobs.training(targetVar, methodName, family, mode, fields)
 
 
 
