@@ -172,7 +172,7 @@ def daily_boxplots(metric, by_season):
                             plt.hlines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
                         # plt.show()
                         # exit()
-                        plt.savefig(pathOut + '_'.join(('EVALUATION', metric+'Boxplot', targetVar, 'None', 'all',
+                        plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, metric+'Boxplot', targetVar, 'None', 'all',
                                                         season))+ '.png', bbox_inches='tight')
                         plt.close()
 
@@ -274,7 +274,7 @@ def climdex_boxplots(by_season):
                             # plt.show()
                             # exit()
 
-                            filename = '_'.join(('EVALUATION', 'biasClimdexBoxplot', targetVar, climdex_name, 'all',
+                            filename = '_'.join(('EVALUATION'+bc_sufix, 'biasClimdexBoxplot', targetVar, climdex_name, 'all',
                                                  season))
                             plt.savefig(pathOut + filename + '.png', bbox_inches='tight')
                             plt.close()
@@ -314,7 +314,7 @@ def monthly_maps(metric, targetVar, methodName):
         est_acc[idate] = np.nansum(est[idates], axis=0)
 
 
-    filename = '_'.join(('EVALUATION', metric+'MapMonthly', targetVar, 'None', methodName, 'None'))
+    filename = '_'.join(('EVALUATION'+bc_sufix, metric+'MapMonthly', targetVar, 'None', methodName, 'None'))
     # Correlation
     if metric == 'correlation':
         title = ' '.join(('monthly', metric, targetVar.upper(), methodName))
@@ -382,7 +382,7 @@ def QQplot(targetVar, methodName, obs, est, pathOut, season):
     plt.title(title)
     # plt.show()
     # exit()
-    filename = '_'.join(('EVALUATION', 'qqPlot', targetVar, 'None', methodName, season)) + '.png'
+    filename = '_'.join(('EVALUATION'+bc_sufix, 'qqPlot', targetVar, 'None', methodName, season)) + '.png'
     plt.savefig(pathOut + filename)
     plt.close()
 
@@ -410,19 +410,19 @@ def continuous(targetVar, methodName, obs, est, pathOut, season):
         filename = '_'.join((targetVar, methodName, season))
 
     # # MAE
-    # filename = '_'.join(('EVALUATION', 'maeMap'', targetVar, 'None', methodName, season))
+    # filename = '_'.join(('EVALUATION'+bc_sufix, 'maeMap'', targetVar, 'None', methodName, season))
     # MAE = np.round(np.nanmean(abs(est - obs), axis=0), 2)
     # plot.map(targetVar], MAE,  targetVar]+'_mae', path=pathOut, filename='MAE_' + filename, title='')
 
     if targetVar == 't':
         # RMSE
-        filename = '_'.join(('EVALUATION', 'rmseMap', targetVar, 'None', methodName, season))
+        filename = '_'.join(('EVALUATION'+bc_sufix, 'rmseMap', targetVar, 'None', methodName, season))
         title = ' '.join(('daily RMSE', targetVar.upper(), methodName, season))
         RMSE = np.round(np.sqrt(np.nanmean((est - obs) ** 2, axis=0)), 2)
         plot.map(targetVar, RMSE,  targetVar+'_rmse', path=pathOut, filename=filename, title=title)
     else:
         # # R2_score
-        filename = '_'.join(('EVALUATION', 'r2Map', targetVar, 'None', methodName, season))
+        filename = '_'.join(('EVALUATION'+bc_sufix, 'r2Map', targetVar, 'None', methodName, season))
         title = ' '.join(('daily R2_score', targetVar.upper(), methodName, season))
         R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
         plot.map(targetVar, R2,  'r2', path=pathOut, filename=filename, title=title)
@@ -458,7 +458,7 @@ def dichotomous(targetVar, methodName, obs, est, pathOut, season):
     correct_negatives[correct_negatives == 0] = 0.001
 
     # Accuracy score
-    filename = '_'.join(('EVALUATION', 'accuracyMap', targetVar, 'None', methodName,
+    filename = '_'.join(('EVALUATION'+bc_sufix, 'accuracyMap', targetVar, 'None', methodName,
                                 season))
     title = ' '.join(('Daily accuracy_score', targetVar.upper(), methodName, season))
     accuracy = (hits+correct_negatives) / (hits+correct_negatives+misses+false_alarms)
