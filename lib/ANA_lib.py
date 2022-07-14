@@ -159,7 +159,7 @@ def get_weather_types_centroids():
 	# clustering_method = 'MiniBatchKmeans'
 
 	# Get synoptic fields and weights
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/p_training.npy')
+	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+target_vars0[0]+'_training.npy')
 	saf_train = saf_train.astype('float32')
 
 	# Prepare data for PCA
