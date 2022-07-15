@@ -38,8 +38,6 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
     The result is saved as npy file (each chunk is one file).
     """
 
-    targetGroup = targetGroups_dict[targetVar]
-
     # create chunks
     n_chunks = nproc
     len_chunk = int(math.ceil(float(hres_npoints[targetVar]) / n_chunks))
@@ -67,11 +65,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Read X_train
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
+            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             X_train = saf_calib
         if 'var' in fields:
@@ -86,11 +84,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if scene == 'TESTING':
             scene_dates = testing_dates
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_testing.npy')
+                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
-                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_testing.npy')
+                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:
@@ -117,12 +115,12 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(targetGroup, pred_scene, model, 'pred')
+                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
                 saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = standardization.standardize(targetGroup, saf_scene, model, 'saf')
+                saf_scene = standardization.standardize(targetVar, saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:
@@ -341,7 +339,6 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est[est < minAllowed] == minAllowed
     if  maxAllowed != None:
         est[est > maxAllowed] == maxAllowed
-
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

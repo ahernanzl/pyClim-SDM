@@ -77,7 +77,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             aux = read.lres_data(targetVar, 'var', model=model, scene='historical')
             dates = aux['times']
             var_calib = aux['data']
-            preds = preds_dict[targetGroup]
+            preds = preds_dict[targetVar]
             ncName = list(preds.keys())[0]
             calendar = read.one_direct_predictor(ncName, model=model, scene=scene)['calendar']
 

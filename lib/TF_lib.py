@@ -47,11 +47,11 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroups_dict[targetVar]+'_training.npy')
+            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroups_dict[targetVar]+'_training.npy')
+            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             X_train = saf_calib
         if 'var' in fields:

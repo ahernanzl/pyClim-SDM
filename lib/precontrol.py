@@ -70,8 +70,6 @@ def missing_data_check():
     # Go through all target variables
     for targetVar in targetVars:
 
-        targetGroup = targetGroups_dict[targetVar]
-
         # Define pathTmp
         pathTmp = '../results/' + experiment + '/missing_data_check/' + targetVar.upper() + '/'
         if not os.path.exists(pathTmp):
@@ -81,7 +79,7 @@ def missing_data_check():
             os.makedirs(pathOut)
 
         # Define preds
-        preds = preds_dict[targetGroup]
+        preds = preds_dict[targetVar]
         npreds = len(preds)
         nscenes = len(scene_list)
         nmodels = len(model_list)
@@ -164,90 +162,86 @@ def predictors_correlation():
 
     print('predictors_correlation...')
 
-
     # Go through all target variables
-    for targetVar in all_possible_targetVars:
-        if targetVar in targetVars:
+    for targetVar in targetVars:
 
-            targetGroup = targetGroups_dict[targetVar]
+        # Define pathTmp
+        pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
+        if not os.path.exists(pathTmp):
+            os.makedirs(pathTmp)
+        pathOut = pathFigures
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
 
-            # Define pathTmp
-            pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
-            if not os.path.exists(pathTmp):
-                os.makedirs(pathTmp)
-            pathOut = pathFigures
-            if not os.path.exists(pathOut):
-                os.makedirs(pathOut)
+        # For interpolation
+        interp_mode = 'bilinear'
+        i_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/i_4nn.npy')
+        j_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/j_4nn.npy')
+        w_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/w_4nn.npy')
 
-            # For interpolation
-            interp_mode = 'bilinear'
-            i_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/i_4nn.npy')
-            j_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/j_4nn.npy')
-            w_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/w_4nn.npy')
+        # Read data predictand
+        obs = read.hres_data(var, period='calibration')['data']
 
-            # Read data predictand
-            obs = read.hres_data(var, period='calibration')['data']
+        # Define preds
+        preds = preds_dict[targetVar]
+        npreds = len(preds)
 
-            # Define preds
-            preds = preds_dict[targetGroup]
-            npreds = len(preds)
+        # Go through all seasons
+        for season in season_dict:
 
-            # Go through all seasons
-            for season in season_dict:
+            R = np.zeros((npreds, hres_npoints[targetVar]))
 
-                R = np.zeros((npreds, hres_npoints[targetVar]))
+            # Calculate correlations for each predictor
+            for ipred in range(npreds):
+                predName = list(preds.keys())[ipred]
 
-                # Calculate correlations for each predictor
-                for ipred in range(npreds):
-                    predName = list(preds.keys())[ipred]
+                # Read data predictor
+                data = read.lres_data(targetVar, 'pred', predName=predName)['data']
 
-                    # Read data predictor
-                    data = read.lres_data(targetVar, 'pred', predName=predName)['data']
+                # Select season
+                data_season = postpro_lib.get_season(data, calibration_dates, season)['data']
+                obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
 
-                    # Select season
-                    data_season = postpro_lib.get_season(data, calibration_dates, season)['data']
-                    obs_season = postpro_lib.get_season(obs, calibration_dates, season)['data']
+                # Go through all points
+                for ipoint in range(hres_npoints[targetVar]):
 
-                    # Go through all points
-                    for ipoint in range(hres_npoints[targetVar]):
+                    # Interpolate to one point
+                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                    y = obs_season[:, ipoint]
 
-                        # Interpolate to one point
-                        X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
-                        y = obs_season[:, ipoint]
+                    # Calculate correlation
+                    if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
+                        R[ipred, ipoint] = spearmanr(X, y)[0]
+                    else:
+                        R[ipred, ipoint] = pearsonr(X, y)[0]
 
-                        # Calculate correlation
-                        if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
-                            R[ipred, ipoint] = spearmanr(X, y)[0]
-                        else:
-                            R[ipred, ipoint] = pearsonr(X, y)[0]
+                # Save results
+                print(targetVar, predName, 'correlation', season, np.mean(abs(R[ipred])))
+                np.save(pathTmp + '_'.join((predName, 'correlation', season)), R[ipred])
 
-                    # Save results
-                    print(targetVar, predName, 'correlation', season, np.mean(abs(R[ipred])))
-                    np.save(pathTmp + '_'.join((predName, 'correlation', season)), R[ipred])
+            # Plot correlation maps and boxplots
+            for ipred in range(npreds):
+                predName = list(preds.keys())[ipred]
 
-                # Plot correlation maps and boxplots
-                for ipred in range(npreds):
-                    predName = list(preds.keys())[ipred]
+                # Load correlation
+                R[ipred] = np.load(pathTmp + '_'.join((predName, 'correlation', season+'.npy')))
+                print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
 
-                    # Load correlation
-                    R[ipred] = np.load(pathTmp + '_'.join((predName, 'correlation', season+'.npy')))
-                    print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
+                # Plot map
+                title = ' '.join((targetVar.upper(), predName, 'correlation', season))
+                filename = '_'.join((experiment, 'correlationMap', targetVar, predName, 'None', season))
+                plot.map(targetVar, abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
 
-                    # Plot map
-                    title = ' '.join((targetVar.upper(), predName, 'correlation', season))
-                    filename = '_'.join((experiment, 'correlationMap', targetVar, predName, 'None', season))
-                    plot.map(targetVar, abs(R[ipred]), 'correlation', path=pathOut, filename=filename, title=title)
-
-                # Boxplot
-                fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
-                ax.boxplot(abs(R.T), showfliers=False)
-                ax.set_xticklabels(list(preds.keys()), rotation=90)
-                plt.ylim((0, 1))
-                plt.title(' '.join((targetVar.upper(), 'correlation', season)))
-                # plt.show()
-                # exit()
-                filename = '_'.join((experiment, 'correlationBoxplot', targetVar, 'None', 'None', season))
-                plt.savefig(pathOut + filename)
+            # Boxplot
+            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
+            ax.boxplot(abs(R.T), showfliers=False)
+            ax.set_xticklabels(list(preds.keys()), rotation=90)
+            plt.ylim((0, 1))
+            plt.title(' '.join((targetVar.upper(), 'correlation', season)))
+            # plt.show()
+            # exit()
+            filename = '_'.join((experiment, 'correlationBoxplot', targetVar, 'None', 'None', season))
+            plt.savefig(pathOut + filename)
 
 
 

@@ -228,8 +228,12 @@ def climdex_boxplots(by_season):
                                 bias = est - obs
                             elif biasMode == 'rel':
                                 units = '%'
-                                obs[obs == 0] = 0.001
+                                th = 0.001
+                                est[est < th] = 0
+                                obs[obs < th] = 0
                                 bias = 100 * (est - obs) / obs
+                                bias[(obs == 0) * (est == 0)] = 0
+                                bias[np.isinf(bias)] = np.nan
                             matrix[:, imethod] = bias
                             imethod += 1
 

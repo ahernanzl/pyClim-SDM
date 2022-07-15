@@ -455,8 +455,12 @@ def get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathI
                     if biasMode == 'abs':
                         change = data - ref_mean
                     elif biasMode == 'rel':
-                        ref_mean[ref_mean == 0] = 0.001
+                        th = 0.001
+                        data[data < th] = 0
+                        ref_mean[ref_mean < th] = 0
                         change = 100 * (data - ref_mean) / ref_mean
+                        change[(ref_mean == 0) * (data == 0)] = 0
+                        change[np.isinf(change)] = np.nan
                     else:
                         print(targetVar + '_' + climdex_name + 'not defined at units_and_biasMode_climdex (advanced_settings)')
                         exit()
@@ -631,8 +635,6 @@ def figures_projections(lan='EN'):
 ########################################################################################################################
 def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar, methodName, xlabel):
 
-    targetGroup = targetGroups_dict[targetVar]
-
     if methodName != 'RAW':
         color = methods_colors[methodName]
         linestyle = methods_linestyles[methodName]
@@ -644,7 +646,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
 
         # method
         data = np.nanmean(ssp_dict['data'], axis=2)
-        if targetGroup != 'temperature':
+        if targetVar not in ['tas', 'tasmax', 'tasmin',]:
             data = gaussian_filter1d(data, 2)
         # mean = np.nanmean(data, axis=0)
         # std = np.nanstd(data, axis=0)
@@ -660,7 +662,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
 
         # RAW
         data = np.nanmean(raw_ssp_dict['data'], axis=2)
-        if targetGroup != 'temperature':
+        if targetVar not in ['tas', 'tasmax', 'tasmin',]:
             data = gaussian_filter1d(data, 2)
         # mean = np.nanmean(data, axis=0)
         # std = np.nanstd(data, axis=0)
