@@ -4,12 +4,11 @@ input_data folder must contain the following three subdirectories:
 - models/
 
 Some example datasets have been included. In order to test pyClim-SDM using the example datasets, rename 
-input_data_template/ as input_data/, run src/gui_mode.py and try different methods and steps, but limit your selection 
-to experiment=EVALUATION and using the default sets of predictors.
+input_data_template/ as input_data/, run src/gui_mode.py and try different methods and steps
 This will allow you to get familiar with pyClim-SDM with no need from your side to prepare any input data.
 
 In order to use your own datasets, spatial domain, etc., prepare your input_data directory as explained hereafter.
-Beware tmax, tmin and pcp by reanalysis/GCMs are mandatory files.
+Beware that the targetVariables themselves, given by reanalysis/GCMs are mandatory files for some methods and purposes.
 
 
 # hres/

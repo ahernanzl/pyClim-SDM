@@ -38,7 +38,6 @@ def downscale_chunk_WG_PDF(targetVar, methodName, family, mode, fields, scene, m
     The result is saved as npy file (each chunk is one file).
     """
 
-    targetGroup = targetGroups_dict[targetVar]
     aggMonths = aggregation_pcp_WG_PDF
 
     # create chunks
@@ -270,7 +269,6 @@ def downscale_chunk_WG_NMM(targetVar, methodName, family, mode, fields, scene, m
     """This function calculates, for each point in the chunk, a first order markov model with transition probabilities
     conditioned by low resolution precipitation. Then, for wet days, intensity is taken from an ECDF also conditioned"""
 
-    targetGroup = targetGroups_dict[targetVar]
     thresholds = thresholds_WG_NMM
     nthresholds = len(thresholds)
 

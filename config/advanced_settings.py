@@ -357,30 +357,29 @@ for pred in saf_list:
     saf_dict.update({pred: {'reaName': reaName, 'modName': modName, 'w': 1}})
 nsaf = len(saf_dict)
 
-###########################################   targetGroups  #############################################################
-targetGroups_dict = {
-    'tasmax': 'temperature',
-    'tasmin': 'temperature',
-    'tas': 'temperature',
-    'pr': 'precipitation',
-    'uas': 'wind',
-    'vas': 'wind',
-    'hurs': 'humidity',
-    'clt': 'clouds',
-}
-if myTargetVar != None:
-    targetGroups_dict.update({myTargetVar: myTargetVar})
 
 ###########################################   PREDICTORS  ###############################################################
 
-targetGroups = []
-for targetGroup in preds_targetGroups_dict:
-    targetGroups.append(targetGroup)
+
+# Detect targetVars depending on selected methods
+all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'hurs', 'clt', ]
+try:
+    all_possible_targetVars.append(myTargetVar)
+except:
+    pass
+
+targetVars = []
+for var in all_possible_targetVars:
+    for method in methods:
+        # if method['var'] == var and 'var' in method['fields'] and var not in targetVars:
+        if method['var'] == var and var not in targetVars:
+            targetVars.append(var)
+
 
 preds_dict = {}
-for targetGroup in targetGroups:
-    preds_dict.update({targetGroup: {}})
-    for pred in preds_targetGroups_dict[targetGroup]:
+for targetVar in targetVars:
+    preds_dict.update({targetVar: {}})
+    for pred in preds_targetVars_dict[targetVar]:
         key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
         if key in reaNames:
             reaName = reaNames[key]
@@ -388,18 +387,18 @@ for targetGroup in targetGroups:
         else:
             reaName = None
             modName = None
-        preds_dict[targetGroup].update({pred: {'reaName': reaName, 'modName': modName}})
+        preds_dict[targetVar].update({pred: {'reaName': reaName, 'modName': modName}})
 
 n_preds_dict = {}
-for targetGroup in targetGroups:
-    n_preds_dict.update({targetGroup: len(preds_dict[targetGroup].keys())})
+for targetVar in targetVars:
+    n_preds_dict.update({targetVar: len(preds_dict[targetVar].keys())})
 
 all_preds = {}
 for pred in saf_list:
     if pred not in all_preds:
         all_preds.update({pred: {'reaName': reaName, 'modName': modName}})
-for targetGroup in targetGroups:
-    for pred in preds_targetGroups_dict[targetGroup]:
+for targetVar in targetVars:
+    for pred in preds_targetVars_dict[targetVar]:
         if pred not in all_preds:
             all_preds.update({pred: {'reaName': reaName, 'modName': modName}})
 
@@ -419,23 +418,9 @@ if 'pr' in all_preds.keys():
     print('This is not advisable and can lead to poor performance of Transfer Function methods.')
     print('---------------------------------------------------------------')
 
-# Detect targetVars depending on selected methods
-all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'hurs', 'clt', ]
-try:
-    all_possible_targetVars.append(myTargetVar)
-except:
-    pass
-
-targetVars = []
-for var in all_possible_targetVars:
-    for method in methods:
-        # if method['var'] == var and 'var' in method['fields'] and var not in targetVars:
-        if method['var'] == var and var not in targetVars:
-            targetVars.append(var)
-
 # Check for consistency between predictors and methods
 for var in all_possible_targetVars:
-    if (var in targetVars) and (targetGroups_dict[var] not in targetGroups) and (experiment != 'PRECONTROL'):
+    if (var in targetVars) and (len(preds_targetVars_dict[var]) == 0) and (experiment != 'PRECONTROL'):
         print('-----------------------------------------------')
         print('Inconsistency found between preditors and methods selection.')
         print('Your selection includes some methods for ' + var + ' but no predictor has been selected')
@@ -443,11 +428,12 @@ for var in all_possible_targetVars:
         exit()
 
 # Force at least one predictor
-if len(targetGroups) == 0:
-    print('-----------------------------------------------')
-    print('At least one predictor must be selected')
-    print('-----------------------------------------------')
-    exit()
+for targetVar in targetVars:
+    if len(preds_targetVars_dict[targetVar]) == 0:
+        print('-----------------------------------------------')
+        print('At least one predictor must be selected for', targetVar)
+        print('-----------------------------------------------')
+        exit()
 
 #############################################  GRIDS  ##################################################################
 
@@ -479,14 +465,9 @@ for targetVar in targetVars:
 hres_lons_all = np.asarray(hres_lons_all)
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
-if 'precipitation' in targetGroups:
-    ncVar = 'pr'
-elif 'temperature' in targetGroups:
-    ncVar = 'tasmax'
-for targetVar in all_possible_targetVars:
+for targetVar in targetVars:
     try:
-        nc = Dataset('../input_data/reanalysis/' + reaNames[
-            targetVar] + '_' + reanalysisName + '_' + reanalysisPeriodFilename + '.nc')
+        nc = Dataset('../input_data/reanalysis/'+reaNames[targetVar]+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
         break
     except:
         pass
@@ -747,3 +728,4 @@ methods_linestyles = {
     'WG-PDF': '-',
     'WG-NMM': '--',
 }
+

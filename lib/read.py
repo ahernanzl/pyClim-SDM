@@ -231,7 +231,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 ########################################################################################################################
 def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predName=None, period=None):
     """
-    targetGroup: tasmax, tasmin or pr, in order to use one or another predictor list
+    targetVar: tasmax, tasmin or pr, in order to use one or another predictor list
     If no grid is specified, each field will use its own grid. But a grid can be specified so, for example, this
     function can read preds in a saf_grid, or any other combination.
     Possible fields: var, pred, saf
@@ -244,7 +244,6 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     return: data (ndays, npreds, nlats, nlons) and times
     """
 
-    targetGroup = targetGroups_dict[targetVar]
 
     # Define variables
     if field == 'var':
@@ -253,7 +252,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         nvar = nsaf
         preds = saf_dict
     elif field == 'pred':
-        preds = preds_dict[targetGroup]
+        preds = preds_dict[targetVar]
         nvar = len(preds)
         if predName != None:
             nvar = 1
@@ -270,14 +269,19 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     if model == 'reanalysis':
         dates = calibration_dates
     else:
-        for aux_targetVar in targetVars:
-            if targetGroups_dict[targetVar] == targetGroup:
-                try:
-                    dates = np.ndarray.tolist(
-                        read.one_direct_predictor(aux_targetVar, grid='ext', model=model, scene=scene)['times'])
-                    break
-                except:
-                    pass
+        for pred in preds_dict[targetVar]:
+            if len(pred) > 4 and pred[-4:] in all_levels:
+                level = pred[-4:]
+            elif len(pred) > 3 and pred[-3:] in all_levels:
+                level = pred[-3:]
+            else:
+                level = None
+            try:
+                dates = np.ndarray.tolist(
+                    read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene=scene)['times'])
+                break
+            except:
+                pass
         
     ndates = len(dates)
 
@@ -286,21 +290,20 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
-        for aux_targetVar in all_possible_targetVars:
-            if targetGroups_dict[aux_targetVar] == targetGroup:
-                try:
-                    if targetGroup == 'humidity':
-                        aux_times = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['times']
-                    else:
-                        aux_times = one_direct_predictor(aux_targetVar, grid='ext', model=model, scene=scene)['times']
-                    break
-                except:
-                    pass
+        for targetVar in targetVars:
+            try:
+                if targetVar == 'hurs':
+                    aux_times = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['times']
+                else:
+                    aux_times = one_direct_predictor(targetVar, grid='ext', model=model, scene=scene)['times']
+                break
+            except:
+                pass
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var
         if field == 'var':
-            if targetGroup == 'humidity':
+            if targetVar == 'hurs':
                 data[0] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data'][idates]
             else:
                 data[0] = one_direct_predictor(targetVar, level=None, grid='ext', model=model, scene=scene)['data'][idates]
@@ -413,7 +416,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
 
         # var
         if field == 'var':
-            if targetGroup == 'humidity':
+            if targetVar == 'hurs':
                 data[0] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data']
             else:
                 data[0] = one_direct_predictor(targetVar, level=None, grid='ext', model=model, scene=scene)['data']
@@ -575,8 +578,10 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     # read master file
     #------------------------
     npMaster = np.loadtxt(masterFile)
-    # df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2], 'h': npMaster[:,3]})
-    df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2]})
+    try:
+        df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2], 'h': npMaster[:,3]})
+    except:
+        df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2]})
     df['id'] = df['id'].astype(int)
     df.set_index("id", inplace=True)
 

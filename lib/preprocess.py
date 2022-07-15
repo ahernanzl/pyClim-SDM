@@ -38,9 +38,9 @@ def preprocess():
     Calls to common and to common_fold_dependent
     """
 
-    # # If using kfolds, preprocess common is done only for fold1
-    # if split_mode not in ['fold2', 'fold3', 'fold4', 'fold5']:
-    #     common()
+    # If using kfolds, preprocess common is done only for fold1
+    if split_mode not in ['fold2', 'fold3', 'fold4', 'fold5']:
+        common()
     common_fold_dependent()
 
 
@@ -58,10 +58,13 @@ def common():
             grids.association(interp_mode, targetVar)
 
     # Calculates mean and std for all predictors both at reanalysis and models (standardization period)
-    for grid in ('pred', 'saf'):
-        for targetGroup in targetGroups:
-            print(grid, targetGroup, 'get_mean_and_std_allModels')
-            standardization.get_mean_and_std_allModels(targetGroup, grid)
+    for grid in (
+            'pred',
+            'saf',
+        ):
+        for targetVar in targetVars:
+            print(grid, targetVar, 'get_mean_and_std_reanalysis')
+            standardization.get_mean_and_std_reanalysis(targetVar, grid)
 
 
 
@@ -108,47 +111,27 @@ def common_fold_dependent():
 
     # Standarizes ERA-Int predictors and saves them to files divided by training and testing
     # This is done for the two grids: pred and saf
-    for grid in ('pred', 'saf'):
-        for targetGroup in targetGroups:
-            print(grid, targetGroup, 'standardize and split train/test')
+    for grid in (
+            'pred',
+            'saf',
+        ):
+        for targetVar in targetVars:
+            print(grid, targetVar, 'standardize and split train/test')
 
-            for aux_targetVar in all_possible_targetVars:
-                if targetGroups_dict[aux_targetVar] == targetGroup:
-                    try:
-                        # Reanalysis
-                        if pseudoreality == False:
-                            data = read.lres_data(aux_targetVar, grid)['data']
-
-                        # Model with pseudoreality
-                        else:
-                            scene = scene_list[0]
-                            aux = read.lres_data(aux_targetVar, grid, model=GCM_shortName, scene=scene)
-                            dates = aux['times']
-                            data = aux['data']
-                            time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
-                            data = data[time_first:time_last]
-                        break
-                    except:
-                        pass
-
-            # Check whether predictors for calibration contain no-data
-            if np.where(np.isnan(data))[0].size != 0:
+            # Load standardized data and splits in training/testing
+            data_calib = np.load(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar+'_reanalysis_standardized.npy')
+            if np.where(np.isnan(data_calib))[0].size != 0:
                 exit('Predictors for calibration contain no-data and that is not allowed by the program')
-
-            # Standarize pred/saf and splits in training/testing
-            data = standardization.standardize(targetGroup, data, 'reanalysis', grid)
-            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup+'_reanalysis_standardized', data)
-            data_calib = np.load(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup+'_reanalysis_standardized.npy')
             years = np.array([x.year for x in calibration_dates])
             idates_test = np.array([i for i in range(years.size) if ((years[i]>=testing_years[0])*(years[i]<=testing_years[1]))])
             idates_train = np.array([i for i in range(years.size) if ((years[i]<testing_years[0])|(years[i]>testing_years[1]))])
             if idates_test.size > 0:
                 testing = data_calib[idates_test]
-                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetGroup + '_testing', testing)
+                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_testing', testing)
             else:
                 print('testing period is null, testing.npy will not be generated')
             training = data_calib[idates_train]
-            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetGroup + '_training', training)
+            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_training', training)
 
     # Fit PCA to SAFs
     ANA_lib.train_PCA()

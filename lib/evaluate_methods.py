@@ -294,8 +294,13 @@ def climdex(by_season=True):
                             if biasMode == 'abs':
                                 bias = mean_est - mean_obs
                             elif biasMode == 'rel':
-                                mean_obs[mean_obs==0] = 0.001
+                                th = 0.001
+                                mean_est[mean_est < th] = 0
+                                mean_obs[mean_obs < th] = 0
                                 bias = 100 * (mean_est - mean_obs) / mean_obs
+                                bias[(mean_obs == 0) * (mean_est == 0)] = 0
+                                bias[np.isinf(bias)] = np.nan
+
 
                             #-------------------- Bias maps mean values    -----------------------------------------------------
                             if plotAllRegions == False or index == 0:

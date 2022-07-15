@@ -40,8 +40,6 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
     """
 
 
-    targetGroup = targetGroups_dict[targetVar]
-
     # Define path
     pathOut='../tmp/'+targetVar+'_'+methodName+'_'+ model + '_' + scene + '/'
 
@@ -71,10 +69,10 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         corr = None
 
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
+            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             saf_calib = saf_calib.reshape(saf_calib.shape[0], -1)
             W = W_saf[np.newaxis, :]
@@ -95,18 +93,18 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
             corr = np.load(pathAux+'COEFFICIENTS/'+targetVar+'_'+methodName+'_correlations.npy')
             corr[np.isnan(corr)]=0
-            corr = abs(corr) >= anal_corr_th_dict[targetGroup]
-            print('corr_th', anal_corr_th_dict[targetGroup], 100.*np.count_nonzero(corr)/corr.size,'%')
+            corr = abs(corr) >= anal_corr_th_dict[targetVar]
+            print('corr_th', anal_corr_th_dict[targetVar], 100.*np.count_nonzero(corr)/corr.size,'%')
 
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
 
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_testing.npy')
+                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
             if 'saf' in fields:
-                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_testing.npy')
+                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
                 saf_scene = saf_scene.reshape(saf_scene.shape[0], -1)
                 W = W_saf[np.newaxis, :]
@@ -131,12 +129,12 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(targetGroup, pred_scene, model, 'pred')
+                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 del aux
             if 'saf' in fields:
                 saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = standardization.standardize(targetGroup, saf_scene, model, 'saf')
+                saf_scene = standardization.standardize(targetVar, saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
                 saf_scene = saf_scene.reshape(saf_scene.shape[0], -1)
                 W = W_saf[np.newaxis, :]

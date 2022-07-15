@@ -68,8 +68,8 @@ pyClim-SDM has been originally designed for **Linux** and might present problems
 
 # How to use
 
-- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. 
-- For your first steps you can use some example datsets included in the 'input_data_template' just by renaming this folder as 'input_data'. Nevertheless, these toy datasets do not include data from GCMs, and only a few predictors have been included. Thus, the predictor selection by default should not be changed, and the experiment and steps should be limited to EVALUATION.
+- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. Read the README.md file contained at input_data_template
+- For your first steps you can use some example datsets included in the 'input_data_template' just by renaming this folder as 'input_data', but limit your selection to experiment=EVALUATION and the default sets of predictors.
 - run src/gui_mode.py and follow the very intuitive menu.
 - alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
 - When working in a HPC, define partition name at config/advanced_settings.py and tune jobs specifications at lib/launch_jobs.py.

@@ -35,154 +35,66 @@ import val_lib
 import WG_lib
 import write
 
-def get_mean_and_std_allModels(targetGroup, grid):
+def get_mean_and_std_reanalysis(targetVar, grid):
     """
     Calculates mean and standard deviation for reanalysis and models and all predictors.
     The time period used is the one with data from both reanalysis and models historical: 1980-2005.
     """
 
-    scene = 'historical'
-    periodFilename = historicalPeriodFilename
-
-
-    pathOut = pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup.upper()+'/'
+    pathOut = pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar.upper()+'/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
-    for aux_targetVar in all_possible_targetVars:
-        if targetGroups_dict[aux_targetVar] == targetGroup:
-            try:
-                # Read low resolution data from reanalysis
-                if pseudoreality == True:
-                    aux = read.lres_data(aux_targetVar, grid, model=GCM_shortName, scene=scene)
-                    dates = aux['times']
-                    data = aux['data']
-                else:
-                    dates = calibration_dates
-                    data = read.lres_data(aux_targetVar, grid)['data']
-                break
-            except:
-                pass
+    # Read low resolution data from reanalysis
+    if pseudoreality == True:
+        aux = read.lres_data(targetVar, grid, model=GCM_shortName, scene=scene)
+        dates = aux['times']
+        data = aux['data']
+    else:
+        dates = calibration_dates
+        data = read.lres_data(targetVar, grid)['data']
+
+    calib_data = 1*data
+    ref_data = 1*data
+    del data
 
     # Selects standardization period
     time_first, time_last=dates.index(reference_first_date),dates.index(reference_last_date)+1
-    data = data[time_first:time_last]
+    ref_data = ref_data[time_first:time_last]
 
-    # Calculates mean and standard deviation and saves them to files
-    mean = np.nanmean(data, axis=0)
-    std = np.nanstd(data, axis=0)
+    # Calculates mean and standard deviation and saves them to files.
+    mean = np.nanmean(ref_data, axis=0)
+    std = np.nanstd(ref_data, axis=0)
     np.save(pathOut+'reanalysis_mean', mean)
     np.save(pathOut+'reanalysis_std', std)
 
-    # Read historical series of all models
-    expected_models = []
-    for model in model_list:
-        if model != 'reanalysis':
-            modelName, modelRun = model.split('_')[0], model.split('_')[1]
-
-            # Check if model to be done
-            modelToBeDone = False
-            for targetVar in targetVars:
-                if targetGroups_dict[targetVar] == targetGroup and os.path.isfile('../input_data/models/'+
-                              modNames[targetVar]+'_'+modelName+'_'+scene+'_'+modelRun+'_'+periodFilename+'.nc'):
-                    modelToBeDone = True
-                    break
-
-            # Do model
-            if modelToBeDone == True:
-                print('get_mean_and_std', targetGroup, grid, scene, model)
-                get_mean_and_std_oneModel(targetGroup, grid, model, scene)
-
-    #             # Serial processing
-    #             if running_at_HPC == False:
-    #                 get_mean_and_std_oneModel(targetGroup, grid, model, scene)
-    #
-    #             # Parallel processing
-    #             elif running_at_HPC == True:
-    #                 while 1:
-    #                     # Check for error files, save them and kill erroneous jobs
-    #                     for file in os.listdir('../job/'):
-    #                         if file.endswith(".err"):
-    #                             filename = os.path.join('../job/', file)
-    #                             filesize = os.path.getsize(filename)
-    #                             if filesize != 0:
-    #                                 jobid = filename.split('/')[-1].split('.')[0]
-    #                                 print('-----------------------')
-    #                                 print(filename, filesize)
-    #                                 os.system('mv ' + filename + ' ../job/err/')
-    #                                 os.system('mv ' + filename[:-3] + 'out ../job/err/')
-    #                                 os.system('scancel ' + str(jobid))
-    #
-    #                     # Check for correctly finished jobs
-    #                     for file in os.listdir('../job/'):
-    #                         if file.endswith(".out"):
-    #                             filename = os.path.join('../job/', file)
-    #                             if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
-    #                                 print('-----------------------')
-    #                                 print(filename, 'end')
-    #                                 os.system('mv ' + filename + ' ../job/out/')
-    #                                 os.system('mv ' + filename[:-3] + 'err ../job/out/')
-    #
-    #                     # Check number of living jobs
-    #                     os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
-    #                     f = open('../log/nJobs.txt', 'r')
-    #                     nJobs = int(f.read()) - 1
-    #                     f.close()
-    #                     time.sleep(1)
-    #                     if nJobs < max_nJobs:
-    #                         print('nJobs', nJobs)
-    #                         break
-    #
-    #                 # Send new job
-    #                 launch_jobs.standardize(targetGroup, grid, model, scene)
-    #
-    # # Check if all jobs have ended successfully
-    # if running_at_HPC == True:
-    #     while 1:
-    #         # Wait for all jobs to end
-    #         os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
-    #         f = open('../log/nJobs.txt', 'r')
-    #         nJobs = int(f.read()) - 1
-    #         f.close()
-    #         time.sleep(1)
-    #         if nJobs == 0:
-    #             break
-
-    # Check if expected files have been created
-    for model in expected_models:
-        if (
-        not os.path.isfile(pathAux + 'STANDARDIZATION/' + grid.upper() + '/' + targetGroup.upper() + '/' + model + '_mean.npy')) or \
-                (not os.path.isfile(
-                    pathAux + 'STANDARDIZATION/' + grid.upper() + '/' + targetGroup.upper() + '/' + model + '_std.npy')):
-            print('Error in get_mean_and_std', model)
-            exit()
+    # Save standardized predictors matrix
+    calib_data = standardize(targetVar, calib_data, 'reanalysis', grid)
+    np.save(pathAux + 'STANDARDIZATION/' + grid.upper() + '/' + targetVar + '_reanalysis_standardized', calib_data)
 
 
 ########################################################################################################################
-def get_mean_and_std_oneModel(targetGroup, grid, model, scene):
+def get_mean_and_std_oneModel(targetVar, grid, model):
 
-    pathOut = pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup.upper()+'/'
-    print('get_mean_and_std_oneModel', targetGroup, grid, model, scene)
+    print('get_mean_and_std_oneModel', targetVar, grid, model)
 
     # Read data and times from model
-    for targetVar in targetVars:
-        if targetGroups_dict[targetVar] == targetGroup:
-            try:
-                aux = read.lres_data(targetVar, grid, model=model, scene=scene)
-                scene_dates = aux['times']
-                break
-            except:
-                pass
+    aux = read.lres_data(targetVar, grid, model=model, scene='historical')
+    scene_dates = aux['times']
 
-    modelName, modelRun = model.split('_')[0], model.split('_')[1]
-    for targetVar in targetVars:
-        if targetGroups_dict[targetVar] == targetGroup:
-            try:
-                calendar = read.netCDF('../input_data/models/', modNames[targetVar] + '_' + modelName + '_' + scene +
-                               '_'+ modelRun + '_'+ historicalPeriodFilename+ '.nc', modNames[targetVar])['calendar']
-                break
-            except:
-                pass
+    # Read calendar
+    for pred in preds_dict[targetVar]:
+        if len(pred) > 4 and pred[-4:] in all_levels:
+            level = pred[-4:]
+        elif len(pred) > 3 and pred[-3:] in all_levels:
+            level = pred[-3:]
+        else:
+            level = None
+        try:
+            calendar = read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene='historical')['calendar']
+            break
+        except:
+            pass
 
     if calendar in ('360', '360_day'):
         time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_dates[-2])
@@ -194,42 +106,31 @@ def get_mean_and_std_oneModel(targetGroup, grid, model, scene):
     # Calculates mean and standard deviation and saves them to files
     mean = np.nanmean(data, axis=0)
     std = np.nanstd(data, axis=0)
-    np.save(pathOut+model+'_mean', mean)
-    np.save(pathOut+model+'_std', std)
-    del data
+
+    return {'mean': mean, 'std': std}
+
 
 ########################################################################################################################
-def standardize(targetGroup, A, model, grid):
-    pathIn=pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetGroup.upper()+'/'
+def standardize(targetVar, data, model, grid):
+    """Provided the data array, it is standardized and returned """
+
+    pathIn=pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar.upper()+'/'
 
     # Get mean and std
-    if mean_and_std_from_GCM == True:
-        mean = np.load(pathIn + model + '_mean.npy')
-        std = np.load(pathIn + model + '_std.npy')
-    elif mean_and_std_from_GCM == False:
+    if mean_and_std_from_GCM == True and model != 'reanalysis':
+        aux = get_mean_and_std_oneModel(targetVar, grid, model)
+        mean = aux['mean']
+        std = aux['std']
+    else:
         mean = np.load(pathIn + 'reanalysis_mean.npy')
         std = np.load(pathIn + 'reanalysis_std.npy')
 
     # Adapt dimensions
     mean = np.expand_dims(mean, axis=0)
-    mean = np.repeat(mean, A.shape[0], 0)
+    mean = np.repeat(mean, data.shape[0], 0)
     std = np.expand_dims(std, axis=0)
-    std = np.repeat(std, A.shape[0], 0)
+    std = np.repeat(std, data.shape[0], 0)
 
     # Standardize
-    A = (A - mean) / std
-
-
-    return A
-
-########################################################################################################################
-if __name__ == "__main__":
-    nproc = MPI.COMM_WORLD.Get_size()  # Size of communicator
-    iproc = MPI.COMM_WORLD.Get_rank()  # Ranks in communicator
-    inode = MPI.Get_processor_name()  # Node where this MPI process runs
-    targetGroup = sys.argv[1]
-    grid = sys.argv[2]
-    model = sys.argv[3]
-    scene = sys.argv[4]
-
-    get_mean_and_std_oneModel(targetGroup, grid, model, scene)
+    data = (data - mean) / std
+    return data

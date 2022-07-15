@@ -44,9 +44,9 @@ def train_PCA():
 		os.makedirs(pathOut)
 
 	# Get synoptic fields and weights
-	for targetGroup in targetGroups:
+	for targetVar in targetVars:
 		try:
-			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
 			saf_train = saf_train.astype('float32')
 			break
 		except:
@@ -87,9 +87,9 @@ def set_number_of_weather_types():
 	clustering_method = 'MiniBatchKmeans'
 
 	# Get synoptic fields and weights
-	for targetGroup in targetGroups:
+	for targetVar in targetVars:
 		try:
-			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetGroup + '_training.npy')
+			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetVar + '_training.npy')
 			saf_train = saf_train.astype('float32')
 			break
 		except:
@@ -169,9 +169,9 @@ def get_weather_types_centroids():
 	# clustering_method = 'MiniBatchKmeans'
 
 	# Get synoptic fields and weights
-	for targetGroup in targetGroups:
+	for targetVar in targetVars:
 		try:
-			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetGroup + '_training.npy')
+			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetVar + '_training.npy')
 			saf_train = saf_train.astype('float32')
 			break
 		except:
@@ -308,7 +308,6 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 	"""
 
 	mode = 'PP'
-	targetGroup = targetGroups_dict[targetVar]
 
 	# Define pathOut
 	pathOut = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
@@ -324,8 +323,8 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 	w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
 
 	# Read synoptic analogy fields and centroids
-	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
+	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
 	centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
 
 	# Prepare data for PCA
@@ -370,7 +369,7 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 		len_chunk.append(len(k_chunk[ichunk]))
 
 	# Create empty array to accumulate correlation coefficients
-	coef = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	coef = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetVar]))
 	intercept = np.zeros((len_chunk[iproc], hres_npoints[targetVar], 1))
 
 	# Go through k clusters
@@ -424,13 +423,12 @@ def coefficients_collect_chunks(targetVar, methodName, mode, nproc=1):
 		os.makedirs(pathOut)
 
 	n_chunks = nproc
-	targetGroup = targetGroups_dict[targetVar]
 
 	print('--------------------------------------')
 	print(targetVar, methodName, 'cluster collect chunks', n_chunks)
 
 	# Create empty array and accumulate
-	coef=np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	coef=np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetVar]))
 	intercept=np.zeros((0, hres_npoints[targetVar], 1))
 	for ichunk in range(n_chunks):
 		path = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
@@ -461,7 +459,6 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 	pr_th_for_corr = 0.1 # mm
 
 	mode = 'PP'
-	targetGroup = targetGroups_dict[targetVar]
 
 	# Define pathOut
 	pathOut = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
@@ -478,8 +475,8 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 	w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
 
 	# Read pred, saf and centroids
-	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetGroup+'_training.npy')
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetGroup+'_training.npy')
+	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
+	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
 	centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
 
 	# Prepare data for PCA
@@ -526,7 +523,7 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 		len_chunk.append(len(k_chunk[ichunk]))
 
 	# Create empty array to accumulate correlation coefficients
-	R = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	R = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetVar]))
 
 	# Get dist_th
 	if th_metric == 'median':
@@ -570,7 +567,7 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 				# Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
 				# interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
 				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-				for ipred in range(n_preds_dict[targetGroup]):
+				for ipred in range(n_preds_dict[targetVar]):
 					if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
 						R[ik, ipoint, ipred] = spearmanr(X[:, ipred], Y)[0]
 					else:
@@ -590,19 +587,18 @@ def correlations_collect_chunks(targetVar, methodName, mode, nproc=1):
 		os.makedirs(pathOut)
 
 	n_chunks = nproc
-	targetGroup = targetGroups_dict[targetVar]
 
 	print('--------------------------------------')
 	print(targetVar, methodName, 'cluster collect chunks', n_chunks)
 
 	# Create empty array and accumulate
-	R = np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetGroup]))
+	R = np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetVar]))
 	for ichunk in range(n_chunks):
 		path = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
 		filename = path + 'ichunk_' + str(ichunk) + '.npy'
 		R = np.append(R, np.load(filename), axis=0)
 	shutil.rmtree(path)
-	print(targetVar, methodName, anal_corr_th_dict[targetGroup], 100.*np.count_nonzero(R)/R.size,'%')
+	print(targetVar, methodName, anal_corr_th_dict[targetVar], 100.*np.count_nonzero(R)/R.size,'%')
 
 	np.save(pathOut+targetVar+'_'+methodName+'_correlations', R)
 

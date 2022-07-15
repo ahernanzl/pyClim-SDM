@@ -66,61 +66,61 @@ methods = {
     #     'CNN',
     #     'WG-PDF',
     # ],
-    # 'tas': [
-    #     'RAW',
-    #     'RAW-BIL',
-    #     'QM',
-    #     'DQM',
-    #     'QDM',
-    #     'PSDM',
-    #     'ANA-SYN-1NN',
-    #     'ANA-SYN-kNN',
-    #     'ANA-SYN-rand',
-    #     'ANA-LOC-1NN',
-    #     'ANA-LOC-kNN',
-    #     'ANA-LOC-rand',
-    #     'ANA-VAR-1NN',
-    #     'ANA-VAR-kNN',
-    #     'ANA-VAR-rand',
-    #     'MLR',
-    #     'MLR-ANA',
-    #     'MLR-WT',
-    #     'SVM',
-    #     'LS-SVM',
-    #     'RF',
-    #     'XGB',
-    #     'ANN',
-    #     'CNN',
-    #     'WG-PDF',
-    # ],
-    # 'pr': [
-    #     'RAW',
-    #     'RAW-BIL',
-    #     'QM',
-    #     'DQM',
-    #     'QDM',
-    #     'PSDM',
-    #     'ANA-SYN-1NN',
-    #     'ANA-SYN-kNN',
-    #     'ANA-SYN-rand',
-    #     'ANA-LOC-1NN',
-    #     'ANA-LOC-kNN',
-    #     'ANA-LOC-rand',
-    #     'ANA-VAR-1NN',
-    #     'ANA-VAR-kNN',
-    #     'ANA-VAR-rand',
-    #     'GLM-LIN',
-    #     'GLM-EXP',
-    #     'GLM-CUB',
-    #     'SVM',
-    #     'LS-SVM',
-    #     'RF',
-    #     'XGB',
-    #     'ANN',
-    #     'CNN',
-    #     'WG-PDF',
-    #     'WG-NMM',
-    # ],
+    'tas': [
+        'RAW',
+        'RAW-BIL',
+        'QM',
+        'DQM',
+        'QDM',
+        'PSDM',
+        'ANA-SYN-1NN',
+        'ANA-SYN-kNN',
+        'ANA-SYN-rand',
+        'ANA-LOC-1NN',
+        'ANA-LOC-kNN',
+        'ANA-LOC-rand',
+        'ANA-VAR-1NN',
+        'ANA-VAR-kNN',
+        'ANA-VAR-rand',
+        'MLR',
+        'MLR-ANA',
+        'MLR-WT',
+        'SVM',
+        'LS-SVM',
+        'RF',
+        'XGB',
+        'ANN',
+        'CNN',
+        'WG-PDF',
+    ],
+    'pr': [
+        'RAW',
+        'RAW-BIL',
+        'QM',
+        'DQM',
+        'QDM',
+        'PSDM',
+        'ANA-SYN-1NN',
+        'ANA-SYN-kNN',
+        'ANA-SYN-rand',
+        'ANA-LOC-1NN',
+        'ANA-LOC-kNN',
+        'ANA-LOC-rand',
+        'ANA-VAR-1NN',
+        'ANA-VAR-kNN',
+        'ANA-VAR-rand',
+        'GLM-LIN',
+        'GLM-EXP',
+        'GLM-CUB',
+        'SVM',
+        'LS-SVM',
+        'RF',
+        'XGB',
+        'ANN',
+        'CNN',
+        'WG-PDF',
+        'WG-NMM',
+    ],
     # 'uas': [
     #     'RAW',
     #     'RAW-BIL',
@@ -175,60 +175,60 @@ methods = {
     #     'CNN',
     #     'WG-PDF',
     # ],
-    # 'hurs': [
-    #     'RAW',
-    #     'RAW-BIL',
-    #     'QM',
-    #     'DQM',
-    #     'QDM',
-    #     'PSDM',
-    #     'ANA-SYN-1NN',
-    #     'ANA-SYN-kNN',
-    #     'ANA-SYN-rand',
-    #     'ANA-LOC-1NN',
-    #     'ANA-LOC-kNN',
-    #     'ANA-LOC-rand',
-    #     'ANA-VAR-1NN',
-    #     'ANA-VAR-kNN',
-    #     'ANA-VAR-rand',
-    #     'MLR',
-    #     'MLR-ANA',
-    #     'MLR-WT',
-    #     'SVM',
-    #     'LS-SVM',
-    #     'RF',
-    #     'XGB',
-    #     'ANN',
-    #     'CNN',
-    #     'WG-PDF',
-    # ],
-    # 'clt': [
-    #     'RAW',
-    #     'RAW-BIL',
-    #     'QM',
-    #     'DQM',
-    #     'QDM',
-    #     'PSDM',
-    #     'ANA-SYN-1NN',
-    #     'ANA-SYN-kNN',
-    #     'ANA-SYN-rand',
-    #     'ANA-LOC-1NN',
-    #     'ANA-LOC-kNN',
-    #     'ANA-LOC-rand',
-    #     'ANA-VAR-1NN',
-    #     'ANA-VAR-kNN',
-    #     'ANA-VAR-rand',
-    #     'MLR',
-    #     'MLR-ANA',
-    #     'MLR-WT',
-    #     'SVM',
-    #     'LS-SVM',
-    #     'RF',
-    #     'XGB',
-    #     'ANN',
-    #     'CNN',
-    #     'WG-PDF',
-    # ],
+    'hurs': [
+        'RAW',
+        'RAW-BIL',
+        'QM',
+        'DQM',
+        'QDM',
+        'PSDM',
+        'ANA-SYN-1NN',
+        'ANA-SYN-kNN',
+        'ANA-SYN-rand',
+        'ANA-LOC-1NN',
+        'ANA-LOC-kNN',
+        'ANA-LOC-rand',
+        'ANA-VAR-1NN',
+        'ANA-VAR-kNN',
+        'ANA-VAR-rand',
+        'MLR',
+        'MLR-ANA',
+        'MLR-WT',
+        'SVM',
+        'LS-SVM',
+        'RF',
+        'XGB',
+        'ANN',
+        'CNN',
+        'WG-PDF',
+    ],
+    'clt': [
+        'RAW',
+        'RAW-BIL',
+        'QM',
+        'DQM',
+        'QDM',
+        'PSDM',
+        'ANA-SYN-1NN',
+        'ANA-SYN-kNN',
+        'ANA-SYN-rand',
+        'ANA-LOC-1NN',
+        'ANA-LOC-kNN',
+        'ANA-LOC-rand',
+        'ANA-VAR-1NN',
+        'ANA-VAR-kNN',
+        'ANA-VAR-rand',
+        'MLR',
+        'MLR-ANA',
+        'MLR-WT',
+        'SVM',
+        'LS-SVM',
+        'RF',
+        'XGB',
+        'ANN',
+        'CNN',
+        'WG-PDF',
+    ],
 }
 
 
@@ -302,8 +302,8 @@ modNames = {'ua': 'ua', 'va': 'va', 'ta': 'ta', 'zg': 'zg', 'hus': 'hus', 'hur':
             'pr': 'pr', 'uas': 'uas', 'vas': 'vas',
             'hurs': 'hurs', 'huss': 'huss', 'clt': 'clt', }
 
-preds_targetGroups_dict = {
-    'temperature': [
+preds_targetVars_dict = {
+    'tas': [
         # 'tasmax',             # maximum daily temperature
         # 'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
@@ -380,7 +380,161 @@ preds_targetGroups_dict = {
         # 'SSI_index',        # Showalter index
         # 'LI_index',         # Lifted index
     ],
-    'precipitation': [
+    'tasmax': [
+        # 'tasmax',             # maximum daily temperature
+        # 'tasmin',             # minimum daily temperature
+        # 'pr',              # daily precipitation
+        # 'psl',             # mean sea level pressure
+        # 'psl_trend',       # mean sea level trend from last day (derivedFrom mslp)
+        # 'ps',             # surface pressure
+        # 'ins',              # theoretical insolation (derived from dates)
+        # 'clt',              # total cloud cover
+        # 'uas',              # surface wind
+        # 'vas',              # surface wind
+        'tas',  # surface temperature
+        # 'tdps',              # surface dew point
+        # 'huss',              # surface specific humidity
+        # 'hurs',              # surface relative humidity
+        # 'ua1000',            # wind at pressure levels
+        'ua850',  # wind at pressure levels
+        # 'ua700',             # wind at pressure levels
+        'ua500',  # wind at pressure levels
+        # 'ua250',             # wind at pressure levels
+        # 'va1000',            # wind at pressure levels
+        'va850',  # wind at pressure levels
+        # 'va700',             # wind at pressure levels
+        'va500',  # wind at pressure levels
+        # 'va250',             # wind at pressure levels
+        # 'ta1000',            # temperature at pressure levels
+        'ta850',  # temperature at pressure levels
+        # 'ta700',             # temperature at pressure levels
+        'ta500',  # temperature at pressure levels
+        # 'ta250',             # temperature at pressure levels
+        # 'zg1000',            # geopotential at pressure levels
+        # 'zg850',             # geopotential at pressure levels
+        # 'zg700',             # geopotential at pressure levels
+        # 'zg500',             # geopotential at pressure levels
+        # 'zg250',             # geopotential at pressure levels
+        # 'hus1000',            # specifit humidity at pressure levels
+        # 'hus850',             # specifit humidity at pressure levels
+        # 'hus700',             # specifit humidity at pressure levels
+        # 'hus500',             # specifit humidity at pressure levels
+        # 'hus250',             # specifit humidity at pressure levels
+        # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur700',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur500',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur250',             # relative humidity at pressure levels (derived from t and q)
+        # 'td1000',           # dew point at pressure levels (derived from q)
+        # 'td850',            # dew point at pressure levels (derived from q)
+        # 'td700',            # dew point at pressure levels (derived from q)
+        # 'td500',            # dew point at pressure levels (derived from q)
+        # 'td250',            # dew point at pressure levels (derived from q)
+        # 'Dtd1000',          # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd850',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd700',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd500',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd250',           # dew point depression at pressure levels (derived from t and q)
+        # 'vort1000',         # vorticity at pressure levels (derived from u and v)
+        # 'vort850',          # vorticity at pressure levels (derived from u and v)
+        # 'vort700',          # vorticity at pressure levels (derived from u and v)
+        # 'vort500',          # vorticity at pressure levels (derived from u and v)
+        # 'vort250',          # vorticity at pressure levels (derived from u and v)
+        # 'div1000',          # divergence at pressure levels (derived from u and v)
+        # 'div850',           # divergence at pressure levels (derived from u and v)
+        # 'div700',           # divergence at pressure levels (derived from u and v)
+        # 'div500',           # divergence at pressure levels (derived from u and v)
+        # 'div250',           # divergence at pressure levels (derived from u and v)
+        # 'vtg_1000_850',     # vertical thermal gradient between 1000 and 850 hPa (derived from t)
+        # 'vtg_850_700',      # vertical thermal gradient between 850 and 700 hPa (derived from t)
+        # 'vtg_700_500',      # vertical thermal gradient between 700 and 500 hPa (derived from t)
+        # 'ugsl',             # geostrophic wind at sea level (derived from t and mslp)
+        # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
+        # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
+        # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
+        # 'K_index',          # K instability index
+        # 'TT_index',         # Total Totals instability index
+        # 'SSI_index',        # Showalter index
+        # 'LI_index',         # Lifted index
+    ],
+    'tasmin': [
+        # 'tasmax',             # maximum daily temperature
+        # 'tasmin',             # minimum daily temperature
+        # 'pr',              # daily precipitation
+        # 'psl',             # mean sea level pressure
+        # 'psl_trend',       # mean sea level trend from last day (derivedFrom mslp)
+        # 'ps',             # surface pressure
+        # 'ins',              # theoretical insolation (derived from dates)
+        # 'clt',              # total cloud cover
+        # 'uas',              # surface wind
+        # 'vas',              # surface wind
+        'tas',              # surface temperature
+        # 'tdps',              # surface dew point
+        # 'huss',              # surface specific humidity
+        # 'hurs',              # surface relative humidity
+        # 'ua1000',            # wind at pressure levels
+        'ua850',             # wind at pressure levels
+        # 'ua700',             # wind at pressure levels
+        'ua500',             # wind at pressure levels
+        # 'ua250',             # wind at pressure levels
+        # 'va1000',            # wind at pressure levels
+        'va850',             # wind at pressure levels
+        # 'va700',             # wind at pressure levels
+        'va500',             # wind at pressure levels
+        # 'va250',             # wind at pressure levels
+        # 'ta1000',            # temperature at pressure levels
+        'ta850',             # temperature at pressure levels
+        # 'ta700',             # temperature at pressure levels
+        'ta500',             # temperature at pressure levels
+        # 'ta250',             # temperature at pressure levels
+        # 'zg1000',            # geopotential at pressure levels
+        # 'zg850',             # geopotential at pressure levels
+        # 'zg700',             # geopotential at pressure levels
+        # 'zg500',             # geopotential at pressure levels
+        # 'zg250',             # geopotential at pressure levels
+        # 'hus1000',            # specifit humidity at pressure levels
+        # 'hus850',             # specifit humidity at pressure levels
+        # 'hus700',             # specifit humidity at pressure levels
+        # 'hus500',             # specifit humidity at pressure levels
+        # 'hus250',             # specifit humidity at pressure levels
+        # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur700',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur500',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur250',             # relative humidity at pressure levels (derived from t and q)
+        # 'td1000',           # dew point at pressure levels (derived from q)
+        # 'td850',            # dew point at pressure levels (derived from q)
+        # 'td700',            # dew point at pressure levels (derived from q)
+        # 'td500',            # dew point at pressure levels (derived from q)
+        # 'td250',            # dew point at pressure levels (derived from q)
+        # 'Dtd1000',          # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd850',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd700',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd500',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd250',           # dew point depression at pressure levels (derived from t and q)
+        # 'vort1000',         # vorticity at pressure levels (derived from u and v)
+        # 'vort850',          # vorticity at pressure levels (derived from u and v)
+        # 'vort700',          # vorticity at pressure levels (derived from u and v)
+        # 'vort500',          # vorticity at pressure levels (derived from u and v)
+        # 'vort250',          # vorticity at pressure levels (derived from u and v)
+        # 'div1000',          # divergence at pressure levels (derived from u and v)
+        # 'div850',           # divergence at pressure levels (derived from u and v)
+        # 'div700',           # divergence at pressure levels (derived from u and v)
+        # 'div500',           # divergence at pressure levels (derived from u and v)
+        # 'div250',           # divergence at pressure levels (derived from u and v)
+        # 'vtg_1000_850',     # vertical thermal gradient between 1000 and 850 hPa (derived from t)
+        # 'vtg_850_700',      # vertical thermal gradient between 850 and 700 hPa (derived from t)
+        # 'vtg_700_500',      # vertical thermal gradient between 700 and 500 hPa (derived from t)
+        # 'ugsl',             # geostrophic wind at sea level (derived from t and mslp)
+        # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
+        # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
+        # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
+        # 'K_index',          # K instability index
+        # 'TT_index',         # Total Totals instability index
+        # 'SSI_index',        # Showalter index
+        # 'LI_index',         # Lifted index
+    ],
+    'pr': [
         # 'tasmax',             # maximum daily temperature
         # 'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
@@ -457,7 +611,7 @@ preds_targetGroups_dict = {
         # 'SSI_index',        # Showalter index
         # 'LI_index',         # Lifted index
     ],
-    'wind': [
+    'uas': [
         # 'tasmax',             # maximum daily temperature
         # 'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
@@ -534,7 +688,84 @@ preds_targetGroups_dict = {
         # 'SSI_index',        # Showalter index
         # 'LI_index',         # Lifted index
     ],
-    'humidity': [
+    'vas': [
+        # 'tasmax',             # maximum daily temperature
+        # 'tasmin',             # minimum daily temperature
+        # 'pr',              # daily precipitation
+        # 'psl',             # mean sea level pressure
+        # 'psl_trend',       # mean sea level trend from last day (derivedFrom mslp)
+        # 'ps',             # surface pressure
+        # 'ins',              # theoretical insolation (derived from dates)
+        # 'clt',              # total cloud cover
+        'uas',              # surface wind
+        'vas',              # surface wind
+        # 'tas',              # surface temperature
+        # 'tdps',              # surface dew point
+        # 'huss',              # surface specific humidity
+        # 'hurs',              # surface relative humidity
+        # 'ua1000',            # wind at pressure levels
+        'ua850',             # wind at pressure levels
+        # 'ua700',             # wind at pressure levels
+        'ua500',             # wind at pressure levels
+        # 'ua250',             # wind at pressure levels
+        # 'va1000',            # wind at pressure levels
+        'va850',             # wind at pressure levels
+        # 'va700',             # wind at pressure levels
+        'va500',             # wind at pressure levels
+        # 'va250',             # wind at pressure levels
+        # 'ta1000',            # temperature at pressure levels
+        'ta850',             # temperature at pressure levels
+        # 'ta700',             # temperature at pressure levels
+        'ta500',             # temperature at pressure levels
+        # 'ta250',             # temperature at pressure levels
+        # 'zg1000',            # geopotential at pressure levels
+        # 'zg850',             # geopotential at pressure levels
+        # 'zg700',             # geopotential at pressure levels
+        # 'zg500',             # geopotential at pressure levels
+        # 'zg250',             # geopotential at pressure levels
+        # 'hus1000',            # specifit humidity at pressure levels
+        # 'hus850',             # specifit humidity at pressure levels
+        # 'hus700',             # specifit humidity at pressure levels
+        # 'hus500',             # specifit humidity at pressure levels
+        # 'hus250',             # specifit humidity at pressure levels
+        # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur700',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur500',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur250',             # relative humidity at pressure levels (derived from t and q)
+        # 'td1000',           # dew point at pressure levels (derived from q)
+        # 'td850',            # dew point at pressure levels (derived from q)
+        # 'td700',            # dew point at pressure levels (derived from q)
+        # 'td500',            # dew point at pressure levels (derived from q)
+        # 'td250',            # dew point at pressure levels (derived from q)
+        # 'Dtd1000',          # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd850',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd700',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd500',           # dew point depression at pressure levels (derived from t and q)
+        # 'Dtd250',           # dew point depression at pressure levels (derived from t and q)
+        # 'vort1000',         # vorticity at pressure levels (derived from u and v)
+        # 'vort850',          # vorticity at pressure levels (derived from u and v)
+        # 'vort700',          # vorticity at pressure levels (derived from u and v)
+        # 'vort500',          # vorticity at pressure levels (derived from u and v)
+        # 'vort250',          # vorticity at pressure levels (derived from u and v)
+        # 'div1000',          # divergence at pressure levels (derived from u and v)
+        # 'div850',           # divergence at pressure levels (derived from u and v)
+        # 'div700',           # divergence at pressure levels (derived from u and v)
+        # 'div500',           # divergence at pressure levels (derived from u and v)
+        # 'div250',           # divergence at pressure levels (derived from u and v)
+        # 'vtg_1000_850',     # vertical thermal gradient between 1000 and 850 hPa (derived from t)
+        # 'vtg_850_700',      # vertical thermal gradient between 850 and 700 hPa (derived from t)
+        # 'vtg_700_500',      # vertical thermal gradient between 700 and 500 hPa (derived from t)
+        # 'ugsl',             # geostrophic wind at sea level (derived from t and mslp)
+        # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
+        # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
+        # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
+        # 'K_index',          # K instability index
+        # 'TT_index',         # Total Totals instability index
+        # 'SSI_index',        # Showalter index
+        # 'LI_index',         # Lifted index
+    ],
+    'hurs': [
         # 'tasmax',             # maximum daily temperature
         # 'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
@@ -611,7 +842,7 @@ preds_targetGroups_dict = {
         # 'SSI_index',        # Showalter index
         # 'LI_index',         # Lifted index
     ],
-    'clouds': [
+    'clt': [
         # 'tasmax',             # maximum daily temperature
         # 'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
@@ -996,31 +1227,31 @@ myTargetVar = 'sfcWind'
 # Define myTargetVar methods
 methods.update({
     myTargetVar: [
-        # 'RAW',
-        # 'RAW-BIL',
-        # 'QM',
+        'RAW',
+        'RAW-BIL',
+        'QM',
         'DQM',
         'QDM',
-        # # 'PSDM',
-        # 'ANA-SYN-1NN',
-        # 'ANA-SYN-kNN',
-        # 'ANA-SYN-rand',
-        # 'ANA-LOC-1NN',
-        # 'ANA-LOC-kNN',
-        # 'ANA-LOC-rand',
-        # 'ANA-VAR-1NN',
-        # 'ANA-VAR-kNN',
-        # 'ANA-VAR-rand',
-        # 'MLR',
-        # 'MLR-ANA',
-        # 'MLR-WT',
-        # 'SVM',
-        # 'LS-SVM',
-        # 'RF',
-        # 'XGB',
-        # 'ANN',
-        # 'CNN',
-        # # 'WG-PDF',
+        # 'PSDM',
+        'ANA-SYN-1NN',
+        'ANA-SYN-kNN',
+        'ANA-SYN-rand',
+        'ANA-LOC-1NN',
+        'ANA-LOC-kNN',
+        'ANA-LOC-rand',
+        'ANA-VAR-1NN',
+        'ANA-VAR-kNN',
+        'ANA-VAR-rand',
+        'MLR',
+        'MLR-ANA',
+        'MLR-WT',
+        'SVM',
+        'LS-SVM',
+        'RF',
+        'XGB',
+        'ANN',
+        'CNN',
+        # 'WG-PDF',
     ],
 })
 
@@ -1032,7 +1263,7 @@ reaNames.update({myTargetVar: myTargetVar})
 modNames.update({myTargetVar: myTargetVar})
 
 # Define myTargetVar predictors
-preds_targetGroups_dict.update({
+preds_targetVars_dict.update({
     myTargetVar: [
         # 'tasmax',             # maximum daily temperature
         # 'tasmin',             # minimum daily temperature
@@ -1288,4 +1519,4 @@ myTargetVarIsAdditive = True
 # myTargetVarIsGaussian = False
 #
 # # Define whether myTargetVar should be treated as an additive of multiplicative variable
-# myTargetVarIsAdditive = False
+# myTargetVarIsAdditive = True

@@ -138,7 +138,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
             sce_data = sce_data[ivalid]
 
             # For precipitation or non additive customized target variables
-            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
+            # if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
+            if targetVar == 'pr':
 
                 # Treat zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
@@ -248,7 +249,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
 
             # Calculate and apply delta correction
             # For precipitation or non additive customized target variables
-            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
+            # if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
+            if targetVar == 'pr':
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
             # For the other target variables or for additive customized target variable
