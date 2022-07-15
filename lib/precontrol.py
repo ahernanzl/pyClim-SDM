@@ -166,7 +166,7 @@ def predictors_correlation():
     for targetVar in targetVars:
 
         # Define pathTmp
-        pathTmp = '../results/' + experiment + '/predictors_correlation/' + var.upper() + '/'
+        pathTmp = '../results/' + experiment + '/predictors_correlation/' + targetVar.upper() + '/'
         if not os.path.exists(pathTmp):
             os.makedirs(pathTmp)
         pathOut = pathFigures
@@ -180,7 +180,7 @@ def predictors_correlation():
         w_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/w_4nn.npy')
 
         # Read data predictand
-        obs = read.hres_data(var, period='calibration')['data']
+        obs = read.hres_data(targetVar, period='calibration')['data']
 
         # Define preds
         preds = preds_dict[targetVar]
@@ -210,7 +210,7 @@ def predictors_correlation():
                     y = obs_season[:, ipoint]
 
                     # Calculate correlation
-                    if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
+                    if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
                         R[ipred, ipoint] = spearmanr(X, y)[0]
                     else:
                         R[ipred, ipoint] = pearsonr(X, y)[0]
@@ -225,7 +225,7 @@ def predictors_correlation():
 
                 # Load correlation
                 R[ipred] = np.load(pathTmp + '_'.join((predName, 'correlation', season+'.npy')))
-                print(var, predName, 'correlation', season, np.mean(abs(R[ipred])))
+                print(targetVar, predName, 'correlation', season, np.mean(abs(R[ipred])))
 
                 # Plot map
                 title = ' '.join((targetVar.upper(), predName, 'correlation', season))
