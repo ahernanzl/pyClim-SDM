@@ -11,7 +11,8 @@
 **Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Statistical downscaling in the Tropics and Mid-latitudes: a comparative assessment for generating regional information on climate change. Journal of Applied Meteorology and Climatology. Submitted.
 ___
 
-pyClim-SDM is a software for statistical downscaling of climate change projections with the following utilities:
+pyClim-SDM is a software for statistical downscaling of climate change projections for the following daily surface variables: mean, maximum and minimum temperature, precipitation, zonal and meridional wind components, relative humidity and cloud cover.
+Additionally, it is prepared for downscaling any other user defined variable. pyClim-SDM incorporates the following utilities:
 - evaluation of Global Climate Models (GCMs).
 - downscaling of both reanalysis (for evaluation) and GCMs.
 - bias correction of downscaled climate projections.
@@ -21,7 +22,7 @@ pyClim-SDM is a software for statistical downscaling of climate change projectio
 
 # Methods
 
-### For maximum/minimum temperature:
+### For temperature, wind, humidity, cloud cover and cusomized target variables:
 - **RAW**: no downscaling (nearest grid point).
 - **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).
 - **DQM**: Detrended Quantile Mapping (Cannon *et al.*, 2015). Quantile adjustment over detrended series.
@@ -68,10 +69,10 @@ pyClim-SDM has been originally designed for **Linux** and might present problems
 
 # How to use
 
-- prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. Read the README.md file contained at input_data_template
+- Prepare your input data (reanalysis, GCMs, predictands) in an 'input_data' directory following the structure and format indicated in the 'input_data_template' directory. Read the README.md file contained at input_data_template
+- Run src/gui_mode.py and follow the very intuitive menu.
 - For your first steps you can use some example datsets included in the 'input_data_template' just by renaming this folder as 'input_data', but limit your selection to experiment=EVALUATION and the default sets of predictors.
-- run src/gui_mode.py and follow the very intuitive menu.
-- alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
+- Alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
 - When working in a HPC, define partition name at config/advanced_settings.py and tune jobs specifications at lib/launch_jobs.py.
 
 
