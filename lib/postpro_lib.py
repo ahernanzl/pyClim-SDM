@@ -48,9 +48,9 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
         print(climdex_name)
 
         # Get percentile calendars
-        if climdex_name in ('TX90p', 'TN90p', 'WSDI'):
+        if climdex_name in ('TX90p', 'TN90p', 'WSDI', myTargetVar+'90p'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90)
-        elif climdex_name in ('TX10p', 'TN10p', 'CSDI'):
+        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', myTargetVar+'10p'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10)
         elif climdex_name in ('R95p', 'R95pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
@@ -232,9 +232,9 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
             results.append(np.nanpercentile(data_year, int(climdex_name[1:]), axis=0))
         elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'HRm', 'CLTm', myTargetVarStr+'m'):
             results.append(np.nanmean(data_year, axis=0))
-        elif climdex_name in ('TX90p', 'TN90p'):
+        elif climdex_name in ('TX90p', 'TN90p', myTargetVar+'90p'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX10p', 'TN10p'):
+        elif climdex_name in ('TX10p', 'TN10p', myTargetVar+'10p'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
         elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', myTargetVarStr+'x'):
             results.append(np.nanmax(data_year, axis=0))
@@ -401,7 +401,7 @@ def get_data_eval(targetVar, methodName):
     if apply_bc == False:
         pathIn = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     else:
-        pathIn = '../results/EVALUATION_BC-' + bc_method + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+        pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     aux = read.hres_data(targetVar, period='testing')
     times_scene = aux['times']
     obs = aux['data']
