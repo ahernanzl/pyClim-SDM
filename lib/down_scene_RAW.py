@@ -217,10 +217,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
     if  minAllowed != None:
-        est[est < minAllowed] == minAllowed
+        est[est < 100*minAllowed] == 100*minAllowed
     if  maxAllowed != None:
-        est[est > maxAllowed] == maxAllowed
-
+        est[est > 100*maxAllowed] == 100*maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
