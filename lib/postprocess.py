@@ -69,14 +69,14 @@ def bias_correction():
 #     Apply bias correction for a specific model.
 #     """
 #
-#     print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_method)
+#     print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_sufix)
 #
 #     # Define and create paths
 #     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 #     pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 #     if not os.path.exists(pathOut):
 #         os.makedirs(pathOut)
-#     pathTmp = '../tmp/'+'_'.join((targetVar, methodName, bc_method)) + '/'
+#     pathTmp = '../tmp/'+'_'.join((targetVar, methodName, bc_sufix)) + '/'
 #     if not os.path.exists(pathTmp):
 #         os.makedirs(pathTmp)
 #
@@ -107,7 +107,7 @@ def bias_correction():
 #
 #     # Bias correct each year and save results
 #     for year in all_years:
-#         print('bias_correcting reanalysis', methodName, bc_method, testing_years, year)
+#         print('bias_correcting reanalysis', methodName, bc_sufix, testing_years, year)
 #         idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year!=year]
 #         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
 #         # print(year, len(idates_ref), len(idates_sce))
@@ -124,7 +124,7 @@ def bias_correction():
 #     # Collect results for all years
 #     scene_bc = np.zeros(est_data.shape)
 #     for year in all_years:
-#         print('bias_correcting reanalysis', methodName, bc_method, testing_years, year)
+#         print('bias_correcting reanalysis', methodName, bc_sufix, testing_years, year)
 #         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year==year]
 #         scene_bc[idates_sce] = np.load(pathTmp+str(year)+'.npy')
 #     # shutil.rmtree(pathTmp)
@@ -145,14 +145,14 @@ def bias_correction_renalysis(targetVar, methodName):
     Apply bias correction for a specific model.
     """
 
-    print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_method)
+    print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_sufix)
 
     # Define and create paths
     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
-    pathTmp = '../tmp/'+'_'.join((targetVar, methodName, bc_method)) + '/'
+    pathTmp = '../tmp/'+'_'.join((targetVar, methodName, bc_sufix)) + '/'
     if not os.path.exists(pathTmp):
         os.makedirs(pathTmp)
 
@@ -190,7 +190,7 @@ def bias_correction_renalysis(targetVar, methodName):
 
     # Go through the two folds
     for ifold in [0, 1]:
-        print('bias_correcting reanalysis', methodName, bc_method, testing_years, ifold+1, '/ 2')
+        print('bias_correcting reanalysis', methodName, bc_sufix, testing_years, ifold+1, '/ 2')
         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year in fold_years[ifold]]
         idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year not in fold_years[ifold]]
         # print(ifold, len(idates_ref), len(idates_sce))
@@ -217,7 +217,7 @@ def bias_correction_renalysis(targetVar, methodName):
 #     Apply bias correction for a specific model.
 #     """
 #
-#     print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_method)
+#     print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_sufix)
 #
 #     # Define and create paths
 #     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
@@ -247,7 +247,7 @@ def bias_correction_renalysis(targetVar, methodName):
 #
 #     # Go through all folds
 #     for ifold in range(5):
-#         print('bias_correcting reanalysis', methodName, bc_method, 'fold', ifold+1, '/5')
+#         print('bias_correcting reanalysis', methodName, bc_sufix, 'fold', ifold+1, '/5')
 #         if ifold == 0:
 #             fold_years = fold1_testing_years
 #         elif ifold == 1:
@@ -288,7 +288,7 @@ def bias_correction_allModels(targetVar, methodName):
     Check for methods/models not yet corrected and applie bias correction
     """
 
-    print('postprocess.bias_correction_allModels', targetVar, methodName, bc_method)
+    print('postprocess.bias_correction_allModels', targetVar, methodName, bc_sufix)
 
 
     # Define and create paths
@@ -312,7 +312,7 @@ def bias_correction_allModels(targetVar, methodName):
 
             if to_be_corrected == True:
 
-                print(targetVar, methodName, model, bc_method, 'bias_correction')
+                print(targetVar, methodName, model, bc_sufix, 'bias_correction')
 
                 # Serial processing
                 if running_at_HPC == False:
@@ -365,7 +365,7 @@ def bias_correction_oneModel(targetVar, methodName, model):
     Apply bias correction for a specific model.
     """
 
-    print('postprocess.bias_correction_oneModel', model, targetVar, methodName, bc_method)
+    print('postprocess.bias_correction_oneModel', model, targetVar, methodName, bc_sufix)
 
     if model == 'reanalysis':
         bias_correction_renalysis(targetVar, methodName)
@@ -443,8 +443,8 @@ def get_climdex_for_evaluation(targetVar, methodName):
         pathOut = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/climdex/'
         pathIn = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     else:
-        pathOut = '../results/EVALUATION_BC-' + bc_method + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
-        pathIn = '../results/EVALUATION_BC-' + bc_method + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+        pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
+        pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     if os.path.isfile(pathIn+'reanalysis_TESTING.nc'):
 
@@ -655,7 +655,7 @@ def nc2ascii():
                     data = nc['data']
                     data[np.isnan(data)] = -999
                     del nc
-                    print('writing daily data to ASCCI file for', targetVar, methodName, bc_method, scene, model, '...')
+                    print('writing daily data to ASCCI file for', targetVar, methodName, bc_sufix, scene, model, '...')
                     id = list(read.hres_metadata(targetVar).index.values)
                     times = np.array([10000 * x.year + 100 * x.month + x.day for x in times])
                     data = np.append(times[:, np.newaxis], data, axis=1)
