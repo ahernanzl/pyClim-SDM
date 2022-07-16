@@ -89,9 +89,9 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
             time_first, time_last = dates.index(avail_first_date), dates.index(avail_last_date) + 1
             var_calib = var_calib[time_first:time_last]
-            if calendar == '365':
+            if calendar in ['365', '365_day', ]:
                 dates = [x for x in avail_dates if not ((x.month == 2) and (x.day == 29))]
-            elif calendar == '360':
+            elif calendar in ['360', '360_day', ]:
                 dates = [x for x in avail_dates if not (((x.month == 2) and (x.day >= 29)) | (x.day > 30))]
             else:
                 dates = avail_dates
@@ -249,9 +249,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
     if  minAllowed != None:
-        est[est < minAllowed] == minAllowed
+        est[est < 100*minAllowed] == 100*minAllowed
     if  maxAllowed != None:
-        est[est > maxAllowed] == maxAllowed
+        est[est > 100*maxAllowed] == 100*maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

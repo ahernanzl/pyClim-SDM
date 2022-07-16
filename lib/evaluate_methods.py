@@ -71,11 +71,11 @@ def annual_cycle():
                 for imonth in range(12):
                     idates = [i for i in range(len(times_scene)) if times_scene[i].month == imonth+1]
                     if var == 'pr':
-                        obs_matrix[imethod, imonth] = np.sum(obs[idates], axis=0) / nYears
-                        est_matrix[imethod, imonth] = np.sum(est[idates], axis=0) / nYears
+                        obs_matrix[imethod, imonth] = np.nansum(obs[idates], axis=0) / nYears
+                        est_matrix[imethod, imonth] = np.nansum(est[idates], axis=0) / nYears
                     else:
-                        obs_matrix[imethod, imonth] = np.mean(obs[idates], axis=0)
-                        est_matrix[imethod, imonth] = np.mean(est[idates], axis=0)
+                        obs_matrix[imethod, imonth] = np.nanmean(obs[idates], axis=0)
+                        est_matrix[imethod, imonth] = np.nanmean(est[idates], axis=0)
 
                 imethod += 1
 
@@ -106,11 +106,11 @@ def annual_cycle():
 
                 # Select region
                 if regType == typeCompleteRegion:
-                    obs_reg = np.mean(obs_matrix, axis=2)
-                    est_reg = np.mean(est_matrix, axis=2)
+                    obs_reg = np.nanmean(obs_matrix, axis=2)
+                    est_reg = np.nanmean(est_matrix, axis=2)
                 else:
-                    obs_reg = np.mean(obs_matrix[:, :, iaux], axis=2)
-                    est_reg = np.mean(est_matrix[:, :, iaux], axis=2)
+                    obs_reg = np.nanmean(obs_matrix[:, :, iaux], axis=2)
+                    est_reg = np.nanmean(est_matrix[:, :, iaux], axis=2)
 
                 # Plot annual_cycle
                 imethod = 0
