@@ -714,13 +714,13 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
                                                                       30, 40, 50, 100, 150]), 'cmap': None,
                                     'vmin': None, 'vmax': None, 'n_bin': None,
                                     'colors': ['r', 'y', 'g'], 'ext': 'both'}})
-    dict.update({'change_TXm_std': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
+    dict.update({'change_TXm_spread': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
                                     'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_TNm_std': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
+    dict.update({'change_TNm_spread': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
                                     'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_Pm_std': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
+    dict.update({'change_Pm_spread': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
                                    'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_PRCPTOT_std': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
+    dict.update({'change_PRCPTOT_spread': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
                                         'colors': ['g', 'y', 'r'], 'ext': 'max'}})
 
     # dict.update({'none': {'units': degree_sign, 'bounds': np.array([0, 1]), 'cmap': 'bwr', 'ext': 'both'}})
