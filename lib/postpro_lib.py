@@ -48,10 +48,18 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
         print(climdex_name)
 
         # Get percentile calendars
-        if climdex_name in ('TX90p', 'TN90p', 'WSDI', myTargetVar+'90p'):
+        if climdex_name in ('TX90p', 'TN90p', 'WSDI', myTargetVar.upper()+'90p'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90)
-        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', myTargetVar+'10p'):
+        elif climdex_name in ('TX99p', 'TN99p', myTargetVar.upper()+'99p'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 99)
+        elif climdex_name in ('TX95p', 'TN95p', myTargetVar.upper()+'95p'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 95)
+        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', myTargetVar.upper()+'10p'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10)
+        elif climdex_name in ('TX1p', 'TN1p', myTargetVar.upper()+'1p'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 1)
+        elif climdex_name in ('TX5p', 'TN5p', myTargetVar.upper()+'5p'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 5)
         elif climdex_name in ('R95p', 'R95pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
             perc95Calendar = {}
@@ -232,9 +240,17 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
             results.append(np.nanpercentile(data_year, int(climdex_name[1:]), axis=0))
         elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'HRm', 'CLTm', myTargetVarStr+'m'):
             results.append(np.nanmean(data_year, axis=0))
-        elif climdex_name in ('TX90p', 'TN90p', myTargetVar+'90p'):
+        elif climdex_name in ('TX90p', 'TN90p', myTargetVar.upper()+'90p'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX10p', 'TN10p', myTargetVar+'10p'):
+        elif climdex_name in ('TX99p', 'TN99p', myTargetVar.upper()+'99p'):
+            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+        elif climdex_name in ('TX95p', 'TN95p', myTargetVar.upper()+'95p'):
+            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+        elif climdex_name in ('TX10p', 'TN10p', myTargetVar.upper()+'10p'):
+            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+        elif climdex_name in ('TX1p', 'TN1p', myTargetVar.upper()+'1p'):
+            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+        elif climdex_name in ('TX5p', 'TN5p', myTargetVar.upper()+'5p'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
         elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', myTargetVarStr+'x'):
             results.append(np.nanmax(data_year, axis=0))
@@ -509,7 +525,7 @@ def figures_projections(lan='EN'):
         # Define and create paths
         path = '../results/PROJECTIONS'+bc_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
         pathIn = path + 'climdex/'
-        pathRaw = '../results/PROJECTIONS'+bc_sufix+'/' + targetVar.upper() + '/RAW/climdex/'
+        pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
         pathOut = path + 'climdex/figures/'
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
@@ -526,6 +542,7 @@ def figures_projections(lan='EN'):
                      'Vm': (-50, 50), 'Vx': (-50, 50),
                      'HRm': (-50, 50),
                      'CLTm': (-50, 50),
+                     'fwi90p': (-10, 50),
                      }
 
         if lan == 'ES':
@@ -612,24 +629,24 @@ def figures_projections(lan='EN'):
                             trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
                                       ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName, xlabel)
 
-                        # Csv with data for evolution graphs
-                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season)
-
-                        # Spaghetti plot
-                        # if climdex_name in ('TXm', 'TNm'):
-                        spaghetti(pathOut, subDir, ssp_dict, years, ylim_dict[climdex_name], climdex_name,
-                                              ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
-
-                        # Mean and spread ensemble tube plot
-                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
-                             ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
-
-                        # Change maps
-                        # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        if regType == typeCompleteRegion:
-                            change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
+                        # # Csv with data for evolution graphs
+                        # # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        # csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season)
+                        #
+                        # # Spaghetti plot
+                        # # if climdex_name in ('TXm', 'TNm'):
+                        # spaghetti(pathOut, subDir, ssp_dict, years, ylim_dict[climdex_name], climdex_name,
+                        #                       ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+                        #
+                        # # Mean and spread ensemble tube plot
+                        # # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        # tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
+                        #      ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+                        #
+                        # # Change maps
+                        # # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        # if regType == typeCompleteRegion:
+                        #     change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
 
 
 ########################################################################################################################
@@ -840,8 +857,9 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
             iNans = np.unique(np.where(np.isnan(dataTerm))[0])
             dataTerm = np.delete(dataTerm, iNans, axis=0)
 
-            # Calculatean and plot mean and std
-            mean = np.mean(dataTerm, axis=0)
+            # Calculatean and plot mean and spread
+            # mean = np.mean(dataTerm, axis=0)
+            mean = np.median(dataTerm, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
                     ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName, season))
@@ -853,19 +871,20 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                 title = scene_names_dict[scene]+'   '+period+'\n'+season
                 plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
                          filename=filename, title=title)
-            std = np.std(dataTerm, axis=0)
+            # spread = np.std(dataTerm, axis=0)
+            spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
-                    ('PROJECTIONS'+bc_sufix, 'stdChangeMap', targetVar, climdex_name, methodName, season))
+                    ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName, season))
                 plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                          filename=filename, title='')
-                plot.map(targetVar, std, 'change_' + climdex_name + '_std', path=pathFigures,
+                plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathFigures,
                          filename=filename, title='')
             else:
-                filename = '_'.join(('stdChangeMap', climdex_name, scene, season, period))
-                # title = ' '.join(('mod_std', climdex_name, scene, season, period))
+                filename = '_'.join(('spreadChangeMap', climdex_name, scene, season, period))
+                # title = ' '.join(('mod_spread', climdex_name, scene, season, period))
                 title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(targetVar, std, 'change_' + climdex_name + '_std', path=pathOut + 'maps/',
+                plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
                          filename=filename, title=title)
 
 

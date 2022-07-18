@@ -76,6 +76,11 @@ def daily_boxplots(metric, by_season):
                             aux = postpro_lib.get_season(est, times_scene, season)
                             est_season = aux['data']
                             times = aux['times']
+                        ivalid = [i for i in range(len(times)) if
+                                  (np.count_nonzero(np.isnan(obs_season[i])) == 0 and
+                                                    np.count_nonzero(np.isnan(est_season)[i]) == 0)]
+                        obs_season = obs_season[ivalid]
+                        est_season = est_season[ivalid]
                         matrix = np.zeros((hres_npoints[targetVar], ))
                         if metric == 'correlation':
                             for ipoint in range(hres_npoints[targetVar]):
@@ -91,7 +96,12 @@ def daily_boxplots(metric, by_season):
                         elif metric == 'variance':
                             obs_var = np.var(obs_season, axis=0)
                             est_var = np.var(est_season, axis=0)
+                            th = 0.001
+                            est_var[est_var < th] = 0
+                            obs_var[obs_var < th] = np.nan
                             bias = 100 * (est_var - obs_var) / obs_var
+                            bias[(np.isnan(obs_var)) * (est_var == 0)] = 0
+                            bias[np.isinf(bias)] = np.nan
                             matrix[:] = bias
                         elif metric == 'rmse':
                             matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
@@ -268,6 +278,8 @@ def climdex_boxplots(by_season):
                                 i += 1
                             # if biasMode == 'rel':
                             #     plt.ylim((-100, 100))
+                            if climdex_name == 'fwi90p':
+                                plt.ylim((-60, 60))
                             # title = ' '.join((targetVar.upper(), climdex_name, 'bias', season))
                             # plt.title(title)
                             title = ' '.join((targetVar, climdex_name))

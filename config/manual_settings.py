@@ -1106,12 +1106,18 @@ model_names_list = (
 climdex_names = {
     'tasmax': (
         'TXm',
+        # 'TX99p',
+        # 'TX95p',
         # 'TX90p',
         # 'TX10p',
+        # 'TX5p',
+        # 'TX1p',
         'TXx',
         'TXn',
         # 'p99',
         # 'p95',
+        # 'p90',
+        # 'p10',
         # 'p5',
         # 'p1',
         # 'SU',
@@ -1120,12 +1126,18 @@ climdex_names = {
     ),
     'tasmin': (
         'TNm',
+        # 'TN99p',
+        # 'TN95p',
         # 'TN90p',
         # 'TN10p',
+        # 'TN5p',
+        # 'TN1p',
         'TNx',
         'TNn',
         # 'p99',
         # 'p95',
+        # 'p90',
+        # 'p10',
         # 'p5',
         # 'p1',
         # 'FD',
@@ -1138,6 +1150,8 @@ climdex_names = {
         'Tn',
         # 'p99',
         # 'p95',
+        # 'p90',
+        # 'p10',
         # 'p5',
         # 'p1',
     ),
@@ -1171,6 +1185,8 @@ climdex_names = {
         'HRm',
         # 'p99',
         # 'p95',
+        # 'p90',
+        # 'p10',
         # 'p5',
         # 'p1',
     ),
@@ -1178,15 +1194,13 @@ climdex_names = {
         'CLTm',
         # 'p99',
         # 'p95',
+        # 'p90',
+        # 'p10',
         # 'p5',
         # 'p1',
     ),
     }
 
-
-###################################     Bias correction   #################################################
-apply_bc = False # Apply bias correction after downscaling
-apply_bc_bySeason = False # Apply bias correction customized for each season after downcaling
 
 
 ###################################     Seasons           #################################################
@@ -1211,9 +1225,12 @@ inverse_seasonNames = ['ANNUAL',
 
 
 ###################################     Bias correction   #################################################
-# bc_method = 'QM'
+apply_bc = True    # Apply bias correction after downscaling
+apply_bc_bySeason = True # Apply bias correction customized for each season after downcaling
+
+bc_method = 'QM'
 # bc_method = 'DQM'
-bc_method = 'QDM'
+# bc_method = 'QDM'
 # bc_method = 'PSDM'
 
 # ###################################     myTargetVar           #################################################
@@ -1347,13 +1364,15 @@ bc_method = 'QDM'
 # # Define myTargetVar climdex (mean value, max, min, and percentiles)
 # climdex_names.update({
 #     myTargetVar: (
-#         myTargetVar+'m',
-#         myTargetVar+'x',
-#         myTargetVar+'n',
-#         'p99',
-#         'p95',
-#         'p5',
-#         'p1',
+#         myTargetVar.upper()+'m',
+#         myTargetVar.upper()+'x',
+#         myTargetVar.upper()+'n',
+        # 'p99',
+        # 'p95',
+        # 'p90',
+        # 'p10',
+        # 'p5',
+        # 'p1',
 #     ),
 # })
 #
@@ -1500,14 +1519,16 @@ preds_targetVars_dict.update({
 # Define myTargetVar climdex (mean value, max, min, and percentiles)
 climdex_names.update({
     myTargetVar: (
-        myTargetVar+'m',
-        myTargetVar+'x',
-        myTargetVar+'n',
-        myTargetVar+'90p',
-        'p99',
-        'p95',
-        'p5',
-        'p1',
+        myTargetVar.upper()+'m',
+        myTargetVar.upper()+'x',
+        myTargetVar.upper()+'n',
+        myTargetVar.upper()+'90p',
+        # 'p99',
+        # 'p95',
+        # 'p90',
+        # 'p10',
+        # 'p5',
+        # 'p1',
     ),
 })
 

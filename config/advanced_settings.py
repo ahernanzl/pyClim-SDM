@@ -166,7 +166,7 @@ elif experiment == 'PROJECTIONS':
 if apply_bc == False:
     bc_sufix = ''
 else:
-    bc_sufix = '_BC-' + bc_method
+    bc_sufix = '-BC-' + bc_method
     if apply_bc_bySeason == True:
         bc_sufix += '-s'
 
@@ -582,11 +582,17 @@ plotAllRegions = False  # Set to False so only the complete region will be plott
 units_and_biasMode_climdex = {
     'tasmax_TXm': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_TX90p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmax_TX99p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmax_TX95p': {'units': 'days', 'biasMode': 'rel'},
     'tasmax_TX10p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmax_TX1p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmax_TX5p': {'units': 'days', 'biasMode': 'rel'},
     'tasmax_TXx': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_TXn': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_p99': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_p95': {'units': degree_sign, 'biasMode': 'abs'},
+    'tasmax_p90': {'units': degree_sign, 'biasMode': 'abs'},
+    'tasmax_p10': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_p5': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_p1': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_SU': {'units': 'days', 'biasMode': 'rel'},
@@ -595,11 +601,17 @@ units_and_biasMode_climdex = {
 
     'tasmin_TNm': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_TN90p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmin_TN99p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmin_TN95p': {'units': 'days', 'biasMode': 'rel'},
     'tasmin_TN10p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmin_TN5p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmin_TN1p': {'units': 'days', 'biasMode': 'rel'},
     'tasmin_TNx': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_TNn': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_p99': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_p95': {'units': degree_sign, 'biasMode': 'abs'},
+    'tasmin_p90': {'units': degree_sign, 'biasMode': 'abs'},
+    'tasmin_p10': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_p5': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_p1': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_FD': {'units': 'days', 'biasMode': 'rel'},
@@ -608,11 +620,17 @@ units_and_biasMode_climdex = {
 
     'tas_Tm': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_T90p': {'units': 'days', 'biasMode': 'rel'},
+    'tas_T99p': {'units': 'days', 'biasMode': 'rel'},
+    'tas_T95p': {'units': 'days', 'biasMode': 'rel'},
     'tas_T10p': {'units': 'days', 'biasMode': 'rel'},
+    'tas_T5p': {'units': 'days', 'biasMode': 'rel'},
+    'tas_T1p': {'units': 'days', 'biasMode': 'rel'},
     'tas_Tx': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_Tn': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_p99': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_p95': {'units': degree_sign, 'biasMode': 'abs'},
+    'tas_p90': {'units': degree_sign, 'biasMode': 'abs'},
+    'tas_p10': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_p5': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_p1': {'units': degree_sign, 'biasMode': 'abs'},
 
@@ -642,12 +660,16 @@ units_and_biasMode_climdex = {
     'hurs_HRm': {'units': '%', 'biasMode': 'rel'},
     'hurs_p99': {'units': '%', 'biasMode': 'rel'},
     'hurs_p95': {'units': '%', 'biasMode': 'rel'},
+    'hurs_p90': {'units': '%', 'biasMode': 'rel'},
+    'hurs_p10': {'units': '%', 'biasMode': 'rel'},
     'hurs_p5': {'units': '%', 'biasMode': 'rel'},
     'hurs_p1': {'units': '%', 'biasMode': 'rel'},
 
     'clt_CLTm': {'units': '%', 'biasMode': 'rel'},
     'clt_p99': {'units': '%', 'biasMode': 'rel'},
     'clt_p95': {'units': '%', 'biasMode': 'rel'},
+    'clt_p90': {'units': '%', 'biasMode': 'rel'},
+    'clt_p10': {'units': '%', 'biasMode': 'rel'},
     'clt_p5': {'units': '%', 'biasMode': 'rel'},
     'clt_p1': {'units': '%', 'biasMode': 'rel'},
 }

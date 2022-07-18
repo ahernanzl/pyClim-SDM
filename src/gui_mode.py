@@ -189,7 +189,18 @@ class tabSteps(ttk.Frame):
 
         irow = 0
         ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
-        ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=40); irow+=1
+        ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=1
+
+        # frameExplanation
+        frameExplanation = Frame(tabSteps)
+        frameExplanation.grid(sticky="W", column=1, row=irow, padx=10, pady=10, columnspan=10)
+        icol, irow = 0, 0
+        explanation = 'Before running the different steps, select the methods and predictors to be used. For the GCMs evaluation, the selected predictors will be analyzed.\n' \
+                      'Do not run a step before the previous steps have finished succesfully. When working at an HPC, wait for previous jobs to finish. Steps "Train methods", \n' \
+                      '"Downscale", "Bias correcion" and "Calculate climdex" are prepared to be done as jobs, in parallel.\n'
+        ttk.Label(frameExplanation, text=explanation).grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4)
+
+        ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=5
 
         # Experiment
         icol = 1
@@ -293,6 +304,7 @@ class tabSteps(ttk.Frame):
                 nrows += 1
             self.chk_dict.update({exp_name: aux_dict})
             irow -= nrows
+
 
     def get(self):
         return self.experiment, self.chk_dict, self.all_steps
@@ -1203,7 +1215,7 @@ class tabVisualization(ttk.Frame):
             filename = '_'.join((self.fields[0], self.fields[1], self.fields[2], self.fields[3], self.fields[4],
                                  self.fields[5])) + '.png'
             try:
-                text = '\n' + self.descriptions['_'.join((self.fields[0], self.fields[1]))] + '\n'
+                text = '\n' + self.descriptions['_'.join((self.fields[0].split('-')[0], self.fields[1]))] + '\n'
             except:
                 text = ''
 
@@ -1344,7 +1356,7 @@ class tabVisualization(ttk.Frame):
 
                 # Create label with description
                 Label(frameFigSelection, text='').grid(sticky="W", column=1, row=5, padx=10, pady=20)
-                text = 'Your current selection corresponds to: \n\n' + self.descriptions['_'.join((self.fields[0], self.fields[1]))]
+                text = 'Your current selection corresponds to: \n\n' + self.descriptions['_'.join((self.fields[0].split('-')[0], self.fields[1]))]
                 self.l.destroy()
                 self.l = Label(frameFigSelection, text=text, anchor="e", justify=LEFT, wraplength=600)
                 self.l.grid(sticky="W", column=2, row=6, padx=10, pady=10, columnspan=100)
@@ -1466,11 +1478,17 @@ class tabVisualization(ttk.Frame):
                 experiments.append(file.split('_')[0])
 
         # sort experiments
-        ordered_experiments = ['PRECONTROL', 'EVALUATION', 'PROJECTIONS']
-        for exp in ordered_experiments:
-            if exp not in experiments:
-                ordered_experiments.remove(exp)
-        experiments = ordered_experiments
+        ordered_experiments = ['PRECONTROL',
+                               'EVALUATION',
+                               'EVALUATION-BC-QM', 'EVALUATION-BC-DQM', 'EVALUATION-BC-QDM', 'EVALUATION-BC-PSDM',
+                               'EVALUATION-BC-QM-s', 'EVALUATION-BC-DQM-s', 'EVALUATION-BC-QDM-s', 'EVALUATION-BC-PSDM-s',
+                               'PROJECTIONS',
+                               'PROJECTIONS-BC-QM', 'PROJECTIONS-BC-DQM', 'PROJECTIONS-BC-QDM', 'PROJECTIONS-BC-PSDM',
+                               'PROJECTIONS-BC-QM-s', 'PROJECTIONS-BC-DQM-s', 'PROJECTIONS-BC-QDM-s',
+                               'PROJECTIONS-BC-PSDM-s',
+                               ]
+
+        experiments = [x for x in ordered_experiments if x in experiments]
 
         self.experimentVar = tk.StringVar()
         combobox = ttk.Combobox(frameFigSelection, textvariable=self.experimentVar)
@@ -1515,352 +1533,352 @@ class selectionWindow():
         # Tab: run
         self.experiment_chk, self.steps_dict, self.all_steps = tabSteps(notebook, root).get()
 
-        # Tab: methods
-        self.methods_chk = tabMethods(notebook).get()
-
-        # Tab: predictors
-        self.reaNames_chk, self.modNames_chk, self.preds = tabPredictors(notebook).get()
-
-        # Tab: climdex
-        self.climdex_dict_chk = tabClimdex(notebook).get()
-
-        # Tab: models
-        self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var = \
-            tabModelsAndScenes(notebook).get()
-
-        # Tab: dates and Domain
-        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
-            self.testing_years_dict_chk, self.hresPeriodFilename_var_t_chk, self.hresPeriodFilename_var_p_chk, \
-            self.reanalysisName_var_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
-            self.sspPeriodFilename_var_chk, self.split_mode_chk, self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, \
-            self.saf_lon_right_var_chk, self.saf_lat_down_var_chk, self.seasons_chk = tabDatesAndDomain(notebook).get()
-
+        # # Tab: methods
+        # self.methods_chk = tabMethods(notebook).get()
+        #
+        # # Tab: predictors
+        # self.reaNames_chk, self.modNames_chk, self.preds = tabPredictors(notebook).get()
+        #
+        # # Tab: climdex
+        # self.climdex_dict_chk = tabClimdex(notebook).get()
+        #
+        # # Tab: models
+        # self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var = \
+        #     tabModelsAndScenes(notebook).get()
+        #
+        # # Tab: dates and Domain
+        # self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
+        #     self.testing_years_dict_chk, self.hresPeriodFilename_var_t_chk, self.hresPeriodFilename_var_p_chk, \
+        #     self.reanalysisName_var_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
+        #     self.sspPeriodFilename_var_chk, self.split_mode_chk, self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, \
+        #     self.saf_lon_right_var_chk, self.saf_lat_down_var_chk, self.seasons_chk = tabDatesAndDomain(notebook).get()
+        #
         # Tab: visualization
         tabVisualization(notebook)
-
-        # Logo
-        w = 120
-        img = Image.open("../doc/pyClim-SDM_logo.png")
-        h = int(w * img.height / img.width)
-        img = img.resize((w, h), Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(img)
-        canvas = Canvas(notebook, width=w, height=h)
-        canvas.create_image(0, 0, anchor=NW, image=img)
-        canvas.grid(sticky="W", column=0, row=1, padx=10)
-
-        self.run = False
-        def run():
-
-            self.all_checks_ok = False
-
-            # Read experiment and steps
-            self.exp = self.experiment_chk.get()
-            self.steps = []
-            for step in self.all_steps[self.exp]:
-                if self.steps_dict[self.exp][step].get() == True:
-                    self.steps.append(step)
-
-            # Read predictors and saf
-            self.selected_all_preds = []
-            for x in self.preds:
-                if self.preds[x].get() == True and x.split('_')[0] not in self.selected_all_preds:
-                    self.selected_all_preds.append(x.split('_')[0])
-            self.targetVars0 = [x for x in self.selected_all_preds if x != 'saf']
-
-            # Read methods
-            self.targetVars = []
-            for meth in self.methods_chk:
-                if meth['checked'].get() == True and meth['var'] not in self.targetVars:
-                    self.targetVars.append(meth['var'])
-
-            # Force to select at least one saf
-            if 'saf' not in self.selected_all_preds:
-                self.all_checks_ok = False
-                tk.messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected (Predictors tab)")
-            else:
-                self.all_checks_ok = True
-
-            # Force to select at least one pred
-            if self.all_checks_ok == True:
-                if len(self.targetVars0) == 0:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "At least one predictor (for temperature and/or precipitation) must be selected (Predictors tab)")
-                else:
-                    self.all_checks_ok = True
-
-            # Force consistency between targetVars and targetVars0
-            for var in ('tmax', 'tmin', 'pcp',):
-                if self.all_checks_ok == True:
-                    if (var in self.targetVars) and (var[0] not in self.targetVars0) and (self.exp != 'PRECONTROL'):
-                        self.all_checks_ok = False
-                        tk.messagebox.showerror("pyClim-SDM",  'Your selection includes some methods for ' + var + ' but no predictor has been selected')
-                    else:
-                        self.all_checks_ok = True
-
-            # Force consistency between methods and experiment
-            if self.all_checks_ok == True:
-                if len(self.targetVars) == 0 and self.exp != 'PRECONTROL':
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
-                else:
-                    self.all_checks_ok = True
-
-            # Force at least one step
-            if self.all_checks_ok == True:
-                if len(self.steps) == 0:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected (Experiments and Steps tab)")
-                else:
-                    self.all_checks_ok = True
-
-            # Years
-            self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
-            self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
-            self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
-            self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
-            self.all_years_hres = [x for x in range(max(int(self.hresPeriodFilename_var_t_chk.get().split('-')[0][:4]),
-                                                        int(self.hresPeriodFilename_var_p_chk.get().split('-')[0][:4])),
-                                                    min(int(self.hresPeriodFilename_var_t_chk.get().split('-')[1][:4]),
-                                                        int(self.hresPeriodFilename_var_p_chk.get().split('-')[1][:4]))
-                                                        + 1)]
-            self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.reanalysisPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.historicalPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.sspPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-
-            # Force calibration years
-            if self.all_checks_ok == True:
-                year = self.aux_calibration_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-            if self.all_checks_ok == True:
-                year = self.aux_calibration_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force reference years
-            if self.all_checks_ok == True:
-                year = self.aux_reference_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-            if self.all_checks_ok == True:
-                year = self.aux_reference_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force historical years
-            if self.all_checks_ok == True:
-                year = self.aux_historical_years[0]
-                if year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_historical_years[1]
-                if year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force ssp years
-            if self.all_checks_ok == True:
-                year = self.aux_ssp_years[0]
-                if year not in self.all_years_ssp:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_ssp_years[1]
-                if year not in self.all_years_ssp:
-                    self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force all checks ok
-            if self.all_checks_ok == True:
-                self.run = True
-                # root.destroy()
-
-                # Experiment
-                self.experiment = self.experiment_chk.get()
-
-                # Steps
-                self.steps = []
-                for step in self.all_steps[self.experiment]:
-                    if self.steps_dict[self.experiment][step].get() == True:
-                        self.steps.append(step)
-
-                # Methods
-                self.methods = []
-                for meth in self.methods_chk:
-                    if meth['checked'].get() == True:
-                        aux = {}
-                        for key in meth:
-                            if key != 'checked':
-                                aux.update({key: meth[key]})
-                        self.methods.append(aux)
-
-                # reaNames and modNames
-                self.reaNames = {}
-                self.modNames = {}
-                for var in self.reaNames_chk:
-                    self.reaNames.update({var: self.reaNames_chk[var].get()})
-                    self.modNames.update({var: self.modNames_chk[var].get()})
-
-                # Predictors
-                self.preds_t_list = []
-                self.preds_p_list = []
-                self.saf_list = []
-                for predLong in self.preds:
-                    block = predLong.split('_')[0]
-                    pred = predLong.split('_')[1]
-                    if self.preds[predLong].get() == True:
-                        if block == 't':
-                            self.preds_t_list.append(pred)
-                        elif block == 'p':
-                            self.preds_p_list.append(pred)
-                        elif block == 'saf':
-                            self.saf_list.append(pred)
-
-                # Climdex
-                self.climdex_names = {}
-                for var in ('tmax', 'tmin', 'pcp'):
-                    tmp_climdex_list = []
-                    for climdex_dict in self.climdex_dict_chk:
-                        if climdex_dict['checked'].get() == True and climdex_dict['var'] == var:
-                            tmp_climdex_list.append(climdex_dict['climdex'])
-                    self.climdex_names.update({var: tmp_climdex_list})
-                    del tmp_climdex_list
-
-                # Years
-                self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
-                self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
-                self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
-                self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
-
-            # Model Output Statistics
-            self.bc_option_str = self.bc_option_chk.get()
-            if self.bc_option_str == 'No':
-                self.apply_bc, self.apply_bc_bySeason = False, False
-            elif self.bc_option_str == 'Yes':
-                self.apply_bc, self.apply_bc_bySeason = True, False
-            elif self.bc_option_str == 'By season':
-                self.apply_bc, self.apply_bc_bySeason = True, True
-
-            # split_mode and testing years
-            self.split_mode = self.split_mode_chk.get()
-            self.single_split_testing_years = (
-                self.testing_years_dict_chk['single_split'][0].get(), self.testing_years_dict_chk['single_split'][1].get())
-            self.fold1_testing_years = (
-                self.testing_years_dict_chk['fold1'][0].get(), self.testing_years_dict_chk['fold1'][1].get())
-            self.fold2_testing_years = (
-                self.testing_years_dict_chk['fold2'][0].get(), self.testing_years_dict_chk['fold2'][1].get())
-            self.fold3_testing_years = (
-                self.testing_years_dict_chk['fold3'][0].get(), self.testing_years_dict_chk['fold3'][1].get())
-            self.fold4_testing_years = (
-                self.testing_years_dict_chk['fold4'][0].get(), self.testing_years_dict_chk['fold4'][1].get())
-            self.fold5_testing_years = (
-                self.testing_years_dict_chk['fold5'][0].get(), self.testing_years_dict_chk['fold5'][1].get())
-
-            # period filenames
-            self.hresPeriodFilename_t = self.hresPeriodFilename_var_t_chk.get()
-            self.hresPeriodFilename_p = self.hresPeriodFilename_var_p_chk.get()
-            self.reanalysisName = self.reanalysisName_var_chk.get()
-            self.reanalysisPeriodFilename = self.reanalysisPeriodFilename_var_chk.get()
-            self.historicalPeriodFilename = self.historicalPeriodFilename_var_chk.get()
-            self.sspPeriodFilename = self.sspPeriodFilename_var_chk.get()
-
-            # grid_res
-            self.grid_res = self.grid_res_var_chk.get()
-            self.saf_lat_up = self.saf_lat_up_var_chk.get()
-            self.saf_lon_left = self.saf_lon_left_var_chk.get()
-            self.saf_lon_right = self.saf_lon_right_var_chk.get()
-            self.saf_lat_down = self.saf_lat_down_var_chk.get()
-
-            # seasons
-            self.inverse_seasonNames = []
-            for i in range(len(self.seasons_chk)):
-                seasonName = self.seasons_chk[i].get()
-                self.inverse_seasonNames.append(seasonName)
-
-            # Models
-            self.model_names_list = []
-            for model in self.chk_dict_models:
-                if self.chk_dict_models[model].get() == True:
-                    self.model_names_list.append(model)
-            otherModels = self.otherModels_var.get()
-            if otherModels != '':
-                while ' ' in otherModels:
-                    otherModels = otherModels.replace(' ', '')
-                for model in otherModels.split(';'):
-                    self.model_names_list.append(model)
-
-            # Scenes
-            self.scene_names_list = []
-            for scene in self.chk_dict_scenes:
-                if self.chk_dict_scenes[scene].get() == True:
-                    self.scene_names_list.append(scene)
-            if 'Others:' in self.scene_names_list:
-                self.scene_names_list.remove('Others:')
-                otherScenes = self.otherScenes_var.get()
-                while ' ' in otherScenes:
-                    otherScenes = otherScenes.replace(' ', '')
-                for scene in otherScenes.split(';'):
-                    self.scene_names_list.append(scene)
-
-            # Write settings file
-            write_settings_file(self.showWelcomeMessage, self.experiment, self.steps, self.methods,
-                                self.reaNames, self.modNames, self.preds_t_list, self.preds_p_list, self.saf_list,
-                                self.climdex_names, self.calibration_years, self.reference_years, self.historical_years,
-                                self.ssp_years, self.apply_bc, self.apply_bc_bySeason, self.single_split_testing_years,
-                                self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
-                                self.fold4_testing_years, self.fold5_testing_years, self.hresPeriodFilename_t,
-                                self.hresPeriodFilename_p, self.reanalysisName, self.reanalysisPeriodFilename,
-                                self.historicalPeriodFilename, self.sspPeriodFilename, self.split_mode,
-                                self.grid_res, self.saf_lat_up, self.saf_lon_left, self.saf_lon_right,
-                                self.saf_lat_down, self.inverse_seasonNames, self.model_names_list, self.scene_names_list)
-
-            # Write tmp_main file
-            write_tmpMain_file(self.steps)
-
-            # # Run .tmp_main
-            # if platform.system() == 'Linux':
-            #     subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
-            # else:
-            #     root.destroy()
-            #     os.system('python3 .tmp_main.py')
-
-            root.destroy()
-            os.system('python3 .tmp_main.py')
-
-            # Delete tmp_main
-            os.remove('.tmp_main.py')
+        #
+        # # Logo
+        # w = 120
+        # img = Image.open("../doc/pyClim-SDM_logo.png")
+        # h = int(w * img.height / img.width)
+        # img = img.resize((w, h), Image.ANTIALIAS)
+        # img = ImageTk.PhotoImage(img)
+        # canvas = Canvas(notebook, width=w, height=h)
+        # canvas.create_image(0, 0, anchor=NW, image=img)
+        # canvas.grid(sticky="W", column=0, row=1, padx=10)
+        #
+        # self.run = False
+        # def run():
+        #
+        #     self.all_checks_ok = False
+        #
+        #     # Read experiment and steps
+        #     self.exp = self.experiment_chk.get()
+        #     self.steps = []
+        #     for step in self.all_steps[self.exp]:
+        #         if self.steps_dict[self.exp][step].get() == True:
+        #             self.steps.append(step)
+        #
+        #     # Read predictors and saf
+        #     self.selected_all_preds = []
+        #     for x in self.preds:
+        #         if self.preds[x].get() == True and x.split('_')[0] not in self.selected_all_preds:
+        #             self.selected_all_preds.append(x.split('_')[0])
+        #     self.targetVars0 = [x for x in self.selected_all_preds if x != 'saf']
+        #
+        #     # Read methods
+        #     self.targetVars = []
+        #     for meth in self.methods_chk:
+        #         if meth['checked'].get() == True and meth['var'] not in self.targetVars:
+        #             self.targetVars.append(meth['var'])
+        #
+        #     # Force to select at least one saf
+        #     if 'saf' not in self.selected_all_preds:
+        #         self.all_checks_ok = False
+        #         tk.messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected (Predictors tab)")
+        #     else:
+        #         self.all_checks_ok = True
+        #
+        #     # Force to select at least one pred
+        #     if self.all_checks_ok == True:
+        #         if len(self.targetVars0) == 0:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "At least one predictor (for temperature and/or precipitation) must be selected (Predictors tab)")
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Force consistency between targetVars and targetVars0
+        #     for var in ('tmax', 'tmin', 'pcp',):
+        #         if self.all_checks_ok == True:
+        #             if (var in self.targetVars) and (var[0] not in self.targetVars0) and (self.exp != 'PRECONTROL'):
+        #                 self.all_checks_ok = False
+        #                 tk.messagebox.showerror("pyClim-SDM",  'Your selection includes some methods for ' + var + ' but no predictor has been selected')
+        #             else:
+        #                 self.all_checks_ok = True
+        #
+        #     # Force consistency between methods and experiment
+        #     if self.all_checks_ok == True:
+        #         if len(self.targetVars) == 0 and self.exp != 'PRECONTROL':
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Force at least one step
+        #     if self.all_checks_ok == True:
+        #         if len(self.steps) == 0:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected (Experiments and Steps tab)")
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Years
+        #     self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
+        #     self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
+        #     self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
+        #     self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
+        #     self.all_years_hres = [x for x in range(max(int(self.hresPeriodFilename_var_t_chk.get().split('-')[0][:4]),
+        #                                                 int(self.hresPeriodFilename_var_p_chk.get().split('-')[0][:4])),
+        #                                             min(int(self.hresPeriodFilename_var_t_chk.get().split('-')[1][:4]),
+        #                                                 int(self.hresPeriodFilename_var_p_chk.get().split('-')[1][:4]))
+        #                                                 + 1)]
+        #     self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var_chk.get().split('-')[0][:4]),
+        #                                             int(self.reanalysisPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
+        #     self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var_chk.get().split('-')[0][:4]),
+        #                                             int(self.historicalPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
+        #     self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var_chk.get().split('-')[0][:4]),
+        #                                             int(self.sspPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
+        #
+        #     # Force calibration years
+        #     if self.all_checks_ok == True:
+        #         year = self.aux_calibration_years[0]
+        #         if year not in self.all_years_hres or year not in self.all_years_reanalysis:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+        #                                                    "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #     if self.all_checks_ok == True:
+        #         year = self.aux_calibration_years[1]
+        #         if year not in self.all_years_hres or year not in self.all_years_reanalysis:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+        #                                                    "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Force reference years
+        #     if self.all_checks_ok == True:
+        #         year = self.aux_reference_years[0]
+        #         if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+        #                 or year not in self.all_years_historical:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+        #                                                    "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #     if self.all_checks_ok == True:
+        #         year = self.aux_reference_years[1]
+        #         if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+        #                 or year not in self.all_years_historical:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+        #                                                    "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Force historical years
+        #     if self.all_checks_ok == True:
+        #         year = self.aux_historical_years[0]
+        #         if year not in self.all_years_historical:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+        #                                                "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #         year = self.aux_historical_years[1]
+        #         if year not in self.all_years_historical:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+        #                                                "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Force ssp years
+        #     if self.all_checks_ok == True:
+        #         year = self.aux_ssp_years[0]
+        #         if year not in self.all_years_ssp:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+        #                                                "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #         year = self.aux_ssp_years[1]
+        #         if year not in self.all_years_ssp:
+        #             self.all_checks_ok = False
+        #             tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+        #                                                "Please, modify your selection.")
+        #         else:
+        #             self.all_checks_ok = True
+        #
+        #     # Force all checks ok
+        #     if self.all_checks_ok == True:
+        #         self.run = True
+        #         # root.destroy()
+        #
+        #         # Experiment
+        #         self.experiment = self.experiment_chk.get()
+        #
+        #         # Steps
+        #         self.steps = []
+        #         for step in self.all_steps[self.experiment]:
+        #             if self.steps_dict[self.experiment][step].get() == True:
+        #                 self.steps.append(step)
+        #
+        #         # Methods
+        #         self.methods = []
+        #         for meth in self.methods_chk:
+        #             if meth['checked'].get() == True:
+        #                 aux = {}
+        #                 for key in meth:
+        #                     if key != 'checked':
+        #                         aux.update({key: meth[key]})
+        #                 self.methods.append(aux)
+        #
+        #         # reaNames and modNames
+        #         self.reaNames = {}
+        #         self.modNames = {}
+        #         for var in self.reaNames_chk:
+        #             self.reaNames.update({var: self.reaNames_chk[var].get()})
+        #             self.modNames.update({var: self.modNames_chk[var].get()})
+        #
+        #         # Predictors
+        #         self.preds_t_list = []
+        #         self.preds_p_list = []
+        #         self.saf_list = []
+        #         for predLong in self.preds:
+        #             block = predLong.split('_')[0]
+        #             pred = predLong.split('_')[1]
+        #             if self.preds[predLong].get() == True:
+        #                 if block == 't':
+        #                     self.preds_t_list.append(pred)
+        #                 elif block == 'p':
+        #                     self.preds_p_list.append(pred)
+        #                 elif block == 'saf':
+        #                     self.saf_list.append(pred)
+        #
+        #         # Climdex
+        #         self.climdex_names = {}
+        #         for var in ('tmax', 'tmin', 'pcp'):
+        #             tmp_climdex_list = []
+        #             for climdex_dict in self.climdex_dict_chk:
+        #                 if climdex_dict['checked'].get() == True and climdex_dict['var'] == var:
+        #                     tmp_climdex_list.append(climdex_dict['climdex'])
+        #             self.climdex_names.update({var: tmp_climdex_list})
+        #             del tmp_climdex_list
+        #
+        #         # Years
+        #         self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
+        #         self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
+        #         self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
+        #         self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
+        #
+        #     # Model Output Statistics
+        #     self.bc_option_str = self.bc_option_chk.get()
+        #     if self.bc_option_str == 'No':
+        #         self.apply_bc, self.apply_bc_bySeason = False, False
+        #     elif self.bc_option_str == 'Yes':
+        #         self.apply_bc, self.apply_bc_bySeason = True, False
+        #     elif self.bc_option_str == 'By season':
+        #         self.apply_bc, self.apply_bc_bySeason = True, True
+        #
+        #     # split_mode and testing years
+        #     self.split_mode = self.split_mode_chk.get()
+        #     self.single_split_testing_years = (
+        #         self.testing_years_dict_chk['single_split'][0].get(), self.testing_years_dict_chk['single_split'][1].get())
+        #     self.fold1_testing_years = (
+        #         self.testing_years_dict_chk['fold1'][0].get(), self.testing_years_dict_chk['fold1'][1].get())
+        #     self.fold2_testing_years = (
+        #         self.testing_years_dict_chk['fold2'][0].get(), self.testing_years_dict_chk['fold2'][1].get())
+        #     self.fold3_testing_years = (
+        #         self.testing_years_dict_chk['fold3'][0].get(), self.testing_years_dict_chk['fold3'][1].get())
+        #     self.fold4_testing_years = (
+        #         self.testing_years_dict_chk['fold4'][0].get(), self.testing_years_dict_chk['fold4'][1].get())
+        #     self.fold5_testing_years = (
+        #         self.testing_years_dict_chk['fold5'][0].get(), self.testing_years_dict_chk['fold5'][1].get())
+        #
+        #     # period filenames
+        #     self.hresPeriodFilename_t = self.hresPeriodFilename_var_t_chk.get()
+        #     self.hresPeriodFilename_p = self.hresPeriodFilename_var_p_chk.get()
+        #     self.reanalysisName = self.reanalysisName_var_chk.get()
+        #     self.reanalysisPeriodFilename = self.reanalysisPeriodFilename_var_chk.get()
+        #     self.historicalPeriodFilename = self.historicalPeriodFilename_var_chk.get()
+        #     self.sspPeriodFilename = self.sspPeriodFilename_var_chk.get()
+        #
+        #     # grid_res
+        #     self.grid_res = self.grid_res_var_chk.get()
+        #     self.saf_lat_up = self.saf_lat_up_var_chk.get()
+        #     self.saf_lon_left = self.saf_lon_left_var_chk.get()
+        #     self.saf_lon_right = self.saf_lon_right_var_chk.get()
+        #     self.saf_lat_down = self.saf_lat_down_var_chk.get()
+        #
+        #     # seasons
+        #     self.inverse_seasonNames = []
+        #     for i in range(len(self.seasons_chk)):
+        #         seasonName = self.seasons_chk[i].get()
+        #         self.inverse_seasonNames.append(seasonName)
+        #
+        #     # Models
+        #     self.model_names_list = []
+        #     for model in self.chk_dict_models:
+        #         if self.chk_dict_models[model].get() == True:
+        #             self.model_names_list.append(model)
+        #     otherModels = self.otherModels_var.get()
+        #     if otherModels != '':
+        #         while ' ' in otherModels:
+        #             otherModels = otherModels.replace(' ', '')
+        #         for model in otherModels.split(';'):
+        #             self.model_names_list.append(model)
+        #
+        #     # Scenes
+        #     self.scene_names_list = []
+        #     for scene in self.chk_dict_scenes:
+        #         if self.chk_dict_scenes[scene].get() == True:
+        #             self.scene_names_list.append(scene)
+        #     if 'Others:' in self.scene_names_list:
+        #         self.scene_names_list.remove('Others:')
+        #         otherScenes = self.otherScenes_var.get()
+        #         while ' ' in otherScenes:
+        #             otherScenes = otherScenes.replace(' ', '')
+        #         for scene in otherScenes.split(';'):
+        #             self.scene_names_list.append(scene)
+        #
+        #     # Write settings file
+        #     write_settings_file(self.showWelcomeMessage, self.experiment, self.steps, self.methods,
+        #                         self.reaNames, self.modNames, self.preds_t_list, self.preds_p_list, self.saf_list,
+        #                         self.climdex_names, self.calibration_years, self.reference_years, self.historical_years,
+        #                         self.ssp_years, self.apply_bc, self.apply_bc_bySeason, self.single_split_testing_years,
+        #                         self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
+        #                         self.fold4_testing_years, self.fold5_testing_years, self.hresPeriodFilename_t,
+        #                         self.hresPeriodFilename_p, self.reanalysisName, self.reanalysisPeriodFilename,
+        #                         self.historicalPeriodFilename, self.sspPeriodFilename, self.split_mode,
+        #                         self.grid_res, self.saf_lat_up, self.saf_lon_left, self.saf_lon_right,
+        #                         self.saf_lat_down, self.inverse_seasonNames, self.model_names_list, self.scene_names_list)
+        #
+        #     # Write tmp_main file
+        #     write_tmpMain_file(self.steps)
+        #
+        #     # # Run .tmp_main
+        #     # if platform.system() == 'Linux':
+        #     #     subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
+        #     # else:
+        #     #     root.destroy()
+        #     #     os.system('python3 .tmp_main.py')
+        #
+        #     root.destroy()
+        #     os.system('python3 .tmp_main.py')
+        #
+        #     # Delete tmp_main
+        #     os.remove('.tmp_main.py')
 
         # Run butnon
         frame = Frame(notebook)

@@ -81,13 +81,6 @@ def quantile_mapping(obs, hist, sce, targetVar):
             # Add correction
             sce_corrected.T[ipoint][ivalid] = sce_data + corr
 
-    # Force to theoretical range
-    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        sce_corrected[sce_corrected < minAllowed] == minAllowed
-    if  maxAllowed != None:
-        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
-
     return sce_corrected
 
 
@@ -137,9 +130,9 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
 
-            # For precipitation or non additive customized target variables
-            # if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
-            if targetVar == 'pr':
+            # For precipitation or non gaussian customized target variables
+            # if targetVar == 'pr':
+            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False and myTargetVarMinAllowed == 0):
 
                 # Treat zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
@@ -203,11 +196,6 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
     https://doi.org/10.1175/JCLI-D-14-00754.1
     """
 
-    # if targetVar == 'pr':
-    #     print('quantile_delta_mapping only implemented with additive correction for temperature')
-    #     print('Current version not recomended for precipitation')
-    #     exit()
-
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
     sce_corrected = 1*sce
@@ -238,7 +226,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             sce_data = sce_data[ivalid]
 
             # Treat zeros
-            if targetVar == 'pr':
+            # if targetVar == 'pr':
+            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False and myTargetVarMinAllowed == 0):
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
@@ -248,9 +237,9 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             p = sce_ecdf(sce_data) * 100
 
             # Calculate and apply delta correction
-            # For precipitation or non additive customized target variables
-            # if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
-            if targetVar == 'pr':
+            # For precipitation or non gaussian customized target variables
+            if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False and myTargetVarMinAllowed == 0):
+            # if targetVar == 'pr':
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
             # For the other target variables or for additive customized target variable
@@ -258,13 +247,6 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
                 delta = sce_data - np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
 
-
-    # Force to theoretical range
-    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        sce_corrected[sce_corrected < minAllowed] == minAllowed
-    if  maxAllowed != None:
-        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
@@ -451,12 +433,6 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
             correction[sce_argsort[-expected_sce_wetdays:]] = x_vals
             sce_corrected.T[ipoint][ivalid] = correction
 
-    # Force to theoretical range
-    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if minAllowed != None:
-        sce_corrected[sce_corrected < minAllowed] == minAllowed
-    if maxAllowed != None:
-        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
@@ -510,5 +486,12 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
                     scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, targetVar)
                 elif bc_method == 'PSDM':
                     scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, targetVar)
+
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if minAllowed != None:
+        scene_bc[scene_bc < minAllowed] == minAllowed
+    if maxAllowed != None:
+        scene_bc[scene_bc > maxAllowed] == maxAllowed
 
     return scene_bc
