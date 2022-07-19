@@ -106,7 +106,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = np.ma.MaskedArray.filled(data, fill_value=np.nan)
 
 
-    if calendar == '360_day':
+    if calendar in ['360_day', '360']:
         valid_idates = []
         for i in range(times.size):
             if not ((times[i].month == 2) and (times[i].day >= 29)):
