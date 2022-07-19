@@ -595,6 +595,7 @@ def figures_projections(lan='EN'):
                            'R99p': 'Change in R99p (%)',
                            'R99pFRAC': 'Change in R99pFRAC (%)',
                            'CWD': 'Change in CWD (days)',
+                           'FWI90p': 'days',
                            }
 
         # Define years
@@ -622,12 +623,12 @@ def figures_projections(lan='EN'):
 
                         # Get data
                         ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathIn, iaux)
-                        raw_ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
-
-                        # Evolution figures of mean trend in the whole region vs RAW
-                        if (regType == typeCompleteRegion):
-                            trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
-                                      ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName, xlabel)
+                        # raw_ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
+                        #
+                        # # Evolution figures of mean trend in the whole region vs RAW
+                        # if (regType == typeCompleteRegion):
+                        #     trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
+                        #               ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName, xlabel)
 
                         # # Csv with data for evolution graphs
                         # # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
@@ -637,16 +638,16 @@ def figures_projections(lan='EN'):
                         # # if climdex_name in ('TXm', 'TNm'):
                         # spaghetti(pathOut, subDir, ssp_dict, years, ylim_dict[climdex_name], climdex_name,
                         #                       ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
-                        #
+
                         # # Mean and spread ensemble tube plot
                         # # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
                         # tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
                         #      ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
-                        #
-                        # # Change maps
-                        # # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        # if regType == typeCompleteRegion:
-                        #     change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
+
+                        # Change maps
+                        # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        if regType == typeCompleteRegion:
+                            change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
 
 
 ########################################################################################################################
@@ -799,8 +800,10 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, t
         models = ssp_dict[scene]['models']
         nModels = len(models)
         data = ssp_dict[scene]['data'].mean(axis=2)
-        if climdex_name in ('PRCPTOT', 'Pm'):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+        if climdex_name in ('PRCPTOT', 'Pm', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
             data = gaussian_filter1d(data, 2)
+        if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+            data = gaussian_filter1d(data, 8)
         # mean = np.nanmean(data, axis=0)
         # std = np.nanstd(data, axis=0)
         # scene_legend = scene_names_dict[scene]
@@ -861,10 +864,11 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
             # mean = np.mean(dataTerm, axis=0)
             mean = np.median(dataTerm, axis=0)
             if plotAllRegions == False:
+                title = scene_names_dict[scene]+'   '+period+'     '+season
                 filename = '_'.join(
-                    ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName, season))
+                    ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
                 plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
-                         filename=filename, title='')
+                         filename=filename, title=title)
             else:
                 filename = '_'.join(('meanChangeMap', climdex_name, scene, season, period))
                 # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
@@ -875,7 +879,7 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
             spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
-                    ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName, season))
+                    ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName+'-'+scene, season))
                 plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                          filename=filename, title='')
                 plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathFigures,
