@@ -41,7 +41,8 @@ def preprocess():
     # If using kfolds, preprocess common is done only for fold1
     if split_mode not in ['fold2', 'fold3', 'fold4', 'fold5']:
         common()
-    common_fold_dependent()
+    if experiment != 'PRECONTROL':
+        common_fold_dependent()
 
 
 ########################################################################################################################
@@ -106,10 +107,13 @@ def common_fold_dependent():
             np.save(pathOut + targetVar + '_testing', testing)
         else:
             print('testing period is null, testing.npy will not be generated')
-        training = data_calib[idates_train]
-        np.save(pathOut + targetVar + '_training', training)
+        if idates_train.size > 0:
+            training = data_calib[idates_train]
+            np.save(pathOut + targetVar + '_training', training)
+        else:
+            print('training period is null, testing.npy will not be generated')
 
-    # Standarizes ERA-Int predictors and saves them to files divided by training and testing
+    # Standarizes reanalysis predictors and saves them to files divided by training and testing
     # This is done for the two grids: pred and saf
     for grid in (
             'pred',
@@ -130,8 +134,11 @@ def common_fold_dependent():
                 np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_testing', testing)
             else:
                 print('testing period is null, testing.npy will not be generated')
-            training = data_calib[idates_train]
-            np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_training', training)
+            if idates_train.size > 0:
+                training = data_calib[idates_train]
+                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_training', training)
+            else:
+                print('training period is null, testing.npy will not be generated')
 
     # Fit PCA to SAFs
     ANA_lib.train_PCA()

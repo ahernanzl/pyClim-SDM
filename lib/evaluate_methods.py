@@ -42,8 +42,6 @@ def annual_cycle():
 
         nmethods = len([x for x in methods if x['var'] == targetVar])
 
-
-
         # Create empty array to accumulate results
         obs_matrix = np.zeros((nmethods, 12, hres_npoints[targetVar]))
         est_matrix = np.zeros((nmethods, 12, hres_npoints[targetVar]))
@@ -128,13 +126,14 @@ def annual_cycle():
                         if imethod == nmethods:
 
                             if nmethods > 10:
-                                plt.legend(ncol=2, bbox_to_anchor=(0.06, 1.1))
+                                # plt.legend(ncol=1, bbox_to_anchor=(0.06, 1.1))
+                                plt.legend(ncol=2, fontsize=12)
                             else:
                                 plt.legend()
                             title_size = 15
 
                             # plt.title(var.upper(), fontsize=title_size)
-                            plt.title(var.upper() + ' annual cycle')
+                            plt.title(var.upper() + ' annual cycle', fontsize=20)
                             # plt.xticks(ticks=range(12), labels=range(1, 13))
                             plt.xticks(ticks=range(12), labels=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                                                                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
@@ -154,7 +153,7 @@ def daily_data(by_season=True):
     each method.
     """
 
-    # RMSE, correlation and biasVariance boxplots of all methods together
+    # # RMSE, correlation and biasVariance boxplots of all methods together
     val_lib.daily_boxplots('rmse', by_season)
     val_lib.daily_boxplots('correlation', by_season)
     val_lib.daily_boxplots('variance', by_season)

@@ -309,349 +309,313 @@ class tabSteps(ttk.Frame):
     def get(self):
         return self.experiment, self.chk_dict, self.all_steps
 
-
 ########################################################################################################################
-class tabMethods(ttk.Frame):
+class framePredictorsClass(ttk.Frame):
 
-    def __init__(self, notebook):
+    def __init__(self, notebook, root, targetVar):
 
-        # ---------------------- tab methods ---------------------------------------------------------------------------------
-
-        self.chk_list = []
-        tabMethods = ttk.Frame(notebook)
-        notebook.add(tabMethods, text='Methods')
-
-        def add_to_chk_list(chk_list, var, methodName, family, mode, fields, info, icol, irow):
-            """This function adds all methods to a list. The checked variable will contain information about their status
-            once the mainloop is finished"""
-
-            # Initialize with default settings or last settings
-            checked = tk.BooleanVar(value=False)
-            for method_dict in methods:
-                if (method_dict['var'], method_dict['methodName']) == (var, methodName):
-                    checked = tk.BooleanVar(value=True)
-
-            c = Checkbutton(tabMethods, text=methodName, variable=checked, takefocus=False)
-            if var == 'tmax':
-                cbuts_tmax.append(c)
-            elif var == 'tmin':
-                cbuts_tmin.append(c)
-            elif var == 'pcp':
-                cbuts_pcp.append(c)
-            CreateToolTip(c, info)
-            c.grid(sticky="W", column=icol, row=irow, padx=10)
-            self.chk_list.append({'var': var, 'methodName': methodName, 'family': family, 'mode': mode, 'fields': fields, 'checked': checked})
-            return self.chk_list
-
-        # Functions for selecting/deselecting all
-        cbuts_tmax, cbuts_tmin, cbuts_pcp = [], [], []
-        buttonWidth = 8
-        def select_all_tmax():
-            for i in cbuts_tmax:
-                i.select()
-        def select_all_tmin():
-            for i in cbuts_tmin:
-                i.select()
-        def select_all_pcp():
-            for i in cbuts_pcp:
-                i.select()
-        def deselect_all_tmax():
-            for i in cbuts_tmax:
-                i.deselect()
-        def deselect_all_tmin():
-            for i in cbuts_tmin:
-                i.deselect()
-        def deselect_all_pcp():
-            for i in cbuts_pcp:
-                i.deselect()
-
-        # ---------------------- tmax and tmin ----------------------
-        for var in ('tmax', 'tmin', ):
-            if var == 'tmax':
-                icol, irow, variable = 0, 0, 'Maximum Temperature'
-            elif var == 'tmin':
-                icol, irow, variable = 2, 0, 'Minimum Temperature'
-
-            ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=40, pady=0); icol+=1; irow+=1
-            ttk.Label(tabMethods, text=variable)\
-                .grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4); irow+=1
-
-            # Raw
-            add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol+=1
-            add_to_chk_list(self.chk_list, var, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow+=1; icol-=1
-
-            # Model Output Statistics
-            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
-            ttk.Label(tabMethods, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-            add_to_chk_list(self.chk_list, var, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow-=1
-            add_to_chk_list(self.chk_list, var, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol-=1; irow+=1
-
-            # Analogs / Weather Typing
-            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-            ttk.Label(tabMethods, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-            add_to_chk_list(self.chk_list, var, 'ANA-MLR', 'ANA', 'PP', 'pred+saf', 'Analog Multiple Linear Regression', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Weather Typing Multiple Linear Regression', icol, irow); irow+=1
-
-            # Transfer function
-            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow+=1
-            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-            ttk.Label(tabMethods, text="Transfer Function:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-            add_to_chk_list(self.chk_list, var, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol+=1; irow-=2
-            add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
-            add_to_chk_list(self.chk_list, var, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow+=2; icol-=1
-
-            # Weather Generators
-            ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
-            ttk.Label(tabMethods, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
-            add_to_chk_list(self.chk_list, var, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow+=1
-
-            # Select/deselect all
-            # ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-            if var == 'tmax':
-                Button(tabMethods, text='Select all', command=select_all_tmax, width=buttonWidth, takefocus=False).grid(sticky="E", column=icol, row=irow); icol += 1
-                Button(tabMethods, text='Deselect all', command=deselect_all_tmax, width=buttonWidth, takefocus=False).grid(sticky="W", column=icol, row=irow)
-            elif var == 'tmin':
-                Button(tabMethods, text='Select all', command=select_all_tmin, width=buttonWidth, takefocus=False).grid(sticky="E", column=icol, row=irow); icol += 1
-                Button(tabMethods, text='Deselect all', command=deselect_all_tmin, width=buttonWidth, takefocus=False).grid(sticky="W", column=icol, row=irow)
-
-
-            ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=130, pady=25); icol+=1
-
-        # ---------------------- pcp ----------------------
-        var = 'pcp'
-        icol, irow, variable = 5, 0, 'Precipitation'
-
-        ttk.Label(tabMethods, text="").grid(column=icol, row=irow, padx=5); irow+=1; icol += 1
-        ttk.Label(tabMethods, text=variable)\
-            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-
-        # Raw
-        add_to_chk_list(self.chk_list, var, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
-        add_to_chk_list(self.chk_list, var, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
-
-        # Model Output Statistics
-        ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Model Output Statistics:")\
-            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_to_chk_list(self.chk_list, var, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
-        add_to_chk_list(self.chk_list, var, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol+=1; irow -= 1
-        add_to_chk_list(self.chk_list, var, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
-        add_to_chk_list(self.chk_list, var, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol-=1; irow += 1
-
-        # Analogs / Weather Typing
-        ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Analogs / Weather Typing:")\
-                                                .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_to_chk_list(self.chk_list, var, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
-
-        # Transfer function
-        ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Transfer Function:")\
-            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow+=1
-        add_to_chk_list(self.chk_list, var, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow-=2; icol+=1
-        add_to_chk_list(self.chk_list, var, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'RF', 'TF', 'PP', 'pred+var', 'Random Forest', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'XGB', 'TF', 'PP', 'pred+var', 'eXtreme Gradient Boost', icol, irow); irow-=3; icol+=1
-        add_to_chk_list(self.chk_list, var, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow+=1
-        add_to_chk_list(self.chk_list, var, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow+=1
-
-        # Weather Generators
-        ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(tabMethods, text="Weather Generators:")\
-            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_to_chk_list(self.chk_list, var, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol += 1
-        add_to_chk_list(self.chk_list, var, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow += 1; icol -=1
-
-        # Select/deselect all
-        # ttk.Label(tabMethods, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        Button(tabMethods, text='Select all', command=select_all_pcp, width=buttonWidth, takefocus=False).grid(sticky="E", column=icol, row=irow); icol += 1
-        Button(tabMethods, text='Deselect all', command=deselect_all_pcp, width=buttonWidth, takefocus=False).grid(sticky="W", column=icol, row=irow); icol-=1; irow += 2
-
-    def get(self):
-        return self.chk_list
-
-########################################################################################################################
-class tabPredictors(ttk.Frame):
-
-    def __init__(self, notebook):
-
-        tabPredictors = ttk.Frame(notebook)
-        notebook.add(tabPredictors, text='Predictors')
-
-        def add_chk_bt_upperAir(chk_list, pred, block, irow, icol):
+        def add_chk_bt_upperAir(chk_list, pred, irow, icol):
             """Check buttons for upper air predictors"""
             checked = tk.BooleanVar(value=False)
             if pred in pred_dictIn:
                 checked = tk.BooleanVar(value=True)
-            c = Checkbutton(tabPredictors, variable=checked, takefocus=False)
+            c = Checkbutton(root, variable=checked, takefocus=False)
             c.grid(row=irow, padx=padx, column=icol)
-            chk_list.update({block+'_'+pred: checked})
+            chk_list.update({pred: checked})
             irow += 1
             return irow, icol
 
-        def add_chk_bt_singleLevels(chk_list, pred, block, irow, icol, nrows):
+        def add_chk_bt_singleLevels(chk_list, pred, irow, icol, nrows):
             """Check buttons for single levels predictors"""
             checked = tk.BooleanVar(value=False)
             if pred in pred_dictIn:
                 checked = tk.BooleanVar(value=True)
-            c = Checkbutton(tabPredictors, text=pred, variable=checked, takefocus=False)
+            c = Checkbutton(root, text=pred, variable=checked, takefocus=False)
             c.grid(sticky="W", row=irow, padx=2, column=icol, columnspan=5)
             CreateToolTip(c, singleLevelVars[pred])
-            chk_list.update({block+'_'+pred: checked})
+            chk_list.update({pred: checked})
             irow += 1
             nrows += 1
-            if nrows == 10:
+            if nrows == 2:
                 nrows = 0
-                icol += 5
-                irow -= 10
+                icol += 2
+                irow -= 2
             return irow, icol, nrows
 
         irow = 0
         icol = 0
 
 
-        Label(tabPredictors, text="").grid(sticky="W", padx=10, row=irow, column=icol); icol += 1
-        ttk.Label(tabPredictors, text="").grid(sticky="W", column=icol, columnspan=100, row=irow, padx=20, pady=0); irow+=2
+        Label(root, text="").grid(sticky="W", padx=10, row=irow, column=icol); icol += 1
+        ttk.Label(root, text="").grid(sticky="W", column=icol, columnspan=100, row=irow, padx=20, pady=0); irow+=2
 
         # Levels
-        ttk.Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
-        ttk.Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, pady=10, padx=30); irow+=1
+        ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
+        ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=10, padx=30); irow+=1
         self.levels = [1000, 850, 700, 500, 250]
         for level in self.levels:
-            Label(tabPredictors,  text=str(level) + " hPa").grid(sticky="E", padx=30,  row=irow, column=icol); irow+=1
-        Label(tabPredictors, text="").grid(sticky="E", column=icol, row=irow, padx=20); irow-=6; icol+=1
+            Label(root,  text=str(level) + " hPa").grid(sticky="E", padx=10,  row=irow, column=icol); irow+=1
+        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=6; icol+=1
 
         self.preds = {}
-        for block in ('t', 'p', 'saf'):
 
-            if block == 't':
-                title = 'Maximum / Minimum Temperature'
-                pred_dictIn = preds_dict['t']
-            elif block == 'p':
-                title = 'Precipitation'
-                pred_dictIn = preds_dict['p']
-            else:
-                title = 'Synoptic Analogy Fields'
-                pred_dictIn = saf_dict
+        pred_dictIn = preds_dict[targetVar]
 
-            irow -= 1
-            Label(tabPredictors, text=title).grid(columnspan=10, row=irow, column=icol)
-            irow += 1
-            upperAirVars = {'u': 'Eastward wind component',
-                            'v': 'Northward wind component',
-                            't': 'Temperature',
-                            'z': 'Geopotential',
-                            'q': 'Specific humidity',
-                            'r': 'Relative humidity (derived from t and q)',
-                            'td': 'Dew point (derived from q)',
-                            'Dtd': 'Dew point depresion (derived from t and q)',
-                            'vort': 'Vorticity (derived from u and v)',
-                            'div': 'Divergence (derived from u and v)',
-                            }
+        irow -= 1
+        Label(root, text='Predictors').grid(columnspan=10, row=irow, column=icol)
+        irow += 1
+        upperAirVars = {'ua': 'Eastward wind component',
+                        'va': 'Northward wind component',
+                        'ta': 'Temperature',
+                        'zg': 'Geopotential',
+                        'hus': 'Specific humidity',
+                        'hur': 'Relative humidity',
+                        'td': 'Dew point',
+                        'Dtd': 'Dew point depresion',
+                        'vort': 'Vorticity (derived from u and v)',
+                        'div': 'Divergence (derived from u and v)',
+                        }
 
-            for var in upperAirVars:
-                c = ttk.Label(tabPredictors, text=var)
-                c.grid(column=icol, row=irow, pady=10); irow += 1
-                CreateToolTip(c, upperAirVars[var])
-                padx = 2
-                for level in self.levels:
-                    irow, icol = add_chk_bt_upperAir(self.preds, str(var) + str(level), block, irow, icol)
-                irow -= 6; icol += 1
+        for var in upperAirVars:
+            c = ttk.Label(root, text=var)
+            c.grid(column=icol, row=irow, pady=10); irow += 1
+            CreateToolTip(c, upperAirVars[var])
+            padx = 2
+            for level in self.levels:
+                irow, icol = add_chk_bt_upperAir(self.preds, str(var) + str(level), irow, icol)
+            irow -= 6; icol += 1
 
-            Label(tabPredictors, text="").grid(sticky="W", padx=35, row=irow, column=icol); icol += 1
+        Label(root, text="").grid(sticky="W", padx=20, row=irow, column=icol); icol += 1
 
-            irow += 6
-            icol -= 11
+        irow += 6
+        icol -= 11
 
-            singleLevelVars = {
-                            'mslp': 'Mean sea level pressure',
-                            'u10': 'Surface eastward wind component',
-                            'v10': 'Surface northward wind component',
-                            't2m': 'Surface mean temperature',
-                            'tmax': 'Surface maximum temperature',
-                            'tmin': 'Surface minimum temperature',
-                            'pcp': 'Daily precipitation',
-                            'mslp_trend': 'Mean sea level trend (from previous day)',
-                            'ins': 'Theoretical insolation (hours of sun)',
-                            'vtg_1000_850': 'Vertical Thermal Gradient (between 1000-850 hPa)',
-                            'vtg_850_700': 'Vertical Thermal Gradient (between 850-700 hPa)',
-                            'vtg_700_500': 'Vertical Thermal Gradient (between 700-500 hPa)',
-                            'ugsl': 'Eastward component of the geostrophic wind at sea level (derived from t and mslp)',
-                            'vgsl': 'Northward component of the geostrophic wind at sea level (derived from t and mslp)',
-                            'vortgsl': 'Vorticity of the geostrophic wind at sea level (derived from t and mslp)',
-                            'divgsl': 'Divergence of the geostrophic wind at sea level (derived from t and mslp)',
-                            'K_index': 'K instability index',
-                            'TT_index': 'Total Totals instability index',
-                            'SSI_index': 'Showalter instability index',
-                            'LI_index': 'Lifted instability index',
-                            }
+        singleLevelVars = {
+                        'psl': 'Mean sea level pressure',
+                        'clt': 'Cloud cover',
+                        'uas': 'Surface eastward wind component',
+                        'vas': 'Surface northward wind component',
+                        'tas': 'Surface mean temperature',
+                        'hurs': 'Surface relative humidity',
+                        'K': 'K instability index',
+                        'TT': 'Total Totals instability index',
+                        'SSI': 'Showalter instability index',
+                        'LI': 'Lifted instability index',
+                        }
 
-            # Label(tabPredictors, text="").grid(sticky="W", row=irow, column=icol);
-            irow += 1
-            nrows = 0
-            for pred in singleLevelVars:
-                irow, icol, nrows = add_chk_bt_singleLevels(self.preds, pred, block, irow, icol, nrows)
-            irow -= 7
-            icol += 11
+        # Label(root, text="").grid(sticky="W", row=irow, column=icol);
+        irow += 1
+        nrows = 0
+        for pred in singleLevelVars:
+            irow, icol, nrows = add_chk_bt_singleLevels(self.preds, pred, irow, icol, nrows)
+        irow -= 7
+        icol += 11
 
-        # reaNames and modNames
-        irow, icol = 20, 2
-        frameVarNames = ttk.Frame(tabPredictors)
-        frameVarNames.grid(sticky="W", column=icol, row=irow, pady=20, columnspan=100)
-        irow, icol = 0, 0
+    def get(self):
+        return self.preds
 
-        ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=0, ); irow+=1
-        ttk.Label(frameVarNames, text='Define variable names in netCDF files:')\
-            .grid(column=icol, row=irow, pady=10, columnspan=13); irow += 1
-        ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow+=1
-        ttk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow+=1
-        ttk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10,); irow+=1
-        icol+=1; irow-=3
 
-        # reaNames and modNames
-        self.reaNames = {}
-        self.modNames = {}
-        for var in reaNames:
-            if var in upperAirVars:
-                info = upperAirVars[var]
-            elif var in singleLevelVars:
-                info = singleLevelVars[var]
-            lab = ttk.Label(frameVarNames, text=var)
-            CreateToolTip(lab, info)
-            lab.grid(sticky="E", column=icol, row=irow); irow+=1
+########################################################################################################################
+class frameMethodsClass(ttk.Frame):
 
-            reaName = reaNames[var]
-            self.reaName_var = tk.StringVar()
-            reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
-            reaName_Entry.insert(END, reaName)
-            reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
-            self.reaNames.update({var: self.reaName_var})
+    def __init__(self, notebook, root, targetVar):
 
-            modName = modNames[var]
-            self.modName_var = tk.StringVar()
-            modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
-            modName_Entry.insert(END, modName)
-            modName_Entry.grid(sticky="W", column=icol, row=irow); icol+=1; irow-=2
-            self.modNames.update({var: self.modName_var})
+        def add_method_to_chk_list(methods_chk_list, targetVar, methodName, family, mode, fields, info, icol, irow):
+            """This function adds all methods to a list. The checked variable will contain information about their status
+            once the mainloop is finished"""
+
+            # Initialize with default settings or last settings
+            checked = tk.BooleanVar(value=False)
+            for method_dict in methods:
+                if (method_dict['var'], method_dict['methodName']) == (targetVar, methodName):
+                    checked = tk.BooleanVar(value=True)
+            c = Checkbutton(root, text=methodName, variable=checked, takefocus=False)
+            cbuts.append(c)
+            CreateToolTip(c, info)
+            c.grid(sticky="W", column=icol, row=irow, padx=10)
+            self.chk_list.append(
+                {'var': targetVar, 'methodName': methodName, 'family': family, 'mode': mode, 'fields': fields,
+                 'checked': checked})
+            return self.chk_list
+
+        # Functions for selecting/deselecting all
+        cbuts = []
+        buttonWidth = 8
+
+        def select_all():
+            for i in cbuts:
+                i.select()
+
+        def deselect_all():
+            for i in cbuts:
+                i.deselect()
+
+        icol, irow = 0, 0
+        self.chk_list = []
+
+        ttk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0);
+        icol += 1;
+        irow += 1
+        ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=20, columnspan=3);
+        irow += 1
+
+        # Raw
+        add_method_to_chk_list(self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
+
+        # Model Output Statistics
+        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        ttk.Label(root, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol += 1; irow -= 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol -= 1; irow += 1
+
+        # Analogs / Weather Typing
+        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        ttk.Label(root, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+
+        # Linear methods
+        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        ttk.Label(root, text="Linear methods:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        if targetVar != 'pr':
+            add_method_to_chk_list(self.chk_list, targetVar, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol += 1
+            add_method_to_chk_list(self.chk_list, targetVar, 'MLR-ANA', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Analogs', icol, irow); icol += 1
+            add_method_to_chk_list(self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); icol += 1; icol-=3
+        else:
+            add_method_to_chk_list(self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); icol+=1
+            add_method_to_chk_list(self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
+            add_method_to_chk_list(self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); icol+=1; icol-=3
+
+
+        # Machine Learning
+        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        ttk.Label(root, text="Machine Learning:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol += 1; irow -= 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'XGB', 'TF', 'PP', 'pred', 'eXtreme Gradient Boost', icol, irow); icol += 1; irow -= 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
+
+        # Weather Generators
+        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
+        ttk.Label(root, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow += 1
+        add_method_to_chk_list(self.chk_list, targetVar, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow += 1
+        if targetVar == 'pr':
+            irow-=1; icol+=1; add_method_to_chk_list(self.chk_list, targetVar, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol -= 1; irow+=1
+
+        # Select/deselect all
+        # ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        frameButons = ttk.Frame(root)
+        frameButons.grid(column=icol, row=irow, padx=10, pady=10, columnspan = 3)
+        Button(frameButons, text='Select all', command=select_all, width=buttonWidth, takefocus=False).grid(column=0, row=0)
+        Button(frameButons, text='Deselect all', command=deselect_all, width=buttonWidth, takefocus=False).grid(column=1, row=0)
+
 
 
     def get(self):
-        return self.reaNames, self.modNames, self.preds
+        return self.chk_list
+
+
+########################################################################################################################
+class tabTas(ttk.Frame):
+
+    def __init__(self, notebook):
+        targetVar = 'tas'
+        tab = ttk.Frame(notebook)
+        notebook.add(tab, text=targetVar)
+
+        irow, icol = 0, 0
+
+        # framePredictors
+        framePredictors = ttk.Frame(tab)
+        framePredictors.grid(row=irow, column=icol, sticky='N')
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get(); icol+=1
+
+        # frameMethods
+        frameMethods = ttk.Frame(tab)
+        frameMethods.grid(row=irow, column=icol, sticky='N')
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+    def get(self):
+        return self.methods_chk_list, self.predictors_chk_list
+
+
+
+########################################################################################################################
+class tabPr(ttk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'pr'
+        tab = ttk.Frame(notebook)
+        notebook.add(tab, text=targetVar)
+
+        irow, icol = 0, 0
+
+        # framePredictors
+        framePredictors = ttk.Frame(tab)
+        framePredictors.grid(row=irow, column=icol, sticky='N')
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get(); icol+=1
+
+        # frameMethods
+        frameMethods = ttk.Frame(tab)
+        frameMethods.grid(row=irow, column=icol, sticky='N')
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+    def get(self):
+        return self.methods_chk_list, self.predictors_chk_list
+
+
+
+# ########################################################################################################################
+# class tabPredictors(ttk.Frame):
+#
+#
+#         # reaNames and modNames
+#         self.reaNames = {}
+#         self.modNames = {}
+#         for var in reaNames:
+#             if var in upperAirVars:
+#                 info = upperAirVars[var]
+#             elif var in singleLevelVars:
+#                 info = singleLevelVars[var]
+#             lab = ttk.Label(frameVarNames, text=var)
+#             CreateToolTip(lab, info)
+#             lab.grid(sticky="E", column=icol, row=irow); irow+=1
+#
+#             reaName = reaNames[var]
+#             self.reaName_var = tk.StringVar()
+#             reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
+#             reaName_Entry.insert(END, reaName)
+#             reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
+#             self.reaNames.update({var: self.reaName_var})
+#
+#             modName = modNames[var]
+#             self.modName_var = tk.StringVar()
+#             modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
+#             modName_Entry.insert(END, modName)
+#             modName_Entry.grid(sticky="W", column=icol, row=irow); icol+=1; irow-=2
+#             self.modNames.update({var: self.modName_var})
+#
+#
+#     def get(self):
+#         return self.reaNames, self.modNames, self.preds
 
 
 ########################################################################################################################
@@ -1532,6 +1496,32 @@ class selectionWindow():
 
         # Tab: run
         self.experiment_chk, self.steps_dict, self.all_steps = tabSteps(notebook, root).get()
+
+        # Tab: tas
+        self.tabTas_methods_chk, self.tabTas_predictors_chk = tabTas(notebook).get()
+
+        # Tab: pr
+        self.tabPr_methods_chk, self.tabPr_predictors_chk = tabPr(notebook).get()
+
+
+
+
+        def run():
+            for i in self.tabTas_methods_chk:
+                if i['checked'].get() == True:
+                    print(i['var'], i['methodName'])
+            for i in self.tabPr_methods_chk:
+                if i['checked'].get() == True:
+                    print(i['var'], i['methodName'])
+            for i in self.tabTas_predictors_chk:
+                if self.tabTas_predictors_chk[i].get() == True:
+                    print('tas', i)
+            for i in self.tabPr_predictors_chk:
+                if self.tabPr_predictors_chk[i].get() == True:
+                    print('pr', i)
+            root.destroy()
+
+
 
         # # Tab: methods
         # self.methods_chk = tabMethods(notebook).get()
