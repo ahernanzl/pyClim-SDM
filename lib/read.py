@@ -172,7 +172,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
 
     if model == 'reanalysis':
         pathIn = '../input_data/reanalysis/'
-        if predName in ('tasmax', 'tasmin', 'pr'):
+        if predName in targetVars:
             ncVar = reaNames[predName]
         else:
             for aux_level in all_levels:
@@ -185,7 +185,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
         else:
             periodFilename = sspPeriodFilename
         pathIn = '../input_data/models/'
-        if predName in ('tasmax', 'tasmin', 'pr'):
+        if predName in targetVars:
             ncVar = modNames[predName]
         else:
             for aux_level in all_levels:
@@ -223,8 +223,6 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
     # print(predName, nc['units'], print(np.nanmean(nc['data'])))
     # exit()
     return nc
-
-
 
 
 
@@ -290,12 +288,14 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
-        for targetVar in targetVars:
+        for var in targetVars:
             try:
-                if targetVar == 'hurs':
+                if var == 'hurs':
                     aux_times = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['times']
+                elif var == 'sfcWind':
+                    aux_times = derived_predictors.wind_speed('sfc', model=model, scene=scene)['times']
                 else:
-                    aux_times = one_direct_predictor(targetVar, grid='ext', model=model, scene=scene)['times']
+                    aux_times = one_direct_predictor(var, grid='ext', model=model, scene=scene)['times']
                 break
             except:
                 pass
@@ -305,8 +305,11 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         if field == 'var':
             if targetVar == 'hurs':
                 data[0] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data'][idates]
+            elif targetVar == 'sfcWind':
+                data[0] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data'][idates]
             else:
-                data[0] = one_direct_predictor(targetVar, level=None, grid='ext', model=model, scene=scene)['data'][idates]
+                data[0] = one_direct_predictor(targetVar, grid='ext', model=model, scene=scene)['data'][idates]
+
 
         # pred / saf
         elif field in ('pred', 'saf'):
@@ -340,6 +343,9 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             for var in ('uas', 'vas'):
                 if var in preds:
                     data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+            # sfcWind
+            if 'sfcWind' in preds:
+                data[i] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data'][idates]; i += 1
             # tas
             if 'tas' in preds:
                 data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
@@ -418,8 +424,11 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         if field == 'var':
             if targetVar == 'hurs':
                 data[0] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data']
+            elif targetVar == 'sfcWind':
+                data[0] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data']
             else:
                 data[0] = one_direct_predictor(targetVar, level=None, grid='ext', model=model, scene=scene)['data']
+
 
 
         # pred / saf
@@ -453,6 +462,9 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             for var in ('uas', 'vas'):
                 if var in preds:
                     data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+            # sfcWind
+            if 'sfcWind' in preds:
+                data[i] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data']; i += 1
             # tas
             if 'tas' in preds:
                 data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data']; i += 1

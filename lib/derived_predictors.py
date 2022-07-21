@@ -359,6 +359,102 @@ def TT_index(model='reanalysis', scene='TESTING'):
 
 
 ########################################################################################################################
+def aux_sfcWind_direct(level, model, scene):
+    """get wind speed directly
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('sfcWind', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            sfcWind = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('sfcWind', grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            sfcWind = aux['data']
+    else:
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('sfcWind', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            sfcWind = aux['data'][idates]
+        else:
+            aux = read.one_direct_predictor('sfcWind', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            sfcWind = aux['data']
+
+    return {'data': sfcWind, 'times': dates}
+
+
+########################################################################################################################
+def aux_sfcWind_from_uas_vas(level, model, scene):
+    """get wind speed indirectly from wind components
+    level: sfc or pressure level in mb
+    """
+
+    if level == 'sfc':
+        if model == 'reanalysis':
+            dates = calibration_dates
+            aux = read.one_direct_predictor('uas', grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            u = aux['data'][idates]
+            v = read.one_direct_predictor('vas', grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            aux = read.one_direct_predictor('uas', grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            u = aux['data']
+            v = read.one_direct_predictor('vas', grid='ext', model=model, scene=scene)['data']
+    else:
+        if model == 'reanalysis':
+            p = level
+            dates = calibration_dates
+            aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
+            times = aux['times']
+            idates = [i for i in range(len(times)) if times[i] in dates]
+            u = aux['data'][idates]
+            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+        else:
+            p = level
+            aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
+            dates = aux['times']
+            u = aux['data']
+            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data']
+
+    sfcWind = np.sqrt(u**2 + v**2)
+
+    return {'data': sfcWind, 'times': dates}
+
+
+########################################################################################################################
+def wind_speed(level, model='reanalysis', scene='TESTING'):
+    """get wind speed directly or indirectly
+    level: sfc or pressure level in mb
+    """
+
+    try:
+        aux = aux_sfcWind_direct(level, model=model, scene=scene)
+        sfcWind, dates = aux['data'], aux['times']
+    except:
+        print('wind speed', level, 'not available. Retrieving it indirectly')
+        try:
+            aux = aux_sfcWind_from_uas_vas(level, model=model, scene=scene)
+            sfcWind, dates = aux['data'], aux['times']
+        except:
+            print('wind speed', level, 'not available neither directly nor indirectly')
+            exit()
+
+    warnings.filterwarnings("ignore", message="invalid value encountered in greater")
+    warnings.filterwarnings("ignore", message="invalid value encountered in less")
+    sfcWind[sfcWind < 0] = 0
+
+    return {'data': sfcWind, 'times': dates}
+
+########################################################################################################################
 def aux_r_direct(level, model, scene):
     """get relative humidity directly
     level: sfc or pressure level in mb

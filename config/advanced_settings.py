@@ -46,6 +46,7 @@ predictands_codification = {
     'pr': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
     'uas': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
     'vas': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
+    'sfcWind': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
     'hurs': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
     'clt': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
 }
@@ -63,6 +64,7 @@ predictands_range = {
     'pr': {'min': 0, 'max': None},
     'uas': {'min': None, 'max': None},
     'vas': {'min': None, 'max': None},
+    'sfcWind': {'min': 0, 'max': None},
     'hurs': {'min': 0, 'max': 100},
     'clt': {'min': 0, 'max': 100},
 }
@@ -78,6 +80,7 @@ predictands_units = {
     'pr': 'mm',
     'uas': 'm/s',
     'vas': 'm/s',
+    'sfcWind': 'm/s',
     'hurs': '%',
     'clt': '%',
 }
@@ -119,11 +122,15 @@ exp_var_ratio_th = .95  # threshold for PCA of SAFs
 k_clusters = 250  # set to None first time, and when weather_types.set_number_of_clusters ends see elbow curve and
 # set k_clusters properly
 anal_corr_th_dict = {
-    'temperature': 0.7,
+    'tasmax': 0.7,
+    'tasmin': 0.7,
+    'tas': 0.7,
     'precipitation': 0.2,
-    'wind': 0.7,
-    'humidity': 0.7,
-    'clouds': 0.7,
+    'uas': 0.7,
+    'vas': 0.7,
+    'sfcWind': 0.7,
+    'hurs': 0.7,
+    'clt': 0.7,
 }
 if myTargetVar != None:
     anal_corr_th_dict.update({myTargetVar: .5})
@@ -197,7 +204,7 @@ if experiment == 'PSEUDOREALITY':
     testing_years = (1986, 2005)
     historical_years = (1986, 2005)
     ssp_years = (2081, 2100)
-shortTerm_years = (2040, 2069)
+shortTerm_years = (2041, 2070)
 longTerm_years = (2071, 2100)
 
 # Hereafter different dates will be defined (do not change)
@@ -257,7 +264,9 @@ shortTermPeriodFilename = str(shortTerm_years[0]) + '-' + str(shortTerm_years[1]
 longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 # ####################  METHODS    #####################################################
-# Family, mode and fields for each method is defined here
+# Family, mode and fields for each method is defined here. Field var stands for the target variable it self (at low res).
+# Field pred stands for predictors (the ones selected for each target variable). And field saf stands for synoptic
+# analogy fields
 families_modes_and_fields = {
     'RAW': ['RAW', 'RAW', 'var'],
     'RAW-BIL': ['RAW', 'RAW', 'var'],
@@ -362,7 +371,7 @@ nsaf = len(saf_dict)
 
 
 # Detect targetVars depending on selected methods
-all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'hurs', 'clt', ]
+all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'sfcWind', 'hurs', 'clt', ]
 try:
     all_possible_targetVars.append(myTargetVar)
 except:
@@ -651,27 +660,30 @@ units_and_biasMode_climdex = {
     'pr_R99pFRAC': {'units': 'mm', 'biasMode': 'rel'},
     'pr_CWD': {'units': 'days', 'biasMode': 'rel'},
 
-    'uas_Um': {'units': 'm/s', 'biasMode': 'rel'},
-    'uas_Ux': {'units': 'm/s', 'biasMode': 'rel'},
+    'uas_Um': {'units': 'm/s', 'biasMode': 'abs'},
+    'uas_Ux': {'units': 'm/s', 'biasMode': 'abs'},
 
-    'vas_Vm': {'units': 'm/s', 'biasMode': 'rel'},
-    'vas_Vx': {'units': 'm/s', 'biasMode': 'rel'},
+    'vas_Vm': {'units': 'm/s', 'biasMode': 'abs'},
+    'vas_Vx': {'units': 'm/s', 'biasMode': 'abs'},
 
-    'hurs_HRm': {'units': '%', 'biasMode': 'rel'},
-    'hurs_p99': {'units': '%', 'biasMode': 'rel'},
-    'hurs_p95': {'units': '%', 'biasMode': 'rel'},
-    'hurs_p90': {'units': '%', 'biasMode': 'rel'},
-    'hurs_p10': {'units': '%', 'biasMode': 'rel'},
-    'hurs_p5': {'units': '%', 'biasMode': 'rel'},
-    'hurs_p1': {'units': '%', 'biasMode': 'rel'},
+    'sfcWind_SFCWINDm': {'units': 'm/s', 'biasMode': 'abs'},
+    'sfcWind_SFCWINDx': {'units': 'm/s', 'biasMode': 'abs'},
 
-    'clt_CLTm': {'units': '%', 'biasMode': 'rel'},
-    'clt_p99': {'units': '%', 'biasMode': 'rel'},
-    'clt_p95': {'units': '%', 'biasMode': 'rel'},
-    'clt_p90': {'units': '%', 'biasMode': 'rel'},
-    'clt_p10': {'units': '%', 'biasMode': 'rel'},
-    'clt_p5': {'units': '%', 'biasMode': 'rel'},
-    'clt_p1': {'units': '%', 'biasMode': 'rel'},
+    'hurs_HRm': {'units': '%', 'biasMode': 'abs'},
+    'hurs_p99': {'units': '%', 'biasMode': 'abs'},
+    'hurs_p95': {'units': '%', 'biasMode': 'abs'},
+    'hurs_p90': {'units': '%', 'biasMode': 'abs'},
+    'hurs_p10': {'units': '%', 'biasMode': 'abs'},
+    'hurs_p5': {'units': '%', 'biasMode': 'abs'},
+    'hurs_p1': {'units': '%', 'biasMode': 'abs'},
+
+    'clt_CLTm': {'units': '%', 'biasMode': 'abs'},
+    'clt_p99': {'units': '%', 'biasMode': 'abs'},
+    'clt_p95': {'units': '%', 'biasMode': 'abs'},
+    'clt_p90': {'units': '%', 'biasMode': 'abs'},
+    'clt_p10': {'units': '%', 'biasMode': 'abs'},
+    'clt_p5': {'units': '%', 'biasMode': 'abs'},
+    'clt_p1': {'units': '%', 'biasMode': 'abs'},
 }
 if myTargetVar != None:
     if myTargetVarIsAdditive == True:

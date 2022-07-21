@@ -148,32 +148,32 @@ def daily_boxplots(metric, by_season):
                         if not os.path.exists(pathOut):
                             os.makedirs(pathOut)
 
-                        if metric == 'correlation':
-                            units = ''
-                        elif metric == 'variance':
-                            units = '%'
-                        elif metric == 'rmse':
-                            units = predictands_units[targetVar]
 
                         fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
                         medianprops = dict(color="black")
                         g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
-                        # plt.ylim((-.2, 1))
                         # fill with colors
                         i = 0
                         color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
                         for patch in g['boxes']:
                             patch.set_facecolor(color[i])
                             i += 1
+
                         if metric == 'correlation':
-                            title = ' '.join((targetVar, metric, season))
+                            units = ''
+                            # title = ' '.join((targetVar, metric, season))
+                            title = targetVar
+                            plt.ylim((0, 1))
                         elif metric == 'variance':
-                            title = ' '.join((targetVar, 'bias', metric, season))
+                            units = '%'
+                            # title = ' '.join((targetVar, 'bias', metric, season))
+                            title = targetVar
                         elif metric == 'rmse':
-                            title = ' '.join((targetVar, metric, season))
-                            # title = targetVar
-                        # plt.title(title, fontsize=20)
-                        plt.title(title)
+                            units = predictands_units[targetVar]
+                            # title = ' '.join((targetVar, metric, season))
+                            title = targetVar
+                        plt.title(title, fontsize=20)
+                        # plt.title(title)
                         plt.ylabel(units, rotation=90)
                         ax.set_xticklabels(names, rotation=90)
                         if metric == 'variance':
@@ -279,11 +279,14 @@ def climdex_boxplots(by_season):
                             # if biasMode == 'rel':
                             #     plt.ylim((-100, 100))
                             if climdex_name == 'FWI90p':
-                                plt.ylim((-60, 60))
+                                plt.ylim((-20, 100))
                             # title = ' '.join((targetVar.upper(), climdex_name, 'bias', season))
                             # plt.title(title)
-                            title = ' '.join((targetVar, climdex_name))
-                            plt.title(title, fontsize=20)
+                            # if apply_bc == False:
+                            #     title = climdex_name
+                            # else:
+                            #     title = climdex_name + '    bias corrected'
+                            plt.title(title, fontsize=16)
                             ax.set_xticklabels(names, rotation=90)
                             plt.hlines(y=0, xmin=-1, xmax=nmethods + 1, linestyles='--', color='grey')
                             plt.ylabel(units, rotation=90)

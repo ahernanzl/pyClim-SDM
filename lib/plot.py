@@ -239,15 +239,15 @@ def area_of_study():
     '''
     Plot regions for different weighting for synoptic analogy
     '''
-    lat_up, lat_down = pred_lat_up + grid_res * 10, pred_lat_down - grid_res * 11
-    lon_left, lon_right = pred_lon_left - grid_res * 15, pred_lon_right + grid_res * 15
+    lat_up, lat_down = pred_lat_up + grid_res * 6, pred_lat_down - grid_res * 6
+    lon_left, lon_right = pred_lon_left - grid_res * 9, pred_lon_right + grid_res * 9
     nlats = int(((lat_up - lat_down) / 1.5) + 1)
     nlons = int(((lon_right - lon_left) / 1.5) + 1)
     lats = np.linspace(lat_up, lat_down, nlats)
     lons = np.linspace(lon_left, lon_right, nlons)
 
     # Define mapç
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
     map = Basemap(llcrnrlon=lons[0] - grid_res, llcrnrlat=lats[-1] - grid_res,
                   urcrnrlon=lons[-1] + grid_res, urcrnrlat=lats[0] + grid_res,
                   projection='merc', resolution='i')
@@ -305,7 +305,7 @@ def area_of_study():
     lats = hres_lats[targetVars[0]]
     lons = hres_lons[targetVars[0]]
     X, Y = list(map(lons, lats))
-    map.scatter(X, Y, c=0 * lats, s=3, cmap='cividis')
+    map.scatter(X, Y, c=0 * lats, s=3, cmap='cividis', marker='s')
     # plt.show()
     # exit()
 
@@ -727,10 +727,10 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                                         'colors': ['g', 'y', 'r'], 'ext': 'max'}})
     # dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 35,
     #                                  'n_bin': 35, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': np.arange(0, 45, 5), 'cmap': 'viridis', 'vmin': None, 'vmax': None,
+    dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': np.arange(0, 90, 20), 'cmap': 'viridis', 'vmin': None, 'vmax': None,
                                      'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'change_FWI90p_spread': {'units': 'days', 'bounds': np.array([0, 2, 5, 10, 20]),
-                                             'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
+    dict.update({'change_FWI90p_spread': {'units': 'days', 'bounds': np.array([0, 10, 20, 30, 40, 50]),
+                                             'cmap': 'Reds', 'vmin': None, 'vmax': None, 'n_bin': None,
                                              'colors': None, 'ext': 'max'}})
 
 
