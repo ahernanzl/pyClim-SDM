@@ -301,29 +301,28 @@ def climdex(by_season=True):
                                 bias[np.isinf(bias)] = np.nan
 
 
-                            #-------------------- Bias maps mean values    -----------------------------------------------------
+                            #-------------------- Bias maps    -----------------------------------------------------
                             if plotAllRegions == False or index == 0:
-                                if climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01', 'R95p'):
 
-                                    palette = targetVar + '_' + climdex_name
-                                    if (biasMode == 'abs'):
-                                        bias_palette = palette + '_bias'
-                                    else:
-                                        bias_palette = palette + '_rel_bias'
+                                palette = targetVar + '_' + climdex_name
+                                if (biasMode == 'abs'):
+                                    bias_palette = palette + '_bias'
+                                else:
+                                    bias_palette = palette + '_rel_bias'
 
-                                    # Plot obs, est and bias (est-obs) maps
-                                    filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, methodName,
-                                                         season))
-                                    title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
-                                    plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION'+bc_sufix, 'estMap', targetVar, climdex_name, methodName,
-                                                         season))
-                                    title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
-                                    plot.map(targetVar, mean_est, palette, path=pathFigures, filename=filename, title=title)
-                                    filename = '_'.join(('EVALUATION'+bc_sufix, 'biasMap', targetVar, climdex_name, methodName,
-                                                         season))
-                                    title = ' '.join((targetVar.upper(), climdex_name, 'bias', methodName, season))
-                                    plot.map(targetVar, bias, bias_palette, path=pathFigures, filename=filename, title=title)
+                                # Plot obs, est and bias (est-obs) maps
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, methodName,
+                                                     season))
+                                title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
+                                plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'estMap', targetVar, climdex_name, methodName,
+                                                     season))
+                                title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
+                                plot.map(targetVar, mean_est, palette, path=pathFigures, filename=filename, title=title)
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'biasMap', targetVar, climdex_name, methodName,
+                                                     season))
+                                title = ' '.join((targetVar.upper(), climdex_name, 'bias', methodName, season))
+                                plot.map(targetVar, bias, bias_palette, path=pathFigures, filename=filename, title=title)
 
                             #-------------------- Scatter plot mean values -----------------------------------------------------
                             m = int(min(np.min(mean_obs), np.min(mean_est)))

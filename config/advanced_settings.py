@@ -34,7 +34,7 @@ interp_mode = 'bilinear'
 
 ###################################     myTargetVar           #################################################
 if 'myTargetVar' not in locals():
-    myTargetVar = None
+    myTargetVar = 'None'
 
 ###################################     predictands           #################################################
 # Predictands have to be between min/max as inputs. Use uint16/uint32 for precipitation depending on your data
@@ -50,7 +50,7 @@ predictands_codification = {
     'hurs': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
     'clt': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
 }
-if myTargetVar != None:
+if myTargetVar != 'None':
     predictands_codification.update(
         {myTargetVar:
              {'type': 'int32', 'min_valid': -21474836.48, 'max_valid': 21474836.46, 'special_value': 21474836.47}}
@@ -68,7 +68,7 @@ predictands_range = {
     'hurs': {'min': 0, 'max': 100},
     'clt': {'min': 0, 'max': 100},
 }
-if myTargetVar != None:
+if myTargetVar != 'None':
     predictands_range.update({myTargetVar: {'min': myTargetVarMinAllowed, 'max': myTargetVarMaxAllowed}})
 
 # Predictands have to be between min/max. Use uint16/uint32 for precipitation depending on your data
@@ -84,7 +84,7 @@ predictands_units = {
     'hurs': '%',
     'clt': '%',
 }
-if myTargetVar != None:
+if myTargetVar != 'None':
     predictands_units.update({myTargetVar: myTargetVarUnits})
 
 ###################################     PSEUDOREALITY    ###########################################################
@@ -132,7 +132,7 @@ anal_corr_th_dict = {
     'hurs': 0.7,
     'clt': 0.7,
 }
-if myTargetVar != None:
+if myTargetVar != 'None':
     anal_corr_th_dict.update({myTargetVar: .5})
 
 min_days_corr = 30  # for analogs pcp significant predictors
@@ -310,7 +310,7 @@ for targetVar in methods:
 methods = methods_list
 del methods_list
 
-if myTargetVar != None:
+if myTargetVar != 'None':
     myTargetVar_methods = [x['methodName'] for x in methods if x['var'] == myTargetVar]
     if myTargetVarIsGaussian == False:
         if 'PSDM' in myTargetVar_methods:
@@ -685,7 +685,7 @@ units_and_biasMode_climdex = {
     'clt_p5': {'units': '%', 'biasMode': 'abs'},
     'clt_p1': {'units': '%', 'biasMode': 'abs'},
 }
-if myTargetVar != None:
+if myTargetVar != 'None':
     if myTargetVarIsAdditive == True:
         biasMode = 'abs'
         units = myTargetVarUnits
@@ -762,4 +762,3 @@ methods_linestyles = {
     'WG-PDF': '-',
     'WG-NMM': '--',
 }
-
