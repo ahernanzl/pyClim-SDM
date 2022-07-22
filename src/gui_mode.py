@@ -352,7 +352,7 @@ class framePredictorsClass(ttk.Frame):
 
         # Levels
         ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
-        ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=10, padx=30); irow+=1
+        ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=0, padx=30); irow+=1
         self.levels = [1000, 850, 700, 500, 250]
         for level in self.levels:
             Label(root,  text=str(level) + " hPa").grid(sticky="E", padx=10,  row=irow, column=icol); irow+=1
@@ -366,8 +366,7 @@ class framePredictorsClass(ttk.Frame):
             pred_dictIn = []
 
         irow -= 1
-        Label(root, text='Predictors').grid(columnspan=10, row=irow, column=icol)
-        irow += 1
+        Label(root, text='Predictors').grid(columnspan=10, row=irow, pady=20, column=icol); irow += 1
         upperAirVars = {'ua': 'Eastward wind component',
                         'va': 'Northward wind component',
                         'ta': 'Temperature',
@@ -460,8 +459,7 @@ class frameMethodsClass(ttk.Frame):
         ttk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0);
         icol += 1;
         irow += 1
-        ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=20, columnspan=3);
-        irow += 1
+        ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(20, 30), columnspan=3); irow += 1
 
         # Raw
         add_method_to_chk_list(self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
@@ -522,7 +520,7 @@ class frameMethodsClass(ttk.Frame):
         # Select/deselect all
         # ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
         frameButons = ttk.Frame(root)
-        frameButons.grid(column=icol, row=irow, padx=10, pady=10, columnspan = 3)
+        frameButons.grid(column=icol, row=irow, padx=10, pady=20, columnspan=3)
         Button(frameButons, text='Select all', command=select_all, width=buttonWidth, takefocus=False).grid(column=0, row=0)
         Button(frameButons, text='Deselect all', command=deselect_all, width=buttonWidth, takefocus=False).grid(column=1, row=0)
 
@@ -544,13 +542,13 @@ class tabTas(ttk.Frame):
 
         # framePredictors
         framePredictors = ttk.Frame(tab)
-        framePredictors.grid(row=irow, column=icol, sticky='N')
+        framePredictors.grid(row=irow, column=icol, sticky='n')
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get(); icol+=1
 
         # frameMethods
         frameMethods = ttk.Frame(tab)
-        frameMethods.grid(row=irow, column=icol, sticky='N')
+        frameMethods.grid(row=irow, column=icol, sticky='n')
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
@@ -572,13 +570,13 @@ class tabPr(ttk.Frame):
 
         # framePredictors
         framePredictors = ttk.Frame(tab)
-        framePredictors.grid(row=irow, column=icol, sticky='N')
+        framePredictors.grid(row=irow, column=icol, sticky='n')
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get(); icol+=1
 
         # frameMethods
         frameMethods = ttk.Frame(tab)
-        frameMethods.grid(row=irow, column=icol, sticky='N')
+        frameMethods.grid(row=irow, column=icol, sticky='n')
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 

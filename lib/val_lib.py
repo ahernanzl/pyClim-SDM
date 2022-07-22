@@ -280,7 +280,7 @@ def climdex_boxplots(by_season):
                             #     plt.ylim((-100, 100))
                             if climdex_name == 'FWI90p':
                                 plt.ylim((-20, 100))
-                            # title = ' '.join((targetVar.upper(), climdex_name, 'bias', season))
+                            title = ' '.join((targetVar.upper(), climdex_name, 'bias', season))
                             # plt.title(title)
                             # if apply_bc == False:
                             #     title = climdex_name

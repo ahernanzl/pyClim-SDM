@@ -44,8 +44,8 @@ def main():
     # preprocess.preprocess()
     # preprocess.train_methods()
     process.downscale()
-    # postprocess.bias_correction()
-    postprocess.get_climdex()
+    postprocess.bias_correction()
+    # postprocess.get_climdex()
     postprocess.plot_results()
     # postprocess.nc2ascii()
 
