@@ -4,8 +4,8 @@ showWelcomeMessage = True # For graphical mode
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
 # experiment = 'PRECONTROL'
-experiment = 'EVALUATION'
-# experiment = 'PROJECTIONS'
+# experiment = 'EVALUATION'
+experiment = 'PROJECTIONS'
 
 ####################################################################################################################
 #                                        METHODS                                                                   #
@@ -1132,15 +1132,15 @@ scene_names_list = [
 
 model_names_list = (
     'ACCESS-CM2_r1i1p1f1',
-    'CanESM5_r1i1p1f1',
+    # 'CanESM5_r1i1p1f1',
     'EC-Earth3_r1i1p1f1',
-    'INM-CM4-8_r1i1p1f1',
-    'INM-CM5-0_r1i1p1f1',
-    'IPSL-CM6A-LR_r1i1p1f1',
+    # 'INM-CM4-8_r1i1p1f1',
+    # 'INM-CM5-0_r1i1p1f1',
+    # 'IPSL-CM6A-LR_r1i1p1f1',
     'MIROC6_r1i1p1f1',
-    'MPI-ESM1-2-HR_r1i1p1f1',
-    'MPI-ESM1-2-LR_r1i1p1f1',
-    'MRI-ESM2-0_r1i1p1f1',
+    # 'MPI-ESM1-2-HR_r1i1p1f1',
+    # 'MPI-ESM1-2-LR_r1i1p1f1',
+    # 'MRI-ESM2-0_r1i1p1f1',
 )
 
 
