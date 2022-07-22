@@ -4,7 +4,8 @@ import shutil
 sys.path.append('../config/')
 from manual_settings import *
 if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py').st_size == 0:
-    shutil.copyfile('../config/manual_settings.py', '../config/settings.py')
+    shutil.copyfile('../config/default_settings.py', '../config/settings.py')
+# shutil.copyfile('../config/default_settings.py', '../config/settings.py')
 from imports import *
 from settings import *
 from advanced_settings import *
@@ -359,7 +360,10 @@ class framePredictorsClass(ttk.Frame):
 
         self.preds = {}
 
-        pred_dictIn = preds_dict[targetVar]
+        try:
+            pred_dictIn = preds_dict[targetVar]
+        except:
+            pred_dictIn = []
 
         irow -= 1
         Label(root, text='Predictors').grid(columnspan=10, row=irow, column=icol)

@@ -37,7 +37,7 @@ import write
 
 ########################################################################################################################
 def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid=True, calendar='gregorian', level=None,
-		   lat_name='lat', lon_name='lon', time_name='time'):
+		   level_name='level', lat_name='lat', lon_name='lon', time_name='time'):
 	"""
 	This function writes data to netCDF file.
 	"""
@@ -51,7 +51,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	fileNc.createDimension(lat_name, len(lats))
 	fileNc.createDimension(lon_name, len(lons))
 	if level != None:
-		fileNc.createDimension('level', 1)
+		fileNc.createDimension(level_name, 1)
 
 	# # Create time variable
 	times = [datetime.datetime(dates[i].year, dates[i].month,dates[i].day)+datetime.timedelta(hours=12)
@@ -75,7 +75,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 		if level == None:
 			var = fileNc.createVariable(varName, 'f4', (time_name, lat_name, lon_name,))
 		else:
-			var = fileNc.createVariable(varName, 'f4', (time_name, 'level', lat_name, lon_name,))
+			var = fileNc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
 		var = fileNc.createVariable(varName, 'f4', (time_name, lat_name))
 	var.units = units

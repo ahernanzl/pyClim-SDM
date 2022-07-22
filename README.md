@@ -36,11 +36,11 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - **ANA-VAR**: Same as ANA-SYN but using the spatial pattern of the target variable itself.
 ### Linear:
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
-- **ANA-MLR**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
+- **MLR-ANA**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
 - **MLR-WT**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
-- **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential and **CUB** for cubic regression). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002),
+- **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential and **CUB** for cubic regression). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
 ### Machine Learning:
-- **SVM**: Support Vector Machine. Non-linear machine learning regression. See Hernanz *et al.* (2021).
+- **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
 - **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
 - **RF**: Random Forest. Non-linear machine learning classification/regression. 
 - **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression.  
