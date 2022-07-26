@@ -454,10 +454,7 @@ class frameTargetVarInfoClass(ttk.Frame):
         irow = 0
         entriesW = 17
 
-        self.chk = {'hresPeriodFilename': tk.StringVar(),
-                    'reaName': tk.StringVar(),
-                    'modName': tk.StringVar(),
-                    }
+        self.chk = {'hresPeriodFilename': tk.StringVar()}
 
 
         try:
@@ -468,6 +465,8 @@ class frameTargetVarInfoClass(ttk.Frame):
         if isMyTargetVar == True:
             self.chk.update({
                     'myTargetVarName': tk.StringVar(),
+                    'reaName': tk.StringVar(),
+                    'modName': tk.StringVar(),
                     'myTargetVarMinAllowed': tk.StringVar(),
                     'myTargetVarMaxAllowed': tk.StringVar(),
                     'myTargetVarUnits': tk.StringVar(),
@@ -486,25 +485,25 @@ class frameTargetVarInfoClass(ttk.Frame):
                 myTargetVarName_Entry.insert(END, '')
             myTargetVarName_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
-        # reaName
-        try:
-            reaName = reaNames[targetVar]
-        except:
-            reaName = ''
-        Label(root, text='Name in reanalysis netCDF:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        reaName_Entry = tk.Entry(root, textvariable=self.chk['reaName'], width=entriesW, justify='right', takefocus=False)
-        reaName_Entry.insert(END, reaName)
-        reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
+            # reaName
+            try:
+                reaName = reaNames[targetVar]
+            except:
+                reaName = ''
+            Label(root, text='Name in reanalysis netCDF:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            reaName_Entry = tk.Entry(root, textvariable=self.chk['reaName'], width=entriesW, justify='right', takefocus=False)
+            reaName_Entry.insert(END, reaName)
+            reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
 
-        # modName
-        try:
-            modName = modNames[targetVar]
-        except:
-            modName = ''
-        Label(root, text='Name in models netCDFs:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        modName_Entry = tk.Entry(root, textvariable=self.chk['modName'], width=entriesW, justify='right', takefocus=False)
-        modName_Entry.insert(END, modName)
-        modName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
+            # modName
+            try:
+                modName = modNames[targetVar]
+            except:
+                modName = ''
+            Label(root, text='Name in models netCDFs:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            modName_Entry = tk.Entry(root, textvariable=self.chk['modName'], width=entriesW, justify='right', takefocus=False)
+            modName_Entry.insert(END, modName)
+            modName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
 
 
         # hresPeriodFilename
@@ -1623,42 +1622,67 @@ class tabDomain(ttk.Frame):
                                      'this domain plus a border of one grid box width.', justify=LEFT)
         lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
 
-
-        
-        
-        
         # reaNames and modNames
         irow, icol = 0, 0
         ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=0, ); irow+=1
         ttk.Label(frameVarNames, text='Define variable names in netCDF files:')\
             .grid(column=icol, row=irow, pady=10, columnspan=13); irow += 1
-        ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow+=1
-        ttk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow+=1
-        ttk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10,); irow+=1
-        icol+=1; irow-=3
 
         # reaNames and modNames
         self.reaNames = {}
         self.modNames = {}
-        for var in reaNames:
-            if var not in all_possible_targetVars:
-                lab = ttk.Label(frameVarNames, text=var)
-                # CreateToolTip(lab, info)
-                lab.grid(sticky="E", column=icol, row=irow); irow+=1
+        ncols = 13
+        all_vars = {
+                'tasmax': 'Surface maximum temperature',
+                'tasmin': 'Surface minimum temperature',
+                'tas': 'Surface mean temperature',
+                'pr': 'Precipitation',
+                'uas': 'Surface zonal wind component',
+                'vas': 'Surface meridional wind component',
+                'sfcWind': 'Surface wind speed',
+                'hurs': 'Surface relative humidity',
+                'clt': 'Cloud cover',
+                'tdps': 'Surface dewpoint',
+                'ps': 'Surface pressure',
+                'huss': 'Surface specific humidity',
+                'ua': 'Zonal wind',
+                'va': 'Meridional wind',
+                'ta': 'Temperature',
+                'zg': 'Geopotential',
+                'hus': 'Specific humidity',
+                'hur': 'Relative humidity',
+                'td': 'Dew point',
+                'psl': 'Mean sea level pressure',
+        }
+        for var in all_vars:
 
-                reaName = reaNames[var]
-                self.reaName_var = tk.StringVar()
-                reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
-                reaName_Entry.insert(END, reaName)
-                reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
-                self.reaNames.update({var: self.reaName_var})
+            if icol == 0:
+                ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow += 1
+                ttk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
+                ttk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
+                icol += 1; irow -= 3
 
-                modName = modNames[var]
-                self.modName_var = tk.StringVar()
-                modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
-                modName_Entry.insert(END, modName)
-                modName_Entry.grid(sticky="W", column=icol, row=irow); icol+=1; irow-=2
-                self.modNames.update({var: self.modName_var})
+            lab = ttk.Label(frameVarNames, text=var)
+            CreateToolTip(lab, all_vars[var])
+            lab.grid(sticky="E", column=icol, row=irow, pady=(10, 0)); irow+=1
+
+            reaName = reaNames[var]
+            self.reaName_var = tk.StringVar()
+            reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
+            reaName_Entry.insert(END, reaName)
+            reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
+            self.reaNames.update({var: self.reaName_var})
+
+            modName = modNames[var]
+            self.modName_var = tk.StringVar()
+            modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
+            modName_Entry.insert(END, modName)
+            modName_Entry.grid(sticky="W", column=icol, row=irow); irow-=2
+            self.modNames.update({var: self.modName_var})
+            icol +=1
+            if icol == ncols:
+                irow+=3; icol-=ncols
+
 
         # SAFs
         self.SAFs = []
@@ -1683,9 +1707,13 @@ class tabDates(ttk.Frame):
         frameDates = Frame(tabDates)
         frameDates.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
 
+        # frameBiasCorrection
+        frameBiasCorrection = Frame(tabDates)
+        frameBiasCorrection.grid(sticky="W", column=0, row=1, padx=padx, pady=10)
+
         # frameSplitMode
         frameSplitMode = Frame(tabDates)
-        frameSplitMode.grid(sticky="W", column=0, row=1, padx=padx, pady=10)
+        frameSplitMode.grid(sticky="W", column=0, row=2, padx=padx, pady=10)
 
         # framePeriodFilenames
         framePeriodFilenames = Frame(tabDates)
@@ -1693,7 +1721,7 @@ class tabDates(ttk.Frame):
 
         # frameSeasons
         frameSeasons = Frame(tabDates)
-        frameSeasons.grid(sticky="W", column=1, row=1, padx=padx, pady=10, rowspan=2)
+        frameSeasons.grid(sticky="W", column=1, row=2, padx=padx, pady=10, rowspan=2)
 
 
         icol, irow = 0, 0
@@ -1737,15 +1765,16 @@ class tabDates(ttk.Frame):
                 self.ssp_years = (firstYear_var, lastYear_var)
             icol -= 2
 
-        # Model Output Statistics
+        # Bias correction
+        irow, icol = 0, 0
         self.bc_option = StringVar()
         bc_options = {
             'No': 'Do not apply bias correction after downscaling.',
             'Yes': 'Apply bias correction after downscaling.',
             'By season': 'Apply a customized bias correction after downscaling for each season.',
         }
-        Label(frameDates, text='').grid(sticky="E", column=icol, row=irow, padx=3, pady=5, columnspan=3); irow+=1
-        Label(frameDates, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=5, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
         if apply_bc == False:
             last_bc_opt = 'No'
         elif apply_bc_bySeason == False:
@@ -1753,8 +1782,8 @@ class tabDates(ttk.Frame):
         else:
             last_bc_opt = 'By season'
         for bc_opt in bc_options:
-            c = Radiobutton(frameDates, text=bc_opt, variable=self.bc_option, value=bc_opt, takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=3); irow+=1
+            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); icol+=1
             CreateToolTip(c, bc_options[bc_opt])
             self.bc_option.set(last_bc_opt)
 
@@ -1892,12 +1921,12 @@ class tabDates(ttk.Frame):
 
 
 ########################################################################################################################
-class tabVisualization(ttk.Frame):
+class tabFigures(ttk.Frame):
 
 
     def __init__(self, notebook):
-        tabVisualization = ttk.Frame(notebook)
-        notebook.add(tabVisualization, text='Visualization')
+        tabFigures = ttk.Frame(notebook)
+        notebook.add(tabFigures, text='Figures')
 
         def open_figure(imgs):
 
@@ -1932,7 +1961,7 @@ class tabVisualization(ttk.Frame):
 
 
         # frameFigSelection
-        frameFigSelection = Frame(tabVisualization, height=510, width=1140)
+        frameFigSelection = Frame(tabFigures, height=510, width=1140)
         frameFigSelection.grid(sticky="W", column=0, row=0, padx=0, pady=0)
         frameFigSelection.grid_propagate(False)
 
@@ -2192,7 +2221,7 @@ class tabVisualization(ttk.Frame):
 
         global imgs
         imgs = []
-        Button(tabVisualization, text="Open figure", width=10,
+        Button(tabFigures, text="Open figure", width=10,
                command=lambda: open_figure(imgs), takefocus=False).grid(sticky="SE", column=1, row=1)
 
 
@@ -2223,9 +2252,22 @@ class selectionWindow():
         # Tab: run
         self.experiment_chk, self.steps_dict, self.all_steps = tabSteps(notebook, root).get()
 
-        self.targetVars = {}
+        # Tab: models
+        self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
+            self.reanalysisName_var_chk = tabModelsAndScenes(notebook).get()
+
+        # Tab: dates
+        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
+            self.testing_years_dict_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
+            self.sspPeriodFilename_var_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
+
+        # Tab: domain
+        self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, self.saf_lon_right_var_chk, \
+            self.saf_lat_down_var_chk, self.reaNames, self.modNames, self.SAFs = tabDomain(notebook).get()
+
 
         # Tab: targetVars
+        self.targetVars = {}
         aux = tabTasmax(notebook).get()
         self.targetVars.update({'tasmax': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
         aux = tabTasmin(notebook).get()
@@ -2247,6 +2289,8 @@ class selectionWindow():
         aux = tabMyTargetVar(notebook).get()
         self.targetVars.update({'myTargetVar': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
 
+        # Tab: visualization
+        tabFigures(notebook)
 
         def run():
             root.destroy()
@@ -2266,22 +2310,6 @@ class selectionWindow():
                 print(preds)
                 print(hresPeriodFilename, reaName, modName)
                 print(climdex)
-
-        # Tab: models
-        self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
-            self.reanalysisName_var_chk = tabModelsAndScenes(notebook).get()
-
-        # Tab: dates
-        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
-            self.testing_years_dict_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
-            self.sspPeriodFilename_var_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
-
-        # Tab: domain
-        self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, self.saf_lon_right_var_chk, \
-            self.saf_lat_down_var_chk, self.reaNames, self.modNames, self.SAFs = tabDomain(notebook).get()
-
-        # Tab: visualization
-        tabVisualization(notebook)
 
         # Logo
         w = 120
