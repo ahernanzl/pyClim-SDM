@@ -132,7 +132,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
             # For precipitation or non gaussian customized target variables
             # if targetVar == 'pr':
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsMultiplicativeBy_DQM_and_QDM == True):
+            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
 
                 # Treat zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
@@ -227,7 +227,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
 
             # Treat zeros
             # if targetVar == 'pr':
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsMultiplicativeBy_DQM_and_QDM == True):
+            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
@@ -238,7 +238,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
 
             # Calculate and apply delta correction
             # For precipitation or non gaussian customized target variables
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsMultiplicativeBy_DQM_and_QDM == True):
+            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
             # if targetVar == 'pr':
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
