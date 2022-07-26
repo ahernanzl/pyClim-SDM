@@ -20,7 +20,7 @@ targetVars = [
     # 'sfcWind',
     # 'hurs',
     # 'clt',
-    # 'myTargetVar',
+    'myTargetVar',
 ]
 
 ####################################################################################################################
@@ -275,8 +275,8 @@ methods = {
         # 'RAW-BIL',
         # 'QM',
         # 'DQM',
-        'QDM',
-        # 'PSDM',
+        # 'QDM',
+        'PSDM',
         'ANA-SYN-1NN',
         # 'ANA-SYN-kNN',
         # 'ANA-SYN-rand',
@@ -295,7 +295,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
-        # 'WG-PDF',
+        'WG-PDF',
     ],
 }
 
@@ -361,13 +361,13 @@ reaNames = {'ua': 'u', 'va': 'v', 'ta': 't', 'zg': 'z', 'hus': 'q', 'hur': 'r', 
             'psl': 'msl', 'tdps': 'd2m', 'ps': 'sp',
             'tasmax': 'mx2t', 'tasmin': 'mn2t', 'tas': 't2m',
             'pr': 'tp', 'uas': 'u10', 'vas': 'v10', 'sfcWind': '-',
-            'hurs': '-', 'huss': '-', 'clt': 'tcc', 'myTargetVar': 'fwi'}
+            'hurs': '-', 'huss': '-', 'clt': 'tcc', 'myTargetVar': 'thermalAmplitude'}
 
 modNames = {'ua': 'ua', 'va': 'va', 'ta': 'ta', 'zg': 'zg', 'hus': 'hus', 'hur': 'hur', 'td': '-',
             'psl': 'psl', 'tdps': 'tdps', 'ps': 'ps',
             'tasmax': 'tasmax', 'tasmin': 'tasmin', 'tas': 'tas',
             'pr': 'pr', 'uas': 'uas', 'vas': 'vas', 'sfcWind': 'sfcWind',
-            'hurs': 'hurs', 'huss': 'huss', 'clt': 'clt', 'myTargetVar': 'fwi'}
+            'hurs': 'hurs', 'huss': 'huss', 'clt': 'clt', 'myTargetVar': 'thermalAmplitude'}
 
 preds_targetVars_dict = {
     'tasmax': [
@@ -1073,35 +1073,35 @@ preds_targetVars_dict = {
         # 'LI_index',         # Lifted index
     ],
     'myTargetVar': [
-        # 'tasmax',             # maximum daily temperature
-        # 'tasmin',             # minimum daily temperature
+        'tasmax',             # maximum daily temperature
+        'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
-        'psl',             # mean sea level pressure
+        # 'psl',             # mean sea level pressure
         # 'psl_trend',       # mean sea level trend from last day (derivedFrom mslp)
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
-        'uas',              # surface wind
-        'vas',              # surface wind
-        'sfcWind',              # surface wind speed
-        'tas',              # surface temperature
+        # 'uas',              # surface wind
+        # 'vas',              # surface wind
+        # 'sfcWind',              # surface wind speed
+        # 'tas',              # surface temperature
         # 'tdps',              # surface dew point
         # 'huss',              # surface specific humidity
-        'hurs',              # surface relative humidity
+        # 'hurs',              # surface relative humidity
         # 'ua1000',            # wind at pressure levels
-        'ua850',             # wind at pressure levels
+        # 'ua850',             # wind at pressure levels
         # 'ua700',             # wind at pressure levels
-        'ua500',             # wind at pressure levels
+        # 'ua500',             # wind at pressure levels
         # 'ua250',             # wind at pressure levels
         # 'va1000',            # wind at pressure levels
-        'va850',             # wind at pressure levels
+        # 'va850',             # wind at pressure levels
         # 'va700',             # wind at pressure levels
-        'va500',             # wind at pressure levels
+        # 'va500',             # wind at pressure levels
         # 'va250',             # wind at pressure levels
         # 'ta1000',            # temperature at pressure levels
-        'ta850',             # temperature at pressure levels
+        # 'ta850',             # temperature at pressure levels
         # 'ta700',             # temperature at pressure levels
-        'ta500',             # temperature at pressure levels
+        # 'ta500',             # temperature at pressure levels
         # 'ta250',             # temperature at pressure levels
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
@@ -1114,9 +1114,9 @@ preds_targetVars_dict = {
         # 'hus500',             # specifit humidity at pressure levels
         # 'hus250',             # specifit humidity at pressure levels
         # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
-        'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
         # 'hur700',             # relative humidity at pressure levels (derived from t and q)
-        'hur500',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur500',             # relative humidity at pressure levels (derived from t and q)
         # 'hur250',             # relative humidity at pressure levels (derived from t and q)
         # 'td1000',           # dew point at pressure levels (derived from q)
         # 'td850',            # dew point at pressure levels (derived from q)
@@ -1430,21 +1430,21 @@ climdex_names = {
         'CLTm',
     ),
     'myTargetVar': (
-        # 'm',
-        # 'x',
-        # 'n',
+        'm',
+        'x',
+        'n',
         # 'p99',
         # 'p95',
         # 'p90',
         # 'p10',
         # 'p5',
         # 'p1',
-        '99p_days',
-        '95p_days',
-        '90p_days',
-        '10p_days',
-        '5p_days',
-        '1p_days',
+        # '99p_days',
+        # '95p_days',
+        # '90p_days',
+        # '10p_days',
+        # '5p_days',
+        # '1p_days',
     ),
     }
 
@@ -1481,22 +1481,19 @@ bc_method = 'QM'
 # bc_method = 'PSDM'
 
 
-
-
-
 ###################################     myTargetVar           #################################################
-myTargetVarName = 'fwi'
+myTargetVarName = 'thermalAmplitude'
 
 # Define myTargetVar min and max allowed values
 myTargetVarMinAllowed = 0
 myTargetVarMaxAllowed = None
-myTargetVarUnits = ''
+myTargetVarUnits = 'degrees'
 
 # Define whether myTargetVar can be treated as gaussian
-myTargetVarIsGaussian = False
+myTargetVarIsGaussian = True
 
 # Define whether myTargetVar should be treated as an additive of multiplicative variable
 myTargetVarIsAdditive = True
 
 # Define whether apply bias correction as for precipitation (multiplicative correction)
-treatAsAdditiveBy_DQM_and_QDM = False
+treatAsAdditiveBy_DQM_and_QDM = True

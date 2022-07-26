@@ -1428,21 +1428,21 @@ climdex_names = {
         'CLTm',
     ),
     'myTargetVar': (
-        # 'm',
-        # 'x',
-        # 'n',
+        'm',
+        'x',
+        'n',
         # 'p99',
         # 'p95',
         # 'p90',
         # 'p10',
         # 'p5',
         # 'p1',
-        '99p_days',
-        '95p_days',
-        '90p_days',
-        '10p_days',
-        '5p_days',
-        '1p_days',
+        # '99p_days',
+        # '95p_days',
+        # '90p_days',
+        # '10p_days',
+        # '5p_days',
+        # '1p_days',
     ),
     }
 
@@ -1478,19 +1478,20 @@ bc_method = 'QM'
 # bc_method = 'PSDM'
 
 
+
 ###################################     myTargetVar           #################################################
-myTargetVarName = 'fwi'
+myTargetVarName = 'thermalAmplitude'
 
 # Define myTargetVar min and max allowed values
 myTargetVarMinAllowed = 0
 myTargetVarMaxAllowed = None
-myTargetVarUnits = ''
+myTargetVarUnits = 'degrees'
 
 # Define whether myTargetVar can be treated as gaussian
-myTargetVarIsGaussian = False
+myTargetVarIsGaussian = True
 
 # Define whether myTargetVar should be treated as an additive of multiplicative variable
 myTargetVarIsAdditive = True
 
 # Define whether apply bias correction as for precipitation (multiplicative correction)
-treatAsAdditiveBy_DQM_and_QDM = False
+treatAsAdditiveBy_DQM_and_QDM = True

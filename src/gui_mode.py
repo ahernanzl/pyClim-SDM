@@ -391,9 +391,9 @@ class framePredictorsClass(ttk.Frame):
 
         irow -= 1
         if targetVar == 'SAFs':
-            Label(root, text='Synoptic Analogy Fields').grid(columnspan=10, row=irow, pady=(20, 10), column=icol); irow += 1
+            Label(root, text='Synoptic Analogy Fields').grid(columnspan=10, row=irow, pady=(10, 10), column=icol); irow += 1
         else:
-            Label(root, text='Predictors').grid(columnspan=10, row=irow, pady=(20, 10), column=icol); irow += 1
+            Label(root, text='Predictors').grid(columnspan=10, row=irow, pady=(10, 10), column=icol); irow += 1
         upperAirVars = {'ua': 'Eastward wind component',
                         'va': 'Northward wind component',
                         'ta': 'Temperature',
@@ -417,7 +417,7 @@ class framePredictorsClass(ttk.Frame):
 
         Label(root, text="").grid(sticky="W", padx=20, row=irow, column=icol); icol += 1
 
-        irow += 6
+        irow += 5
         icol -= 11
 
         singleLevelVars = {
@@ -438,8 +438,8 @@ class framePredictorsClass(ttk.Frame):
         nrows = 0
         for pred in singleLevelVars:
             irow, icol, nrows = add_chk_bt_singleLevels(self.preds, pred, irow, icol, nrows)
-        irow -= 7
-        icol += 11
+        irow += 2
+        ttk.Label(root, text='').grid(column=icol, row=irow, pady=5)
 
     def get(self):
         return self.preds
@@ -476,14 +476,15 @@ class frameTargetVarInfoClass(ttk.Frame):
                     'myTargetVarIsAdditive': tk.StringVar(),
                     })
 
-        # hresPeriodFilename
-        Label(root, text='Hres period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        hresPeriodFilename_Entry = tk.Entry(root, textvariable=self.chk['hresPeriodFilename'], width=entriesW, justify='right', takefocus=False)
-        try:
-            hresPeriodFilename_Entry.insert(END, hresPeriodFilename[targetVar])
-        except:
-            hresPeriodFilename_Entry.insert(END, '')
-        hresPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+        if isMyTargetVar == True:
+            # myTargetVarName
+            Label(root, text='Name:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            myTargetVarName_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarName'], width=entriesW, justify='right', takefocus=False)
+            try:
+                myTargetVarName_Entry.insert(END, str(myTargetVarName))
+            except:
+                myTargetVarName_Entry.insert(END, '')
+            myTargetVarName_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
         # reaName
         try:
@@ -506,15 +507,17 @@ class frameTargetVarInfoClass(ttk.Frame):
         modName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
 
 
+        # hresPeriodFilename
+        Label(root, text='Hres period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+        hresPeriodFilename_Entry = tk.Entry(root, textvariable=self.chk['hresPeriodFilename'], width=entriesW, justify='right', takefocus=False)
+        try:
+            hresPeriodFilename_Entry.insert(END, hresPeriodFilename[targetVar])
+        except:
+            hresPeriodFilename_Entry.insert(END, '')
+        hresPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+
+
         if isMyTargetVar == True:
-            # myTargetVarName
-            Label(root, text='Name:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            myTargetVarName_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarName'], width=entriesW, justify='right', takefocus=False)
-            try:
-                myTargetVarName_Entry.insert(END, str(myTargetVarName))
-            except:
-                myTargetVarName_Entry.insert(END, '')
-            myTargetVarName_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
             # myTargetVarMinAllowed
             Label(root, text='Minimum value:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
@@ -620,7 +623,7 @@ class frameMethodsClass(ttk.Frame):
         self.chk_list = []
 
         ttk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0); icol += 1; irow += 1
-        ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(20, 10), columnspan=3); irow += 1
+        ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
 
         # Raw
         add_method_to_chk_list(self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
@@ -813,7 +816,7 @@ class frameClimdexClass(ttk.Frame):
             'clt': {
                 'CLTm': 'Mean cloud cover',
             },
-            'myTargetVar': {
+            myTargetVar: {
                 'm': 'Mean value',
                 'x': 'Maximum value',
                 'n': 'Minimum value',
@@ -833,7 +836,7 @@ class frameClimdexClass(ttk.Frame):
         irow, icol = 0, 0
 
         ttk.Label(root, text="").grid(column=icol, row=irow, padx=30, pady=0); icol += 1; irow += 1
-        ttk.Label(root, text='Climdex') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(20, 10), columnspan=3); irow += 1
+        ttk.Label(root, text='Climdex') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
 
         nrows = 1
         colJumps = 0
@@ -1370,7 +1373,6 @@ class tabMyTargetVar(ttk.Frame):
             targetVar = myTargetVar
         except:
             targetVar = 'myTargetVar'
-
 
         frames = []
 
