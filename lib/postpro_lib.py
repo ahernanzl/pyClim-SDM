@@ -48,17 +48,17 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
         print(climdex_name)
 
         # Get percentile calendars
-        if climdex_name in ('TX90p', 'TN90p', 'WSDI', myTargetVar.upper()+'90p'):
+        if climdex_name in ('TX90p', 'TN90p', 'WSDI', '90p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90)
-        elif climdex_name in ('TX99p', 'TN99p', myTargetVar.upper()+'99p'):
+        elif climdex_name in ('TX99p', 'TN99p', '99p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 99)
-        elif climdex_name in ('TX95p', 'TN95p', myTargetVar.upper()+'95p'):
+        elif climdex_name in ('TX95p', 'TN95p', '95p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 95)
-        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', myTargetVar.upper()+'10p'):
+        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', '10p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10)
-        elif climdex_name in ('TX1p', 'TN1p', myTargetVar.upper()+'1p'):
+        elif climdex_name in ('TX1p', 'TN1p', '1p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 1)
-        elif climdex_name in ('TX5p', 'TN5p', myTargetVar.upper()+'5p'):
+        elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 5)
         elif climdex_name in ('R95p', 'R95pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
@@ -238,23 +238,23 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
         # Calculate climdex for iyear
         if climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
             results.append(np.nanpercentile(data_year, int(climdex_name[1:]), axis=0))
-        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'CLTm', myTargetVarStr.upper()+'m'):
+        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'CLTm', 'm'):
             results.append(np.nanmean(data_year, axis=0))
-        elif climdex_name in ('TX90p', 'TN90p', myTargetVarStr.upper()+'90p'):
+        elif climdex_name in ('TX90p', 'TN90p', '90p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX99p', 'TN99p', myTargetVarStr.upper()+'99p'):
+        elif climdex_name in ('TX99p', 'TN99p', '99p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX95p', 'TN95p', myTargetVarStr.upper()+'95p'):
+        elif climdex_name in ('TX95p', 'TN95p', '95p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX10p', 'TN10p', myTargetVarStr.upper()+'10p'):
+        elif climdex_name in ('TX10p', 'TN10p', '10p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TX1p', 'TN1p', myTargetVarStr.upper()+'1p'):
+        elif climdex_name in ('TX1p', 'TN1p', '1p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TX5p', 'TN5p', myTargetVarStr.upper()+'5p'):
+        elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', myTargetVarStr.upper()+'x'):
+        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'x'):
             results.append(np.nanmax(data_year, axis=0))
-        elif climdex_name in ('TXn', 'TNn', 'Tn', myTargetVarStr.upper()+'n'):
+        elif climdex_name in ('TXn', 'TNn', 'Tn', 'n'):
             results.append(np.nanmin(data_year, axis=0))
         elif climdex_name == 'WSDI':
             results.append(get_spell_duration(data_year > aux, climdex_name))

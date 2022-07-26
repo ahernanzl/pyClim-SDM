@@ -32,11 +32,28 @@ if running_at_HPC == False:
 # interp_mode = 'nearest'
 interp_mode = 'bilinear'
 
-###################################     myTargetVar           #################################################
-if 'myTargetVar' not in locals():
-    myTargetVar = 'None'
 
 ###################################     predictands           #################################################
+all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'sfcWind', 'hurs', 'clt']
+
+###################################     myTargetVar           #################################################
+if 'myTargetVar' in targetVars:
+    myTargetVar = myTargetVarName
+
+    targetVars.remove('myTargetVar')
+    targetVars.append(myTargetVar)
+
+    # Define myTargetVar reaNames and modNames
+    reaNames.update({myTargetVar: myTargetVar})
+    modNames.update({myTargetVar: myTargetVar})
+
+    methods[myTargetVar] = methods.pop('myTargetVar')
+    hresPeriodFilename[myTargetVar] = hresPeriodFilename.pop('myTargetVar')
+    preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
+    climdex_names[myTargetVar] = climdex_names.pop('myTargetVar')
+    climdex_names[myTargetVar] = [x.replace('MYTARGETVAR', myTargetVar.upper()) for x in climdex_names[myTargetVar]]
+
+
 # Predictands have to be between min/max as inputs. Use uint16/uint32 for precipitation depending on your data
 predictands_codification = {
     'tasmax': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
@@ -50,7 +67,7 @@ predictands_codification = {
     'hurs': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
     'clt': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
 }
-if myTargetVar != 'None':
+if 'myTargetVar' in targetVars:
     predictands_codification.update(
         {myTargetVar:
              {'type': 'int32', 'min_valid': -21474836.48, 'max_valid': 21474836.46, 'special_value': 21474836.47}}
@@ -68,7 +85,7 @@ predictands_range = {
     'hurs': {'min': 0, 'max': 100},
     'clt': {'min': 0, 'max': 100},
 }
-if myTargetVar != 'None':
+if 'myTargetVar' in targetVars:
     predictands_range.update({myTargetVar: {'min': myTargetVarMinAllowed, 'max': myTargetVarMaxAllowed}})
 
 # Predictands have to be between min/max. Use uint16/uint32 for precipitation depending on your data
@@ -84,7 +101,7 @@ predictands_units = {
     'hurs': '%',
     'clt': '%',
 }
-if myTargetVar != 'None':
+if 'myTargetVar' in targetVars:
     predictands_units.update({myTargetVar: myTargetVarUnits})
 
 ###################################     PSEUDOREALITY    ###########################################################
@@ -132,7 +149,7 @@ anal_corr_th_dict = {
     'hurs': 0.7,
     'clt': 0.7,
 }
-if myTargetVar != 'None':
+if 'myTargetVar' in targetVars:
     anal_corr_th_dict.update({myTargetVar: .5})
 
 min_days_corr = 30  # for analogs pcp significant predictors
@@ -310,7 +327,7 @@ for targetVar in methods:
 methods = methods_list
 del methods_list
 
-if myTargetVar != 'None':
+if 'myTargetVar' in targetVars:
     myTargetVar_methods = [x['methodName'] for x in methods if x['var'] == myTargetVar]
     if myTargetVarIsGaussian == False:
         if 'PSDM' in myTargetVar_methods:
@@ -369,22 +386,6 @@ nsaf = len(saf_dict)
 
 ###########################################   PREDICTORS  ###############################################################
 
-
-# Detect targetVars depending on selected methods
-all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'sfcWind', 'hurs', 'clt', ]
-try:
-    all_possible_targetVars.append(myTargetVar)
-except:
-    pass
-
-targetVars = []
-for var in all_possible_targetVars:
-    for method in methods:
-        # if method['var'] == var and 'var' in method['fields'] and var not in targetVars:
-        if method['var'] == var and var not in targetVars:
-            targetVars.append(var)
-
-
 preds_dict = {}
 for targetVar in targetVars:
     preds_dict.update({targetVar: {}})
@@ -427,14 +428,14 @@ if 'pr' in all_preds.keys():
     print('This is not advisable and can lead to poor performance of Transfer Function methods.')
     print('---------------------------------------------------------------')
 
-# Check for consistency between predictors and methods
-for var in all_possible_targetVars:
-    if (var in targetVars) and (len(preds_targetVars_dict[var]) == 0) and (experiment != 'PRECONTROL'):
-        print('-----------------------------------------------')
-        print('Inconsistency found between preditors and methods selection.')
-        print('Your selection includes some methods for ' + var + ' but no predictor has been selected')
-        print('-----------------------------------------------')
-        exit()
+# # Check for consistency between predictors and methods
+# for var in all_possible_targetVars:
+#     if (var in targetVars) and (len(preds_targetVars_dict[var]) == 0) and (experiment != 'PRECONTROL'):
+#         print('-----------------------------------------------')
+#         print('Inconsistency found between preditors and methods selection.')
+#         print('Your selection includes some methods for ' + var + ' but no predictor has been selected')
+#         print('-----------------------------------------------')
+#         exit()
 
 # Force at least one predictor
 for targetVar in targetVars:
@@ -685,7 +686,7 @@ units_and_biasMode_climdex = {
     'clt_p5': {'units': '%', 'biasMode': 'abs'},
     'clt_p1': {'units': '%', 'biasMode': 'abs'},
 }
-if myTargetVar != 'None':
+if 'myTargetVar' in targetVars:
     if myTargetVarIsAdditive == True:
         biasMode = 'abs'
         units = myTargetVarUnits
@@ -693,7 +694,11 @@ if myTargetVar != 'None':
         biasMode = 'rel'
         units = '%'
     for climdex in climdex_names[myTargetVar]:
-        units_and_biasMode_climdex.update({myTargetVar + '_' + climdex: {'units': units, 'biasMode': biasMode}})
+        if climdex[-1] == 'p':
+            newUnits = 'days'
+        else:
+            newUnits = units
+        units_and_biasMode_climdex.update({myTargetVar + '_' + climdex: {'units': newUnits, 'biasMode': biasMode}})
 
 # ####################  COLORS AND STYLES    #####################################################
 
