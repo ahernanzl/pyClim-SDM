@@ -275,8 +275,8 @@ methods = {
         # 'RAW-BIL',
         # 'QM',
         # 'DQM',
-        # 'QDM',
-        'PSDM',
+        'QDM',
+        # 'PSDM',
         'ANA-SYN-1NN',
         # 'ANA-SYN-kNN',
         # 'ANA-SYN-rand',
@@ -295,7 +295,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
-        'WG-PDF',
+        # 'WG-PDF',
     ],
 }
 
@@ -330,16 +330,16 @@ historical_years = (1950, 2014)
 ssp_years = (2015, 2100)
 
 hresPeriodFilename = {}
-hresPeriodFilename.update({'tasmax': '19510101-20201231'})
-hresPeriodFilename.update({'tasmin': '19510101-20201231'})
-hresPeriodFilename.update({'tas': '19510101-20201231'})
-hresPeriodFilename.update({'pr': '19510101-20201231'})
-hresPeriodFilename.update({'uas': '19510101-20201231'})
-hresPeriodFilename.update({'vas': '19510101-20201231'})
-hresPeriodFilename.update({'sfcWind': '19510101-20201231'})
-hresPeriodFilename.update({'hurs': '19510101-20201231'})
-hresPeriodFilename.update({'clt': '19510101-20201231'})
-hresPeriodFilename.update({'myTargetVar': '19510101-20201231'})
+hresPeriodFilename.update({'tasmax': '19790101-20201231'})
+hresPeriodFilename.update({'tasmin': '19790101-20201231'})
+hresPeriodFilename.update({'tas': '19790101-20201231'})
+hresPeriodFilename.update({'pr': '19790101-20201231'})
+hresPeriodFilename.update({'uas': '19790101-20201231'})
+hresPeriodFilename.update({'vas': '19790101-20201231'})
+hresPeriodFilename.update({'sfcWind': '19790101-20201231'})
+hresPeriodFilename.update({'hurs': '19790101-20201231'})
+hresPeriodFilename.update({'clt': '19790101-20201231'})
+hresPeriodFilename.update({'myTargetVar': '19790101-20201231'})
 reanalysisName = 'ERA5'
 reanalysisPeriodFilename = '19790101-20201231'
 historicalPeriodFilename = '19500101-20141231'
@@ -361,13 +361,13 @@ reaNames = {'ua': 'u', 'va': 'v', 'ta': 't', 'zg': 'z', 'hus': 'q', 'hur': 'r', 
             'psl': 'msl', 'tdps': 'd2m', 'ps': 'sp',
             'tasmax': 'mx2t', 'tasmin': 'mn2t', 'tas': 't2m',
             'pr': 'tp', 'uas': 'u10', 'vas': 'v10', 'sfcWind': '-',
-            'hurs': '-', 'huss': '-', 'clt': 'tcc', 'myTargetVar': 'thermalAmplitude'}
+            'hurs': '-', 'huss': '-', 'clt': 'tcc', 'myTargetVar': 'fwi'}
 
 modNames = {'ua': 'ua', 'va': 'va', 'ta': 'ta', 'zg': 'zg', 'hus': 'hus', 'hur': 'hur', 'td': '-',
             'psl': 'psl', 'tdps': 'tdps', 'ps': 'ps',
             'tasmax': 'tasmax', 'tasmin': 'tasmin', 'tas': 'tas',
             'pr': 'pr', 'uas': 'uas', 'vas': 'vas', 'sfcWind': 'sfcWind',
-            'hurs': 'hurs', 'huss': 'huss', 'clt': 'clt', 'myTargetVar': 'thermalAmplitude'}
+            'hurs': 'hurs', 'huss': 'huss', 'clt': 'clt', 'myTargetVar': 'fwi'}
 
 preds_targetVars_dict = {
     'tasmax': [
@@ -1073,8 +1073,8 @@ preds_targetVars_dict = {
         # 'LI_index',         # Lifted index
     ],
     'myTargetVar': [
-        'tasmax',             # maximum daily temperature
-        'tasmin',             # minimum daily temperature
+        # 'tasmax',             # maximum daily temperature
+        # 'tasmin',             # minimum daily temperature
         # 'pr',              # daily precipitation
         # 'psl',             # mean sea level pressure
         # 'psl_trend',       # mean sea level trend from last day (derivedFrom mslp)
@@ -1084,7 +1084,7 @@ preds_targetVars_dict = {
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
-        # 'tas',              # surface temperature
+        'tas',              # surface temperature
         # 'tdps',              # surface dew point
         # 'huss',              # surface specific humidity
         # 'hurs',              # surface relative humidity
@@ -1106,7 +1106,7 @@ preds_targetVars_dict = {
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
         # 'zg700',             # geopotential at pressure levels
-        # 'zg500',             # geopotential at pressure levels
+        'zg500',             # geopotential at pressure levels
         # 'zg250',             # geopotential at pressure levels
         # 'hus1000',            # specifit humidity at pressure levels
         # 'hus850',             # specifit humidity at pressure levels
@@ -1114,7 +1114,7 @@ preds_targetVars_dict = {
         # 'hus500',             # specifit humidity at pressure levels
         # 'hus250',             # specifit humidity at pressure levels
         # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
-        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
+        'hur850',             # relative humidity at pressure levels (derived from t and q)
         # 'hur700',             # relative humidity at pressure levels (derived from t and q)
         # 'hur500',             # relative humidity at pressure levels (derived from t and q)
         # 'hur250',             # relative humidity at pressure levels (derived from t and q)
@@ -1482,18 +1482,18 @@ bc_method = 'QM'
 
 
 ###################################     myTargetVar           #################################################
-myTargetVarName = 'thermalAmplitude'
+myTargetVarName = 'fwi'
 
 # Define myTargetVar min and max allowed values
 myTargetVarMinAllowed = 0
 myTargetVarMaxAllowed = None
-myTargetVarUnits = 'degrees'
+myTargetVarUnits = ''
 
 # Define whether myTargetVar can be treated as gaussian
-myTargetVarIsGaussian = True
+myTargetVarIsGaussian = False
 
 # Define whether myTargetVar should be treated as an additive of multiplicative variable
-myTargetVarIsAdditive = True
+myTargetVarIsAdditive = False
 
 # Define whether apply bias correction as for precipitation (multiplicative correction)
-treatAsAdditiveBy_DQM_and_QDM = True
+treatAsAdditiveBy_DQM_and_QDM = False
