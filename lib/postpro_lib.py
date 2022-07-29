@@ -655,69 +655,74 @@ def figures_projections(lan='EN'):
 ########################################################################################################################
 def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar, methodName, xlabel):
 
-    if methodName != 'RAW':
-        color = methods_colors[methodName]
-        linestyle = methods_linestyles[methodName]
-        title_size = 28
-        try:
-            sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
-        except:
-            sign_ylabel = ''
+    # if methodName != 'RAW':
+    color = methods_colors[methodName]
+    linestyle = methods_linestyles[methodName]
+    title_size = 28
+    try:
+        sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
+    except:
+        sign_ylabel = ''
 
-        # method
-        data = np.nanmean(ssp_dict['data'], axis=2)
-        if targetVar not in ['tas', 'tasmax', 'tasmin',]:
-            data = gaussian_filter1d(data, 2)
-        # mean = np.nanmean(data, axis=0)
-        # std = np.nanstd(data, axis=0)
-        # fig, ax = plt.subplots(dpi=300)
-        # plt.plot(years, mean, label=methodName, color=color, linestyle=linestyle)
-        # plt.fill_between(years, mean - std, mean + std, color=color, alpha=0.8)
-        median = np.nanmedian(data, axis=0)
-        top = np.nanpercentile(data, 75, axis=0)
-        bottom = np.nanpercentile(data, 25, axis=0)
-        fig, ax = plt.subplots(dpi=300)
-        plt.plot(years, median, label=methodName, color=plot.lighten_color(color, 1.2), linestyle=linestyle)
-        plt.fill_between(years, bottom, top, color=color, alpha=0.8)
+    # method
+    models = ssp_dict['models']
+    nModels = len(models)
+    data = np.nanmean(ssp_dict['data'], axis=2)
+    if targetVar not in ['tas', 'tasmax', 'tasmin',]:
+        data = gaussian_filter1d(data, 2)
+    # mean = np.nanmean(data, axis=0)
+    # std = np.nanstd(data, axis=0)
+    # fig, ax = plt.subplots(dpi=300)
+    # plt.plot(years, mean, label=methodName, color=color, linestyle=linestyle)
+    # plt.fill_between(years, mean - std, mean + std, color=color, alpha=0.8)
+    median = np.nanmedian(data, axis=0)
+    top = np.nanpercentile(data, 75, axis=0)
+    bottom = np.nanpercentile(data, 25, axis=0)
+    fig, ax = plt.subplots(dpi=300)
+    plt.plot(years, median, label=methodName+ ' (' + str(nModels) + ')', color=plot.lighten_color(color, 1.2), linestyle=linestyle)
+    plt.fill_between(years, bottom, top, color=color, alpha=0.8)
 
-        # RAW
-        data = np.nanmean(raw_ssp_dict['data'], axis=2)
-        if targetVar not in ['tas', 'tasmax', 'tasmin',]:
-            data = gaussian_filter1d(data, 2)
-        # mean = np.nanmean(data, axis=0)
-        # std = np.nanstd(data, axis=0)
-        # plt.plot(years, mean, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
-        # plt.fill_between(years, mean - std, mean + std, color=methods_colors['RAW'], alpha=0.7)
-        median = np.nanmedian(data, axis=0)
-        top = np.nanpercentile(data, 75, axis=0)
-        bottom = np.nanpercentile(data, 25, axis=0)
-        plt.plot(years, median, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
-        plt.fill_between(years, bottom, top, color=methods_colors['RAW'], alpha=0.7)
+    # RAW
+    models = raw_ssp_dict['models']
+    nModels = len(models)
+    data = np.nanmean(raw_ssp_dict['data'], axis=2)
+    if targetVar not in ['tas', 'tasmax', 'tasmin',]:
+        data = gaussian_filter1d(data, 2)
+    # mean = np.nanmean(data, axis=0)
+    # std = np.nanstd(data, axis=0)
+    # plt.plot(years, mean, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
+    # plt.fill_between(years, mean - std, mean + std, color=methods_colors['RAW'], alpha=0.7)
+    median = np.nanmedian(data, axis=0)
+    top = np.nanpercentile(data, 75, axis=0)
+    bottom = np.nanpercentile(data, 25, axis=0)
+    plt.plot(years, median, label='RAW (' + str(nModels) + ')', color='dimgray', linestyle=methods_linestyles['RAW'])
+    plt.fill_between(years, bottom, top, color=methods_colors['RAW'], alpha=0.7)
 
-        try:
-            plt.ylim(ylim)
-            plt.ylabel(sign_ylabel)
-        except:
-            pass
-        # plt.xlabel(xlabel)
-        plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
-        # plt.show()
-        # exit()
-        filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName, season))
-        # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
-        if (plotAllRegions == False):
-            plt.title(methodName, fontsize=title_size)
-            if not os.path.exists(pathFigures):
-                os.makedirs(pathFigures)
-            plt.savefig(pathFigures + filename + '.png')
-        elif plotAllRegions == True:
-            plt.legend(loc='upper left')
-            title = regName.upper() + '\n' + season
-            plt.title(title)
-            if not os.path.exists(pathOut):
-                os.makedirs(pathOut)
-            plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
-        plt.close()
+    try:
+        plt.ylim(ylim)
+        plt.ylabel(sign_ylabel)
+    except:
+        pass
+    # plt.xlabel(xlabel)
+    plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
+    # plt.show()
+    # exit()
+    filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName, season))
+    # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
+    if (plotAllRegions == False):
+        plt.title(methodName, fontsize=title_size)
+        if not os.path.exists(pathFigures):
+            os.makedirs(pathFigures)
+        plt.savefig(pathFigures + filename + '.png')
+    elif plotAllRegions == True:
+        plt.legend(loc='upper left')
+        title = regName.upper() + '\n' + season
+        plt.title(title)
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
+        plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
+    plt.close()
+
 
 ########################################################################################################################
 def csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season):
