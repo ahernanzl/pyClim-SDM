@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
 from tkinter import *
+from tkinter import DISABLED
 from PIL import ImageTk,Image
 
 
@@ -270,7 +271,7 @@ class tabSteps(ttk.Frame):
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
-                'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
+                'bias_correction': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
@@ -290,7 +291,7 @@ class tabSteps(ttk.Frame):
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
-                'bias_correct_projections': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
+                'bias_correction': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
@@ -1098,9 +1099,19 @@ class frameTargetVarInfoClass(ttk.Frame):
 ########################################################################################################################
 class frameMethodsClass(ttk.Frame):
 
-    def __init__(self, notebook, root, targetVar):
+    def __init__(self, notebook, root, targetVar, isGaussian=True):
 
-        def add_method_to_chk_list(methods_chk_list, targetVar, methodName, family, mode, fields, info, icol, irow):
+        self.cbuts = []
+        self.chk_list = []
+        if targetVar == 'pr':
+            disabled_methods = ['MLR', 'MLR-ANA', 'MLR-WT']
+        else:
+            disabled_methods = ['GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
+            if targetVar == 'myTargetVar' and isGaussian != True:
+                disabled_methods.append('PSDM')
+                disabled_methods.append('WG-PDF')
+
+        def add_method_to_chk_list(disabled_methods, methods_chk_list, targetVar, methodName, family, mode, fields, info, icol, irow):
             """This function adds all methods to a list. The checked variable will contain information about their status
             once the mainloop is finished"""
 
@@ -1109,88 +1120,92 @@ class frameMethodsClass(ttk.Frame):
             for method_dict in methods:
                 if (method_dict['var'], method_dict['methodName']) == (targetVar, methodName):
                     checked = tk.BooleanVar(value=True)
-            c = Checkbutton(root, text=methodName, variable=checked, takefocus=False)
-            cbuts.append(c)
-            CreateToolTip(c, info)
-            c.grid(sticky="W", column=icol, row=irow, padx=10)
+
+            # Enable/disable methods
+            if methodName in disabled_methods:
+                l = Label(root, text='     '+methodName)
+                l.grid(sticky="W", column=icol, row=irow, padx=10)
+            else:
+                c = Checkbutton(root, text=methodName, variable=checked, takefocus=False)
+                self.cbuts.append(c)
+                CreateToolTip(c, info)
+                c.grid(sticky="W", column=icol, row=irow, padx=10)
+            # print('-------------------------')
+            # print(targetVar, methodName, c["state"])
+            # if methodName in disabled_methods:
+            #     # c.config(state='disabled')
+            #     self.cbuts[-1].config(state='disabled')
+            # print(targetVar, methodName, c["state"])
+            # print(len(self.cbuts))
             self.chk_list.append(
                 {'var': targetVar, 'methodName': methodName, 'family': family, 'mode': mode, 'fields': fields,
                  'checked': checked})
-            return self.chk_list
-
-        # Functions for selecting/deselecting all
-        cbuts = []
-        buttonWidth = 8
+            # return self.chk_list
 
         def select_all():
-            for i in cbuts:
+            for i in self.cbuts:
                 i.select()
 
         def deselect_all():
-            for i in cbuts:
+            for i in self.cbuts:
                 i.deselect()
 
+        # Functions for selecting/deselecting all
+        buttonWidth = 8
         icol, irow = 0, 0
-        self.chk_list = []
-
         ttk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0); icol += 1; irow += 1
         ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
 
         # Raw
-        add_method_to_chk_list(self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
 
         # Model Output Statistics
         ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
         ttk.Label(root, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol += 1; irow -= 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol -= 1; irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol += 1; irow -= 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol -= 1; irow += 1
 
         # Analogs / Weather Typing
         ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
         ttk.Label(root, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
 
         # Linear methods
         ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
         ttk.Label(root, text="Linear methods:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        if targetVar != 'pr':
-            add_method_to_chk_list(self.chk_list, targetVar, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol += 1
-            add_method_to_chk_list(self.chk_list, targetVar, 'MLR-ANA', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Analogs', icol, irow); icol += 1
-            add_method_to_chk_list(self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); icol += 1; icol-=3
-        else:
-            add_method_to_chk_list(self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); icol+=1
-            add_method_to_chk_list(self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
-            add_method_to_chk_list(self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); icol+=1; icol-=3
-
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-ANA', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Analogs', icol, irow); icol += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); irow += 1; icol-=2
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); icol+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
 
         # Machine Learning
         ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
         ttk.Label(root, text="Machine Learning:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol += 1; irow -= 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'XGB', 'TF', 'PP', 'pred', 'eXtreme Gradient Boost', icol, irow); icol += 1; irow -= 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol += 1; irow -= 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'XGB', 'TF', 'PP', 'pred', 'eXtreme Gradient Boost', icol, irow); icol += 1; irow -= 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
 
         # Weather Generators
         ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
         ttk.Label(root, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow += 1
-        add_method_to_chk_list(self.chk_list, targetVar, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow += 1
-        if targetVar == 'pr':
-            irow-=1; icol+=1; add_method_to_chk_list(self.chk_list, targetVar, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol -= 1; irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); icol += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol -= 1; irow+=1
 
         # Select/deselect all
         # ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -1198,6 +1213,7 @@ class frameMethodsClass(ttk.Frame):
         frameButons.grid(column=icol, row=irow, padx=10, pady=20, columnspan=3)
         Button(frameButons, text='Select all', command=select_all, width=buttonWidth, takefocus=False).grid(column=0, row=0)
         Button(frameButons, text='Deselect all', command=deselect_all, width=buttonWidth, takefocus=False).grid(column=1, row=0)
+
 
     def get(self):
         return self.chk_list
@@ -1925,13 +1941,14 @@ class tabMyTargetVar(ttk.Frame):
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, 'myTargetVar').get()
+        isGaussian = self.TargetVarInfo_chk_list['myTargetVarIsGaussian'].get()
 
         # frameMethods
         frameMethods = ttk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
-        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, 'myTargetVar').get()
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, 'myTargetVar', isGaussian=isGaussian).get()
 
         # frameClimdex
         frameClimdex = ttk.Frame(tab)
@@ -2822,12 +2839,12 @@ def write_tmpMain_file(steps):
         f.write("    preprocess.train_methods()\n")
     if 'downscale' in steps:
         f.write("    process.downscale()\n")
+    if 'bias_correction' in steps:
+        f.write("    postprocess.bias_correction()\n")
     if 'calculate_climdex' in steps:
         f.write("    postprocess.get_climdex()\n")
     if 'plot_results' in steps:
         f.write("    postprocess.plot_results()\n")
-    if 'bias_correct_projections' in steps:
-        f.write("    postprocess.bias_correction()\n")
     if 'nc2ascii' in steps:
         f.write("    postprocess.nc2ascii()\n")
 
