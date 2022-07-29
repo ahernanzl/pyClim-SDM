@@ -3,9 +3,9 @@ import os
 import shutil
 sys.path.append('../config/')
 from manual_settings import *
-# if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py').st_size == 0:
-#     shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
-shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
+if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py').st_size == 0:
+    shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
+# shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
 from imports import *
 from settings import *
 from advanced_settings import *
@@ -330,6 +330,520 @@ class tabSteps(ttk.Frame):
     def get(self):
         return self.experiment, self.chk_dict, self.all_steps
 
+
+
+########################################################################################################################
+class tabModelsAndScenes(ttk.Frame):
+
+    def __init__(self, notebook):
+        tabModelsAndScenes = ttk.Frame(notebook)
+        notebook.add(tabModelsAndScenes, text='Models and Scenarios')
+
+        self.chk_dict_models = {}
+
+        def add_to_chk_list(frame, name, list, icol, irow, obj=None, affectedBySelectAll=False):
+            # Initialize with default settings or last settings
+            checked = tk.BooleanVar(value=False)
+            if name in list:
+                checked = tk.BooleanVar(value=True)
+            if obj == None:
+                c = Checkbutton(frame, text=name.split('_')[0], variable=checked, takefocus=False)
+            else:
+                c = Checkbutton(frame, text=name.split('_')[0], variable=checked, command=lambda: switch(obj), takefocus=False)
+            if affectedBySelectAll == True:
+                cbuts.append(c)
+            c.grid(sticky="W", column=icol, row=irow, padx=30)
+            return {name: checked}
+
+        # Functions for selecting/deselecting all
+        cbuts = []
+        buttonWidth = 8
+        def select_all():
+            for i in cbuts:
+                i.select()
+        def deselect_all():
+            for i in cbuts:
+                i.deselect()
+
+        irow, icol = 0, 0
+
+        # frameModels
+        frameModels = ttk.Frame(tabModelsAndScenes)
+        frameModels.grid(row=0, column=0, sticky='n', padx=(40, 0), rowspan=2)
+
+        # frameReanalysisName
+        frameReanalysisName = ttk.Frame(tabModelsAndScenes)
+        frameReanalysisName.grid(row=0, column=1, sticky='n', padx=(40, 0))
+
+        # frameScenes
+        frameScenes = ttk.Frame(tabModelsAndScenes)
+        frameScenes.grid(row=1, column=1, sticky='n', padx=(40, 0))
+
+        Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, padx=20, pady=0); icol+=1; irow+=1
+        Label(frameModels, text="Select models from the list to include their r1i1p1f1 run:")\
+            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=100)
+        Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, pady=10); irow+=1
+
+
+        # Models
+        all_models = ('ACCESS-CM2_r1i1p1f1', 'ACCESS-ESM1-5_r1i1p1f1', 'AWI-CM-1-1-MR_r1i1p1f1', 'AWI-CM-1-1-LR_r1i1p1f1', 'BCC-CSM2-MR_r1i1p1f1', 'BCC-ESM1_r1i1p1f1',
+                      'CAMS-CSM1-0_r1i1p1f1', 'CanESM5_r1i1p1f1', 'CanESM5-CanOE_r1i1p1f1',
+                      'CESM2_r1i1p1f1_r1i1p1f1', 'CESM2-FV2_r1i1p1f1', 'CESM2-WACCM_r1i1p1f1', 'CESM2-WACCM-FV2_r1i1p1f1', 'CIESM_r1i1p1f1',
+                      'CMCC-CM2-HR4_r1i1p1f1', 'CMCC-CM2-SR5_r1i1p1f1', 'CMCC-ESM2_r1i1p1f1', 'CNRM-CM6-1_r1i1p1f1', 'CNRM-CM6-1-HR_r1i1p1f1', 'CNRM-ESM2-1_r1i1p1f1',
+                      'E3SM-1-0_r1i1p1f1', 'E3SM-1-1_r1i1p1f1', 'E3SM-1-1-ECA_r1i1p1f1',
+                      'EC-Earth3_r1i1p1f1', 'EC-Earth3-AerChem_r1i1p1f1', 'EC-Earth3-CC_r1i1p1f1', 'EC-Earth3-Veg_r1i1p1f1',
+                      'EC-Earth3-Veg-LR_r1i1p1f1', 'FGOALS-f3-L_r1i1p1f1', 'FGOALS-g3_r1i1p1f1', 'FIO-ESM-2-0_r1i1p1f1',
+                      'GFDL-CM4_r1i1p1f1', 'GFDL-ESM4_r1i1p1f1', 'GISS-E2-1-G_r1i1p1f1', 'GISS-E2-1-H_r1i1p1f1', 'HadGEM3-GC31-LL_r1i1p1f1',
+                      'HadGEM3-GC31-MM_r1i1p1f1', 'IITM-ESM_r1i1p1f1', 'INM-CM4-8_r1i1p1f1', 'INM-CM5-0_r1i1p1f1', 'IPSL-CM5A2-INCA_r1i1p1f1', 'IPSL-CM6A-LR_r1i1p1f1',
+                      'KACE-1-0-G_r1i1p1f1', 'KIOST-ESM_r1i1p1f1', 'MCM-UA-1-0_r1i1p1f1', 'MIROC-ES2H_r1i1p1f1', 'MIROC-ES2L_r1i1p1f1', 'MIROC6_r1i1p1f1', 'MPI-ESM-1-2-HAM_r1i1p1f1',
+                      'MPI-ESM1-2-HR_r1i1p1f1', 'MPI-ESM1-2-LR_r1i1p1f1', 'MRI-ESM2-0_r1i1p1f1', 'NESM3_r1i1p1f1', 'NorCPM1_r1i1p1f1', 'NorESM2-LM_r1i1p1f1', 'NorESM2-MM_r1i1p1f1',
+                      'SAM0-UNICON_r1i1p1f1', 'TaiESM1_r1i1p1f1', 'UKESM1-0-LL_r1i1p1f1')
+
+        maxRows = 15
+        ncols = 0
+        nrows = maxRows
+        for model in all_models:
+            self.chk_dict_models.update(add_to_chk_list(frameModels, model, model_names_list, icol, irow, affectedBySelectAll=True))
+            irow += 1; nrows-=1
+            if nrows == 0:
+                ncols+=1; nrows = maxRows; icol+=1; irow-=maxRows
+
+        # Select all models
+        irow+=1; icol-=ncols-1
+        Button(frameModels, text='Select all', command=select_all, takefocus=False).grid(column=icol, row=irow, pady=10); icol += 1
+        Button(frameModels, text='Deselect all', command=deselect_all, takefocus=False).grid(column=icol, row=irow)
+
+
+        # Other models
+        irow+=maxRows
+        icol -=2
+
+        Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, padx=30, pady=5, columnspan=4); irow+=1
+        Label(frameModels, text="In order to include other models and/or runs introduce them here "
+                                       "separated by ';'")\
+                                    .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
+        Label(frameModels, text="Example: ACCESS-CM2_r1i1p1f3; EC-Earth3_r2i1p1f1")\
+                                    .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4)
+        otherModels_list = []
+        for model in model_names_list:
+            if model.split('_')[1] != 'r1i1p1f1':
+                otherModels_list.append(model)
+        otherModels_list = '; '.join((otherModels_list))
+
+        icol += 1
+        self.otherModels_var = tk.StringVar()
+        self.otherModels_Entry = tk.Entry(frameModels, textvariable=self.otherModels_var, width=45,
+                                          justify='left', state='normal', takefocus=False)
+        self.otherModels_Entry.insert(END, otherModels_list)
+        self.otherModels_Entry.grid(sticky="E", column=icol, row=irow, columnspan=3)
+        icol += 1
+
+
+        # frameReanalysisName
+        Label(frameReanalysisName, text="").grid(sticky="W", column=icol, row=irow, pady=(40, 0)); icol+=1; irow+=1
+        self.reanalysisName_var = tk.StringVar()
+        Label(frameReanalysisName, text='Reanalysis name:').grid(sticky="W", column=icol, row=irow, padx=10); icol += 1
+        reanalysisName_Entry = tk.Entry(frameReanalysisName, textvariable=self.reanalysisName_var, width=15, justify='right', takefocus=False)
+        reanalysisName_Entry.insert(END, reanalysisName)
+        reanalysisName_Entry.grid(sticky="W", column=icol, row=irow)
+
+
+        # Scenes
+        irow, icol = 0, 0
+        Label(frameScenes, text="Select scenarios:").grid(sticky="NW", column=icol, row=irow, padx=50); irow+=1
+        all_scenes = ['HISTORICAL', 'SSP1-1.9', 'SSP1-2.6', 'SSP2-4.5', 'SSP3-7.0', 'SSP5-8.5']
+        self.chk_dict_scenes = {}
+        for scene in all_scenes:
+            self.chk_dict_scenes.update(add_to_chk_list(frameScenes, scene, scene_names_list, icol, irow)); irow += 1
+
+        # Other scenes
+        Label(frameScenes, text="").grid(sticky="W", column=icol, row=irow)
+        self.otherScenes_var = tk.StringVar()
+        self.otherScenes_Entry = tk.Entry(frameScenes, textvariable=self.otherScenes_var, width=15, justify='right', state='disabled')
+        self.otherScenes_Entry.grid(sticky="E", column=icol, row=irow, padx=100)
+        CreateToolTip(self.otherScenes_Entry, "Enter scenario names separated by ';'")
+        self.chk_dict_scenes.update(add_to_chk_list(frameScenes, 'Others:', scene_names_list, icol, irow, obj=self.otherScenes_Entry)); irow += 1
+
+    def get(self):
+        return self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, self.reanalysisName_var
+
+
+########################################################################################################################
+class tabDomain(ttk.Frame):
+
+    def __init__(self, notebook):
+
+        tabDomain = ttk.Frame(notebook)
+        notebook.add(tabDomain, text='Domain')
+
+        icol, irow = 0, 0
+        # ttk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
+        padx = 100
+        # frameDomain
+        frameDomain = Frame(tabDomain)
+        frameDomain.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
+
+        # frameVarNames
+        frameVarNames = Frame(tabDomain)
+        frameVarNames.grid(sticky="W", column=0, row=1, padx=padx, pady=10, columnspan=2)
+
+        # frameSAFs
+        frameSAFs = Frame(tabDomain)
+        frameSAFs.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
+
+
+        # grid_res
+        self.grid_res_var = tk.StringVar()
+        lab = Label(frameDomain, text="Grid resolution:")
+        lab.grid(sticky="W", column=icol, row=irow, padx=10, columnspan=5); icol+=2
+        grid_resTesting_Entry = tk.Entry(frameDomain, textvariable=self.grid_res_var, width=4, justify='right', takefocus=False)
+        grid_resTesting_Entry.insert(END, grid_res)
+        CreateToolTip(lab, 'Grid resolution')
+        grid_resTesting_Entry.grid(sticky="W", column=icol+1, row=irow)
+        irow+=1; icol-=2
+
+        # safGrid
+        ttk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
+        padx, pady, width = 2, 2, 5
+        lab = Label(frameDomain, text='Domain for synoptic analogy fields \n'
+                                     '(lat up, lat down, lon left and long right):', justify=LEFT)
+        lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
+
+        ttk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=100); icol+=1
+
+
+        self.saf_lat_up_var = tk.StringVar()
+        saf_lat_upTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lat_up_var, width=width, justify='right', takefocus=False)
+        saf_lat_upTesting_Entry.insert(END, saf_lat_up)
+        CreateToolTip(saf_lat_upTesting_Entry, 'lat up')
+        saf_lat_upTesting_Entry.grid(sticky="W", column=icol+1, row=irow, padx=padx, pady=pady)
+        self.saf_lon_left_var = tk.StringVar()
+        saf_lon_leftTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lon_left_var, width=width, justify='right', takefocus=False)
+        saf_lon_leftTesting_Entry.insert(END, saf_lon_left)
+        CreateToolTip(saf_lon_leftTesting_Entry, 'lon left')
+        saf_lon_leftTesting_Entry.grid(sticky="W", column=icol, row=irow+1, padx=padx, pady=pady)
+        self.saf_lon_right_var = tk.StringVar()
+        saf_lon_rightTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lon_right_var, width=width, justify='right', takefocus=False)
+        saf_lon_rightTesting_Entry.insert(END, saf_lon_right)
+        CreateToolTip(saf_lon_rightTesting_Entry, 'lon right')
+        saf_lon_rightTesting_Entry.grid(sticky="W", column=icol+2, row=irow+1, padx=padx, pady=pady)
+        self.saf_lat_down_var = tk.StringVar()
+        saf_lat_downTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lat_down_var, width=width, justify='right', takefocus=False)
+        saf_lat_downTesting_Entry.insert(END, saf_lat_down)
+        CreateToolTip(saf_lat_downTesting_Entry, 'lat down')
+        saf_lat_downTesting_Entry.grid(sticky="W", column=icol+1, row=irow+2, padx=padx, pady=pady); irow+=3
+        lab = Label(frameDomain, text='Make sure all files (reanalysis and models) contain, at least, \n'
+                                     'this domain plus a border of one grid box width.', justify=LEFT)
+        lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
+
+        # reaNames and modNames
+        irow, icol = 0, 0
+        ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=0, ); irow+=1
+        ttk.Label(frameVarNames, text='Define variable names in netCDF files:')\
+            .grid(column=icol, row=irow, pady=10, columnspan=13); irow += 1
+
+        # reaNames and modNames
+        self.reaNames = {}
+        self.modNames = {}
+        ncols = 13
+        all_vars = {
+                'tasmax': 'Surface maximum temperature',
+                'tasmin': 'Surface minimum temperature',
+                'tas': 'Surface mean temperature',
+                'pr': 'Precipitation',
+                'uas': 'Surface zonal wind component',
+                'vas': 'Surface meridional wind component',
+                'sfcWind': 'Surface wind speed',
+                'hurs': 'Surface relative humidity',
+                'clt': 'Cloud cover',
+                'tdps': 'Surface dewpoint',
+                'ps': 'Surface pressure',
+                'huss': 'Surface specific humidity',
+                'ua': 'Zonal wind',
+                'va': 'Meridional wind',
+                'ta': 'Temperature',
+                'zg': 'Geopotential',
+                'hus': 'Specific humidity',
+                'hur': 'Relative humidity',
+                'td': 'Dew point',
+                'psl': 'Mean sea level pressure',
+        }
+        for var in all_vars:
+
+            if icol == 0:
+                ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow += 1
+                ttk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
+                ttk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
+                icol += 1; irow -= 3
+
+            lab = ttk.Label(frameVarNames, text=var)
+            CreateToolTip(lab, all_vars[var])
+            lab.grid(sticky="E", column=icol, row=irow, pady=(10, 0)); irow+=1
+
+            reaName = reaNames[var]
+            self.reaName_var = tk.StringVar()
+            reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
+            reaName_Entry.insert(END, reaName)
+            reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
+            self.reaNames.update({var: self.reaName_var})
+
+            modName = modNames[var]
+            self.modName_var = tk.StringVar()
+            modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
+            modName_Entry.insert(END, modName)
+            modName_Entry.grid(sticky="W", column=icol, row=irow); irow-=2
+            self.modNames.update({var: self.modName_var})
+            icol +=1
+            if icol == ncols:
+                irow+=3; icol-=ncols
+
+
+        # SAFs
+        self.SAFs = []
+        self.SAFs = framePredictorsClass(notebook, frameSAFs, 'SAFs').get()
+
+
+    def get(self):
+        return self.grid_res_var, self.saf_lat_up_var, self.saf_lon_left_var, \
+        self.saf_lon_right_var, self.saf_lat_down_var, self.reaNames, self.modNames, self.SAFs
+
+
+
+########################################################################################################################
+class tabDates(ttk.Frame):
+
+    def __init__(self, notebook):
+        tabDates = ttk.Frame(notebook)
+        notebook.add(tabDates, text='Dates')
+        padx = 100
+
+        # frameDates
+        frameDates = Frame(tabDates)
+        frameDates.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
+
+        # frameSplitMode
+        frameSplitMode = Frame(tabDates)
+        frameSplitMode.grid(sticky="W", column=0, row=1, padx=padx, pady=10)
+
+        # frameBiasCorrection
+        frameBiasCorrection = Frame(tabDates)
+        frameBiasCorrection.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
+
+        # frameSeasons
+        frameSeasons = Frame(tabDates)
+        frameSeasons.grid(sticky="W", column=1, row=1, padx=padx, pady=10, rowspan=2)
+
+
+        icol, irow = 0, 0
+        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10, columnspan=100); irow+=1
+        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol += 1
+
+        # Years
+        for (text, var, info) in [
+            ('Calibration years:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
+                                                'which then can be split for training and testing'),
+            ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
+                                            'The choice of the reference period is constrained by availability of \n'
+                                            'reanalysis, historical GCMs and hres data.'),
+            ('Historical years:', historical_years, 'For historical projections'),
+            ('SSPs years:', ssp_years, 'For future projections'),
+            ]:
+
+            lab = ttk.Label(frameDates, text=text)
+            CreateToolTip(lab, info)
+            lab.grid(sticky="E", column=icol, row=irow, padx=8); icol+=1
+
+            firstYear, lastYear = var[0], var[1]
+            firstYear_var = tk.StringVar()
+            firstYear_Entry = tk.Entry(frameDates, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
+            firstYear_Entry.insert(END, firstYear)
+            firstYear_Entry.grid(sticky="W", column=icol, row=irow); icol+=1
+            Label(frameDates, text='-').grid(sticky="E", column=icol, row=irow, padx=3); icol+=1
+            lastYear_var = tk.StringVar()
+            lastYear_Entry = tk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
+            lastYear_Entry.insert(END, lastYear)
+            lastYear_Entry.grid(sticky="W", column=icol, row=irow)
+            irow+=1; icol-=1
+
+            if text == 'Calibration years:':
+                self.calibration_years = (firstYear_var, lastYear_var)
+            elif text == 'Reference years:':
+                self.reference_years = (firstYear_var, lastYear_var)
+            elif text == 'Historical years:':
+                self.historical_years = (firstYear_var, lastYear_var)
+            elif text == 'SSPs years:':
+                self.ssp_years = (firstYear_var, lastYear_var)
+            icol -= 2
+
+
+
+        entriesW = 17
+
+        # reanalysisPeriodFilename
+        self.reanalysisPeriodFilename_var = tk.StringVar()
+        Label(frameDates, text='Reanalysis period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+        reanalysisPeriodFilename_Entry = tk.Entry(frameDates, textvariable=self.reanalysisPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
+        reanalysisPeriodFilename_Entry.insert(END, reanalysisPeriodFilename)
+        reanalysisPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
+
+        # historicalPeriodFilename
+        self.historicalPeriodFilename_var = tk.StringVar()
+        Label(frameDates, text='Historical period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+        historicalPeriodFilename_Entry = tk.Entry(frameDates, textvariable=self.historicalPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
+        historicalPeriodFilename_Entry.insert(END, historicalPeriodFilename)
+        historicalPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
+
+        # sspPeriodFilename
+        self.sspPeriodFilename_var = tk.StringVar()
+        Label(frameDates, text='SSP period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+        sspPeriodFilename_Entry = tk.Entry(frameDates, textvariable=self.sspPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
+        sspPeriodFilename_Entry.insert(END, sspPeriodFilename)
+        sspPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
+
+
+        # Bias correction
+        irow, icol = 0, 0
+        self.bc_option = StringVar()
+        bc_options = {
+            'No': 'Do not apply bias correction after downscaling.',
+            'Yes': 'Apply bias correction after downscaling.',
+            'By season': 'Apply a customized bias correction after downscaling for each season.',
+        }
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=5, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
+        if apply_bc == False:
+            last_bc_opt = 'No'
+        elif apply_bc_bySeason == False:
+            last_bc_opt = 'Yes'
+        else:
+            last_bc_opt = 'By season'
+        for bc_opt in bc_options:
+            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
+            CreateToolTip(c, bc_options[bc_opt])
+            self.bc_option.set(last_bc_opt)
+        icol+=1; irow-=3
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=5); icol+=1
+        Label(frameBiasCorrection, text='Method:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
+        bc_methods = {
+            'QM': 'Quantile Mapping',
+            'DQM': 'Detrended Quantile Mapping',
+            'QDM': 'Quantile Delta Mapping',
+            'PSDM': '(Parametric) Scaled Distribution Mapping',
+        }
+        self.bc_method = StringVar()
+        for bc_meth in bc_methods:
+            c1 = Radiobutton(frameBiasCorrection, text=bc_meth, variable=self.bc_method, value=bc_meth, takefocus=False)
+            c1.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
+            CreateToolTip(c1, bc_methods[bc_meth])
+            self.bc_method.set(bc_method)
+
+        # Train/test split
+        self.split_mode = StringVar()
+        irow, icol = 0, 0
+        Label(frameSplitMode, text='Define how to split the calibration period for training/testing:')\
+            .grid(sticky="W", column=icol, row=irow, columnspan=10, padx=30, pady=10); irow += 1; icol+=2
+        Label(frameSplitMode, text='Testing years:')\
+            .grid(column=icol, row=irow, columnspan=4);
+        irow += 1; icol-=1
+
+
+        def add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol):
+
+
+            c = Radiobutton(frameSplitMode, text=str(text), variable=self.split_mode, value=split_modeName,
+                            command=lambda: switch_splitMode(split_modeName, self.dict_buttons), takefocus=False)
+
+            c.grid(sticky="W", column=icol, row=irow)
+            CreateToolTip(c, info)
+            self.split_mode.set(split_mode)
+
+            if split_modeName in ('single_split', 'fold1', 'fold2', 'fold3', 'fold4', 'fold5'):
+                icol+=2
+                firstYear, lastYear = years[0], years[1]
+                firstYear_var = tk.StringVar()
+                firstYearTesting_Entry = tk.Entry(frameSplitMode, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
+                firstYearTesting_Entry.insert(END, firstYear)
+                if split_modeName != split_mode:
+                    firstYearTesting_Entry.config(state='disabled')
+                firstYearTesting_Entry.grid(sticky="E", column=icol, row=irow);
+                icol += 1
+                Label(frameSplitMode, text='-').grid(column=icol, row=irow);
+                icol += 1
+                lastYear_var = tk.StringVar()
+                lastYearTesting_Entry = tk.Entry(frameSplitMode, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
+                lastYearTesting_Entry.insert(END, lastYear)
+                if split_modeName != split_mode:
+                    lastYearTesting_Entry.config(state='disabled')
+                lastYearTesting_Entry.grid(sticky="W", column=icol, row=irow)
+                self.testing_years_dict.update({split_modeName: (firstYear_var, lastYear_var)})
+                self.dict_buttons.update({split_modeName: [c, firstYearTesting_Entry, lastYearTesting_Entry]})
+                icol -= 4
+            else:
+                self.dict_buttons.update({split_modeName: [c, None, None]})
+
+
+        self.testing_years_dict = {}
+
+        self.dict_buttons = {}
+
+        for (text, split_modeName, years, info) in [
+            ('All training', 'all_training', None, 'The whole calibration period is used for training'),
+            ('All testing', 'all_testing', None, 'The whole calibration period is used for testing'),
+            ('Single train/test split', 'single_split', single_split_testing_years, 'Single train/test split'),
+            ('k-fold 1/5', 'fold1', fold1_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 2/5', 'fold2', fold2_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 3/5', 'fold3', fold3_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 4/5', 'fold4', fold4_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 5/5', 'fold5', fold5_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ]:
+
+            add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol)
+
+            irow+=1
+
+
+        # season_dict
+        self.seasons = []
+        def add_season(xMonth, text, seasonName, irow, icol):
+            monthsVar = tk.StringVar()
+            Label(frameSeasons, text=text).grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            seasonName_Entry = tk.Entry(frameSeasons, textvariable=monthsVar, width=10, justify='right',
+                                        takefocus=False)
+            seasonName_Entry.insert(END, seasonName)
+            seasonName_Entry.grid(sticky="E", column=icol, row=irow)
+            self.seasons.append(monthsVar)
+            icol -= 1
+
+        icol, irow = 0, 0
+        Label(frameSeasons, text='Defina season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
+        for (xMonth, text, seasonName) in [
+            (0, 'All year:', inverse_seasonNames[0]),
+            (1, 'Jan:', inverse_seasonNames[1]),
+            (2, 'Feb:', inverse_seasonNames[2]),
+            (3, 'Mar:', inverse_seasonNames[3]),
+            (4, 'Apr:', inverse_seasonNames[4]),
+            (5, 'May:', inverse_seasonNames[5]),
+            (6, 'Jun:', inverse_seasonNames[6]),
+            (7, 'Jul:', inverse_seasonNames[7]),
+            (8, 'Aug:', inverse_seasonNames[8]),
+            (9, 'Sep:', inverse_seasonNames[9]),
+            (10, 'Oct:', inverse_seasonNames[10]),
+            (11, 'Nov:', inverse_seasonNames[11]),
+            (12, 'Dec:', inverse_seasonNames[12]),
+            ]:
+            add_season(xMonth, text, seasonName, irow, icol)
+            irow += 1
+
+
+
+    def get(self):
+        return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.bc_option, \
+               self.bc_method, self.testing_years_dict, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
+               self.sspPeriodFilename_var, self.split_mode, self.seasons
+
+
+
 ########################################################################################################################
 class framePredictorsClass(ttk.Frame):
 
@@ -456,12 +970,10 @@ class frameTargetVarInfoClass(ttk.Frame):
 
         self.chk = {'hresPeriodFilename': tk.StringVar()}
 
-
-        try:
-            isMyTargetVar = (targetVar == myTargetVar)
-        except:
-            isMyTargetVar = (targetVar == 'myTargetVar')
-
+        # try:
+        #     isMyTargetVar = (targetVar == myTargetVar)
+        # except:
+        isMyTargetVar = (targetVar == 'myTargetVar')
         if isMyTargetVar == True:
             self.chk.update({
                     'myTargetVarName': tk.StringVar(),
@@ -815,7 +1327,7 @@ class frameClimdexClass(ttk.Frame):
             'clt': {
                 'CLTm': 'Mean cloud cover',
             },
-            myTargetVar: {
+            'myTargetVar': {
                 'm': 'Mean value',
                 'x': 'Maximum value',
                 'n': 'Minimum value',
@@ -870,11 +1382,11 @@ class tabTasmax(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Maximum Temperature', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Maximum Temperature', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -909,7 +1421,7 @@ class tabTasmax(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -926,11 +1438,11 @@ class tabTasmin(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Minimum Temperature', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Minimum Temperature', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -965,7 +1477,7 @@ class tabTasmin(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -982,11 +1494,11 @@ class tabTas(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Mean Temperature', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Mean Temperature', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1021,7 +1533,7 @@ class tabTas(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 
@@ -1040,11 +1552,11 @@ class tabPr(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Precipitation', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Precipitation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1079,7 +1591,7 @@ class tabPr(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -1097,11 +1609,11 @@ class tabUas(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Zonal Wind Component', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Zonal Wind Component', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1136,7 +1648,7 @@ class tabUas(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -1154,11 +1666,11 @@ class tabVas(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Meridional Wind Component', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Meridional Wind Component', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1193,7 +1705,7 @@ class tabVas(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 ########################################################################################################################
 class tabSfcWind(ttk.Frame):
@@ -1210,11 +1722,11 @@ class tabSfcWind(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Wind Speed', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Wind Speed', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1249,7 +1761,7 @@ class tabSfcWind(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -1267,11 +1779,11 @@ class tabHurs(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Relative Humidity', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Relative Humidity', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1306,7 +1818,7 @@ class tabHurs(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -1327,11 +1839,11 @@ class tabClt(ttk.Frame):
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='Cloud Cover', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Cloud Cover', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1366,7 +1878,7 @@ class tabClt(ttk.Frame):
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
@@ -1382,15 +1894,22 @@ class tabMyTargetVar(ttk.Frame):
         except:
             targetVar = 'myTargetVar'
 
+        # Change myTargetVar to 'myTargetVar'
+        for i in range(len(methods)):
+            if methods[i]['var'] == myTargetVar:
+                methods[i]['var'] = 'myTargetVar'
+        hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
+        preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
+        climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
         frames = []
 
         # Enable/disable targetVar
         irow, icol = 0, 0
-        targetVar_active_var = tk.BooleanVar(value=False)
+        self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
-            targetVar_active_var = tk.BooleanVar(value=True)
-        c = Checkbutton(tab, text='User definded target variable', variable=targetVar_active_var,
-                        command=lambda: enable(targetVar_active_var.get(), frames), takefocus=False)
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='User definded target variable', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
@@ -1398,540 +1917,38 @@ class tabMyTargetVar(ttk.Frame):
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
-        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, 'myTargetVar').get()
 
         # frameTargetVarInfo
         frameTargetVarInfo = ttk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
-        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, 'myTargetVar').get()
 
         # frameMethods
         frameMethods = ttk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
-        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, 'myTargetVar').get()
 
         # frameClimdex
         frameClimdex = ttk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
-        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, 'myTargetVar').get()
 
         # Enabled/disbled by default
         enable(targetVar in targetVars, frames)
 
     def get(self):
-        return self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
-
-########################################################################################################################
-class tabModelsAndScenes(ttk.Frame):
-
-    def __init__(self, notebook):
-        tabModelsAndScenes = ttk.Frame(notebook)
-        notebook.add(tabModelsAndScenes, text='Models and Scenarios')
-
-        self.chk_dict_models = {}
-
-        def add_to_chk_list(frame, name, list, icol, irow, obj=None, affectedBySelectAll=False):
-            # Initialize with default settings or last settings
-            checked = tk.BooleanVar(value=False)
-            if name in list:
-                checked = tk.BooleanVar(value=True)
-            if obj == None:
-                c = Checkbutton(frame, text=name.split('_')[0], variable=checked, takefocus=False)
-            else:
-                c = Checkbutton(frame, text=name.split('_')[0], variable=checked, command=lambda: switch(obj), takefocus=False)
-            if affectedBySelectAll == True:
-                cbuts.append(c)
-            c.grid(sticky="W", column=icol, row=irow, padx=30)
-            return {name: checked}
-
-        # Functions for selecting/deselecting all
-        cbuts = []
-        buttonWidth = 8
-        def select_all():
-            for i in cbuts:
-                i.select()
-        def deselect_all():
-            for i in cbuts:
-                i.deselect()
-
-        irow, icol = 0, 0
-
-        # frameModels
-        frameModels = ttk.Frame(tabModelsAndScenes)
-        frameModels.grid(row=0, column=0, sticky='n', padx=(40, 0), rowspan=2)
-
-        # frameReanalysisName
-        frameReanalysisName = ttk.Frame(tabModelsAndScenes)
-        frameReanalysisName.grid(row=0, column=1, sticky='n', padx=(40, 0))
-
-        # frameScenes
-        frameScenes = ttk.Frame(tabModelsAndScenes)
-        frameScenes.grid(row=1, column=1, sticky='n', padx=(40, 0))
-
-        Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, padx=20, pady=0); icol+=1; irow+=1
-        Label(frameModels, text="Select models from the list to include their r1i1p1f1 run:")\
-            .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=100)
-        Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, pady=10); irow+=1
-
-
-        # Models
-        all_models = ('ACCESS-CM2_r1i1p1f1', 'ACCESS-ESM1-5_r1i1p1f1', 'AWI-CM-1-1-MR_r1i1p1f1', 'AWI-CM-1-1-LR_r1i1p1f1', 'BCC-CSM2-MR_r1i1p1f1', 'BCC-ESM1_r1i1p1f1',
-                      'CAMS-CSM1-0_r1i1p1f1', 'CanESM5_r1i1p1f1', 'CanESM5-CanOE_r1i1p1f1',
-                      'CESM2_r1i1p1f1_r1i1p1f1', 'CESM2-FV2_r1i1p1f1', 'CESM2-WACCM_r1i1p1f1', 'CESM2-WACCM-FV2_r1i1p1f1', 'CIESM_r1i1p1f1',
-                      'CMCC-CM2-HR4_r1i1p1f1', 'CMCC-CM2-SR5_r1i1p1f1', 'CMCC-ESM2_r1i1p1f1', 'CNRM-CM6-1_r1i1p1f1', 'CNRM-CM6-1-HR_r1i1p1f1', 'CNRM-ESM2-1_r1i1p1f1',
-                      'E3SM-1-0_r1i1p1f1', 'E3SM-1-1_r1i1p1f1', 'E3SM-1-1-ECA_r1i1p1f1',
-                      'EC-Earth3_r1i1p1f1', 'EC-Earth3-AerChem_r1i1p1f1', 'EC-Earth3-CC_r1i1p1f1', 'EC-Earth3-Veg_r1i1p1f1',
-                      'EC-Earth3-Veg-LR_r1i1p1f1', 'FGOALS-f3-L_r1i1p1f1', 'FGOALS-g3_r1i1p1f1', 'FIO-ESM-2-0_r1i1p1f1',
-                      'GFDL-CM4_r1i1p1f1', 'GFDL-ESM4_r1i1p1f1', 'GISS-E2-1-G_r1i1p1f1', 'GISS-E2-1-H_r1i1p1f1', 'HadGEM3-GC31-LL_r1i1p1f1',
-                      'HadGEM3-GC31-MM_r1i1p1f1', 'IITM-ESM_r1i1p1f1', 'INM-CM4-8_r1i1p1f1', 'INM-CM5-0_r1i1p1f1', 'IPSL-CM5A2-INCA_r1i1p1f1', 'IPSL-CM6A-LR_r1i1p1f1',
-                      'KACE-1-0-G_r1i1p1f1', 'KIOST-ESM_r1i1p1f1', 'MCM-UA-1-0_r1i1p1f1', 'MIROC-ES2H_r1i1p1f1', 'MIROC-ES2L_r1i1p1f1', 'MIROC6_r1i1p1f1', 'MPI-ESM-1-2-HAM_r1i1p1f1',
-                      'MPI-ESM1-2-HR_r1i1p1f1', 'MPI-ESM1-2-LR_r1i1p1f1', 'MRI-ESM2-0_r1i1p1f1', 'NESM3_r1i1p1f1', 'NorCPM1_r1i1p1f1', 'NorESM2-LM_r1i1p1f1', 'NorESM2-MM_r1i1p1f1',
-                      'SAM0-UNICON_r1i1p1f1', 'TaiESM1_r1i1p1f1', 'UKESM1-0-LL_r1i1p1f1')
-
-        maxRows = 15
-        ncols = 0
-        nrows = maxRows
-        for model in all_models:
-            self.chk_dict_models.update(add_to_chk_list(frameModels, model, model_names_list, icol, irow, affectedBySelectAll=True))
-            irow += 1; nrows-=1
-            if nrows == 0:
-                ncols+=1; nrows = maxRows; icol+=1; irow-=maxRows
-
-        # Select all models
-        irow+=1; icol-=ncols-1
-        Button(frameModels, text='Select all', command=select_all, takefocus=False).grid(column=icol, row=irow, pady=10); icol += 1
-        Button(frameModels, text='Deselect all', command=deselect_all, takefocus=False).grid(column=icol, row=irow)
-
-
-        # Other models
-        irow+=maxRows
-        icol -=2
-
-        Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, padx=30, pady=5, columnspan=4); irow+=1
-        Label(frameModels, text="In order to include other models and/or runs introduce them here "
-                                       "separated by ';'")\
-                                    .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow+=1
-        Label(frameModels, text="Example: ACCESS-CM2_r1i1p1f3; EC-Earth3_r2i1p1f1")\
-                                    .grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4)
-        otherModels_list = []
-        for model in model_names_list:
-            if model.split('_')[1] != 'r1i1p1f1':
-                otherModels_list.append(model)
-        otherModels_list = '; '.join((otherModels_list))
-
-        icol += 1
-        self.otherModels_var = tk.StringVar()
-        self.otherModels_Entry = tk.Entry(frameModels, textvariable=self.otherModels_var, width=45,
-                                          justify='left', state='normal', takefocus=False)
-        self.otherModels_Entry.insert(END, otherModels_list)
-        self.otherModels_Entry.grid(sticky="E", column=icol, row=irow, columnspan=3)
-        icol += 1
-
-
-        # frameReanalysisName
-        Label(frameReanalysisName, text="").grid(sticky="W", column=icol, row=irow, pady=(40, 0)); icol+=1; irow+=1
-        self.reanalysisName_var = tk.StringVar()
-        Label(frameReanalysisName, text='Reanalysis name:').grid(sticky="W", column=icol, row=irow, padx=10); icol += 1
-        reanalysisName_Entry = tk.Entry(frameReanalysisName, textvariable=self.reanalysisName_var, width=15, justify='right', takefocus=False)
-        reanalysisName_Entry.insert(END, reanalysisName)
-        reanalysisName_Entry.grid(sticky="W", column=icol, row=irow)
-
-
-        # Scenes
-        irow, icol = 0, 0
-        Label(frameScenes, text="Select scenarios:").grid(sticky="NW", column=icol, row=irow, padx=50); irow+=1
-        all_scenes = ['HISTORICAL', 'SSP1-1.9', 'SSP1-2.6', 'SSP2-4.5', 'SSP3-7.0', 'SSP5-8.5']
-        self.chk_dict_scenes = {}
-        for scene in all_scenes:
-            self.chk_dict_scenes.update(add_to_chk_list(frameScenes, scene, scene_names_list, icol, irow)); irow += 1
-
-        # Other scenes
-        Label(frameScenes, text="").grid(sticky="W", column=icol, row=irow)
-        self.otherScenes_var = tk.StringVar()
-        self.otherScenes_Entry = tk.Entry(frameScenes, textvariable=self.otherScenes_var, width=15, justify='right', state='disabled')
-        self.otherScenes_Entry.grid(sticky="E", column=icol, row=irow, padx=100)
-        CreateToolTip(self.otherScenes_Entry, "Enter scenario names separated by ';'")
-        self.chk_dict_scenes.update(add_to_chk_list(frameScenes, 'Others:', scene_names_list, icol, irow, obj=self.otherScenes_Entry)); irow += 1
-
-    def get(self):
-        return self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, self.reanalysisName_var
-
-
-########################################################################################################################
-class tabDomain(ttk.Frame):
-
-    def __init__(self, notebook):
-
-        tabDomain = ttk.Frame(notebook)
-        notebook.add(tabDomain, text='Domain')
-
-        icol, irow = 0, 0
-        # ttk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
-        padx = 100
-        # frameDomain
-        frameDomain = Frame(tabDomain)
-        frameDomain.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
-
-        # frameVarNames
-        frameVarNames = Frame(tabDomain)
-        frameVarNames.grid(sticky="W", column=0, row=1, padx=padx, pady=10, columnspan=2)
-
-        # frameSAFs
-        frameSAFs = Frame(tabDomain)
-        frameSAFs.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
-
-
-        # grid_res
-        self.grid_res_var = tk.StringVar()
-        lab = Label(frameDomain, text="Grid resolution:")
-        lab.grid(sticky="W", column=icol, row=irow, padx=10, columnspan=5); icol+=2
-        grid_resTesting_Entry = tk.Entry(frameDomain, textvariable=self.grid_res_var, width=4, justify='right', takefocus=False)
-        grid_resTesting_Entry.insert(END, grid_res)
-        CreateToolTip(lab, 'Grid resolution')
-        grid_resTesting_Entry.grid(sticky="W", column=icol+1, row=irow)
-        irow+=1; icol-=2
-
-        # safGrid
-        ttk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
-        padx, pady, width = 2, 2, 5
-        lab = Label(frameDomain, text='Domain for synoptic analogy fields \n'
-                                     '(lat up, lat down, lon left and long right):', justify=LEFT)
-        lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
-
-        ttk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=100); icol+=1
-
-
-        self.saf_lat_up_var = tk.StringVar()
-        saf_lat_upTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lat_up_var, width=width, justify='right', takefocus=False)
-        saf_lat_upTesting_Entry.insert(END, saf_lat_up)
-        CreateToolTip(saf_lat_upTesting_Entry, 'lat up')
-        saf_lat_upTesting_Entry.grid(sticky="W", column=icol+1, row=irow, padx=padx, pady=pady)
-        self.saf_lon_left_var = tk.StringVar()
-        saf_lon_leftTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lon_left_var, width=width, justify='right', takefocus=False)
-        saf_lon_leftTesting_Entry.insert(END, saf_lon_left)
-        CreateToolTip(saf_lon_leftTesting_Entry, 'lon left')
-        saf_lon_leftTesting_Entry.grid(sticky="W", column=icol, row=irow+1, padx=padx, pady=pady)
-        self.saf_lon_right_var = tk.StringVar()
-        saf_lon_rightTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lon_right_var, width=width, justify='right', takefocus=False)
-        saf_lon_rightTesting_Entry.insert(END, saf_lon_right)
-        CreateToolTip(saf_lon_rightTesting_Entry, 'lon right')
-        saf_lon_rightTesting_Entry.grid(sticky="W", column=icol+2, row=irow+1, padx=padx, pady=pady)
-        self.saf_lat_down_var = tk.StringVar()
-        saf_lat_downTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lat_down_var, width=width, justify='right', takefocus=False)
-        saf_lat_downTesting_Entry.insert(END, saf_lat_down)
-        CreateToolTip(saf_lat_downTesting_Entry, 'lat down')
-        saf_lat_downTesting_Entry.grid(sticky="W", column=icol+1, row=irow+2, padx=padx, pady=pady); irow+=3
-        lab = Label(frameDomain, text='Make sure all files (reanalysis and models) contain, at least, \n'
-                                     'this domain plus a border of one grid box width.', justify=LEFT)
-        lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
-
-        # reaNames and modNames
-        irow, icol = 0, 0
-        ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=0, ); irow+=1
-        ttk.Label(frameVarNames, text='Define variable names in netCDF files:')\
-            .grid(column=icol, row=irow, pady=10, columnspan=13); irow += 1
-
-        # reaNames and modNames
-        self.reaNames = {}
-        self.modNames = {}
-        ncols = 13
-        all_vars = {
-                'tasmax': 'Surface maximum temperature',
-                'tasmin': 'Surface minimum temperature',
-                'tas': 'Surface mean temperature',
-                'pr': 'Precipitation',
-                'uas': 'Surface zonal wind component',
-                'vas': 'Surface meridional wind component',
-                'sfcWind': 'Surface wind speed',
-                'hurs': 'Surface relative humidity',
-                'clt': 'Cloud cover',
-                'tdps': 'Surface dewpoint',
-                'ps': 'Surface pressure',
-                'huss': 'Surface specific humidity',
-                'ua': 'Zonal wind',
-                'va': 'Meridional wind',
-                'ta': 'Temperature',
-                'zg': 'Geopotential',
-                'hus': 'Specific humidity',
-                'hur': 'Relative humidity',
-                'td': 'Dew point',
-                'psl': 'Mean sea level pressure',
-        }
-        for var in all_vars:
-
-            if icol == 0:
-                ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow += 1
-                ttk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
-                ttk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
-                icol += 1; irow -= 3
-
-            lab = ttk.Label(frameVarNames, text=var)
-            CreateToolTip(lab, all_vars[var])
-            lab.grid(sticky="E", column=icol, row=irow, pady=(10, 0)); irow+=1
-
-            reaName = reaNames[var]
-            self.reaName_var = tk.StringVar()
-            reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
-            reaName_Entry.insert(END, reaName)
-            reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
-            self.reaNames.update({var: self.reaName_var})
-
-            modName = modNames[var]
-            self.modName_var = tk.StringVar()
-            modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
-            modName_Entry.insert(END, modName)
-            modName_Entry.grid(sticky="W", column=icol, row=irow); irow-=2
-            self.modNames.update({var: self.modName_var})
-            icol +=1
-            if icol == ncols:
-                irow+=3; icol-=ncols
-
-
-        # SAFs
-        self.SAFs = []
-        self.SAFs = framePredictorsClass(notebook, frameSAFs, 'SAFs').get()
-
-
-    def get(self):
-        return self.grid_res_var, self.saf_lat_up_var, self.saf_lon_left_var, \
-        self.saf_lon_right_var, self.saf_lat_down_var, self.reaNames, self.modNames, self.SAFs
-
-
-
-########################################################################################################################
-class tabDates(ttk.Frame):
-
-    def __init__(self, notebook):
-        tabDates = ttk.Frame(notebook)
-        notebook.add(tabDates, text='Dates')
-        padx = 100
-
-        # frameDates
-        frameDates = Frame(tabDates)
-        frameDates.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
-
-        # frameBiasCorrection
-        frameBiasCorrection = Frame(tabDates)
-        frameBiasCorrection.grid(sticky="W", column=0, row=1, padx=padx, pady=10)
-
-        # frameSplitMode
-        frameSplitMode = Frame(tabDates)
-        frameSplitMode.grid(sticky="W", column=0, row=2, padx=padx, pady=10)
-
-        # framePeriodFilenames
-        framePeriodFilenames = Frame(tabDates)
-        framePeriodFilenames.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
-
-        # frameSeasons
-        frameSeasons = Frame(tabDates)
-        frameSeasons.grid(sticky="W", column=1, row=2, padx=padx, pady=10, rowspan=2)
-
-
-        icol, irow = 0, 0
-        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10, columnspan=100); irow+=1
-        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol += 1
-
-        # Years
-        for (text, var, info) in [
-            ('Calibration years:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
-                                                'which then can be split for training and testing'),
-            ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
-                                            'The choice of the reference period is constrained by availability of \n'
-                                            'reanalysis, historical GCMs and hres data.'),
-            ('Historical years:', historical_years, 'For historical projections'),
-            ('SSPs years:', ssp_years, 'For future projections'),
-            ]:
-
-            lab = ttk.Label(frameDates, text=text)
-            CreateToolTip(lab, info)
-            lab.grid(sticky="E", column=icol, row=irow, padx=8); icol+=1
-
-            firstYear, lastYear = var[0], var[1]
-            firstYear_var = tk.StringVar()
-            firstYear_Entry = tk.Entry(frameDates, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
-            firstYear_Entry.insert(END, firstYear)
-            firstYear_Entry.grid(sticky="W", column=icol, row=irow); icol+=1
-            Label(frameDates, text='-').grid(sticky="E", column=icol, row=irow, padx=3); icol+=1
-            lastYear_var = tk.StringVar()
-            lastYear_Entry = tk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
-            lastYear_Entry.insert(END, lastYear)
-            lastYear_Entry.grid(sticky="W", column=icol, row=irow)
-            irow+=1; icol-=1
-
-            if text == 'Calibration years:':
-                self.calibration_years = (firstYear_var, lastYear_var)
-            elif text == 'Reference years:':
-                self.reference_years = (firstYear_var, lastYear_var)
-            elif text == 'Historical years:':
-                self.historical_years = (firstYear_var, lastYear_var)
-            elif text == 'SSPs years:':
-                self.ssp_years = (firstYear_var, lastYear_var)
-            icol -= 2
-
-        # Bias correction
-        irow, icol = 0, 0
-        self.bc_option = StringVar()
-        bc_options = {
-            'No': 'Do not apply bias correction after downscaling.',
-            'Yes': 'Apply bias correction after downscaling.',
-            'By season': 'Apply a customized bias correction after downscaling for each season.',
-        }
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=5, columnspan=3); irow+=1
-        Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
-        if apply_bc == False:
-            last_bc_opt = 'No'
-        elif apply_bc_bySeason == False:
-            last_bc_opt = 'Yes'
-        else:
-            last_bc_opt = 'By season'
-        for bc_opt in bc_options:
-            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); icol+=1
-            CreateToolTip(c, bc_options[bc_opt])
-            self.bc_option.set(last_bc_opt)
-
-        # Train/test split
-        self.split_mode = StringVar()
-        irow, icol = 0, 0
-        Label(frameSplitMode, text='Define how to split the calibration period for training/testing:')\
-            .grid(sticky="W", column=icol, row=irow, columnspan=10, padx=30, pady=10); irow += 1; icol+=2
-        Label(frameSplitMode, text='Testing years:')\
-            .grid(column=icol, row=irow, columnspan=4);
-        irow += 1; icol-=1
-
-
-        def add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol):
-
-
-            c = Radiobutton(frameSplitMode, text=str(text), variable=self.split_mode, value=split_modeName,
-                            command=lambda: switch_splitMode(split_modeName, self.dict_buttons), takefocus=False)
-
-            c.grid(sticky="W", column=icol, row=irow)
-            CreateToolTip(c, info)
-            self.split_mode.set(split_mode)
-
-            if split_modeName in ('single_split', 'fold1', 'fold2', 'fold3', 'fold4', 'fold5'):
-                icol+=2
-                firstYear, lastYear = years[0], years[1]
-                firstYear_var = tk.StringVar()
-                firstYearTesting_Entry = tk.Entry(frameSplitMode, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
-                firstYearTesting_Entry.insert(END, firstYear)
-                if split_modeName != split_mode:
-                    firstYearTesting_Entry.config(state='disabled')
-                firstYearTesting_Entry.grid(sticky="E", column=icol, row=irow);
-                icol += 1
-                Label(frameSplitMode, text='-').grid(column=icol, row=irow);
-                icol += 1
-                lastYear_var = tk.StringVar()
-                lastYearTesting_Entry = tk.Entry(frameSplitMode, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
-                lastYearTesting_Entry.insert(END, lastYear)
-                if split_modeName != split_mode:
-                    lastYearTesting_Entry.config(state='disabled')
-                lastYearTesting_Entry.grid(sticky="W", column=icol, row=irow)
-                self.testing_years_dict.update({split_modeName: (firstYear_var, lastYear_var)})
-                self.dict_buttons.update({split_modeName: [c, firstYearTesting_Entry, lastYearTesting_Entry]})
-                icol -= 4
-            else:
-                self.dict_buttons.update({split_modeName: [c, None, None]})
-
-
-        self.testing_years_dict = {}
-
-        self.dict_buttons = {}
-
-        for (text, split_modeName, years, info) in [
-            ('All training', 'all_training', None, 'The whole calibration period is used for training'),
-            ('All testing', 'all_testing', None, 'The whole calibration period is used for testing'),
-            ('Single train/test split', 'single_split', single_split_testing_years, 'Single train/test split'),
-            ('k-fold 1/5', 'fold1', fold1_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 2/5', 'fold2', fold2_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 3/5', 'fold3', fold3_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 4/5', 'fold4', fold4_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 5/5', 'fold5', fold5_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ]:
-
-            add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol)
-
-            irow+=1
-
-
-        icol = 0
-        irow = 0
-        # Label(framePeriodFilenames, text='Define the following fields:').grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=10); irow += 1
-        # Label(framePeriodFilenames, text='').grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=10); irow += 1
-
-        entriesW = 17
-
-        # reanalysisPeriodFilename
-        self.reanalysisPeriodFilename_var = tk.StringVar()
-        Label(framePeriodFilenames, text='Reanalysis period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
-        reanalysisPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.reanalysisPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        reanalysisPeriodFilename_Entry.insert(END, reanalysisPeriodFilename)
-        reanalysisPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
-        # historicalPeriodFilename
-        self.historicalPeriodFilename_var = tk.StringVar()
-        Label(framePeriodFilenames, text='Historical period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
-        historicalPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.historicalPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        historicalPeriodFilename_Entry.insert(END, historicalPeriodFilename)
-        historicalPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
-        # sspPeriodFilename
-        self.sspPeriodFilename_var = tk.StringVar()
-        Label(framePeriodFilenames, text='SSP period filename:').grid(sticky="W", column=icol, row=irow, padx=10); icol+=1
-        sspPeriodFilename_Entry = tk.Entry(framePeriodFilenames, textvariable=self.sspPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        sspPeriodFilename_Entry.insert(END, sspPeriodFilename)
-        sspPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
-        # season_dict
-        self.seasons = []
-        def add_season(xMonth, text, seasonName, irow, icol):
-            monthsVar = tk.StringVar()
-            Label(frameSeasons, text=text).grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            seasonName_Entry = tk.Entry(frameSeasons, textvariable=monthsVar, width=10, justify='right',
-                                        takefocus=False)
-            seasonName_Entry.insert(END, seasonName)
-            seasonName_Entry.grid(sticky="E", column=icol, row=irow)
-            self.seasons.append(monthsVar)
-            icol -= 1
-
-        icol, irow = 0, 0
-        Label(frameSeasons, text='Defina season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
-        for (xMonth, text, seasonName) in [
-            (0, 'All year:', inverse_seasonNames[0]),
-            (1, 'Jan:', inverse_seasonNames[1]),
-            (2, 'Feb:', inverse_seasonNames[2]),
-            (3, 'Mar:', inverse_seasonNames[3]),
-            (4, 'Apr:', inverse_seasonNames[4]),
-            (5, 'May:', inverse_seasonNames[5]),
-            (6, 'Jun:', inverse_seasonNames[6]),
-            (7, 'Jul:', inverse_seasonNames[7]),
-            (8, 'Aug:', inverse_seasonNames[8]),
-            (9, 'Sep:', inverse_seasonNames[9]),
-            (10, 'Oct:', inverse_seasonNames[10]),
-            (11, 'Nov:', inverse_seasonNames[11]),
-            (12, 'Dec:', inverse_seasonNames[12]),
-            ]:
-            add_season(xMonth, text, seasonName, irow, icol)
-            irow += 1
-
-
-
-    def get(self):
-        return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.bc_option, \
-               self.testing_years_dict, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
-               self.sspPeriodFilename_var, self.split_mode, self.seasons
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 
 ########################################################################################################################
 class tabFigures(ttk.Frame):
-
 
     def __init__(self, notebook):
         tabFigures = ttk.Frame(notebook)
@@ -1970,7 +1987,7 @@ class tabFigures(ttk.Frame):
 
 
         # frameFigSelection
-        frameFigSelection = Frame(tabFigures, height=510, width=1140)
+        frameFigSelection = Frame(tabFigures, height=505, width=1140)
         frameFigSelection.grid(sticky="W", column=0, row=0, padx=0, pady=0)
         frameFigSelection.grid_propagate(False)
 
@@ -2267,40 +2284,38 @@ class selectionWindow():
 
         # Tab: dates
         self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
-            self.testing_years_dict_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
+            self.bc_method_chk, self.testing_years_dict_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
             self.sspPeriodFilename_var_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
 
         # Tab: domain
         self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, self.saf_lon_right_var_chk, \
             self.saf_lat_down_var_chk, self.reaNames, self.modNames, self.SAFs = tabDomain(notebook).get()
 
-
         # Tab: targetVars
-        self.targetVars = {}
+        self.targetVars_dict = {}
         aux = tabTasmax(notebook).get()
-        self.targetVars.update({'tasmax': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'tasmax': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabTasmin(notebook).get()
-        self.targetVars.update({'tasmin': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'tasmin': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabTas(notebook).get()
-        self.targetVars.update({'tas': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'tas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabPr(notebook).get()
-        self.targetVars.update({'pr': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'pr': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabUas(notebook).get()
-        self.targetVars.update({'uas': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'uas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabVas(notebook).get()
-        self.targetVars.update({'vas': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'vas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabSfcWind(notebook).get()
-        self.targetVars.update({'sfcWind': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'sfcWind': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabHurs(notebook).get()
-        self.targetVars.update({'hurs': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'hurs': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabClt(notebook).get()
-        self.targetVars.update({'clt': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'clt': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabMyTargetVar(notebook).get()
-        self.targetVars.update({'myTargetVar': {'methods': aux[0], 'preds': aux[1], 'info': aux[2], 'climdex': aux[3], }})
+        self.targetVars_dict.update({'myTargetVar': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
 
         # Tab: visualization
         tabFigures(notebook)
-
 
         # Logo
         w = 120
@@ -2315,312 +2330,379 @@ class selectionWindow():
         self.run = False
         def run():
 
-            # self.all_checks_ok = False
-            #
-            # # Read experiment and steps
-            # self.exp = self.experiment_chk.get()
-            # self.steps = []
-            # for step in self.all_steps[self.exp]:
-            #     if self.steps_dict[self.exp][step].get() == True:
-            #         self.steps.append(step)
-            #
-            # # Read predictors and saf
-            # self.selected_all_preds = []
-            # for x in self.preds:
-            #     if self.preds[x].get() == True and x.split('_')[0] not in self.selected_all_preds:
-            #         self.selected_all_preds.append(x.split('_')[0])
-            # self.targetVars0 = [x for x in self.selected_all_preds if x != 'saf']
-            #
-            # # Read methods
-            # self.targetVars = []
-            # for meth in self.methods_chk:
-            #     if meth['checked'].get() == True and meth['var'] not in self.targetVars:
-            #         self.targetVars.append(meth['var'])
-            #
-            # # Force to select at least one saf
-            # if 'saf' not in self.selected_all_preds:
-            #     self.all_checks_ok = False
-            #     tk.messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected (Predictors tab)")
-            # else:
-            #     self.all_checks_ok = True
-            #
-            # # Force to select at least one pred
-            # if self.all_checks_ok == True:
-            #     if len(self.targetVars0) == 0:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "At least one predictor (for temperature and/or precipitation) must be selected (Predictors tab)")
-            #     else:
-            #         self.all_checks_ok = True
-            #
-            # # Force consistency between targetVars and targetVars0
-            # for var in ('tmax', 'tmin', 'pcp',):
-            #     if self.all_checks_ok == True:
-            #         if (var in self.targetVars) and (var[0] not in self.targetVars0) and (self.exp != 'PRECONTROL'):
-            #             self.all_checks_ok = False
-            #             tk.messagebox.showerror("pyClim-SDM",  'Your selection includes some methods for ' + var + ' but no predictor has been selected')
-            #         else:
-            #             self.all_checks_ok = True
-            #
-            # # Force consistency between methods and experiment
-            # if self.all_checks_ok == True:
-            #     if len(self.targetVars) == 0 and self.exp != 'PRECONTROL':
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
-            #     else:
-            #         self.all_checks_ok = True
-            #
+            self.all_checks_ok = False
+
+            # Read experiment and steps
+            self.experiment = self.experiment_chk.get()
+            self.steps = []
+            for step in self.all_steps[self.experiment]:
+                if self.steps_dict[self.experiment][step].get() == True:
+                    self.steps.append(step)
+
+            # TargetVars
+            self.targetVars = []
+            for x in self.targetVars_dict:
+                if self.targetVars_dict[x]['active'].get() == True:
+                    self.targetVars.append(x)
+
+            # Force to select at least one saf
+            self.saf_list = [x for x in self.SAFs if self.SAFs[x].get() == True]
+            if len(self.saf_list) == 0:
+                self.all_checks_ok = False
+                tk.messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected")
+            else:
+                self.all_checks_ok = True
+
+            # Force to select at least one pred
+            self.selected_all_preds = []
+            self.preds_targetVars_dict = {}
+            for x in self.targetVars_dict:
+                aux = []
+                for pred in self.targetVars_dict[x]['preds']:
+                    if self.targetVars_dict[x]['preds'][pred].get() == True:
+                        self.selected_all_preds.append(pred)
+                        aux.append(pred)
+                if len(aux) != 0:
+                    self.preds_targetVars_dict.update({x: aux})
+            if self.all_checks_ok == True:
+                if len(self.selected_all_preds) == 0:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "At least one predictor must be selected")
+                else:
+                    self.all_checks_ok = True
+
+            # Force at least one predictor for each targetVar
+            for targetVar in self.targetVars:
+                if self.all_checks_ok == True:
+                    if len(self.preds_targetVars_dict[targetVar]) == 0:
+                        self.all_checks_ok = False
+                        tk.messagebox.showerror("pyClim-SDM",  'No predictor has been selected for ' + targetVar + '')
+                    else:
+                        self.all_checks_ok = True
+
+            # Force consistency between methods and experiment
+            if self.all_checks_ok == True:
+                if len(self.targetVars) == 0 and self.exp != 'PRECONTROL':
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
+                else:
+                    self.all_checks_ok = True
+
+            # Methods
+            self.methods = {}
+            for targetVar in self.targetVars:
+                aux = []
+                for method in self.targetVars_dict[targetVar]['methods']:
+                    if method['checked'].get() == True:
+                        aux.append(method['methodName'])
+                if len(aux) != 0:
+                    self.methods.update({targetVar: aux})
+
+            # Years
+            ini, end = [], []
+            for targetVar in self.targetVars:
+                aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
+                ini.append(int(aux.split('-')[0][:4]))
+                end.append(int(aux.split('-')[1][:4]))
+            ini = np.max(np.array(ini))
+            end = np.min(np.array(end))
+            self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
+            self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
+            self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
+            self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
+            self.all_years_hres = [x for x in range(ini, end+1)]
+            self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var_chk.get().split('-')[0][:4]),
+                                                    int(self.reanalysisPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
+            self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var_chk.get().split('-')[0][:4]),
+                                                    int(self.historicalPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
+            self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var_chk.get().split('-')[0][:4]),
+                                                    int(self.sspPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
+
+            # Force calibration years
+            if self.all_checks_ok == True:
+                year = self.aux_calibration_years[0]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+            if self.all_checks_ok == True:
+                year = self.aux_calibration_years[1]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force reference years
+            if self.all_checks_ok == True:
+                year = self.aux_reference_years[0]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+                        or year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+            if self.all_checks_ok == True:
+                year = self.aux_reference_years[1]
+                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
+                        or year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+                                                           "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force historical years
+            if self.all_checks_ok == True:
+                year = self.aux_historical_years[0]
+                if year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+                year = self.aux_historical_years[1]
+                if year not in self.all_years_historical:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+            # Force ssp years
+            if self.all_checks_ok == True:
+                year = self.aux_ssp_years[0]
+                if year not in self.all_years_ssp:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+                year = self.aux_ssp_years[1]
+                if year not in self.all_years_ssp:
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+                                                       "Please, modify your selection.")
+                else:
+                    self.all_checks_ok = True
+
+
+            # seasons
+            if self.all_checks_ok == True:
+                self.inverse_seasonNames = []
+                for i in range(13):
+                    seasonName = self.seasons_chk[i].get()
+                    self.inverse_seasonNames.append(seasonName)
+                    if seasonName == '':
+                        self.all_checks_ok = False
+                        tk.messagebox.showerror("pyClim-SDM", "Month "+str(i)+" has no season defined.\n"
+                                                           "Please, modify your selection.")
+
             # # Force at least one step
             # if self.all_checks_ok == True:
             #     if len(self.steps) == 0:
             #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected (Experiments and Steps tab)")
+            #         tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected")
             #     else:
             #         self.all_checks_ok = True
-            #
-            # # Years
-            # self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
-            # self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
-            # self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
-            # self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
-            # self.all_years_hres = [x for x in range(max(int(self.hresPeriodFilename_var_t_chk.get().split('-')[0][:4]),
-            #                                             int(self.hresPeriodFilename_var_p_chk.get().split('-')[0][:4])),
-            #                                         min(int(self.hresPeriodFilename_var_t_chk.get().split('-')[1][:4]),
-            #                                             int(self.hresPeriodFilename_var_p_chk.get().split('-')[1][:4]))
-            #                                             + 1)]
-            # self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var_chk.get().split('-')[0][:4]),
-            #                                         int(self.reanalysisPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            # self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var_chk.get().split('-')[0][:4]),
-            #                                         int(self.historicalPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            # self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var_chk.get().split('-')[0][:4]),
-            #                                         int(self.sspPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            #
-            # # Force calibration years
-            # if self.all_checks_ok == True:
-            #     year = self.aux_calibration_years[0]
-            #     if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-            #                                                "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            # if self.all_checks_ok == True:
-            #     year = self.aux_calibration_years[1]
-            #     if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-            #                                                "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            #
-            # # Force reference years
-            # if self.all_checks_ok == True:
-            #     year = self.aux_reference_years[0]
-            #     if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-            #             or year not in self.all_years_historical:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-            #                                                "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            # if self.all_checks_ok == True:
-            #     year = self.aux_reference_years[1]
-            #     if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-            #             or year not in self.all_years_historical:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-            #                                                "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            #
-            # # Force historical years
-            # if self.all_checks_ok == True:
-            #     year = self.aux_historical_years[0]
-            #     if year not in self.all_years_historical:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-            #                                            "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            #     year = self.aux_historical_years[1]
-            #     if year not in self.all_years_historical:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-            #                                            "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            #
-            # # Force ssp years
-            # if self.all_checks_ok == True:
-            #     year = self.aux_ssp_years[0]
-            #     if year not in self.all_years_ssp:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-            #                                            "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            #     year = self.aux_ssp_years[1]
-            #     if year not in self.all_years_ssp:
-            #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-            #                                            "Please, modify your selection.")
-            #     else:
-            #         self.all_checks_ok = True
-            #
-            # # Force all checks ok
-            # if self.all_checks_ok == True:
-            #     self.run = True
-            #     # root.destroy()
-            #
-            #     # Experiment
-            #     self.experiment = self.experiment_chk.get()
-            #
-            #     # Steps
-            #     self.steps = []
-            #     for step in self.all_steps[self.experiment]:
-            #         if self.steps_dict[self.experiment][step].get() == True:
-            #             self.steps.append(step)
-            #
-            #     # Methods
-            #     self.methods = []
-            #     for meth in self.methods_chk:
-            #         if meth['checked'].get() == True:
-            #             aux = {}
-            #             for key in meth:
-            #                 if key != 'checked':
-            #                     aux.update({key: meth[key]})
-            #             self.methods.append(aux)
-            #
-            #     # reaNames and modNames
-            #     self.reaNames = {}
-            #     self.modNames = {}
-            #     for var in self.reaNames_chk:
-            #         self.reaNames.update({var: self.reaNames_chk[var].get()})
-            #         self.modNames.update({var: self.modNames_chk[var].get()})
-            #
-            #     # Predictors
-            #     self.preds_t_list = []
-            #     self.preds_p_list = []
-            #     self.saf_list = []
-            #     for predLong in self.preds:
-            #         block = predLong.split('_')[0]
-            #         pred = predLong.split('_')[1]
-            #         if self.preds[predLong].get() == True:
-            #             if block == 't':
-            #                 self.preds_t_list.append(pred)
-            #             elif block == 'p':
-            #                 self.preds_p_list.append(pred)
-            #             elif block == 'saf':
-            #                 self.saf_list.append(pred)
-            #
-            #     # Climdex
-            #     self.climdex_names = {}
-            #     for var in ('tmax', 'tmin', 'pcp'):
-            #         tmp_climdex_list = []
-            #         for climdex_dict in self.climdex_dict_chk:
-            #             if climdex_dict['checked'].get() == True and climdex_dict['var'] == var:
-            #                 tmp_climdex_list.append(climdex_dict['climdex'])
-            #         self.climdex_names.update({var: tmp_climdex_list})
-            #         del tmp_climdex_list
-            #
-            #     # Years
-            #     self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
-            #     self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
-            #     self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
-            #     self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
-            #
-            # # Model Output Statistics
-            # self.bc_option_str = self.bc_option_chk.get()
-            # if self.bc_option_str == 'No':
-            #     self.apply_bc, self.apply_bc_bySeason = False, False
-            # elif self.bc_option_str == 'Yes':
-            #     self.apply_bc, self.apply_bc_bySeason = True, False
-            # elif self.bc_option_str == 'By season':
-            #     self.apply_bc, self.apply_bc_bySeason = True, True
-            #
-            # # split_mode and testing years
-            # self.split_mode = self.split_mode_chk.get()
-            # self.single_split_testing_years = (
-            #     self.testing_years_dict_chk['single_split'][0].get(), self.testing_years_dict_chk['single_split'][1].get())
-            # self.fold1_testing_years = (
-            #     self.testing_years_dict_chk['fold1'][0].get(), self.testing_years_dict_chk['fold1'][1].get())
-            # self.fold2_testing_years = (
-            #     self.testing_years_dict_chk['fold2'][0].get(), self.testing_years_dict_chk['fold2'][1].get())
-            # self.fold3_testing_years = (
-            #     self.testing_years_dict_chk['fold3'][0].get(), self.testing_years_dict_chk['fold3'][1].get())
-            # self.fold4_testing_years = (
-            #     self.testing_years_dict_chk['fold4'][0].get(), self.testing_years_dict_chk['fold4'][1].get())
-            # self.fold5_testing_years = (
-            #     self.testing_years_dict_chk['fold5'][0].get(), self.testing_years_dict_chk['fold5'][1].get())
-            #
-            # # period filenames
-            # self.hresPeriodFilename_t = self.hresPeriodFilename_var_t_chk.get()
-            # self.hresPeriodFilename_p = self.hresPeriodFilename_var_p_chk.get()
-            # self.reanalysisName = self.reanalysisName_var_chk.get()
-            # self.reanalysisPeriodFilename = self.reanalysisPeriodFilename_var_chk.get()
-            # self.historicalPeriodFilename = self.historicalPeriodFilename_var_chk.get()
-            # self.sspPeriodFilename = self.sspPeriodFilename_var_chk.get()
-            #
-            # # grid_res
-            # self.grid_res = self.grid_res_var_chk.get()
-            # self.saf_lat_up = self.saf_lat_up_var_chk.get()
-            # self.saf_lon_left = self.saf_lon_left_var_chk.get()
-            # self.saf_lon_right = self.saf_lon_right_var_chk.get()
-            # self.saf_lat_down = self.saf_lat_down_var_chk.get()
-            #
-            # # seasons
-            # self.inverse_seasonNames = []
-            # for i in range(len(self.seasons_chk)):
-            #     seasonName = self.seasons_chk[i].get()
-            #     self.inverse_seasonNames.append(seasonName)
-            #
-            # # Models
-            # self.model_names_list = []
-            # for model in self.chk_dict_models:
-            #     if self.chk_dict_models[model].get() == True:
-            #         self.model_names_list.append(model)
-            # otherModels = self.otherModels_var.get()
-            # if otherModels != '':
-            #     while ' ' in otherModels:
-            #         otherModels = otherModels.replace(' ', '')
-            #     for model in otherModels.split(';'):
-            #         self.model_names_list.append(model)
-            #
-            # # Scenes
-            # self.scene_names_list = []
-            # for scene in self.chk_dict_scenes:
-            #     if self.chk_dict_scenes[scene].get() == True:
-            #         self.scene_names_list.append(scene)
-            # if 'Others:' in self.scene_names_list:
-            #     self.scene_names_list.remove('Others:')
-            #     otherScenes = self.otherScenes_var.get()
-            #     while ' ' in otherScenes:
-            #         otherScenes = otherScenes.replace(' ', '')
-            #     for scene in otherScenes.split(';'):
-            #         self.scene_names_list.append(scene)
-            #
-            # # Write settings file
-            # write_settings_file(self.showWelcomeMessage, self.experiment, self.steps, self.methods,
-            #                     self.reaNames, self.modNames, self.preds_t_list, self.preds_p_list, self.saf_list,
-            #                     self.climdex_names, self.calibration_years, self.reference_years, self.historical_years,
-            #                     self.ssp_years, self.apply_bc, self.apply_bc_bySeason, self.single_split_testing_years,
-            #                     self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
-            #                     self.fold4_testing_years, self.fold5_testing_years, self.hresPeriodFilename_t,
-            #                     self.hresPeriodFilename_p, self.reanalysisName, self.reanalysisPeriodFilename,
-            #                     self.historicalPeriodFilename, self.sspPeriodFilename, self.split_mode,
-            #                     self.grid_res, self.saf_lat_up, self.saf_lon_left, self.saf_lon_right,
-            #                     self.saf_lat_down, self.inverse_seasonNames, self.model_names_list, self.scene_names_list)
-            #
-            # # Write tmp_main file
-            # write_tmpMain_file(self.steps)
-            #
-            # # # Run .tmp_main
-            # # if platform.system() == 'Linux':
-            # #     subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
-            # # else:
-            # #     root.destroy()
-            # #     os.system('python3 .tmp_main.py')
 
-            root.destroy()
+            # Force all checks ok
+            if self.all_checks_ok == True:
+                self.run = True
+
+                # # Run .tmp_main
+                # if platform.system() == 'Linux':
+                #     subprocess.call(['xterm', '-e', 'python .tmp_main.py'])
+                # else:
+                #     root.destroy()
+                #     os.system('python3 .tmp_main.py')
+
+                root.destroy()
+
+                # Years
+                self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
+                self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
+                self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
+                self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
+
+                # split_mode and testing years
+                self.split_mode = self.split_mode_chk.get()
+                self.single_split_testing_years = (
+                    self.testing_years_dict_chk['single_split'][0].get(),
+                    self.testing_years_dict_chk['single_split'][1].get())
+                self.fold1_testing_years = (
+                    self.testing_years_dict_chk['fold1'][0].get(), self.testing_years_dict_chk['fold1'][1].get())
+                self.fold2_testing_years = (
+                    self.testing_years_dict_chk['fold2'][0].get(), self.testing_years_dict_chk['fold2'][1].get())
+                self.fold3_testing_years = (
+                    self.testing_years_dict_chk['fold3'][0].get(), self.testing_years_dict_chk['fold3'][1].get())
+                self.fold4_testing_years = (
+                    self.testing_years_dict_chk['fold4'][0].get(), self.testing_years_dict_chk['fold4'][1].get())
+                self.fold5_testing_years = (
+                    self.testing_years_dict_chk['fold5'][0].get(), self.testing_years_dict_chk['fold5'][1].get())
+
+                # grid_res
+                self.grid_res = self.grid_res_var_chk.get()
+                self.saf_lat_up = self.saf_lat_up_var_chk.get()
+                self.saf_lon_left = self.saf_lon_left_var_chk.get()
+                self.saf_lon_right = self.saf_lon_right_var_chk.get()
+                self.saf_lat_down = self.saf_lat_down_var_chk.get()
+
+                # Models
+                self.model_names_list = []
+                for model in self.chk_dict_models:
+                    if self.chk_dict_models[model].get() == True:
+                        self.model_names_list.append(model)
+                otherModels = self.otherModels_var.get()
+                if otherModels != '':
+                    while ' ' in otherModels:
+                        otherModels = otherModels.replace(' ', '')
+                    for model in otherModels.split(';'):
+                        self.model_names_list.append(model)
+
+                # Scenes
+                self.scene_names_list = []
+                for scene in self.chk_dict_scenes:
+                    if self.chk_dict_scenes[scene].get() == True:
+                        self.scene_names_list.append(scene)
+                if 'Others:' in self.scene_names_list:
+                    self.scene_names_list.remove('Others:')
+                    otherScenes = self.otherScenes_var.get()
+                    while ' ' in otherScenes:
+                        otherScenes = otherScenes.replace(' ', '')
+                    for scene in otherScenes.split(';'):
+                        self.scene_names_list.append(scene)
+
+                # period filenames
+                self.hresPeriodFilename = {}
+                for targetVar in self.targetVars:
+                    self.hresPeriodFilename.update({targetVar: self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()})
+                self.reanalysisName = self.reanalysisName_var_chk.get()
+                self.reanalysisPeriodFilename = self.reanalysisPeriodFilename_var_chk.get()
+                self.historicalPeriodFilename = self.historicalPeriodFilename_var_chk.get()
+                self.sspPeriodFilename = self.sspPeriodFilename_var_chk.get()
+
+
+                # reaNames and modNames
+                for var in self.reaNames:
+                    self.reaNames.update({var: self.reaNames[var].get()})
+                for var in self.modNames:
+                    self.modNames.update({var: self.modNames[var].get()})               
+
+                # climdex
+                self.climdex_names = {}
+                for targetVar in self.targetVars:
+                    aux = []
+                    for x in self.targetVars_dict[targetVar]['climdex']:
+                        if x['checked'].get() == True:
+                            aux.append(x['climdex'])
+                    self.climdex_names.update({targetVar: aux})
+
+                # Bias correction
+                self.bc_option_str = self.bc_option_chk.get()
+                if self.bc_option_str == 'No':
+                    self.apply_bc, self.apply_bc_bySeason = False, False
+                elif self.bc_option_str == 'Yes':
+                    self.apply_bc, self.apply_bc_bySeason = True, False
+                elif self.bc_option_str == 'By season':
+                    self.apply_bc, self.apply_bc_bySeason = True, True
+                self.bc_method = self.bc_method_chk.get()
+
+
+                if 'myTargetVar' in self.targetVars:
+                    info = self.targetVars_dict['myTargetVar']['info']
+                    self.myTargetVarName = info['myTargetVarName'].get()
+                    self.myTargetReaName = info['reaName'].get()
+                    self.myTargetModName = info['modName'].get()
+                    self.myTargetVarMinAllowed = info['myTargetVarMinAllowed'].get()
+                    self.myTargetVarMaxAllowed = info['myTargetVarMaxAllowed'].get()
+                    self.myTargetVarUnits = info['myTargetVarUnits'].get()
+                    self.myTargetVarIsGaussian = info['myTargetVarIsGaussian'].get()
+                    self.myTargetVarIsAdditive = info['myTargetVarIsAdditive'].get()
+                    self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
+                    self.reaNames.update({'myTargetVar': self.myTargetReaName})
+                    self.modNames.update({'myTargetVar': self.myTargetModName})
+                else:
+                    self.myTargetVarName = ''
+                    self.myTargetReaName = ''
+                    self.myTargetModName = ''
+                    self.myTargetVarMinAllowed = None
+                    self.myTargetVarMaxAllowed = None
+                    self.myTargetVarUnits = ''
+                    self.myTargetVarIsGaussian = False
+                    self.myTargetVarIsAdditive = False
+                    self.treatAsAdditiveBy_DQM_and_QDM = False
+                if self.myTargetVarMinAllowed == '':
+                    self.myTargetVarMinAllowed = None
+                if self.myTargetVarMaxAllowed == '':
+                    self.myTargetVarMaxAllowed = None
+
+                # print(self.experiment)
+                # print(self.steps)
+                # print(self.targetVars)
+                # print(self.methods)
+                # print(self.calibration_years)
+                # print(self.single_split_testing_years)
+                # print(self.fold1_testing_years)
+                # print(self.fold2_testing_years)
+                # print(self.fold3_testing_years)
+                # print(self.fold4_testing_years)
+                # print(self.fold5_testing_years)
+                # print(self.split_mode)
+                # print(self.reference_years)
+                # print(self.historical_years)
+                # print(self.ssp_years)
+                # print(self.hresPeriodFilename)
+                # print(self.reanalysisName)
+                # print(self.reanalysisPeriodFilename)
+                # print(self.historicalPeriodFilename)
+                # print(self.sspPeriodFilename)
+                # print(self.grid_res)
+                # print(self.saf_lat_up)
+                # print(self.saf_lat_down)
+                # print(self.saf_lon_left)
+                # print(self.saf_lon_right)
+                # print(self.reaNames)
+                # print(self.modNames)
+                # print(self.preds_targetVars_dict)
+                # print(self.saf_list)
+                # print(self.scene_names_list)
+                # print(self.model_names_list)
+                # print(self.climdex_names)
+                # print(self.apply_bc, self.apply_bc_bySeason, self.bc_method)
+                #
+                # print(self.myTargetVarName)
+                # print(self.myTargetVarMinAllowed)
+                # print(self.myTargetVarMaxAllowed)
+                # print(self.myTargetVarUnits)
+                # print(self.myTargetVarIsGaussian)
+                # print(self.myTargetVarIsAdditive)
+                # print(self.treatAsAdditiveBy_DQM_and_QDM)
+                # exit()
+
+            # Write settings file
+            write_settings_file(self.showWelcomeMessage, self.experiment, self.targetVars, self.steps, self.methods,
+                                self.calibration_years, self.single_split_testing_years,
+                                self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
+                                self.fold4_testing_years, self.fold5_testing_years, self.split_mode,
+                                self.reference_years, self.historical_years, self.ssp_years,
+                                self.hresPeriodFilename, self.reanalysisName, self.reanalysisPeriodFilename,
+                                self.historicalPeriodFilename, self.sspPeriodFilename,
+                                self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
+                                self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
+                                self.scene_names_list, self.model_names_list, self.climdex_names,
+                                self.apply_bc, self.apply_bc_bySeason, self.bc_method,
+                                self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
+                                self.myTargetVarUnits, self.myTargetVarIsGaussian,
+                                self.myTargetVarIsAdditive, self.treatAsAdditiveBy_DQM_and_QDM)
+
+            # Write tmp_main file
+            write_tmpMain_file(self.steps)
+
             os.system('python3 .tmp_main.py')
 
             # Delete tmp_main
@@ -2637,13 +2719,20 @@ class selectionWindow():
 
 
 ########################################################################################################################
-def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames, modNames, preds_t_list, preds_p_list,
-                        saf_list, climdex_names, calibration_years, reference_years, historical_years, ssp_years,
-                        apply_bc, apply_bc_bySeason, single_split_testing_years, fold1_testing_years, fold2_testing_years,
-                        fold3_testing_years, fold4_testing_years, fold5_testing_years, hresPeriodFilename_t, hresPeriodFilename_p,
-                        reanalysisName, reanalysisPeriodFilename, historicalPeriodFilename,
-                        sspPeriodFilename, split_mode, grid_res, saf_lat_up, saf_lon_left, saf_lon_right,
-                        saf_lat_down, inverse_seasonNames, model_names_list, scene_names_list):
+def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, methods,
+                                calibration_years, single_split_testing_years,
+                                fold1_testing_years, fold2_testing_years, fold3_testing_years,
+                                fold4_testing_years, fold5_testing_years, split_mode,
+                                reference_years, historical_years, ssp_years,
+                                hresPeriodFilename, reanalysisName, reanalysisPeriodFilename,
+                                historicalPeriodFilename, sspPeriodFilename,
+                                grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
+                                reaNames, modNames, preds_targetVars_dict, saf_list,
+                                scene_names_list, model_names_list, climdex_names,
+                                apply_bc, apply_bc_bySeason, bc_method,
+                                myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
+                                myTargetVarUnits, myTargetVarIsGaussian,
+                                myTargetVarIsAdditive, treatAsAdditiveBy_DQM_and_QDM):
 
     """This function prepares a new settings file with the user selected options"""
 
@@ -2653,48 +2742,49 @@ def write_settings_file(showWelcomeMessage, experiment, steps, methods, reaNames
     # Write new settings
     f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
     f.write("experiment = '" + str(experiment) + "'\n")
+    f.write("targetVars = " + str(targetVars) + "\n")
     f.write("methods = " + str(methods) + "\n")
-    f.write("reaNames = " + str(reaNames) + "\n")
-    f.write("modNames = " + str(modNames) + "\n")
-    f.write("preds_t_list = " + str(preds_t_list) + "\n")
-    f.write("preds_p_list = " + str(preds_p_list) + "\n")
-    f.write("saf_list = " + str(saf_list) + "\n")
     f.write("calibration_years = (" + str(calibration_years[0]) + ", " + str(calibration_years[1]) + ")\n")
-    f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
-    f.write("historical_years = (" + str(historical_years[0]) + ", " + str(historical_years[1]) + ")\n")
-    f.write("ssp_years = (" + str(ssp_years[0]) + ", " + str(ssp_years[1]) + ")\n")
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
     f.write("fold1_testing_years = (" + str(fold1_testing_years[0]) + ", " + str(fold1_testing_years[1]) + ")\n")
     f.write("fold2_testing_years = (" + str(fold2_testing_years[0]) + ", " + str(fold2_testing_years[1]) + ")\n")
     f.write("fold3_testing_years = (" + str(fold3_testing_years[0]) + ", " + str(fold3_testing_years[1]) + ")\n")
     f.write("fold4_testing_years = (" + str(fold4_testing_years[0]) + ", " + str(fold4_testing_years[1]) + ")\n")
     f.write("fold5_testing_years = (" + str(fold5_testing_years[0]) + ", " + str(fold5_testing_years[1]) + ")\n")
-
-
-    f.write("hresPeriodFilename = {}\n")
-    f.write("hresPeriodFilename.update({'t': '" + str(hresPeriodFilename_t) + "'})\n")
-    f.write("hresPeriodFilename.update({'p': '" + str(hresPeriodFilename_p) + "'})\n")
+    f.write("split_mode = '" + str(split_mode) + "'\n")
+    f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
+    f.write("historical_years = (" + str(historical_years[0]) + ", " + str(historical_years[1]) + ")\n")
+    f.write("ssp_years = (" + str(ssp_years[0]) + ", " + str(ssp_years[1]) + ")\n")
+    f.write("hresPeriodFilename = " + str(hresPeriodFilename) + "\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
     f.write("reanalysisPeriodFilename = '" + str(reanalysisPeriodFilename) + "'\n")
     f.write("historicalPeriodFilename = '" + str(historicalPeriodFilename) + "'\n")
     f.write("sspPeriodFilename = '" + str(sspPeriodFilename) + "'\n")
-    f.write("split_mode = '" + str(split_mode) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
     f.write("saf_lon_left = " + str(saf_lon_left) + "\n")
     f.write("saf_lon_right = " + str(saf_lon_right) + "\n")
     f.write("saf_lat_down = " + str(saf_lat_down) + "\n")
-
-
-    f.write("model_names_list = " + str(model_names_list) + "\n")
+    f.write("reaNames = " + str(reaNames) + "\n")
+    f.write("modNames = " + str(modNames) + "\n")
+    f.write("preds_targetVars_dict = " + str(preds_targetVars_dict) + "\n")
+    f.write("saf_list = " + str(saf_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
+    f.write("model_names_list = " + str(model_names_list) + "\n")
     f.write("climdex_names = " + str(climdex_names) + "\n")
-
-
+    f.write("inverse_seasonNames = " + str(inverse_seasonNames) + "\n")
     f.write("apply_bc = " + str(apply_bc) + "\n")
     f.write("apply_bc_bySeason = " + str(apply_bc_bySeason) + "\n")
+    f.write("bc_method = '" + str(bc_method) + "'\n")
 
-    f.write("inverse_seasonNames = " + str(inverse_seasonNames) + "\n")
+    f.write("myTargetVarName = '" + str(myTargetVarName) + "'\n")
+    f.write("myTargetVarMinAllowed = " + str(myTargetVarMinAllowed) + "\n")
+    f.write("myTargetVarMaxAllowed = " + str(myTargetVarMaxAllowed) + "\n")
+    f.write("myTargetVarUnits = '" + str(myTargetVarUnits) + "'\n")
+    f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
+    f.write("myTargetVarIsAdditive = " + str(myTargetVarIsAdditive) + "\n")
+    f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
+
 
     # Close f
     f.close()
@@ -2719,44 +2809,27 @@ def write_tmpMain_file(steps):
     f.write("def main():\n")
 
     # Steps
-    noSteps = True
-    if len(steps) > 0:
-        f.write("    aux_lib.initial_checks()\n")
+    f.write("    aux_lib.initial_checks()\n")
     if 'preprocess' in steps:
-        noSteps = False
         f.write("    preprocess.preprocess()\n")
     if 'missing_data_check' in steps:
-        noSteps = False
         f.write("    precontrol.missing_data_check()\n")
     if 'predictors_correlation' in steps:
-        noSteps = False
         f.write("    precontrol.predictors_correlation()\n")
     if 'GCMs_evaluation' in steps:
-        noSteps = False
         f.write("    precontrol.GCMs_evaluation()\n")
     if 'train_methods' in steps:
-        noSteps = False
         f.write("    preprocess.train_methods()\n")
     if 'downscale' in steps:
-        noSteps = False
         f.write("    process.downscale()\n")
     if 'calculate_climdex' in steps:
-        noSteps = False
         f.write("    postprocess.get_climdex()\n")
     if 'plot_results' in steps:
-        noSteps = False
         f.write("    postprocess.plot_results()\n")
     if 'bias_correct_projections' in steps:
-        noSteps = False
         f.write("    postprocess.bias_correction()\n")
     if 'nc2ascii' in steps:
-        noSteps = False
         f.write("    postprocess.nc2ascii()\n")
-    if noSteps == True:
-        print('-----------------------------------------------')
-        print('At least one step must be selected.')
-        print('-----------------------------------------------')
-        exit()
 
     f.write("\n")
     f.write("if __name__ == '__main__':\n")
