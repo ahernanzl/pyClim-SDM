@@ -4,23 +4,23 @@ showWelcomeMessage = True # For graphical mode
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
 # experiment = 'PRECONTROL'
-# experiment = 'EVALUATION'
-experiment = 'PROJECTIONS'
+experiment = 'EVALUATION'
+# experiment = 'PROJECTIONS'
 
 ####################################################################################################################
 #                                        targetVars                                                                   #
 ####################################################################################################################
 targetVars = [
-    'tasmax',
-    'tasmin',
+    # 'tasmax',
+    # 'tasmin',
     # 'tas',
-    'pr',
+    # 'pr',
     # 'uas',
     # 'vas',
     # 'sfcWind',
     # 'hurs',
     # 'clt',
-    # 'myTargetVar',
+    'myTargetVar',
 ]
 
 methods = {
@@ -1480,18 +1480,18 @@ bc_method = 'QM'
 
 
 ###################################     myTargetVar           #################################################
-myTargetVarName = 'thermalAmplitude'
+myTargetVarName = 'fwi'
 
 # Define myTargetVar min and max allowed values
 myTargetVarMinAllowed = 0
 myTargetVarMaxAllowed = None
-myTargetVarUnits = 'degrees'
+myTargetVarUnits = ''
 
 # Define whether myTargetVar can be treated as gaussian
-myTargetVarIsGaussian = True
+myTargetVarIsGaussian = False
 
 # Define whether myTargetVar should be treated as an additive of multiplicative variable
-myTargetVarIsAdditive = True
+myTargetVarIsAdditive = False
 
 # Define whether apply bias correction as for precipitation (multiplicative correction)
-treatAsAdditiveBy_DQM_and_QDM = True
+treatAsAdditiveBy_DQM_and_QDM = False

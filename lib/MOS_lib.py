@@ -64,7 +64,8 @@ def quantile_mapping(obs, hist, sce, targetVar):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
+        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
             sce_corrected.T[ipoint] = np.nan
@@ -121,7 +122,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
+        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
             sce_corrected.T[ipoint] = np.nan
@@ -216,7 +218,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
+        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
             sce_corrected.T[ipoint] = np.nan
@@ -246,7 +249,6 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             else:
                 delta = sce_data - np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
-
 
     return sce_corrected
 
@@ -296,7 +298,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data, hist_data = obs_data[np.isnan(obs_data) == False], hist_data[np.isnan(hist_data) == False]
+        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        hist_data = hist_data[np.isnan(hist_data) == False]
 
         # Select valid data from sce
         ivalid = np.where(np.isnan(sce_data) == False)
