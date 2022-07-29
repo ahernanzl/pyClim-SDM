@@ -204,7 +204,3 @@ def train_methods():
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(targetVar, methodName, family, mode, fields)
-
-
-
-

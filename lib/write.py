@@ -52,6 +52,9 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	fileNc.createDimension(lon_name, len(lons))
 	if level != None:
 		fileNc.createDimension(level_name, 1)
+		# levelVar = fileNc.createVariable(level_name, 'f4', (level_name))
+		# levelVar.units='degrees north'
+		# levelVar[:] = level
 
 	# # Create time variable
 	times = [datetime.datetime(dates[i].year, dates[i].month,dates[i].day)+datetime.timedelta(hours=12)

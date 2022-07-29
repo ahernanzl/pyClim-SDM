@@ -543,19 +543,19 @@ preds_targetVars_dict = {
         # 'huss',              # surface specific humidity
         # 'hurs',              # surface relative humidity
         # 'ua1000',            # wind at pressure levels
-        'ua850',             # wind at pressure levels
+        # 'ua850',             # wind at pressure levels
         # 'ua700',             # wind at pressure levels
-        'ua500',             # wind at pressure levels
+        # 'ua500',             # wind at pressure levels
         # 'ua250',             # wind at pressure levels
         # 'va1000',            # wind at pressure levels
-        'va850',             # wind at pressure levels
+        # 'va850',             # wind at pressure levels
         # 'va700',             # wind at pressure levels
-        'va500',             # wind at pressure levels
+        # 'va500',             # wind at pressure levels
         # 'va250',             # wind at pressure levels
         # 'ta1000',            # temperature at pressure levels
-        'ta850',             # temperature at pressure levels
+        # 'ta850',             # temperature at pressure levels
         # 'ta700',             # temperature at pressure levels
-        'ta500',             # temperature at pressure levels
+        # 'ta500',             # temperature at pressure levels
         # 'ta250',             # temperature at pressure levels
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
@@ -646,7 +646,7 @@ preds_targetVars_dict = {
         # 'hus500',             # specifit humidity at pressure levels
         # 'hus250',             # specifit humidity at pressure levels
         # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
-        'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
         # 'hur700',             # relative humidity at pressure levels (derived from t and q)
         # 'hur500',             # relative humidity at pressure levels (derived from t and q)
         # 'hur250',             # relative humidity at pressure levels (derived from t and q)
@@ -699,19 +699,19 @@ preds_targetVars_dict = {
         # 'huss',              # surface specific humidity
         # 'hurs',              # surface relative humidity
         # 'ua1000',            # wind at pressure levels
-        'ua850',             # wind at pressure levels
+        # 'ua850',             # wind at pressure levels
         # 'ua700',             # wind at pressure levels
-        'ua500',             # wind at pressure levels
+        # 'ua500',             # wind at pressure levels
         # 'ua250',             # wind at pressure levels
         # 'va1000',            # wind at pressure levels
-        'va850',             # wind at pressure levels
+        # 'va850',             # wind at pressure levels
         # 'va700',             # wind at pressure levels
-        'va500',             # wind at pressure levels
+        # 'va500',             # wind at pressure levels
         # 'va250',             # wind at pressure levels
         # 'ta1000',            # temperature at pressure levels
-        'ta850',             # temperature at pressure levels
+        # 'ta850',             # temperature at pressure levels
         # 'ta700',             # temperature at pressure levels
-        'ta500',             # temperature at pressure levels
+        # 'ta500',             # temperature at pressure levels
         # 'ta250',             # temperature at pressure levels
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
@@ -777,19 +777,19 @@ preds_targetVars_dict = {
         # 'huss',              # surface specific humidity
         # 'hurs',              # surface relative humidity
         # 'ua1000',            # wind at pressure levels
-        'ua850',             # wind at pressure levels
+        # 'ua850',             # wind at pressure levels
         # 'ua700',             # wind at pressure levels
-        'ua500',             # wind at pressure levels
+        # 'ua500',             # wind at pressure levels
         # 'ua250',             # wind at pressure levels
         # 'va1000',            # wind at pressure levels
-        'va850',             # wind at pressure levels
+        # 'va850',             # wind at pressure levels
         # 'va700',             # wind at pressure levels
-        'va500',             # wind at pressure levels
+        # 'va500',             # wind at pressure levels
         # 'va250',             # wind at pressure levels
         # 'ta1000',            # temperature at pressure levels
-        'ta850',             # temperature at pressure levels
+        # 'ta850',             # temperature at pressure levels
         # 'ta700',             # temperature at pressure levels
-        'ta500',             # temperature at pressure levels
+        # 'ta500',             # temperature at pressure levels
         # 'ta250',             # temperature at pressure levels
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
@@ -855,19 +855,19 @@ preds_targetVars_dict = {
         # 'huss',              # surface specific humidity
         # 'hurs',              # surface relative humidity
         # 'ua1000',            # wind at pressure levels
-        'ua850',             # wind at pressure levels
+        # 'ua850',             # wind at pressure levels
         # 'ua700',             # wind at pressure levels
-        'ua500',             # wind at pressure levels
+        # 'ua500',             # wind at pressure levels
         # 'ua250',             # wind at pressure levels
         # 'va1000',            # wind at pressure levels
-        'va850',             # wind at pressure levels
+        # 'va850',             # wind at pressure levels
         # 'va700',             # wind at pressure levels
-        'va500',             # wind at pressure levels
+        # 'va500',             # wind at pressure levels
         # 'va250',             # wind at pressure levels
         # 'ta1000',            # temperature at pressure levels
-        'ta850',             # temperature at pressure levels
+        # 'ta850',             # temperature at pressure levels
         # 'ta700',             # temperature at pressure levels
-        'ta500',             # temperature at pressure levels
+        # 'ta500',             # temperature at pressure levels
         # 'ta250',             # temperature at pressure levels
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
@@ -943,9 +943,9 @@ preds_targetVars_dict = {
         # 'va500',             # wind at pressure levels
         # 'va250',             # wind at pressure levels
         # 'ta1000',            # temperature at pressure levels
-        'ta850',             # temperature at pressure levels
+        # 'ta850',             # temperature at pressure levels
         # 'ta700',             # temperature at pressure levels
-        'ta500',             # temperature at pressure levels
+        # 'ta500',             # temperature at pressure levels
         # 'ta250',             # temperature at pressure levels
         # 'zg1000',            # geopotential at pressure levels
         # 'zg850',             # geopotential at pressure levels
@@ -958,9 +958,9 @@ preds_targetVars_dict = {
         # 'hus500',             # specifit humidity at pressure levels
         # 'hus250',             # specifit humidity at pressure levels
         # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
-        'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
         # 'hur700',             # relative humidity at pressure levels (derived from t and q)
-        'hur500',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur500',             # relative humidity at pressure levels (derived from t and q)
         # 'hur250',             # relative humidity at pressure levels (derived from t and q)
         # 'td1000',           # dew point at pressure levels (derived from q)
         # 'td850',            # dew point at pressure levels (derived from q)
@@ -1114,7 +1114,7 @@ preds_targetVars_dict = {
         # 'hus500',             # specifit humidity at pressure levels
         # 'hus250',             # specifit humidity at pressure levels
         # 'hur1000',            # relative humidity at pressure levels (derived from t and q)
-        'hur850',             # relative humidity at pressure levels (derived from t and q)
+        # 'hur850',             # relative humidity at pressure levels (derived from t and q)
         # 'hur700',             # relative humidity at pressure levels (derived from t and q)
         # 'hur500',             # relative humidity at pressure levels (derived from t and q)
         # 'hur250',             # relative humidity at pressure levels (derived from t and q)

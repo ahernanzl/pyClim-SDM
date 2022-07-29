@@ -71,7 +71,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
             level_name = 'plev'
         else:
             print('level_name not recognized')
-            exit()
+            # exit()
 
     calendar = nc.variables[time_name].calendar
     units = nc.variables[time_name].units
@@ -87,15 +87,19 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     lons[lons > 180] -= 360
     nlats, nlons = len(lats), len(lons)
 
+
     if level == None:
         data = nc.variables[nc_variable][:]
     else:
-        if level_name == 'plev':
-            level_factor = 100
-        else:
-            level_factor = 1
-        ilevel = np.where(abs((nc.variables[level_name][:] - int(level*level_factor))) < 0.001)[0]
-        dim=nc.variables[nc_variable][:].shape
+        try:
+            if level_name == 'plev':
+                level_factor = 100
+            else:
+                level_factor = 1
+            ilevel = np.where(abs((nc.variables[level_name][:] - int(level*level_factor))) < 0.001)[0]
+        except:
+            ilevel = 0
+        dim = nc.variables[nc_variable][:].shape
         data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
 
 
@@ -666,8 +670,8 @@ def hres_data(targetVar, period=None):
     if missing_data > 0:
         perc = np.round(100*missing_data/data.size, 2)
         print('\nInfo: predictands contain', missing_data, 'missing data (', perc, '% )')
-        print('Do not worry about the "RuntimeWarning: invalid value encountered"')
-        print('It is showed because there are np.nan, but they are properly handled by the program.')
+        # print('Do not worry about the "RuntimeWarning: invalid value encountered"')
+        # print('It is showed because there are np.nan, but they are properly handled by the program.')
         aux = 1*(data == special_value)
         aux = 100*np.mean(aux, axis=0)
         if np.max(aux) >= max_perc_missing_predictands_allowed:

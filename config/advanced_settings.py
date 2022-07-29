@@ -51,7 +51,7 @@ if 'myTargetVar' in targetVars:
     hresPeriodFilename[myTargetVar] = hresPeriodFilename.pop('myTargetVar')
     preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
     climdex_names[myTargetVar] = climdex_names.pop('myTargetVar')
-    climdex_names[myTargetVar] = [x.replace('MYTARGETVAR', myTargetVar.upper()) for x in climdex_names[myTargetVar]]
+    # climdex_names[myTargetVar] = [x.replace('MYTARGETVAR', myTargetVar.upper()) for x in climdex_names[myTargetVar]]
 else:
     myTargetVar = 'None'
 
@@ -190,6 +190,8 @@ elif experiment == 'PROJECTIONS':
 
 
 # Controls the path name for bias corrected outputs
+if apply_bc_bySeason == True:
+    apply_bc = True
 if apply_bc == False:
     bc_sufix = ''
 else:
@@ -328,6 +330,7 @@ for targetVar in methods:
                              'fields': families_modes_and_fields[methodName][2], })
 
 methods = methods_list
+methods = [x for x in methods if x['var'] in targetVars]
 del methods_list
 
 if myTargetVar in targetVars:

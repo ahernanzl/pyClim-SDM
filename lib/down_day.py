@@ -107,9 +107,9 @@ def down_day(targetVar, pred_scene, saf_scene, var_scene, pred_calib, saf_calib,
 
         # Downscale at point level
         else:
-
-            # Adds axis so scene and calib have the same dimensions
-            pred_scene = pred_scene[np.newaxis, :, :, :]
+            if pred_scene != None:
+                # Adds axis so scene and calib have the same dimensions
+                pred_scene = pred_scene[np.newaxis, :, :, :]
 
             # Gets "n_analogs_preselection" (150) synoptic analogs and theis synoptic distances
             iana = np.argsort(syn_dist)[:n_analogs_preselection]

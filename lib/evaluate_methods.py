@@ -160,10 +160,10 @@ def daily_data(by_season=True):
 
     # Go through all methods
     for method_dict in methods:
-        var, methodName = method_dict['var'], method_dict['methodName']
+        targetVar, methodName = method_dict['var'], method_dict['methodName']
 
         # Read data
-        d = postpro_lib.get_data_eval(var, methodName)
+        d = postpro_lib.get_data_eval(targetVar, methodName)
         ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
         del d
 
@@ -182,7 +182,7 @@ def daily_data(by_season=True):
                 if plotAllRegions == False:
                     pathOut = pathFigures
                 else:
-                    pathOut = pathFigures + 'daily_data/' + var.upper() + '/' + subDir
+                    pathOut = pathFigures + 'daily_data/' + targetVar.upper() + '/' + subDir
                     if not os.path.exists(pathOut):
                         os.makedirs(pathOut)
 
@@ -209,11 +209,11 @@ def daily_data(by_season=True):
                             times = aux['times']
 
                         # Validation of daily data
-                        val_lib.QQplot(var, methodName, obs_reg_season, est_reg_season, pathOut, season)
+                        val_lib.QQplot(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
                         if regType == typeCompleteRegion:
-                            val_lib.continuous(var, methodName, obs_reg_season, est_reg_season, pathOut, season)
-                            if var == 'pcp':
-                                val_lib.dichotomous(var, methodName, obs_reg_season, est_reg_season, pathOut, season)
+                            val_lib.continuous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
+                            if targetVar == 'pr':
+                                val_lib.dichotomous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
 
 
 ########################################################################################################################
