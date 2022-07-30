@@ -1487,8 +1487,8 @@ myTargetVarMinAllowed = 0
 myTargetVarMaxAllowed = None
 myTargetVarUnits = ''
 
-# Define whether myTargetVar can be treated as gaussian
-myTargetVarIsGaussian = False
+# # Define whether myTargetVar can be treated as gaussian
+# myTargetVarIsGaussian = False
 
 # Define whether myTargetVar should be treated as an additive of multiplicative variable
 myTargetVarIsAdditive = False

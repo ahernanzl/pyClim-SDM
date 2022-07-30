@@ -1,6 +1,7 @@
 import sys
 import shutil
 shutil.copyfile('../config/manual_settings.py', '../config/settings.py')
+shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -29,7 +30,7 @@ def main():
     # process.downscale()
     # postprocess.bias_correction()
     # postprocess.get_climdex()
-    postprocess.plot_results()
+    # postprocess.plot_results()
     # postprocess.nc2ascii()
 
 

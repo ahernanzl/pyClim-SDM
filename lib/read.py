@@ -259,7 +259,10 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         if predName != None:
             nvar = 1
             try:
-                preds = {predName: preds[predName]}
+                if predName == myTargetVar:
+                    preds = {predName: {'reaName': reaNames['myTargetVar'], 'modName': modNames['myTargetVar']}}
+                else:
+                    preds = {predName: preds[predName]}
             except:
                 print('Activate', predName, 'as predictor')
                 exit()
@@ -421,6 +424,8 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'][idates]; i += 1
             if 'LI_index' in preds:
                 data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'][idates]; i += 1
+            if myTargetVar in preds:
+                data[i] = one_direct_predictor(myTargetVar, grid='ext', model=model, scene=scene)['data'][idates]
 
     else:
 
@@ -536,6 +541,8 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data']; i += 1
             if 'LI_index' in preds:
                 data[i] = derived_predictors.LI_index(model=model, scene=scene)['data']; i += 1
+            if myTargetVar in preds:
+                data[i] = one_direct_predictor(myTargetVar, grid='ext', model=model, scene=scene)['data']
 
     # Select grid
     if grid == None:

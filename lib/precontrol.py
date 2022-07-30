@@ -182,6 +182,11 @@ def predictors_correlation():
                     X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
                     y = obs_season[:, ipoint]
 
+                    # Remove missing data
+                    ivalid = np.where(abs(y - predictands_codification[targetVar]['special_value']) > 0.01)
+                    X = X[ivalid]
+                    y = y[ivalid]
+
                     # Calculate correlation
                     if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
                         R[ipred, ipoint] = spearmanr(X, y)[0]
@@ -334,15 +339,15 @@ def GCMs_evaluation_historical():
                     for mon in range(1,13):
                         kkmon = [ii for ii,val in enumerate(datevec) if val.month == mon]
                         if predName != 'pr':
-                            monmean = varcy[kkmon,:,:].mean(axis=0)
-                            lst_months.append(monmean.mean())
+                            monmean = np.nanmean(varcy[kkmon,:,:], axis=0)
+                            lst_months.append(np.nanmean(monmean))
                         else:
                             nyears = datevec[len(datevec) - 1].year - datevec[0].year
                             nyears_copy = nyears
-                            monsum = varcy[kkmon,:,:].sum(axis=0)/nyears
-                            lst_months.append(monsum.mean())
+                            monsum = np.nansum(varcy[kkmon,:,:], axis=0)/nyears
+                            lst_months.append(np.nanmean(monsum))
                     cycle = lst_months
-                    
+
                     # Calculate annual values (used in spaghetti plots) 
                     datevec = postpro_lib.get_season(sceneData, scene_dates, season)['times']
                     if predName == targetVar:
@@ -354,11 +359,11 @@ def GCMs_evaluation_historical():
                     for iyear in years:
                         kkyear = [ii for ii,val in enumerate(datevec) if val.year == iyear]
                         if predName != 'pr':
-                            yearmean = varcy[kkyear,:,:].mean(axis=0)
-                            lst_years.append(yearmean.mean())
+                            yearmean = np.nanmean(varcy[kkyear,:,:], axis=0)
+                            lst_years.append(np.nanmean(yearmean))
                         else:
-                            yearsum = varcy[kkyear,:,:].sum(axis=0)
-                            lst_years.append(yearsum.mean())
+                            yearsum = np.nansum(varcy[kkyear,:,:], axis=0)
+                            lst_years.append(np.nanmean(yearsum))
                     spaghetti = lst_years
                     
                     # Add rea data to annual cycle
@@ -371,12 +376,12 @@ def GCMs_evaluation_historical():
                     for mon in range(1,13):
                         kkmon = [ii for ii,val in enumerate(datevec) if val.month == mon]
                         if predName != 'pr':
-                            monmean = varcy[kkmon,:,:].mean(axis=0)
-                            lst_months.append(monmean.mean())
+                            monmean = np.nanmean(varcy[kkmon,:,:], axis=0)
+                            lst_months.append(np.nanmean(monmean))
                         else:
                             nyears = datevec[len(datevec)- 1].year - datevec[0].year
-                            monsum = varcy[kkmon,:,:].sum(axis=0)/nyears
-                            lst_months.append(monsum.mean())
+                            monsum = np.nansum(varcy[kkmon,:,:], axis=0)/nyears
+                            lst_months.append(np.nanmean(monsum))
                     cycle_rea = lst_months
                     
                     # Calculate rea annual values (used in spaghetti plots)
@@ -389,11 +394,11 @@ def GCMs_evaluation_historical():
                     for iyear in years:
                         kkyear = [ii for ii,val in enumerate(datevec) if val.year == iyear]
                         if predName != 'pr':
-                            yearmean = varcy[kkyear,:,:].mean(axis=0)
-                            lst_years.append(yearmean.mean())
+                            yearmean = np.nanmean(varcy[kkyear,:,:], axis=0)
+                            lst_years.append(np.nanmean(yearmean))
                         else:
-                            yearsum = varcy[kkyear,:,:].sum(axis=0)
-                            lst_years.append(yearsum.mean())
+                            yearsum = np.nansum(varcy[kkyear,:,:], axis=0)
+                            lst_years.append(np.nanmean(yearsum))
                     spaghetti_rea = lst_years
                     
                     
@@ -434,10 +439,10 @@ def GCMs_evaluation_historical():
                     a = rea_mean_season
                     b = sceneData_mean_season
                     percs = np.linspace(0,100,21)
-                    qn_a = np.percentile(a, percs)
-                    qn_b = np.percentile(b, percs)
+                    qn_a = np.nanpercentile(a, percs)
+                    qn_b = np.nanpercentile(b, percs)
                     ax.plot(qn_a,qn_b, ls="", marker="o")#plt
-                    x = np.linspace(np.min((qn_a.min(),qn_b.min())), np.max((qn_a.max(),qn_b.max())))
+                    x = np.linspace(np.nanmin((np.nanmin(qn_a),np.nanmin(qn_b))), np.nanmax((np.nanmax(qn_a),np.nanmax(qn_b))))
                     ax.plot(x,x, color="k", ls="--")#plt
                     ax.set_xlabel('Reanalysis' + ' ' + unitspred)
                     ax.set_ylabel(model + ' ' + unitspred)
@@ -450,11 +455,11 @@ def GCMs_evaluation_historical():
 
                 # Saving multi-model statistics
                 if predName == targetVar:
-                    historical_multimodel_mean = np.mean(lst_sceneData_mean_season, axis=0)
-                    historical_multimodel_std = np.std(lst_sceneData_mean_season, axis=0)
-                    historical_multimodel_per25 = np.percentile(lst_sceneData_mean_season, 25, axis=0)
-                    historical_multimodel_per50 = np.percentile(lst_sceneData_mean_season, 50, axis=0)
-                    historical_multimodel_per75 = np.percentile(lst_sceneData_mean_season, 75, axis=0)
+                    historical_multimodel_mean = np.nanmean(lst_sceneData_mean_season, axis=0)
+                    historical_multimodel_std = np.nanstd(lst_sceneData_mean_season, axis=0)
+                    historical_multimodel_per25 = np.nanpercentile(lst_sceneData_mean_season, 25, axis=0)
+                    historical_multimodel_per50 = np.nanpercentile(lst_sceneData_mean_season, 50, axis=0)
+                    historical_multimodel_per75 = np.nanpercentile(lst_sceneData_mean_season, 75, axis=0)
                     
                     np.save(pathTmp + '_'.join((targetVar, predName, sceneName, season, 'multimodel_mean')), historical_multimodel_mean)
                     np.save(pathTmp + '_'.join((targetVar, predName, sceneName, season, 'multimodel_std')), historical_multimodel_std)
@@ -469,9 +474,13 @@ def GCMs_evaluation_historical():
                     matrix[imodel] = np.load(pathTmp + '_'.join((targetVar, predName, model, sceneName, season, 'bias.npy')))
                 matrix = matrix.reshape(nmodels, -1)
 
+                matrixT = matrix.T
+                mask = ~np.isnan(matrixT)
+                matrixT = [d[m] for d, m in zip(matrixT.T, mask.T)]
+
                 # Boxplot
                 fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
-                ax.boxplot(matrix.T, showfliers=False)
+                ax.boxplot(matrixT, showfliers=False)
                 ax.set_xticklabels(model_list, rotation=45, fontsize=5)
                 plt.axhline(y=0, ls='--', c='grey')
                 plt.title(' '.join(('bias', predName, season)))
@@ -530,7 +539,8 @@ def GCMs_evaluation_historical():
                 filename = '_'.join((experiment, 'evolSpaghetti', targetVar, predName, sceneName, season))
                 plt.savefig(pathOut + filename)
                 plt.close()
-                
+
+
 ########################################################################################################################
 def GCMs_evaluation_future():
     """
@@ -636,15 +646,16 @@ def GCMs_evaluation_future():
                         for mon in range(1,13):
                             kkmon = [ii for ii,val in enumerate(datevec) if val.month == mon]
                             if predName != 'pr':
-                                monmean = varcy[kkmon,:,:].mean(axis=0)
-                                lst_months.append(monmean.mean())
+                                monmean = np.nanmean(varcy[kkmon,:,:], axis=0)
+                                lst_months.append(np.nanmean(monmean))
                             else:
                                 nyears = datevec[len(datevec)-1].year - datevec[0].year
                                 nyears_copy = nyears
-                                monsum = varcy[kkmon,:,:].sum(axis=0)/nyears
-                                lst_months.append(monsum.mean())
+                                monsum = np.nansum(varcy[kkmon,:,:], axis=0)/nyears
+                                lst_months.append(np.nanmean(monsum))
                         cycle = lst_months
                         np.save(pathTmp + '_'.join((targetVar, predName, model, sceneName, annualName, 'cycle')), cycle)
+                        print('cycle')
 
                         # Go through all seasons
                         iseason = 0
@@ -656,22 +667,23 @@ def GCMs_evaluation_future():
 
                             for iyear in range(nYears):
                                 year = years[iyear]
+                                print(sceneName, model, season, year)
                                 idates = [i for i in range(len(times_season)) if times_season[i].year == year]
-                                matrix[iseason, iscene-1, imodel, iyear] = np.mean(data_season[idates], axis=0)
-                                standardized_matrix[iseason, iscene-1, imodel, iyear] = np.mean((data_season[idates]-mean_refperiod)/std_refperiod, axis=0)
+                                matrix[iseason, iscene-1, imodel, iyear] = np.nanmean(data_season[idates], axis=0)
+                                standardized_matrix[iseason, iscene-1, imodel, iyear] = np.nanmean((data_season[idates]-mean_refperiod)/std_refperiod, axis=0)
 
                                 # mean and std (all models with a given variable, season and scenenario)
-                                meanmodels = np.mean(matrix, axis = 2)
-                                stdmodels = np.std(matrix, axis = 2) 
-                                per25models = np.percentile(matrix,25, axis = 2)
-                                per50models = np.percentile(matrix,50, axis = 2)
-                                per75models = np.percentile(matrix,75, axis = 2)
+                                meanmodels = np.nanmean(matrix, axis = 2)
+                                stdmodels = np.nanstd(matrix, axis = 2)
+                                per25models = np.nanpercentile(matrix,25, axis = 2)
+                                per50models = np.nanpercentile(matrix,50, axis = 2)
+                                per75models = np.nanpercentile(matrix,75, axis = 2)
                                 
-                                standardized_meanmodels = np.mean(standardized_matrix, axis = 2)
-                                standardized_stdmodels = np.std(standardized_matrix, axis = 2) 
-                                standardized_per25models = np.percentile(standardized_matrix,25, axis = 2)
-                                standardized_per50models = np.percentile(standardized_matrix,50, axis = 2)
-                                standardized_per75models = np.percentile(standardized_matrix,75, axis = 2)
+                                standardized_meanmodels = np.nanmean(standardized_matrix, axis = 2)
+                                standardized_stdmodels = np.nanstd(standardized_matrix, axis = 2)
+                                standardized_per25models = np.nanpercentile(standardized_matrix,25, axis = 2)
+                                standardized_per50models = np.nanpercentile(standardized_matrix,50, axis = 2)
+                                standardized_per75models = np.nanpercentile(standardized_matrix,75, axis = 2)
                                 
                             iseason += 1
                     
@@ -689,6 +701,7 @@ def GCMs_evaluation_future():
                     np.save(pathTmp + '_'.join((targetVar, predName, sceneName, 'standardized_per25models')), standardized_per25models)
                     np.save(pathTmp + '_'.join((targetVar, predName, sceneName, 'standardized_per50models')), standardized_per50models)
                     np.save(pathTmp + '_'.join((targetVar, predName, sceneName, 'standardized_per75models')), standardized_per75models)
+                    print('matrix')
                                        
                     # Evolution tube plot - predictands
                     if (predName == targetVar) and (predName != 'pr'):
@@ -701,17 +714,17 @@ def GCMs_evaluation_future():
                         iseason = 0
                         for season in season_dict:
                             #datamean = matrix_meanmodels[iseason, iscene-1]
-                            #datamean = np.mean(datamean.reshape(nYears, -1), axis=1)
+                            #datamean = np.nanmean(datamean.reshape(nYears, -1), axis=1)
                             #datastd = matrix_stdmodels[iseason, iscene-1]
-                            #datastd = np.mean(datastd.reshape(nYears, -1), axis=1)
+                            #datastd = np.nanmean(datastd.reshape(nYears, -1), axis=1)
                             dataper25 = matrix_per25models[iseason, iscene-1]
-                            dataper25 = np.mean(dataper25.reshape(nYears, -1), axis=1)
+                            dataper25 = np.nanmean(dataper25.reshape(nYears, -1), axis=1)
                             dataper50 = matrix_per50models[iseason, iscene-1]
-                            dataper50 = np.mean(dataper50.reshape(nYears, -1), axis=1)
+                            dataper50 = np.nanmean(dataper50.reshape(nYears, -1), axis=1)
                             dataper75 = matrix_per75models[iseason, iscene-1]
-                            dataper75 = np.mean(dataper75.reshape(nYears, -1), axis=1)
-                            hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
-                            hmmm = np.mean(hmm)
+                            dataper75 = np.nanmean(dataper75.reshape(nYears, -1), axis=1)
+                            hmm = np.nanload('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
+                            hmmm = np.nanmean(hmm)
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, dataper25-hmmm,dataper75-hmmm, color=color_dict[sceneName], alpha = 0.3)  
                             plt.plot(years, dataper50-hmmm, color=color_dict[sceneName], label = sceneName + ' ' + '(' + str(nmodels) + ')')
@@ -741,17 +754,17 @@ def GCMs_evaluation_future():
                         iseason = 0
                         for season in season_dict:
                             #datamean = matrix_meanmodels[iseason, iscene-1]
-                            #datamean = np.mean(datamean.reshape(nYears, -1), axis=1)
+                            #datamean = np.nanmean(datamean.reshape(nYears, -1), axis=1)
                             #datastd = matrix_stdmodels[iseason, iscene-1]
-                            #datastd = np.mean(datastd.reshape(nYears, -1), axis=1)
+                            #datastd = np.nanmean(datastd.reshape(nYears, -1), axis=1)
                             dataper25 = matrix_per25models[iseason, iscene-1]
-                            dataper25 = np.mean(dataper25.reshape(nYears, -1), axis=1)
+                            dataper25 = np.nanmean(dataper25.reshape(nYears, -1), axis=1)
                             dataper50 = matrix_per50models[iseason, iscene-1]
-                            dataper50 = np.mean(dataper50.reshape(nYears, -1), axis=1)
+                            dataper50 = np.nanmean(dataper50.reshape(nYears, -1), axis=1)
                             dataper75 = matrix_per75models[iseason, iscene-1]
-                            dataper75 = np.mean(dataper75.reshape(nYears, -1), axis=1)
+                            dataper75 = np.nanmean(dataper75.reshape(nYears, -1), axis=1)
                             hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
-                            hmmm = np.mean(hmm)
+                            hmmm = np.nanmean(hmm)
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, 100*(dataper25-hmmm)/hmmm,100*(dataper75-hmmm)/hmmm, color=color_dict[sceneName], alpha = 0.3)#color="k"                         
                             plt.plot(years, 100*(dataper50-hmmm)/hmmm, color=color_dict[sceneName], label = sceneName + ' ' + '(' + str(nmodels) + ')')
@@ -777,15 +790,15 @@ def GCMs_evaluation_future():
                         iseason = 0
                         for season in season_dict:
                             #datamean = matrix_meanmodels[iseason, iscene-1]
-                            #datamean = np.mean(datamean.reshape(nYears, -1), axis=1)
+                            #datamean = np.nanmean(datamean.reshape(nYears, -1), axis=1)
                             #datastd = matrix_stdmodels[iseason, iscene-1]
-                            #datastd = np.mean(datastd.reshape(nYears, -1), axis=1)
+                            #datastd = np.nanmean(datastd.reshape(nYears, -1), axis=1)
                             dataper25 = matrix_per25models[iseason, iscene-1]
-                            dataper25 = np.mean(dataper25.reshape(nYears, -1), axis=1)
+                            dataper25 = np.nanmean(dataper25.reshape(nYears, -1), axis=1)
                             dataper50 = matrix_per50models[iseason, iscene-1]
-                            dataper50 = np.mean(dataper50.reshape(nYears, -1), axis=1)
+                            dataper50 = np.nanmean(dataper50.reshape(nYears, -1), axis=1)
                             dataper75 = matrix_per75models[iseason, iscene-1]
-                            dataper75 = np.mean(dataper75.reshape(nYears, -1), axis=1)
+                            dataper75 = np.nanmean(dataper75.reshape(nYears, -1), axis=1)
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, dataper25,dataper75, color=color_dict[sceneName], alpha = 0.3)#color="k"
                             plt.plot(years, dataper50, color=color_dict[sceneName], label = sceneName + ' ' + '(' + str(nmodels) + ')')
@@ -829,10 +842,10 @@ def GCMs_evaluation_future():
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
-                                data = np.mean(data.reshape(nYears, -1), axis=1)
+                                data = np.nanmean(data.reshape(nYears, -1), axis=1)
                                 data = gaussian_filter1d(data, 5)
                                 hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
-                                hmmm = np.mean(hmm)
+                                hmmm = np.nanmean(hmm)
                                 plt.plot(years, data-hmmm, label=model)
                             plt.title(' '.join((predName, sceneName, season)))
                             if targetVar in ('tas','tasmax','tasmin'):
@@ -858,10 +871,10 @@ def GCMs_evaluation_future():
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
-                                data = np.mean(data.reshape(nYears, -1), axis=1)
+                                data = np.nanmean(data.reshape(nYears, -1), axis=1)
                                 data = gaussian_filter1d(data, 5)
                                 hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
-                                hmmm = np.mean(hmm)
+                                hmmm = np.nanmean(hmm)
                                 plt.plot(years, 100*(data-hmmm)/hmmm, label=model)                       
                             plt.title(' '.join((predName, sceneName, season)))
                             ax.set_ylabel(predName + ' ' + 'anomaly (%)')
@@ -883,7 +896,7 @@ def GCMs_evaluation_future():
                             for imodel in range(nmodels):
                                 model = model_list[imodel]
                                 data = matrix[iseason, iscene-1, imodel]
-                                data = np.mean(data.reshape(nYears, -1), axis=1)
+                                data = np.nanmean(data.reshape(nYears, -1), axis=1)
                                 data = gaussian_filter1d(data, 5)
                                 plt.plot(years, data, label=model)
                             plt.title(' '.join((predName, sceneName, season)))
@@ -896,6 +909,7 @@ def GCMs_evaluation_future():
                             plt.close()
 
                             iseason += 1
+
 ########################################################################################################################
 def GCMs_evaluation():
     """
