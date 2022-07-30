@@ -723,7 +723,7 @@ def GCMs_evaluation_future():
                             dataper50 = np.nanmean(dataper50.reshape(nYears, -1), axis=1)
                             dataper75 = matrix_per75models[iseason, iscene-1]
                             dataper75 = np.nanmean(dataper75.reshape(nYears, -1), axis=1)
-                            hmm = np.nanload('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
+                            hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
                             hmmm = np.nanmean(hmm)
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                             plt.fill_between(years, dataper25-hmmm,dataper75-hmmm, color=color_dict[sceneName], alpha = 0.3)  
