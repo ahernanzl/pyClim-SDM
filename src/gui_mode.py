@@ -983,7 +983,7 @@ class frameTargetVarInfoClass(ttk.Frame):
                     'myTargetVarMinAllowed': tk.StringVar(),
                     'myTargetVarMaxAllowed': tk.StringVar(),
                     'myTargetVarUnits': tk.StringVar(),
-                    'myTargetVarIsGaussian': tk.StringVar(),
+                    # 'myTargetVarIsGaussian': tk.StringVar(),
                     'treatAsAdditiveBy_DQM_and_QDM': tk.StringVar(),
                     'myTargetVarIsAdditive': tk.StringVar(),
                     })
@@ -1069,21 +1069,23 @@ class frameTargetVarInfoClass(ttk.Frame):
                 myTargetVarIsAdditive_Entry.insert(END, '')
             myTargetVarIsAdditive_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
-            # myTargetVarIsGaussian
-            l = Label(root, text='Is gaussian:')
-            l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            CreateToolTip(l, 'Set to True if your variable is gaussian and to False otherwise')
-            myTargetVarIsGaussian_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarIsGaussian'], width=entriesW, justify='right', takefocus=False)
-            try:
-                myTargetVarIsGaussian_Entry.insert(END, str(myTargetVarIsGaussian))
-            except:
-                myTargetVarIsGaussian_Entry.insert(END, '')
-            myTargetVarIsGaussian_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+            # # myTargetVarIsGaussian
+            # l = Label(root, text='Is gaussian:')
+            # l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            # CreateToolTip(l, 'Set to True if your variable is gaussian and to False otherwise')
+            # myTargetVarIsGaussian_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarIsGaussian'], width=entriesW, justify='right', takefocus=False)
+            # try:
+            #     myTargetVarIsGaussian_Entry.insert(END, str(myTargetVarIsGaussian))
+            # except:
+            #     myTargetVarIsGaussian_Entry.insert(END, '')
+            # myTargetVarIsGaussian_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
             # treatAsAdditiveBy_DQM_and_QDM
             l = Label(root, text='Additive DQM/QDM:')
             l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise')
+            CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise\n'
+                             'True is recommended in general, unless your variable is similar to precipitation, with a nongaussian\n'
+                             'distribution and many zeros.')
             treatAsAdditiveBy_DQM_and_QDM_Entry = tk.Entry(root, textvariable=self.chk['treatAsAdditiveBy_DQM_and_QDM'], width=entriesW, justify='right', takefocus=False)
             try:
                 treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, str(treatAsAdditiveBy_DQM_and_QDM))
@@ -1941,14 +1943,17 @@ class tabMyTargetVar(ttk.Frame):
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, 'myTargetVar').get()
-        isGaussian = self.TargetVarInfo_chk_list['myTargetVarIsGaussian'].get()
 
         # frameMethods
         frameMethods = ttk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
-        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, 'myTargetVar', isGaussian=isGaussian).get()
+        # self.methods_chk_list = frameMethodsClass(notebook, frameMethods, 'myTargetVar',
+        #                                           isGaussian=self.TargetVarInfo_chk_list['myTargetVarIsGaussian'].get()).get()
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, 'myTargetVar',
+                                                  isGaussian=False).get()
+
 
         # frameClimdex
         frameClimdex = ttk.Frame(tab)
@@ -2608,7 +2613,7 @@ class selectionWindow():
                 for var in self.reaNames:
                     self.reaNames.update({var: self.reaNames[var].get()})
                 for var in self.modNames:
-                    self.modNames.update({var: self.modNames[var].get()})               
+                    self.modNames.update({var: self.modNames[var].get()})
 
                 # climdex
                 self.climdex_names = {}
@@ -2638,7 +2643,7 @@ class selectionWindow():
                     self.myTargetVarMinAllowed = info['myTargetVarMinAllowed'].get()
                     self.myTargetVarMaxAllowed = info['myTargetVarMaxAllowed'].get()
                     self.myTargetVarUnits = info['myTargetVarUnits'].get()
-                    self.myTargetVarIsGaussian = info['myTargetVarIsGaussian'].get()
+                    # self.myTargetVarIsGaussian = info['myTargetVarIsGaussian'].get()
                     self.myTargetVarIsAdditive = info['myTargetVarIsAdditive'].get()
                     self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
                     self.reaNames.update({'myTargetVar': self.myTargetReaName})
@@ -2650,7 +2655,7 @@ class selectionWindow():
                     self.myTargetVarMinAllowed = None
                     self.myTargetVarMaxAllowed = None
                     self.myTargetVarUnits = ''
-                    self.myTargetVarIsGaussian = False
+                    # self.myTargetVarIsGaussian = False
                     self.myTargetVarIsAdditive = False
                     self.treatAsAdditiveBy_DQM_and_QDM = False
                 if self.myTargetVarMinAllowed == '':
@@ -2714,7 +2719,8 @@ class selectionWindow():
                                 self.scene_names_list, self.model_names_list, self.climdex_names,
                                 self.apply_bc, self.apply_bc_bySeason, self.bc_method,
                                 self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
-                                self.myTargetVarUnits, self.myTargetVarIsGaussian,
+                                self.myTargetVarUnits,
+                                # self.myTargetVarIsGaussian,
                                 self.myTargetVarIsAdditive, self.treatAsAdditiveBy_DQM_and_QDM)
 
             # Write tmp_main file
@@ -2748,7 +2754,8 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
                                 scene_names_list, model_names_list, climdex_names,
                                 apply_bc, apply_bc_bySeason, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
-                                myTargetVarUnits, myTargetVarIsGaussian,
+                                myTargetVarUnits,
+                        # myTargetVarIsGaussian,
                                 myTargetVarIsAdditive, treatAsAdditiveBy_DQM_and_QDM):
 
     """This function prepares a new settings file with the user selected options"""
@@ -2798,7 +2805,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("myTargetVarMinAllowed = " + str(myTargetVarMinAllowed) + "\n")
     f.write("myTargetVarMaxAllowed = " + str(myTargetVarMaxAllowed) + "\n")
     f.write("myTargetVarUnits = '" + str(myTargetVarUnits) + "'\n")
-    f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
+    # f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
     f.write("myTargetVarIsAdditive = " + str(myTargetVarIsAdditive) + "\n")
     f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
 

@@ -38,6 +38,8 @@ all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'sfcWi
 
 ###################################     myTargetVar           #################################################
 if 'myTargetVar' in targetVars:
+    myTargetVarIsGaussian = False
+
     myTargetVar = myTargetVarName
 
     targetVars.remove('myTargetVar')
