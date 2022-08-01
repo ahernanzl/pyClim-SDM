@@ -311,7 +311,7 @@ def climdex(by_season=True):
                                     bias_palette = palette + '_rel_bias'
 
                                 # Plot obs, est and bias (est-obs) maps
-                                filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, methodName,
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, 'None',
                                                      season))
                                 title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
                                 plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
