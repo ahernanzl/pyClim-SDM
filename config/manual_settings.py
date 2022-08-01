@@ -1493,5 +1493,5 @@ myTargetVarUnits = ''
 # Define whether myTargetVar should be treated as an additive of multiplicative variable
 myTargetVarIsAdditive = False
 
-# Define whether apply bias correction as for precipitation (multiplicative correction)
-treatAsAdditiveBy_DQM_and_QDM = False
+# # Define whether apply bias correction as for precipitation (multiplicative correction)
+# treatAsAdditiveBy_DQM_and_QDM = False

@@ -38,7 +38,6 @@ all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'sfcWi
 
 ###################################     myTargetVar           #################################################
 if 'myTargetVar' in targetVars:
-    myTargetVarIsGaussian = False
 
     myTargetVar = myTargetVarName
 
@@ -54,6 +53,11 @@ if 'myTargetVar' in targetVars:
     preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
     climdex_names[myTargetVar] = climdex_names.pop('myTargetVar')
     # climdex_names[myTargetVar] = [x.replace('MYTARGETVAR', myTargetVar.upper()) for x in climdex_names[myTargetVar]]
+
+    # Define whether myTargetVar can be treated as gaussian
+    myTargetVarIsGaussian = False
+    # Define whether apply bias correction as for precipitation (multiplicative correction)
+    treatAsAdditiveBy_DQM_and_QDM = myTargetVarIsAdditive
 else:
     myTargetVar = 'None'
 

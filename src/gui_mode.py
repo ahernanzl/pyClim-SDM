@@ -63,6 +63,17 @@ def switch_steps(exp, steps, steps_ordered, exp_ordered, chk_only_for_experiment
         else:
             object["state"] = "disabled"
 
+
+########################################################################################################################
+def switch_bc_method(bc_opt, bc_mehods_bt):
+    for object in bc_mehods_bt:
+        if bc_opt == 'No':
+            object["state"] = "disabled"
+        else:
+            object["state"] = "normal"
+
+    
+
 ########################################################################################################################
 def enable(targetVar_active_var, frames):
     """Enable/diable targeVar options"""
@@ -710,7 +721,7 @@ class tabDates(ttk.Frame):
             'Yes': 'Apply bias correction after downscaling.',
             'By season': 'Apply a customized bias correction after downscaling for each season.',
         }
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=5, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0, columnspan=3); irow+=1
         Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
         if apply_bc == False:
             last_bc_opt = 'No'
@@ -719,12 +730,11 @@ class tabDates(ttk.Frame):
         else:
             last_bc_opt = 'By season'
         for bc_opt in bc_options:
-            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, takefocus=False)
+            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, command=lambda: switch_bc_method(self.bc_option.get(), bc_mehods_bt), takefocus=False)
             c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
-            CreateToolTip(c, bc_options[bc_opt])
             self.bc_option.set(last_bc_opt)
         icol+=1; irow-=3
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=5); icol+=1
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0); icol+=1
         Label(frameBiasCorrection, text='Method:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
         bc_methods = {
             'QM': 'Quantile Mapping',
@@ -733,11 +743,15 @@ class tabDates(ttk.Frame):
             'PSDM': '(Parametric) Scaled Distribution Mapping',
         }
         self.bc_method = StringVar()
+        bc_mehods_bt = []
         for bc_meth in bc_methods:
             c1 = Radiobutton(frameBiasCorrection, text=bc_meth, variable=self.bc_method, value=bc_meth, takefocus=False)
             c1.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
             CreateToolTip(c1, bc_methods[bc_meth])
             self.bc_method.set(bc_method)
+            bc_mehods_bt.append(c1)
+        switch_bc_method(last_bc_opt, bc_mehods_bt)
+
 
         # Train/test split
         self.split_mode = StringVar()
@@ -984,7 +998,7 @@ class frameTargetVarInfoClass(ttk.Frame):
                     'myTargetVarMaxAllowed': tk.StringVar(),
                     'myTargetVarUnits': tk.StringVar(),
                     # 'myTargetVarIsGaussian': tk.StringVar(),
-                    'treatAsAdditiveBy_DQM_and_QDM': tk.StringVar(),
+                    # 'treatAsAdditiveBy_DQM_and_QDM': tk.StringVar(),
                     'myTargetVarIsAdditive': tk.StringVar(),
                     })
 
@@ -1059,12 +1073,16 @@ class frameTargetVarInfoClass(ttk.Frame):
             myTargetVarUnits_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
             # myTargetVarIsAdditive
-            l = Label(root, text='Additive:')
+            l = Label(root, text='Additive (A) / Multiplicative (M):')
             l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            CreateToolTip(l, 'Set to True if your variable is additive (as temperature) and to False otherwise (as precipitation)')
+            CreateToolTip(l, 'Indicate whether biases and future change should be additive (A) or muliplicative (M)')
             myTargetVarIsAdditive_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarIsAdditive'], width=entriesW, justify='right', takefocus=False)
             try:
-                myTargetVarIsAdditive_Entry.insert(END, str(myTargetVarIsAdditive))
+                if str(myTargetVarIsAdditive) == 'True':
+                    aux = 'A'
+                else:
+                    aux = 'M'
+                myTargetVarIsAdditive_Entry.insert(END, aux)
             except:
                 myTargetVarIsAdditive_Entry.insert(END, '')
             myTargetVarIsAdditive_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
@@ -1080,18 +1098,18 @@ class frameTargetVarInfoClass(ttk.Frame):
             #     myTargetVarIsGaussian_Entry.insert(END, '')
             # myTargetVarIsGaussian_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
-            # treatAsAdditiveBy_DQM_and_QDM
-            l = Label(root, text='Additive DQM/QDM:')
-            l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise\n'
-                             'True is recommended in general, unless your variable is similar to precipitation, with a nongaussian\n'
-                             'distribution and many zeros.')
-            treatAsAdditiveBy_DQM_and_QDM_Entry = tk.Entry(root, textvariable=self.chk['treatAsAdditiveBy_DQM_and_QDM'], width=entriesW, justify='right', takefocus=False)
-            try:
-                treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, str(treatAsAdditiveBy_DQM_and_QDM))
-            except:
-                treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, '')
-            treatAsAdditiveBy_DQM_and_QDM_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
+            # # treatAsAdditiveBy_DQM_and_QDM
+            # l = Label(root, text='Additive DQM/QDM:')
+            # l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            # CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise\n'
+            #                  'True is recommended in general, unless your variable is similar to precipitation, with a nongaussian\n'
+            #                  'distribution and many zeros.')
+            # treatAsAdditiveBy_DQM_and_QDM_Entry = tk.Entry(root, textvariable=self.chk['treatAsAdditiveBy_DQM_and_QDM'], width=entriesW, justify='right', takefocus=False)
+            # try:
+            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, str(treatAsAdditiveBy_DQM_and_QDM))
+            # except:
+            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, '')
+            # treatAsAdditiveBy_DQM_and_QDM_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
 
     def get(self):
@@ -1125,7 +1143,7 @@ class frameMethodsClass(ttk.Frame):
 
             # Enable/disable methods
             if methodName in disabled_methods:
-                l = Label(root, text='     '+methodName)
+                l = Label(root, text='     '+methodName, fg='darkgray')
                 l.grid(sticky="W", column=icol, row=irow, padx=10)
             else:
                 c = Checkbutton(root, text=methodName, variable=checked, takefocus=False)
@@ -1264,6 +1282,8 @@ class frameClimdexClass(ttk.Frame):
                 'TXn': 'Minimum value of daily maximum temperature',
                 'p99': '99th percentile',
                 'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
                 'p5': '5th percentile',
                 'p1': '1st percentile',
                 'TX99p': 'Percentage of days when TX > 99th percentile',
@@ -1282,6 +1302,8 @@ class frameClimdexClass(ttk.Frame):
                 'TNn': 'Minimum value of daily minimum temperature',
                 'p99': '99th percentile',
                 'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
                 'p5': '5th percentile',
                 'p1': '1st percentile',
                 'TN99p': 'Percentage of days when TN > 99th percentile',
@@ -1300,6 +1322,8 @@ class frameClimdexClass(ttk.Frame):
                 'Tn': 'Minimum value of daily mean temperature',
                 'p99': '99th percentile',
                 'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
                 'p5': '5th percentile',
                 'p1': '1st percentile',
                 'T99p': 'Percentage of days when T > 99th percentile',
@@ -1351,6 +1375,8 @@ class frameClimdexClass(ttk.Frame):
                 'n': 'Minimum value',
                 'p99': '99th percentile',
                 'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
                 'p5': '5th percentile',
                 'p1': '1st percentile',
                 '99p_days': 'Percentage of days over the 99th percentile',
@@ -2396,7 +2422,11 @@ class selectionWindow():
             # Force at least one predictor for each targetVar
             for targetVar in self.targetVars:
                 if self.all_checks_ok == True:
-                    if len(self.preds_targetVars_dict[targetVar]) == 0:
+                    try:
+                        npreds = len(self.preds_targetVars_dict[targetVar])
+                    except:
+                        npreds = 0
+                    if npreds == 0:
                         self.all_checks_ok = False
                         tk.messagebox.showerror("pyClim-SDM",  'No predictor has been selected for ' + targetVar + '')
                     else:
@@ -2524,6 +2554,27 @@ class selectionWindow():
                         tk.messagebox.showerror("pyClim-SDM", "Month "+str(i)+" has no season defined.\n"
                                                            "Please, modify your selection.")
 
+            # myTargetVar
+            if self.all_checks_ok == True:
+                if 'myTargetVar' in self.targetVars:
+                    aux = self.targetVars_dict['myTargetVar']['info']['myTargetVarIsAdditive'].get()
+                    if aux not in ['A', 'M']:
+                        self.all_checks_ok = False
+                        tk.messagebox.showerror("pyClim-SDM", "Please, indicate whether your personal target variable "
+                                                              "should be treated as additive (A) or multiplicative (M)")
+                    else:
+                        self.all_checks_ok = True
+
+
+            # myTargetVar bc method
+            if self.all_checks_ok == True:
+                if 'myTargetVar' in self.targetVars and self.bc_option_chk.get() != 'No' and self.bc_method_chk.get() == 'PSDM':
+                    self.all_checks_ok = False
+                    tk.messagebox.showerror("pyClim-SDM", "PSDM not allowed as bias correction method when using a user defined target variable")
+                else:
+                    self.all_checks_ok = True
+
+
             # # Force at least one step
             # if self.all_checks_ok == True:
             #     if len(self.steps) == 0:
@@ -2644,8 +2695,12 @@ class selectionWindow():
                     self.myTargetVarMaxAllowed = info['myTargetVarMaxAllowed'].get()
                     self.myTargetVarUnits = info['myTargetVarUnits'].get()
                     # self.myTargetVarIsGaussian = info['myTargetVarIsGaussian'].get()
-                    self.myTargetVarIsAdditive = info['myTargetVarIsAdditive'].get()
-                    self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
+                    aux = info['myTargetVarIsAdditive'].get()
+                    if aux == 'A':
+                        self.myTargetVarIsAdditive = True
+                    else:
+                        self.myTargetVarIsAdditive = False
+                    # self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
                     self.reaNames.update({'myTargetVar': self.myTargetReaName})
                     self.modNames.update({'myTargetVar': self.myTargetModName})
                 else:
@@ -2657,7 +2712,7 @@ class selectionWindow():
                     self.myTargetVarUnits = ''
                     # self.myTargetVarIsGaussian = False
                     self.myTargetVarIsAdditive = False
-                    self.treatAsAdditiveBy_DQM_and_QDM = False
+                    # self.treatAsAdditiveBy_DQM_and_QDM = False
                 if self.myTargetVarMinAllowed == '':
                     self.myTargetVarMinAllowed = None
                 if self.myTargetVarMaxAllowed == '':
@@ -2706,30 +2761,30 @@ class selectionWindow():
                 # print(self.treatAsAdditiveBy_DQM_and_QDM)
                 # exit()
 
-            # Write settings file
-            write_settings_file(self.showWelcomeMessage, self.experiment, self.targetVars, self.steps, self.methods,
-                                self.calibration_years, self.single_split_testing_years,
-                                self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
-                                self.fold4_testing_years, self.fold5_testing_years, self.split_mode,
-                                self.reference_years, self.historical_years, self.ssp_years,
-                                self.hresPeriodFilename, self.reanalysisName, self.reanalysisPeriodFilename,
-                                self.historicalPeriodFilename, self.sspPeriodFilename,
-                                self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
-                                self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
-                                self.scene_names_list, self.model_names_list, self.climdex_names,
-                                self.apply_bc, self.apply_bc_bySeason, self.bc_method,
-                                self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
-                                self.myTargetVarUnits,
-                                # self.myTargetVarIsGaussian,
-                                self.myTargetVarIsAdditive, self.treatAsAdditiveBy_DQM_and_QDM)
+                # Write settings file
+                write_settings_file(self.showWelcomeMessage, self.experiment, self.targetVars, self.steps, self.methods,
+                                    self.calibration_years, self.single_split_testing_years,
+                                    self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
+                                    self.fold4_testing_years, self.fold5_testing_years, self.split_mode,
+                                    self.reference_years, self.historical_years, self.ssp_years,
+                                    self.hresPeriodFilename, self.reanalysisName, self.reanalysisPeriodFilename,
+                                    self.historicalPeriodFilename, self.sspPeriodFilename,
+                                    self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
+                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
+                                    self.scene_names_list, self.model_names_list, self.climdex_names,
+                                    self.apply_bc, self.apply_bc_bySeason, self.bc_method,
+                                    self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
+                                    self.myTargetVarUnits, self.myTargetVarIsAdditive,
+                                    # self.myTargetVarIsGaussian,self.treatAsAdditiveBy_DQM_and_QDM
+                                    )
 
-            # Write tmp_main file
-            write_tmpMain_file(self.steps)
+                # Write tmp_main file
+                write_tmpMain_file(self.steps)
 
-            os.system('python3 .tmp_main.py')
+                os.system('python3 .tmp_main.py')
 
-            # Delete tmp_main
-            os.remove('.tmp_main.py')
+                # Delete tmp_main
+                os.remove('.tmp_main.py')
 
         # Run butnon
         frame = Frame(notebook)
@@ -2754,9 +2809,9 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
                                 scene_names_list, model_names_list, climdex_names,
                                 apply_bc, apply_bc_bySeason, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
-                                myTargetVarUnits,
-                        # myTargetVarIsGaussian,
-                                myTargetVarIsAdditive, treatAsAdditiveBy_DQM_and_QDM):
+                                myTargetVarUnits, myTargetVarIsAdditive,
+                                # myTargetVarIsGaussian, treatAsAdditiveBy_DQM_and_QDM
+                        ):
 
     """This function prepares a new settings file with the user selected options"""
 
@@ -2807,7 +2862,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("myTargetVarUnits = '" + str(myTargetVarUnits) + "'\n")
     # f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
     f.write("myTargetVarIsAdditive = " + str(myTargetVarIsAdditive) + "\n")
-    f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
+    # f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
 
 
     # Close f
