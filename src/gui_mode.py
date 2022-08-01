@@ -958,8 +958,8 @@ class framePredictorsClass(ttk.Frame):
                         'hurs': 'Surface relative humidity',
                         'K': 'K instability index',
                         'TT': 'Total Totals instability index',
-                        'SSI': 'Showalter instability index',
-                        'LI': 'Lifted instability index',
+                        # 'SSI': 'Showalter instability index',
+                        # 'LI': 'Lifted instability index',
                         }
 
         # Label(root, text="").grid(sticky="W", row=irow, column=icol);
@@ -1004,7 +1004,7 @@ class frameTargetVarInfoClass(ttk.Frame):
 
         if isMyTargetVar == True:
             # myTargetVarName
-            Label(root, text='Name:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+            Label(root, text='Name:').grid(sticky="NE", column=icol, row=irow, padx=10); icol+=1
             myTargetVarName_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarName'], width=entriesW, justify='right', takefocus=False)
             try:
                 myTargetVarName_Entry.insert(END, str(myTargetVarName))
@@ -1034,7 +1034,7 @@ class frameTargetVarInfoClass(ttk.Frame):
 
 
         # hresPeriodFilename
-        Label(root, text='Hres period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
+        Label(root, text='Hres period filename:').grid(sticky="NE", column=icol, row=irow, padx=10); icol+=1
         hresPeriodFilename_Entry = tk.Entry(root, textvariable=self.chk['hresPeriodFilename'], width=entriesW, justify='right', takefocus=False)
         try:
             hresPeriodFilename_Entry.insert(END, hresPeriodFilename[targetVar])
