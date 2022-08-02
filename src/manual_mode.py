@@ -11,14 +11,12 @@ from advanced_settings import *
 
 def main():
 
-    # aux_lib.check_var_units()
-    # exit()
-    #
     #---------------------- INITIAL CHECKS ---------------------------------------------------------------------------------
     aux_lib.initial_checks()
     #
     # #---------------------- experiment = PRECONTROL --------------------------------------------------------------------
     #
+    aux_lib.check_var_units()
     # preprocess.preprocess()
     # precontrol.missing_data_check()
     # precontrol.predictors_correlation()

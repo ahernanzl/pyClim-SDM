@@ -35,6 +35,7 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
 def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid=True, calendar='gregorian', level=None,
 		   level_name='level', lat_name='lat', lon_name='lon', time_name='time'):
@@ -46,52 +47,64 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 
 
 	# Define dataset and dimensions
-	fileNc=Dataset(path+filename, 'w', format='NETCDF4')
-	fileNc.createDimension(time_name, len(dates))
-	fileNc.createDimension(lat_name, len(lats))
-	fileNc.createDimension(lon_name, len(lons))
+	nc=Dataset(path+filename, 'w', format='NETCDF4')
+	nc.Conventions = "CF-1.8"
+	nc.createDimension(time_name, len(dates))
+
+	if regular_grid == True:
+		nc.createDimension(lat_name, len(lats))
+		nc.createDimension(lon_name, len(lons))
+	else:
+		nc.createDimension('point', len(lats))
+
 	if level != None:
-		fileNc.createDimension(level_name, 1)
-		# levelVar = fileNc.createVariable(level_name, 'f4', (level_name))
+		nc.createDimension(level_name, 1)
+		# levelVar = nc.createVariable(level_name, 'f4', (level_name))
 		# levelVar.units='degrees north'
 		# levelVar[:] = level
 
 	# # Create time variable
 	times = [datetime.datetime(dates[i].year, dates[i].month,dates[i].day)+datetime.timedelta(hours=12)
 			 for i in range(len(dates))]
-
-	timeVar = fileNc.createVariable(varname=time_name, dimensions=(time_name,),datatype='float64')
+	timeVar = nc.createVariable(varname=time_name, dimensions=(time_name,),datatype='float64')
 	timeVar.calendar = calendar
+	timeVar.long_name = "Time variable"
 	timeVar.units = 'hours since 1900-01-01 00:00:0.0'
 	timeVar[:] = date2num(times, units=timeVar.units, calendar=timeVar.calendar)
 
-	# Create lat/lon variables
-	latitude = fileNc.createVariable(lat_name, 'f4', (lat_name))
-	latitude.units='degrees north'
-	latitude[:] = lats
-	longitude = fileNc.createVariable(lon_name, 'f4', (lon_name))
-	longitude.units='degrees east'
-	longitude[:] = lons
-
-	# Create data variable
+	# Create lat/lon and data variable
 	if regular_grid == True:
+		latitude = nc.createVariable(lat_name, 'f4', (lat_name))
+		longitude = nc.createVariable(lon_name, 'f4', (lon_name))
 		if level == None:
-			var = fileNc.createVariable(varName, 'f4', (time_name, lat_name, lon_name,))
+			var = nc.createVariable(varName, 'f4', (time_name, lat_name, lon_name,))
 		else:
-			var = fileNc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
+			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
-		var = fileNc.createVariable(varName, 'f4', (time_name, lat_name))
+		point = nc.createVariable('point', 'f4', 'point')
+		point.long_name = ""
+		point[:] = range(len(lats))
+		latitude = nc.createVariable(lat_name, 'f4', 'point')
+		longitude = nc.createVariable(lon_name, 'f4', 'point')
+		var = nc.createVariable(varName, 'f4', (time_name, 'point'))
+	latitude.units = 'degrees_north'
+	latitude.long_name = "latitude"
+	latitude[:] = lats
+	longitude.units = 'degrees_east'
+	longitude.long_name = "longitude"
+	longitude[:] = lons
 	var.units = units
+	var.long_name = varName
 	var[:] = data
 
-	# print fileNc
-	# for var in fileNc.variables:
+	# print nc
+	# for var in nc.variables:
 	# 	print var
-	# 	print fileNc.variables[var]
-	# 	print fileNc.variables[var][:].shape
+	# 	print nc.variables[var]
+	# 	print nc.variables[var][:].shape
 
 	# Write to file
-	fileNc.close()
+	nc.close()
 
 ########################################################################################################################
 def netCDF_rotated(path, filename, varName, data, dates):

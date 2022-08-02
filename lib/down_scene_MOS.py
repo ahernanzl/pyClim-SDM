@@ -89,7 +89,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
             time_first, time_last = dates.index(avail_first_date), dates.index(avail_last_date) + 1
             var_calib = var_calib[time_first:time_last]
-            if calendar in ['365', '365_day', ]:
+            if calendar in ['365', '365_day', 'noleap' ]:
                 dates = [x for x in avail_dates if not ((x.month == 2) and (x.day == 29))]
             elif calendar in ['360', '360_day', ]:
                 dates = [x for x in avail_dates if not (((x.month == 2) and (x.day >= 29)) | (x.day > 30))]

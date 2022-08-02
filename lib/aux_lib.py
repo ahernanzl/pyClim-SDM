@@ -130,6 +130,8 @@ def check_var_units():
 
         print('-------------------------------------------------------------------------------------------------------')
         print('Variable:', var)
+        if var in all_possible_targetVars:
+            print('Hres units:', predictands_units[var])
         print('Reanalysis:'.ljust(15), 'Min:', reaMin.ljust(10), 'Max:', reaMax.ljust(10), 'Units:', reaUnits.ljust(15))
         print('Models:'.ljust(15),      'Min:', modMin.ljust(10), 'Max:', modMax.ljust(10), 'Units:', modUnits.ljust(15))
 
