@@ -1,7 +1,7 @@
 import sys
 import shutil
 shutil.copyfile('../config/manual_settings.py', '../config/settings.py')
-shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
+# shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -16,7 +16,7 @@ def main():
     #
     # #---------------------- experiment = PRECONTROL --------------------------------------------------------------------
     #
-    aux_lib.check_var_units()
+    # aux_lib.check_var_units()
     # preprocess.preprocess()
     # precontrol.missing_data_check()
     # precontrol.predictors_correlation()
@@ -27,9 +27,9 @@ def main():
     # preprocess.train_methods()
     # process.downscale()
     # postprocess.bias_correction()
-    # postprocess.get_climdex()
-    # postprocess.plot_results()
-    # postprocess.nc2ascii()
+    postprocess.get_climdex()
+    postprocess.plot_results()
+    postprocess.nc2ascii()
 
 
 if __name__=="__main__":
