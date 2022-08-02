@@ -257,6 +257,7 @@ class tabSteps(ttk.Frame):
         ttk.Label(tabSteps, text="Select steps:").grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
 
         steps = {'PRECONTROL': {
+                 'check_var_units': {'text': 'Check units', 'info':  'Check units for all variables from reanalysis and GCMs.',},
                  'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
                                                                    'resolution grid, calculation of derived predictors, \n'
                                                                    'standardization of predictors, training/testing split \n'
@@ -2889,6 +2890,9 @@ def write_tmpMain_file(steps):
 
     # Steps
     f.write("    aux_lib.initial_checks()\n")
+
+    if 'check_var_units' in steps:
+        f.write("    aux_lib.check_var_units()\n")
     if 'preprocess' in steps:
         f.write("    preprocess.preprocess()\n")
     if 'missing_data_check' in steps:
