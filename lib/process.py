@@ -90,7 +90,8 @@ def models(method_dict, scene, model):
         pathOut += 'pseudoreality_' + GCM_longName + '_' + RCM + '/'
 
     # Check if scene/model has already been processed
-    if os.path.isfile(pathOut + targetVar.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc'):
+    if os.path.isfile(pathOut + targetVar.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc')\
+            and force_downscaling == False:
         print('-------------------------------')
         print(targetVar, scene, model, methodName, 'Already processed')
     else:

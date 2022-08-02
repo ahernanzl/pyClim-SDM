@@ -98,7 +98,10 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
                                                   times_season, times_percCalendar_seaon)['data']
 
             # Save results
-            np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
+            # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
+            times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
+            write.netCDF(pathOut, '_'.join((climdex_name, filename, season))+'.nc', climdex_name, data_climdex, '',
+                         hres_lats[targetVar], hres_lons[targetVar], times_years, regular_grid=False)
 
     print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
 
@@ -449,13 +452,15 @@ def get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathI
             models = []
             all_data = np.zeros((0, nYears, npoints))
             for model in model_list:
-                fileIn = '_'.join((climdex_name, scene, model, season)) + '.npy'
+                # fileIn = '_'.join((climdex_name, scene, model, season)) + '.npy'
+                fileIn = '_'.join((climdex_name, scene, model, season))
                 # Check if scene/model exists
                 if os.path.isfile(pathIn + fileIn):
                     # Read data and select region
                     data = np.load(pathIn + fileIn)[:, iaux]
-                    ref = np.load(
-                        pathIn + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')[:, iaux]
+                    # ref = np.load(
+                    #     pathIn + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')[:, iaux]
+                    ref = read.netCDF(pathIn, '_'.join((climdex_name, 'REFERENCE', model, season))+'.nc', climdex_name)['data'][:, iaux]
                     ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
 
                     # # Plot reference mean maps for climdex control, to detect possible errors

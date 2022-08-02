@@ -345,7 +345,8 @@ def get_climdex_allModels(targetVar, methodName):
             model = filename.split('_')[2] + '_' + filename.split('_')[3]
             if ((os.path.isfile(pathIn + model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
                 climdex_already_calculated = False
-        if climdex_already_calculated == False:
+        if climdex_already_calculated == False or force_climdex_calculation == True:
+
             # Check if model historical exists
             if os.path.isfile(pathIn + model + '_historical.nc'):
                 # Serial processing
