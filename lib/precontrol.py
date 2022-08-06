@@ -471,7 +471,7 @@ def GCMs_evaluation_historical():
                             for i in reversed(range(len(c_list))):
                                 p, c = perc_list[i], c_list[i]
                                 # print('perc', p)
-                                px, py = np.nanpercentile(rea_season, p, axis=0)[0], np.nanpercentile(sceneData_season, p, axis=0)[0]
+                                px, py = np.nanpercentile(rea_season, p, axis=0)[0].flatten(), np.nanpercentile(sceneData_season, p, axis=0)[0].flatten()
                                 plt.plot(px, py, '+', c=c, label='p' + str(p))
                                 # plt.plot(px, py, '+', c=c, markersize=2, label='p'+str(p))
                                 M = int(max(np.max(px), np.max(py), M))
