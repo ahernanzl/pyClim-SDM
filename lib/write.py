@@ -45,6 +45,8 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	if not os.path.exists(path):
 		os.makedirs(path)
 
+	if filename[-3:] != '.nc':
+		filename += '.nc'
 
 	# Define dataset and dimensions
 	nc=Dataset(path+filename, 'w', format='NETCDF4')
@@ -132,6 +134,8 @@ def netCDF_rotated(path, filename, varName, data, dates):
 		units = "degrees"
 
 	# Global atributes
+	if filename[-3:] != '.nc':
+		filename += '.nc'
 	nc = Dataset(path+filename, 'w', format='NETCDF4_CLASSIC')
 	nc.Conventions = "CF-1.7"
 	nc.title = "AEMET High-resolution (0.05 deg) daily gridded " + varName + " climate projections dataset for Peninsular Spain and Balearic Islands"

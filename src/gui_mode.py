@@ -2133,11 +2133,15 @@ class tabFigures(ttk.Frame):
             'PROJECTIONS_meanChangeMap': 'Anomaly in a future period with respect to a reference period given by the '
                                          'multimodel ensemble mean (mean change). Absolute anomaly for tmax/tmin and '
                                          'relative anomaly for pcp.',
-            'PROJECTIONS_stdChangeMap': 'Standard deviation in the anomaly given by the multimodel ensemble (spread).',
+            'PROJECTIONS_spreadChangeMap': 'Standard deviation in the anomaly given by the multimodel ensemble (spread).',
             'PROJECTIONS_evolTrendRaw': 'Evolution graph, by one method vs. raw models, of one variable by the '
                                         'multimodel ensemble (the central line represents 50th percentile and the '
                                         'shaded area represents IQR), in the form of anomaly with respect to the '
-                                        'reference period (absolute anomaly for tmax/tmin and relative anomaly for pcp).',
+                                        'reference period (absolute anomaly for tmax/tmin and relative anomaly for pcp).'
+                                        'The number between brackets correspond to the number of models. Beware that, '
+                                        'when using bias corrected SDMs, raw still correspong to not bias corrected RAW.'
+                                        'Thus, if zero models are for RAW, that means that climdex without bias '
+                                        'correction need to be calculated',
         }
 
         def callback_experiment(event):
