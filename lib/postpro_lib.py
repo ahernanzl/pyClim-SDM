@@ -452,12 +452,12 @@ def get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathI
             models = []
             all_data = np.zeros((0, nYears, npoints))
             for model in model_list:
-                # fileIn = '_'.join((climdex_name, scene, model, season)) + '.npy'
-                fileIn = '_'.join((climdex_name, scene, model, season))
+                fileIn = '_'.join((climdex_name, scene, model, season)) + '.nc'
                 # Check if scene/model exists
                 if os.path.isfile(pathIn + fileIn):
                     # Read data and select region
-                    data = np.load(pathIn + fileIn)[:, iaux]
+                    # data = np.load(pathIn + fileIn)[:, iaux]
+                    data = read.netCDF(pathIn, fileIn, climdex_name)['data'][:, iaux]
                     # ref = np.load(
                     #     pathIn + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')[:, iaux]
                     ref = read.netCDF(pathIn, '_'.join((climdex_name, 'REFERENCE', model, season))+'.nc', climdex_name)['data'][:, iaux]
@@ -710,6 +710,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         pass
     # plt.xlabel(xlabel)
     plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
+    plt.legend()
     # plt.show()
     # exit()
     filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName, season))
@@ -720,7 +721,6 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
             os.makedirs(pathFigures)
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
-        plt.legend(loc='upper left')
         title = regName.upper() + '\n' + season
         plt.title(title)
         if not os.path.exists(pathOut):
