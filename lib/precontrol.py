@@ -237,6 +237,8 @@ def GCMs_evaluation_historical():
     print('GCMs_evaluation_historical...')
     sceneName = 'historical'
 
+    linestyles = ['-', '--', '-.', ':',]
+
     # Go through all target variables
     for targetVar in targetVars:
 
@@ -313,7 +315,7 @@ def GCMs_evaluation_historical():
                         aux = read.lres_data(targetVar, 'pred', model=model, scene=sceneName, predName=predName)
                         scene_dates = aux['times']
                         if calendar in ['360_day', '360']:
-                            time_first, time_last = scene_dates.index(reference_first_date), reference_dates[-2]
+                            time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_dates[-2])
                         else:
                             time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(
                                 reference_last_date) + 1
@@ -525,7 +527,7 @@ def GCMs_evaluation_historical():
                         # Boxplot
                         fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                         ax.boxplot(matrixT, showfliers=False)
-                        ax.set_xticklabels(model_list, rotation=45, fontsize=5)
+                        ax.set_xticklabels(model_list, rotation=90, fontsize=5)
                         plt.axhline(y=0, ls='--', c='grey')
                         plt.title(' '.join(('bias', predName, season)))
                         if predName != 'pr':
@@ -541,11 +543,12 @@ def GCMs_evaluation_historical():
 
                         # Annual cycle plot
                         fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
-                        for model in model_list:
+                        for imodel in range(len(model_list)):
+                            model = model_list[imodel]
                             cycle_load = np.load(pathTmp + '_'.join((targetVar, predName, model, sceneName, annualName, 'cycle.npy')))
                             x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                             y_cycle = [i for i in cycle_load]
-                            ax.plot(x_months, y_cycle, label= model )
+                            ax.plot(x_months, y_cycle, label= model, linestyle=linestyles[imodel//10])
                         cycle_rea_load = np.load(pathTmp + '_'.join((targetVar, predName, 'Reanalysis', annualName, 'cycle_rea.npy')))
                         x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                         y_cycle_rea = [i for i in cycle_rea_load]
@@ -603,6 +606,9 @@ def GCMs_evaluation_future():
     years = [i for i in range(ssp_years[0], ssp_years[-1]+1)]
     nYears = len(years)
     nseasons = len(season_dict.keys())
+
+
+    linestyles = ['-', '--', '-.', ':',]
 
     # Go through all target variables
     for targetVar in targetVars:
@@ -664,7 +670,7 @@ def GCMs_evaluation_future():
                             aux2 = read.lres_data(targetVar, 'pred', model=model, scene='historical', predName=predName)
                             scene_dates = aux2['times']
                             if calendar in ['360_day', '360']:
-                                time_first, time_last = scene_dates.index(reference_first_date), reference_dates[-2]
+                                time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_dates[-2])
                             else:
                                 time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(
                                     reference_last_date) + 1
@@ -862,11 +868,12 @@ def GCMs_evaluation_future():
                         # Annual cycle plot
                         if predName == targetVar:
                             fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
-                            for model in model_list:
+                            for imodel in range(len(model_list)):
+                                model = model_list[imodel]
                                 cycle_load = np.load(pathTmp + '_'.join((targetVar, predName, model, sceneName, annualName, 'cycle.npy')))
                                 x_months = [i for i in ['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']]
                                 y_cycle = [i for i in cycle_load]
-                                ax.plot(x_months, y_cycle, label= model )
+                                ax.plot(x_months, y_cycle, label= model, linestyle=linestyles[imodel//10])
                             ax.set_xlabel('month')
                             # if predName == targetVar:
                             ax.set_ylabel(unitspred)
@@ -893,7 +900,7 @@ def GCMs_evaluation_future():
                                     data = gaussian_filter1d(data, 5)
                                     hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
                                     hmmm = np.nanmean(hmm)
-                                    plt.plot(years, data-hmmm, label=model)
+                                    plt.plot(years, data-hmmm, label=model, linestyle=linestyles[imodel//10])
                                 plt.title(' '.join((predName, sceneName, season)))
                                 if targetVar in ('tas','tasmax','tasmin'):
                                     ax.set_ylabel(predName + ' ' + 'anomaly (°C)')
@@ -922,7 +929,7 @@ def GCMs_evaluation_future():
                                     data = gaussian_filter1d(data, 5)
                                     hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
                                     hmmm = np.nanmean(hmm)
-                                    plt.plot(years, 100*(data-hmmm)/hmmm, label=model)
+                                    plt.plot(years, 100*(data-hmmm)/hmmm, label=model, linestyle=linestyles[imodel//10])
                                 plt.title(' '.join((predName, sceneName, season)))
                                 ax.set_ylabel(predName + ' ' + 'anomaly (%)')
                                 plt.legend()
