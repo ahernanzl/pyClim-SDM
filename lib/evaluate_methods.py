@@ -125,11 +125,7 @@ def annual_cycle():
 
                         if imethod == nmethods:
 
-                            if nmethods > 10:
-                                # plt.legend(ncol=1, bbox_to_anchor=(0.06, 1.1))
-                                plt.legend(ncol=2, fontsize=12)
-                            else:
-                                plt.legend()
+                            plt.legend(fontsize=12, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
                             title_size = 15
 
                             # plt.title(var.upper(), fontsize=title_size)
@@ -142,7 +138,9 @@ def annual_cycle():
                             plt.tight_layout()
                             # plt.show()
                             # exit()
-                            plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'annualCycle', var, 'None', 'all', 'None')))
+                            plt.savefig(pathOut +
+                                        '_'.join(('EVALUATION'+bc_sufix, 'annualCycle', var, 'None', 'all', 'None')),
+                                        bbox_inches='tight')
                             plt.close()
 
 

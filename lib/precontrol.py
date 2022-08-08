@@ -559,11 +559,11 @@ def GCMs_evaluation_historical():
                         else:
                             ax.set_ylabel('standardized ' + predName)
                         plt.title(' '.join(('annual cycle', predName, sceneName)))
-                        ax.legend()
+                        plt.legend(fontsize=12, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
                         filename = '_'.join((experiment, 'annualCycle', targetVar, predName, sceneName, 'None'))
                         # plt.show()
                         # exit()
-                        plt.savefig(pathOut + filename)
+                        plt.savefig(pathOut + filename, bbox_inches='tight')
                         plt.close()
 
                         # # Evolution Spaghetti plot in reference period
@@ -879,12 +879,12 @@ def GCMs_evaluation_future():
                             ax.set_ylabel(unitspred)
                             # else:
                             #     ax.set_ylabel('standardized ' + predName)
-                            plt.title(' '.join(('annual cycle', predName)))
-                            ax.legend()
+                            plt.title(' '.join(('annual cycle', predName, sceneName)))
+                            plt.legend(fontsize=12, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
                             filename = '_'.join((experiment, 'annualCycle', targetVar, predName, sceneName, 'None'))
                             # plt.show()
                             # exit()
-                            plt.savefig(pathOut + filename)
+                            plt.savefig(pathOut + filename, bbox_inches='tight')
                             plt.close()
 
                         # Evolution Spaghetti plot -predictands
@@ -908,11 +908,11 @@ def GCMs_evaluation_future():
                                     ax.set_ylabel(predName + ' ' + 'anomaly (%)')
                                 elif targetVar in ('uas', 'vas', 'sfcWind'):
                                     ax.set_ylabel(predName + ' ' + 'anomaly (m/s)')
-                                plt.legend()
-                                # plt.show()
+
+                                plt.legend(fontsize=12, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)                       # plt.show()
                                 # exit()
                                 filename = '_'.join((experiment, 'evolSpaghetti', targetVar, predName, sceneName, season))
-                                plt.savefig(pathOut + filename)
+                                plt.savefig(pathOut + filename, bbox_inches='tight')
                                 plt.close()
 
                                 iseason += 1
@@ -932,11 +932,11 @@ def GCMs_evaluation_future():
                                     plt.plot(years, 100*(data-hmmm)/hmmm, label=model, linestyle=linestyles[imodel//10])
                                 plt.title(' '.join((predName, sceneName, season)))
                                 ax.set_ylabel(predName + ' ' + 'anomaly (%)')
-                                plt.legend()
-                                # plt.show()
+
+                                plt.legend(fontsize=12, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)                           # plt.show()
                                 # exit()
                                 filename = '_'.join((experiment, 'evolSpaghetti', targetVar, predName, sceneName, season))
-                                plt.savefig(pathOut + filename)
+                                plt.savefig(pathOut + filename, bbox_inches='tight')
                                 plt.close()
 
                                 iseason += 1
