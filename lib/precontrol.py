@@ -450,25 +450,7 @@ def GCMs_evaluation_historical():
                             print(targetVar, predName, model, sceneName, season)
 
                             # Q-Q plot
-                            ''' 
-                            fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
-                            a = rea_season #rea_mean_season
-                            b = sceneData_season #sceneData_mean_season
-                            percs = np.linspace(0,100, 100)
-                            qn_a = np.nanpercentile(a, percs)
-                            qn_b = np.nanpercentile(b, percs)
-                            ax.plot(qn_a,qn_b, ls="", marker="o")#plt
-                            x = np.linspace(np.nanmin((np.nanmin(qn_a),np.nanmin(qn_b))), np.nanmax((np.nanmax(qn_a),np.nanmax(qn_b))))
-                            ax.plot(x,x, color="k", ls="--")#plt
-                            ax.set_xlabel('Reanalysis' + ' ' + unitspred)
-                            ax.set_ylabel(model + ' ' + unitspred)
-                            plt.title(' '.join(('qqPlot', predName, model, sceneName, season)))
-                            filename = '_'.join((experiment, 'qqPlot', targetVar, predName, model.replace('_', '-'), season))
-                            #plt.show()
-                            # exit()
-                            plt.savefig(pathOut + filename)
-                            plt.close()
-                            '''
+
                             # Set ylabel, perc_list and c_list
                             if targetVar == 'pr':
                                 perc_list = (99, 90, 75, 50)
@@ -511,6 +493,7 @@ def GCMs_evaluation_historical():
                             # exit()
                             plt.savefig(pathOut + filename)
                             plt.close()
+
                     # Saving multi-model statistics
                     if predName == targetVar:
                         historical_multimodel_mean = np.nanmean(lst_sceneData_mean_season, axis=0)
@@ -655,7 +638,6 @@ def GCMs_evaluation_future():
                         # Go through all models and storage mean values
                         for imodel in range(nmodels):
                             model = model_list[imodel]
-                            print(targetVar, predName, sceneName, model, 'evaluation future')
                             ncVar = modNames[targetVar]
                             modelName, modelRun = model.split('_')[0], model.split('_')[1]
                             readunits = read.netCDF('../input_data/models/',
@@ -719,12 +701,12 @@ def GCMs_evaluation_future():
                                         lst_months.append(np.nanmean(monsum))
                                 cycle = lst_months
                                 np.save(pathTmp + '_'.join((targetVar, predName, model, sceneName, annualName, 'cycle')), cycle)
-                                print('cycle')
+
 
                             # Go through all seasons
                             iseason = 0
                             for season in season_dict:
-
+                                print(targetVar, predName, model, sceneName, season)
                                 # Select season data
                                 aux = postpro_lib.get_season(sceneData, times, season)
                                 data_season, times_season = aux['data'], aux['times']
@@ -956,50 +938,30 @@ def GCMs_evaluation_future():
 
                         # Change_maps-predictands
 
-
                         if (predName == targetVar) and (predName != 'pr'):
-                            print('Change_maps ' + predName)
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
                             iseason = 0
                             for season in season_dict:
                                 for imodel in range(nmodels):
                                     model = model_list[imodel]
                                     for term_years in (shortTerm_years, longTerm_years):
-                                        # if ((plotAllRegions == True) or ((scene == 'ssp585') and (term_years == longTerm_years))):
                                         period = str(term_years[0]) + '-' + str(term_years[1])
                                         years_list = [x for x in range(term_years[0], term_years[1] + 1)]
                                         iYears = [i for i in range(len(years)) if years[i] in years_list]
                                         dataTerm = matrix[iseason, iscene - 1, imodel][iYears,:,:]
-                                        dataTerm = np.nanmean(dataTerm, axis=0)
-
-                                        iNans = np.unique(np.where(np.isnan(dataTerm))[0])
-                                        dataTerm = np.delete(dataTerm, iNans, axis=0)
 
                                         hist_model = np.load(
                                             '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
                                                 (targetVar, predName, model, 'historical', season, 'map.npy')))
-                                        iNans = np.unique(np.where(np.isnan(hist_model))[0])
-                                        hist_model = np.delete(hist_model, iNans, axis=0)
 
-                                        median_change = np.nanmedian(dataTerm, axis=0)-np.nanmedian(hist_model, axis=0)
-                                        dataTerm_spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
-                                        hist_model_spread = np.nanpercentile(hist_model, 75, axis=0) - np.nanpercentile(hist_model, 25, axis=0)
-                                        spread_change = dataTerm_spread - hist_model_spread
+                                        mean_change = np.nanmean(dataTerm, axis=0) -np.nanmean(hist_model, axis=0)
 
                                         filename = '_'.join(
-                                            (experiment, 'changeMap_median', targetVar, predName, model + '-' + sceneName,
+                                            (experiment, 'changeMap', targetVar, predName, model + '-' + sceneName,
                                              season+'-'+period))
-                                        title = ' '.join((predName, model, sceneName, season+'-'+period, '\nmedian anomaly ' + '(' + unitspred + ')'))
-                                        plot.map(targetVar, median_change, 'median_changeMap', grid='pred', path=pathOut, filename=filename, title=title)
+                                        title = ' '.join((predName, model, sceneName, season+'-'+period, '\nmean anomaly ' + '(' + unitspred + ')'))
+                                        plot.map(targetVar, mean_change, 'changeMap', grid='pred', path=pathOut, filename=filename, title=title)
 
-                                        filename = '_'.join(
-                                            (experiment, 'changeMap_spread', targetVar, predName,
-                                             model + '-' + sceneName,
-                                             season + '-' + period))
-                                        title = ' '.join((predName, model, sceneName, season + '-' + period,
-                                                          '\ninterquartile range anomaly ' + '(' + unitspred + ')'))
-                                        plot.map(targetVar, spread_change, 'spread_changeMap', grid='pred',
-                                                 path=pathOut, filename=filename, title=title)
 
                         elif predName == 'pr':
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
@@ -1008,93 +970,25 @@ def GCMs_evaluation_future():
                                 for imodel in range(nmodels):
                                     model = model_list[imodel]
                                     for term_years in (shortTerm_years, longTerm_years):
-                                        # if ((plotAllRegions == True) or ((scene == 'ssp585') and (term_years == longTerm_years))):
                                         period = str(term_years[0]) + '-' + str(term_years[1])
                                         years_list = [x for x in range(term_years[0], term_years[1] + 1)]
                                         iYears = [i for i in range(len(years)) if years[i] in years_list]
                                         dataTerm = matrix[iseason, iscene - 1, imodel][iYears, :, :]
-                                        dataTerm = np.nanmean(dataTerm, axis=0)
-
-                                        iNans = np.unique(np.where(np.isnan(dataTerm))[0])
-                                        dataTerm = np.delete(dataTerm, iNans, axis=0)
 
                                         hist_model= np.load(
                                             '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
                                                 (targetVar, predName, model, 'historical', season, 'map.npy')))
-                                        iNans = np.unique(np.where(np.isnan(hist_model))[0])
-                                        hist_model = np.delete(hist_model, iNans, axis=0)
 
-                                        median_change = 100*(np.nanmedian(dataTerm, axis=0) - np.nanmedian(hist_model,axis=0) )/  np.nanmedian(hist_model,axis=0)
-                                        dataTerm_spread = np.nanpercentile(dataTerm, 75,axis=0) - np.nanpercentile(dataTerm,25,axis=0)
-                                        hist_model_spread = np.nanpercentile(hist_model, 75, axis=0) - np.nanpercentile(hist_model,25, axis=0)
-                                        spread_change = 100*(dataTerm_spread - hist_model_spread) / hist_model_spread
+                                        mean_change = 100*(np.nanmean(dataTerm, axis=0) - np.nanmean(hist_model,axis=0) )/ np.nanmean(hist_model,axis=0)
 
                                         filename = '_'.join(
-                                            (experiment, 'changeMap_median', targetVar, predName,
+                                            (experiment, 'changeMap', targetVar, predName,
                                              model + '-' + sceneName,
                                              season + '-' + period))
                                         title = ' '.join((predName, model, sceneName, season + '-' + period,
-                                                          '\nmedian anomaly ' + '(%)'))
-                                        plot.map(targetVar, median_change, 'median_changeMap', grid='pred',
+                                                          '\nmean anomaly ' + '(%)'))
+                                        plot.map(targetVar, mean_change, 'changeMap', grid='pred',
                                                  path=pathOut, filename=filename, title=title)
-
-                                        filename = '_'.join(
-                                            (experiment, 'changeMap_spread', targetVar, predName,
-                                             model + '-' + sceneName,
-                                             season + '-' + period))
-                                        title = ' '.join((predName, model, sceneName, season + '-' + period,
-                                                          '\ninterquartile range anomaly ' + '(%)'))
-                                        plot.map(targetVar, spread_change, 'spread_changeMap', grid='pred',
-                                                 path=pathOut, filename=filename, title=title)
-
-
-                        #                 data = gaussian_filter1d(data, 5)
-                        #                 hmm = np.load(
-                        #                     '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
-                        #                         (targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
-                        #                 hmmm = np.nanmean(hmm)
-                        #             plt.plot(years, data - hmmm, label=model)
-                        #         plt.title(' '.join((predName, sceneName, season)))
-                        #         if targetVar in ('tas', 'tasmax', 'tasmin'):
-                        #             ax.set_ylabel(predName + ' ' + 'anomaly (°C)')
-                        #         elif targetVar in ('clt', 'hurs'):
-                        #             ax.set_ylabel(predName + ' ' + 'anomaly (%)')
-                        #         elif targetVar in ('uas', 'vas', 'sfcWind'):
-                        #             ax.set_ylabel(predName + ' ' + 'anomaly (m/s)')
-                        #         plt.legend()
-                        #         # plt.show()
-                        #         # exit()
-                        #         filename = '_'.join(
-                        #             (experiment, 'evolSpaghetti', targetVar, predName, sceneName, season))
-                        #         plt.savefig(pathOut + filename)
-                        #         plt.close()
-                        #
-                        #         iseason += 1
-                        #
-                        # elif predName == 'pr':
-                        #     matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
-                        #     iseason = 0
-                        #     for season in season_dict:
-                        #         fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
-                        #         for imodel in range(nmodels):
-                        #             model = model_list[imodel]
-                        #             data = matrix[iseason, iscene - 1, imodel]
-                        #             data = np.nanmean(data.reshape(nYears, -1), axis=1)
-                        #             data = gaussian_filter1d(data, 5)
-                        #             hmm = np.load(
-                        #                 '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
-                        #                     (targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
-                        #             hmmm = np.nanmean(hmm)
-                        #             plt.plot(years, 100 * (data - hmmm) / hmmm, label=model)
-                        #         plt.title(' '.join((predName, sceneName, season)))
-                        #         ax.set_ylabel(predName + ' ' + 'anomaly (%)')
-                        #         plt.legend()
-                        #         # plt.show()
-                        #         # exit()
-                        #         filename = '_'.join(
-                        #             (experiment, 'evolSpaghetti', targetVar, predName, sceneName, season))
-                        #         plt.savefig(pathOut + filename)
-                        #         plt.close()
 
                                 iseason += 1
 
