@@ -415,14 +415,14 @@ def GCMs_evaluation_historical():
                         bias = sceneData_mean_season - rea_mean_season
 
                         # Calculate relative bias
-                        if predName == 'pr':
+                        if predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             bias = 100*bias/rea_mean_season
 
                         # Plot bias map
 
                         filename = '_'.join(
                             (experiment, 'biasMap', targetVar, predName, model + '-' + sceneName, season))
-                        if predName == 'pr':
+                        if predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             title = ' '.join((predName, model, sceneName, season, 'relative bias (%)'))
                         else:
                             title = ' '.join((predName, model, sceneName, season, 'bias ' + '(' + unitspred + ')'))
@@ -522,10 +522,10 @@ def GCMs_evaluation_historical():
                         # Boxplot
                         fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                         ax.boxplot(matrixT, showfliers=False)
-                        ax.set_xticklabels(model_list, rotation=45, fontsize=5)
+                        ax.set_xticklabels(model_list, rotation=90, fontsize=5)
                         plt.axhline(y=0, ls='--', c='grey')
                         plt.title(' '.join(('bias', predName, season)))
-                        if predName != 'pr':
+                        if predName != 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == True):
                             ax.set_ylabel(unitspred)
                         else:
                             ax.set_ylabel('pr relative bias (%)')
@@ -883,7 +883,7 @@ def GCMs_evaluation_future():
                             plt.close()
 
                         # Evolution Spaghetti plot -predictands
-                        if (predName == targetVar) and (predName != 'pr'):
+                        if (predName == targetVar) and (predName != 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == True)):
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
                             iseason = 0
                             for season in season_dict:
@@ -912,7 +912,7 @@ def GCMs_evaluation_future():
 
                                 iseason += 1
 
-                        elif predName == 'pr':
+                        elif predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
                             iseason = 0
                             for season in season_dict:
@@ -938,7 +938,7 @@ def GCMs_evaluation_future():
 
                         # Change_maps-predictands
 
-                        if (predName == targetVar) and (predName != 'pr'):
+                        if (predName == targetVar) and (predName != 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == True)):
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
                             iseason = 0
                             for season in season_dict:
@@ -963,7 +963,7 @@ def GCMs_evaluation_future():
                                         plot.map(targetVar, mean_change, 'changeMap', grid='pred', path=pathOut, filename=filename, title=title)
 
 
-                        elif predName == 'pr':
+                        elif predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
                             iseason = 0
                             for season in season_dict:
