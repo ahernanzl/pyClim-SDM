@@ -1943,9 +1943,9 @@ class tabMyTargetVar(ttk.Frame):
         for i in range(len(methods)):
             if methods[i]['var'] == myTargetVar:
                 methods[i]['var'] = 'myTargetVar'
-        hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
-        preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
-        climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
+                hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
+                preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
+                climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
         frames = []
 
         # Enable/disable targetVar
