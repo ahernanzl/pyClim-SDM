@@ -472,6 +472,8 @@ for targetVar in targetVars:
         print('----------------------------------------------------------------------------------------')
         print('Make sure your input_data directory is prepared as indicated in the input_data_template.')
         print('Missing hres/' + targetVar + '_hres_metadata.txt file.')
+        print('If you entered an invalid name ('+targetVar+') by mistake and cannot run the program,')
+        print('remove '+targetVar+' from the targetVars list at config/settings.py')
         print('----------------------------------------------------------------------------------------')
         exit()
     aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt')
