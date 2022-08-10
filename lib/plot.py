@@ -500,12 +500,22 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     if (filename != None) and (not os.path.exists(path)):
         os.makedirs(path)
 
+    abs_limit = max(abs(data.min()), abs(data.max()))
+
     # Create dictionary of all possible palettes
     dict = {}
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
                                    'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
+    dict.update({'bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['b', 'w', 'r'], 'ext': 'both'}})
+    dict.update({'changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['b', 'w', 'r'], 'ext': 'both'}})
+    dict.update({'rel_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
+    dict.update({'rel_changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
     dict.update({'tmax_TXm': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
                               'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'tmax_p10': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
@@ -795,6 +805,8 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             lats, lons, grid_res_local = pred_lats, pred_lons, grid_res
 
         # Give lats/lons proper format for colormesh function
+        if lats[0] > lats[-1]:
+            data = np.flip(data, axis=0)
         lats = np.sort(lats)
         lons = np.sort(lons)
         lats = np.append(lats, lats[-1] + grid_res_local) - grid_res_local / 2

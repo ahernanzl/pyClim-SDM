@@ -2086,6 +2086,9 @@ class tabFigures(ttk.Frame):
             'PRECONTROL_biasBoxplot': 'Bias of all models compared to the reanalysis (in the mean value) in a historical '
                                       'period. For tmax/tmin absolute bias, for pcp relative bias and the rest '
                                       'standardized and absolute bias. Each box contains one value per grid point.',
+            'PRECONTROL_biasMap': 'Bias of one model compared to the reanalysis (in the mean value) in a historical '
+                                      'period. For tmax/tmin absolute bias, for pcp relative bias and the rest '
+                                      'standardized and absolute bias.',
             'PRECONTROL_evolSpaghetti': 'Evolution of one predictor by all models in the form of anomaly with respect to the '
                                         'reference period (absolute anomaly for tmax/tmin, relative anomaly for pcp and '
                                         'absolute anomaly of the standardized variables for the rest).',
