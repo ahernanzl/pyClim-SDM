@@ -271,7 +271,6 @@ def GCMs_evaluation_historical():
                 predName = list(preds.keys())[ipred]
                 if predName == targetVar:
                     # print(targetVar, season, predName)
-
                     # Read reanalysis
                     rea = read.lres_data(targetVar, 'pred', predName=predName)['data']
                     time_first, time_last = calibration_dates.index(reference_first_date), calibration_dates.index(
@@ -413,20 +412,22 @@ def GCMs_evaluation_historical():
                         rea_mean_season = np.nanmean(rea_season[:, 0, :, :], axis=0)
                         sceneData_mean_season = np.nanmean(sceneData_season[:, 0, :, :], axis=0)
                         bias = sceneData_mean_season - rea_mean_season
+                        palette = 'bias'
 
                         # Calculate relative bias
                         if predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             bias = 100*bias/rea_mean_season
+                            palette = 'rel_bias'
 
                         # Plot bias map
-
                         filename = '_'.join(
                             (experiment, 'biasMap', targetVar, predName, model + '-' + sceneName, season))
                         if predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             title = ' '.join((predName, model, sceneName, season, 'relative bias (%)'))
                         else:
                             title = ' '.join((predName, model, sceneName, season, 'bias ' + '(' + unitspred + ')'))
-                        plot.map(targetVar, bias, 'bias', grid='pred', path=pathOut, filename=filename,
+
+                        plot.map(targetVar, bias, palette, grid='pred', path=pathOut, filename=filename,
                                  title=title)
                         '''
                         # Calculate annual accumulated precipitation 
@@ -522,7 +523,8 @@ def GCMs_evaluation_historical():
                         # Boxplot
                         fig, ax = plt.subplots(figsize=(8,6), dpi = 300)
                         ax.boxplot(matrixT, showfliers=False)
-                        ax.set_xticklabels(model_list, rotation=90, fontsize=5)
+                        xlabels = [x.replace('_', '\n') for x in model_list]
+                        ax.set_xticklabels(xlabels, rotation=90, fontsize=5)
                         plt.axhline(y=0, ls='--', c='grey')
                         plt.title(' '.join(('bias', predName, season)))
                         if predName != 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == True):
@@ -895,7 +897,8 @@ def GCMs_evaluation_future():
                                     data = gaussian_filter1d(data, 5)
                                     hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
                                     hmmm = np.nanmean(hmm)
-                                    plt.plot(years, 100*(data-hmmm)/hmmm, label=model, linestyle=linestyles[imodel//10])
+                                    # plt.plot(years, 100*(data-hmmm)/hmmm, label=model+'_rel', linestyle=linestyles[imodel//10])
+                                    plt.plot(years, data-hmmm, label=model, linestyle=linestyles[imodel//10])
                                 plt.title(' '.join((predName, sceneName, season)))
                                 if targetVar in ('tas','tasmax','tasmin'):
                                     ax.set_ylabel(predName + ' ' + 'anomaly (°C)')
@@ -937,7 +940,6 @@ def GCMs_evaluation_future():
                                 iseason += 1
 
                         # Change_maps-predictands
-
                         if (predName == targetVar) and (predName != 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == True)):
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
                             iseason = 0
@@ -954,7 +956,7 @@ def GCMs_evaluation_future():
                                             '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
                                                 (targetVar, predName, model, 'historical', season, 'map.npy')))
 
-                                        mean_change = np.nanmean(dataTerm, axis=0) -np.nanmean(hist_model, axis=0)
+                                        mean_change = np.nanmean(dataTerm, axis=0) - np.nanmean(hist_model, axis=0)
 
                                         filename = '_'.join(
                                             (experiment, 'changeMap', targetVar, predName, model + '-' + sceneName,
@@ -987,7 +989,7 @@ def GCMs_evaluation_future():
                                              season + '-' + period))
                                         title = ' '.join((predName, model, sceneName, season + '-' + period,
                                                           '\nmean anomaly ' + '(%)'))
-                                        plot.map(targetVar, mean_change, 'changeMap', grid='pred',
+                                        plot.map(targetVar, mean_change, 'rel_changeMap', grid='pred',
                                                  path=pathOut, filename=filename, title=title)
 
                                 iseason += 1

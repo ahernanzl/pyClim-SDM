@@ -145,6 +145,10 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = data[:, ilats]
         data = data[:, :, ilons]
 
+    # Force lats sorted from North to South
+    if lats[0] < lats[-1]:
+        lats = np.flip(lats)
+        data = np.flip(data, axis=1)
 
     # Get units
     try:

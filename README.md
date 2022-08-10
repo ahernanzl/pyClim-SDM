@@ -54,10 +54,15 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 
 # Installation
 
-In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
-requirements.txt. Install them by executing: **python -m pip install -r requirements.txt**
-
 pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
+
+In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
+requirements.txt. You can install them by following these steps: 
+- Install Miniconda: https://docs.conda.io/en/latest/miniconda.html#linux-installers
+- Create a virtual envirinment with the command: **conda create --name env**
+- Activate your environment with the command: **conda activate env**
+- Install the requierments.txt by running the command: **python install_requirements.py**
+
 
 
 # How to use
