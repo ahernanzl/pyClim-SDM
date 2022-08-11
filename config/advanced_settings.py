@@ -467,15 +467,9 @@ target_type = 'gridded_data'
 # target_type = 'stations'
 
 hres_npoints, hres_lats, hres_lons = {}, {}, {}
+targetVars = [x for x in targetVars if os.path.isfile(pathHres + x + '_hres_metadata.txt')
+              and os.path.isfile(pathHres + x + '_'+hresPeriodFilename[x]+'.txt')]
 for targetVar in targetVars:
-    if not os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
-        print('----------------------------------------------------------------------------------------')
-        print('Make sure your input_data directory is prepared as indicated in the input_data_template.')
-        print('Missing hres/' + targetVar + '_hres_metadata.txt file.')
-        print('If you entered an invalid name ('+targetVar+') by mistake and cannot run the program,')
-        print('remove '+targetVar+' from the targetVars list at config/settings.py')
-        print('----------------------------------------------------------------------------------------')
-        exit()
     aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt')
     hres_npoints.update({targetVar: aux_hres_metadata.shape[0]})
     hres_lats.update({targetVar: aux_hres_metadata[:, 2]})

@@ -79,7 +79,7 @@ def missing_data_check():
 
                     if np.max(perc_nan) != 0:
                         # Plot map
-                        filename = '_'.join((experiment, 'nansMap', targetVar, predName, model+'-'+sceneName, 'None'))
+                        filename = '_'.join((experiment, 'nansMap', targetVar, predName, model.replace('_', '-') +'-'+sceneName, 'None'))
                         title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
                         plot.map(targetVar, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename, title=title)
 
@@ -959,8 +959,8 @@ def GCMs_evaluation_future():
                                         mean_change = np.nanmean(dataTerm, axis=0) - np.nanmean(hist_model, axis=0)
 
                                         filename = '_'.join(
-                                            (experiment, 'changeMap', targetVar, predName, model + '-' + sceneName,
-                                             season+'-'+period))
+                                            (experiment, 'changeMap', targetVar, predName, model.replace('_', '-')  + '-' + sceneName+'-'+period,
+                                             season))
                                         title = ' '.join((predName, model, sceneName, season+'-'+period, '\nmean anomaly ' + '(' + unitspred + ')'))
                                         plot.map(targetVar, mean_change, 'changeMap', grid='pred', path=pathOut, filename=filename, title=title)
 
@@ -985,8 +985,8 @@ def GCMs_evaluation_future():
 
                                         filename = '_'.join(
                                             (experiment, 'changeMap', targetVar, predName,
-                                             model + '-' + sceneName,
-                                             season + '-' + period))
+                                             model.replace('_', '-')  + '-' + sceneName + '-' + period,
+                                             season))
                                         title = ' '.join((predName, model, sceneName, season + '-' + period,
                                                           '\nmean anomaly ' + '(%)'))
                                         plot.map(targetVar, mean_change, 'rel_changeMap', grid='pred',

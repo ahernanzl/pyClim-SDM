@@ -202,6 +202,8 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
         n = 80
     elif methodName == 'LS-SVM':
         n = 128
+    if methodName[:3] == 'GLM':
+        n = 128
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
