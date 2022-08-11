@@ -29,7 +29,7 @@ def main():
     # postprocess.bias_correction()
     # postprocess.get_climdex()
     postprocess.plot_results()
-    postprocess.nc2ascii()
+    # postprocess.nc2ascii()
 
 
 if __name__=="__main__":
