@@ -421,7 +421,7 @@ def GCMs_evaluation_historical():
 
                         # Plot bias map
                         filename = '_'.join(
-                            (experiment, 'biasMap', targetVar, predName, model + '-' + sceneName, season))
+                            (experiment, 'biasMap', targetVar, predName, model.replace('_', '-') + '-' + sceneName, season))
                         if predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             title = ' '.join((predName, model, sceneName, season, 'relative bias (%)'))
                         else:
