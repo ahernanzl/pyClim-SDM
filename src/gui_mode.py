@@ -2453,12 +2453,15 @@ class selectionWindow():
 
             # Check data availability for all targetVars
             for targetVar in self.targetVars:
+                targetVarName = targetVar
+                if targetVar == 'myTargetVar':
+                    targetVarName = self.targetVars_dict[targetVar]['info']['myTargetVarName'].get()
                 if self.all_checks_ok == True:
                     aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
-                    if not os.path.isfile(pathHres + targetVar + '_hres_metadata.txt') or \
-                            not os.path.isfile(pathHres + targetVar + '_'+aux+'.txt'):
-                        messagebox.showerror("pyClim-SDM",  'Missing hres data for variable ' + targetVar + '.\n'
-                           'Remove ' + targetVar + ' from your selection or prepare the input_data/hres/ directory properly.')
+                    if not os.path.isfile(pathHres + targetVarName + '_hres_metadata.txt') or \
+                            not os.path.isfile(pathHres + targetVarName + '_'+aux+'.txt'):
+                        messagebox.showerror("pyClim-SDM",  'Missing hres data for variable ' + targetVarName + '.\n'
+                           'Remove ' + targetVarName + ' from your selection or prepare the input_data/hres/ directory properly.')
                         self.all_checks_ok = False
                     else:
                         self.all_checks_ok = True
@@ -2818,7 +2821,10 @@ class selectionWindow():
                 os.system('python3 .tmp_main.py')
 
                 # Delete tmp_main
-                os.remove('.tmp_main.py')
+                try:
+                    os.remove('.tmp_main.py')
+                except:
+                    pass
 
         # Run butnon
         frame = Frame(notebook)
