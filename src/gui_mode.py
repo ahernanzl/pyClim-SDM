@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
 from tkinter import *
+from tkinter import messagebox as messagebox
 from tkinter import DISABLED
 from PIL import ImageTk,Image
 
@@ -172,7 +173,10 @@ class welcomeMessage(ttk.Frame):
             w = 800
             img = Image.open("../doc/pyClim-SDM_logo.png")
             h = int(w * img.height / img.width)
-            img = img.resize((w, h), Image.ANTIALIAS)
+            try:
+                img = img.resize((w, h), Image.Resampling.LANCZOS)
+            except:
+                img = img.resize((w, h), Image.ANTIALIAS)
             img = ImageTk.PhotoImage(img)
             canvas = Canvas(frameLogo, width=w, height=h)
             canvas.create_image(0, 0, anchor=NW, image=img)
@@ -1943,9 +1947,12 @@ class tabMyTargetVar(ttk.Frame):
         for i in range(len(methods)):
             if methods[i]['var'] == myTargetVar:
                 methods[i]['var'] = 'myTargetVar'
-                hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
-                preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
-                climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
+        try:
+            hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
+            preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
+            climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
+        except:
+            pass
         frames = []
 
         # Enable/disable targetVar
@@ -2017,7 +2024,10 @@ class tabFigures(ttk.Frame):
 
                 imgs.append(Image.open("../results/Figures/" + filename))
                 h = int(w * imgs[-1].height / imgs[-1].width)
-                imgs[-1] = imgs[-1].resize((w, h), Image.ANTIALIAS)
+                try:
+                    imgs[-1] = imgs[-1].resize((w, h), Image.Resampling.LANCZOS)
+                except:
+                    imgs[-1] = imgs[-1].resize((w, h), Image.ANTIALIAS)
                 imgs[-1] = ImageTk.PhotoImage(imgs[-1])
 
                 rootIm = tk.Toplevel()
@@ -2032,7 +2042,7 @@ class tabFigures(ttk.Frame):
                 rootIm.resizable(width=False, height=False)
 
             else:
-                tk.messagebox.showerror("pyClim-SDM",  "No figure has been generated matching the selection:\n" + filename)
+                messagebox.showerror("pyClim-SDM",  "No figure has been generated matching the selection:\n" + filename)
 
 
         # frameFigSelection
@@ -2096,10 +2106,8 @@ class tabFigures(ttk.Frame):
             'PRECONTROL_annualCycle': 'Annual cycle for one variable by all models in historical and reanalysis '
                                       '(monthly means for tmax/tmin, monthly accumulations for pcp and monthly means of '
                                       'the standardized variable for the rest). ',
-            'PRECONTROL_evolTube': 'Evolution graph for one variable by multimodel ensemble (the central line represents'
-                                   ' 50th percentile and the shaded area represents IQR), in the form of anomaly with '
-                                   'respect to the reference period (absolute anomaly for tmax/tmin, relative anomaly '
-                                   'for pcp and absolute anomaly of the standardized variables for the rest).',
+            'PRECONTROL_changeMap': 'Change (abs/relative) in the mean value over a 30-year period by the middle and end '
+                                   'of the century compared to the reference period.',
             'EVALUATION_annualCycle': 'Annual cycle for one variable, downscaled by all methods vs. observation '
                                       '(monthly means for tmax/tmin and monthly accumulations for pcp).',
             'EVALUATION_rmseBoxplot': 'RMSE of the daily series (downscaled and observed) by all methods. Boxes '
@@ -2377,7 +2385,10 @@ class selectionWindow():
         w = 120
         img = Image.open("../doc/pyClim-SDM_logo.png")
         h = int(w * img.height / img.width)
-        img = img.resize((w, h), Image.ANTIALIAS)
+        try:
+            img = img.resize((w, h), Image.Resampling.LANCZOS)
+        except:
+            img = img.resize((w, h), Image.ANTIALIAS)
         img = ImageTk.PhotoImage(img)
         canvas = Canvas(notebook, width=w, height=h)
         canvas.create_image(0, 0, anchor=NW, image=img)
@@ -2405,7 +2416,7 @@ class selectionWindow():
             self.saf_list = [x for x in self.SAFs if self.SAFs[x].get() == True]
             if len(self.saf_list) == 0:
                 self.all_checks_ok = False
-                tk.messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected")
+                messagebox.showerror("pyClim-SDM",  "At least one Synoptic Analogy Field must be selected")
             else:
                 self.all_checks_ok = True
 
@@ -2423,7 +2434,7 @@ class selectionWindow():
             if self.all_checks_ok == True:
                 if len(self.selected_all_preds) == 0:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "At least one predictor must be selected")
+                    messagebox.showerror("pyClim-SDM",  "At least one predictor must be selected")
                 else:
                     self.all_checks_ok = True
 
@@ -2436,7 +2447,19 @@ class selectionWindow():
                         npreds = 0
                     if npreds == 0:
                         self.all_checks_ok = False
-                        tk.messagebox.showerror("pyClim-SDM",  'No predictor has been selected for ' + targetVar + '')
+                        messagebox.showerror("pyClim-SDM",  'No predictor has been selected for ' + targetVar + '')
+                    else:
+                        self.all_checks_ok = True
+
+            # Check data availability for all targetVars
+            for targetVar in self.targetVars:
+                if self.all_checks_ok == True:
+                    aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
+                    if not os.path.isfile(pathHres + targetVar + '_hres_metadata.txt') or \
+                            not os.path.isfile(pathHres + targetVar + '_'+aux+'.txt'):
+                        messagebox.showerror("pyClim-SDM",  'Missing hres data for variable ' + targetVar + '.\n'
+                           'Remove ' + targetVar + ' from your selection or prepare the input_data/hres/ directory properly.')
+                        self.all_checks_ok = False
                     else:
                         self.all_checks_ok = True
 
@@ -2444,7 +2467,7 @@ class selectionWindow():
             if self.all_checks_ok == True:
                 if len(self.targetVars) == 0 and self.exp != 'PRECONTROL':
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
+                    messagebox.showerror("pyClim-SDM",  'For ' + self.exp + ' experiment, at least one method must be selected')
                 else:
                     self.all_checks_ok = True
 
@@ -2462,8 +2485,11 @@ class selectionWindow():
             ini, end = [], []
             for targetVar in self.targetVars:
                 aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
-                ini.append(int(aux.split('-')[0][:4]))
-                end.append(int(aux.split('-')[1][:4]))
+                try:
+                    ini.append(int(aux.split('-')[0][:4]))
+                    end.append(int(aux.split('-')[1][:4]))
+                except:
+                    pass
             ini = np.max(np.array(ini))
             end = np.min(np.array(end))
             self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
@@ -2483,7 +2509,7 @@ class selectionWindow():
                 year = self.aux_calibration_years[0]
                 if year not in self.all_years_hres or year not in self.all_years_reanalysis:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+                    messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
                                                            "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
@@ -2491,7 +2517,7 @@ class selectionWindow():
                 year = self.aux_calibration_years[1]
                 if year not in self.all_years_hres or year not in self.all_years_reanalysis:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
+                    messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
                                                            "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
@@ -2502,7 +2528,7 @@ class selectionWindow():
                 if year not in self.all_years_hres or year not in self.all_years_reanalysis \
                         or year not in self.all_years_historical:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+                    messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
                                                            "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
@@ -2511,7 +2537,7 @@ class selectionWindow():
                 if year not in self.all_years_hres or year not in self.all_years_reanalysis \
                         or year not in self.all_years_historical:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
+                    messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
                                                            "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
@@ -2521,14 +2547,14 @@ class selectionWindow():
                 year = self.aux_historical_years[0]
                 if year not in self.all_years_historical:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+                    messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
                                                        "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
                 year = self.aux_historical_years[1]
                 if year not in self.all_years_historical:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
+                    messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
                                                        "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
@@ -2538,14 +2564,14 @@ class selectionWindow():
                 year = self.aux_ssp_years[0]
                 if year not in self.all_years_ssp:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+                    messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
                                                        "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
                 year = self.aux_ssp_years[1]
                 if year not in self.all_years_ssp:
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
+                    messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
                                                        "Please, modify your selection.")
                 else:
                     self.all_checks_ok = True
@@ -2559,7 +2585,7 @@ class selectionWindow():
                     self.inverse_seasonNames.append(seasonName)
                     if seasonName == '':
                         self.all_checks_ok = False
-                        tk.messagebox.showerror("pyClim-SDM", "Month "+str(i)+" has no season defined.\n"
+                        messagebox.showerror("pyClim-SDM", "Month "+str(i)+" has no season defined.\n"
                                                            "Please, modify your selection.")
 
             # myTargetVar
@@ -2568,7 +2594,7 @@ class selectionWindow():
                     aux = self.targetVars_dict['myTargetVar']['info']['myTargetVarIsAdditive'].get()
                     if aux not in ['A', 'M']:
                         self.all_checks_ok = False
-                        tk.messagebox.showerror("pyClim-SDM", "Please, indicate whether your personal target variable "
+                        messagebox.showerror("pyClim-SDM", "Please, indicate whether your personal target variable "
                                                               "should be treated as additive (A) or multiplicative (M)")
                     else:
                         self.all_checks_ok = True
@@ -2578,7 +2604,7 @@ class selectionWindow():
             if self.all_checks_ok == True:
                 if 'myTargetVar' in self.targetVars and self.bc_option_chk.get() != 'No' and self.bc_method_chk.get() == 'PSDM':
                     self.all_checks_ok = False
-                    tk.messagebox.showerror("pyClim-SDM", "PSDM not allowed as bias correction method when using a user defined target variable")
+                    messagebox.showerror("pyClim-SDM", "PSDM not allowed as bias correction method when using a user defined target variable")
                 else:
                     self.all_checks_ok = True
 
@@ -2587,7 +2613,7 @@ class selectionWindow():
             # if self.all_checks_ok == True:
             #     if len(self.steps) == 0:
             #         self.all_checks_ok = False
-            #         tk.messagebox.showerror("pyClim-SDM",  "At least one step must be selected")
+            #         messagebox.showerror("pyClim-SDM",  "At least one step must be selected")
             #     else:
             #         self.all_checks_ok = True
 

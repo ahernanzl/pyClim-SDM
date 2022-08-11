@@ -334,9 +334,8 @@ def get_climdex_allModels(targetVar, methodName):
         filenames = []
         for climdex_name in climdex_names[targetVar]:
             for season in season_dict:
-                # filenames.append(pathOut + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')
                 for scene in scene_list:
-                    filenames.append(pathOut + '_'.join((climdex_name, scene, model, season)) + '.npy')
+                    filenames.append(pathOut + '_'.join((climdex_name, scene, model, season)) + '.nc')
 
         climdex_already_calculated = True
         for filename in filenames:
@@ -530,8 +529,8 @@ def nc2ascii():
                         else:
                             fileIn = '_'.join((climdex, scene, model, season))
                         fileOut = '_'.join((climdex, scene, model, season))
-                        if os.path.isfile(pathIn + fileIn +'.npy'):
-                            data = np.load(pathIn + fileIn +'.npy')
+                        if os.path.isfile(pathIn + fileIn +'.nc'):
+                            data = read.netCDF(pathIn, fileIn, climdex)['data']
                             id = list(read.hres_metadata(targetVar).index.values)
                             times = np.array(years)
                             data = np.append(times[:, np.newaxis], data, axis=1)
