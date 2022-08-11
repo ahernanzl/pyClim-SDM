@@ -895,8 +895,12 @@ def GCMs_evaluation_future():
                                     data = matrix[iseason, iscene-1, imodel]
                                     data = np.nanmean(data.reshape(nYears, -1), axis=1)
                                     data = gaussian_filter1d(data, 5)
-                                    hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
+                                    # hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
+                                    hmm = np.load(
+                                        '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
+                                            (targetVar, predName, model, 'historical', season, 'map.npy')))
                                     hmmm = np.nanmean(hmm)
+
                                     # plt.plot(years, 100*(data-hmmm)/hmmm, label=model+'_rel', linestyle=linestyles[imodel//10])
                                     plt.plot(years, data-hmmm, label=model, linestyle=linestyles[imodel//10])
                                 plt.title(' '.join((predName, sceneName, season)))
@@ -925,8 +929,12 @@ def GCMs_evaluation_future():
                                     data = matrix[iseason, iscene-1, imodel]
                                     data = np.nanmean(data.reshape(nYears, -1), axis=1)
                                     data = gaussian_filter1d(data, 5)
-                                    hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
+                                    # hmm = np.load('../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join((targetVar, predName, 'historical', season, 'multimodel_mean.npy')))
+                                    hmm= np.load(
+                                        '../results/' + experiment + '/GCMs_evaluation_historical/' + targetVar.upper() + '/' + '_'.join(
+                                            (targetVar, predName, model, 'historical', season, 'map.npy')))
                                     hmmm = np.nanmean(hmm)
+
                                     plt.plot(years, 100*(data-hmmm)/hmmm, label=model)
                                 plt.title(' '.join((predName, sceneName, season)))
                                 ax.set_ylabel(predName + ' ' + 'anomaly (%)')
