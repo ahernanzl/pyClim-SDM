@@ -487,12 +487,17 @@ for targetVar in targetVars:
 hres_lons_all = np.asarray(hres_lons_all)
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
-for targetVar in targetVars:
-    try:
-        nc = Dataset('../input_data/reanalysis/'+reaNames[targetVar]+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc')
-        break
-    except:
-        pass
+for file in os.listdir('../input_data/reanalysis/'):
+    if file.endswith(".nc"):
+        try:
+            nc = Dataset('../input_data/reanalysis/'+file)
+            break
+        except:
+            pass
+if 'nc' not in locals():
+    print('No netCDF file detected to extract lat/lon')
+    print('Check the input_data/reanalysis/ folder')
+    exit()
 
 if 'lat' in nc.variables:
     lat_name, lon_name = 'lat', 'lon'
