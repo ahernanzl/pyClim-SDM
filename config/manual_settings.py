@@ -3,24 +3,24 @@ showWelcomeMessage = True # For graphical mode
 
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
-# experiment = 'PRECONTROL'
-experiment = 'EVALUATION'
+experiment = 'PRECONTROL'
+# experiment = 'EVALUATION'
 # experiment = 'PROJECTIONS'
 
 ####################################################################################################################
 #                                        targetVars                                                                   #
 ####################################################################################################################
 targetVars = [
-    # 'tasmax',
+    'tasmax',
     # 'tasmin',
     # 'tas',
-    # 'pr',
+    'pr',
     # 'uas',
     # 'vas',
     # 'sfcWind',
     # 'hurs',
     # 'clt',
-    'myTargetVar',
+    # 'myTargetVar',
 ]
 
 methods = {
@@ -30,8 +30,8 @@ methods = {
         # 'QM',
         # 'DQM',
         # 'QDM',
-        'PSDM',
-        'ANA-SYN-1NN',
+        # 'PSDM',
+        # 'ANA-SYN-1NN',
         # 'ANA-SYN-kNN',
         # 'ANA-SYN-rand',
         # 'ANA-LOC-1NN',
@@ -49,7 +49,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
-        'WG-PDF',
+        # 'WG-PDF',
     ],
     'tasmin': [
         'RAW',
@@ -111,7 +111,7 @@ methods = {
         # 'QM',
         # 'DQM',
         # 'QDM',
-        'PSDM',
+        # 'PSDM',
         'ANA-SYN-1NN',
         # 'ANA-SYN-kNN',
         # 'ANA-SYN-rand',
@@ -130,7 +130,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
-        'WG-PDF',
+        # 'WG-PDF',
         # 'WG-NMM',
     ],
     'uas': [
