@@ -3,8 +3,8 @@ showWelcomeMessage = True # For graphical mode
 
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
-experiment = 'PRECONTROL'
-# experiment = 'EVALUATION'
+# experiment = 'PRECONTROL'
+experiment = 'EVALUATION'
 # experiment = 'PROJECTIONS'
 
 ####################################################################################################################
@@ -12,7 +12,7 @@ experiment = 'PRECONTROL'
 ####################################################################################################################
 targetVars = [
     'tasmax',
-    # 'tasmin',
+    'tasmin',
     # 'tas',
     'pr',
     # 'uas',
