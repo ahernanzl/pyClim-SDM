@@ -48,14 +48,14 @@ def daily_boxplots(metric, by_season):
             vars.append(var)
 
     # Go through all variables
-    for VAR in vars:
-        nmethods = len([x for x in methods if x['var'] == VAR])
+    for targetVar in targetVars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
 
         # Go through all methods
         imethod = 0
         for method_dict in methods:
             var = method_dict['var']
-            if var == VAR:
+            if var == targetVar:
                 methodName = method_dict['methodName']
                 print(var, methodName, metric)
 
@@ -76,49 +76,57 @@ def daily_boxplots(metric, by_season):
                             aux = postpro_lib.get_season(est, times_scene, season)
                             est_season = aux['data']
                             times = aux['times']
-                        matrix = np.zeros((hres_npoints[VAR[0]], ))
+                        ivalid = [i for i in range(len(times)) if
+                                  (np.count_nonzero(np.isnan(obs_season[i])) == 0 and
+                                                    np.count_nonzero(np.isnan(est_season)[i]) == 0)]
+                        obs_season = obs_season[ivalid]
+                        est_season = est_season[ivalid]
+                        matrix = np.zeros((hres_npoints[targetVar], ))
                         if metric == 'correlation':
-                            for ipoint in range(hres_npoints[VAR[0]]):
+                            for ipoint in range(hres_npoints[targetVar]):
                                 X = obs_season[:, ipoint]
                                 Y = est_season[:, ipoint]
-                                if var[0] == 't':
-                                    r = round(pearsonr(X, Y)[0], 3)
-                                else:
+                                if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
                                     r = round(spearmanr(X, Y)[0], 3)
+                                else:
+                                    r = round(pearsonr(X, Y)[0], 3)
+                                if np.isnan(r) == True:
+                                    r = 0
                                 matrix[ipoint] = r
                         elif metric == 'variance':
                             obs_var = np.var(obs_season, axis=0)
                             est_var = np.var(est_season, axis=0)
+                            th = 0.001
+                            est_var[est_var < th] = 0
+                            obs_var[obs_var < th] = np.nan
                             bias = 100 * (est_var - obs_var) / obs_var
+                            bias[(np.isnan(obs_var)) * (est_var == 0)] = 0
+                            bias[np.isinf(bias)] = np.nan
                             matrix[:] = bias
                         elif metric == 'rmse':
                             matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
-                        np.save('../tmp/'+VAR+'_'+methodName+'_'+season+'_' +metric, matrix)
+                        np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_' +metric, matrix)
                 imethod += 1
 
 
     # Select season
     for season in season_dict:
         if season == annualName or by_season == True:
-            for VAR in vars:
-            # for VAR in ('pcp', ):
-                nmethods = len([x for x in methods if x['var'] == VAR])
+            for targetVar in vars:
+            # for targetVar in ('pcp', ):
+                nmethods = len([x for x in methods if x['var'] == targetVar])
                 # Read regions csv
-                df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + VAR[0].upper() +'/regions.csv')
-                if VAR[0] == 't':
-                    colors = t_methods_colors
-                else:
-                    colors = p_methods_colors
-                matrix = np.zeros((hres_npoints[VAR[0]], nmethods))
+                df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() +'/regions.csv')
+                matrix = np.zeros((hres_npoints[targetVar], nmethods))
                 imethod = 0
                 names = []
                 for method_dict in methods:
                     var = method_dict['var']
-                    if var == VAR:
+                    if var == targetVar:
                         methodName = method_dict['methodName']
                         names.append(methodName)
                         print(metric, season, var, methodName)
-                        matrix[:, imethod] = np.load('../tmp/' + VAR + '_' + methodName + '_' + season + '_'+metric+'.npy')
+                        matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_'+metric+'.npy')
                         imethod += 1
 
 
@@ -135,40 +143,38 @@ def daily_boxplots(metric, by_season):
                         if plotAllRegions == False:
                             pathOut = pathFigures
                         else:
-                            path = pathFigures + 'daily_'+metric+'/' + VAR.upper() + '/'
+                            path = pathFigures + 'daily_'+metric+'/' + targetVar.upper() + '/'
                             pathOut = path + subDir
                         if not os.path.exists(pathOut):
                             os.makedirs(pathOut)
 
-                        if metric == 'correlation':
-                            units = ''
-                        elif metric == 'variance':
-                            units = '%'
-                        elif metric == 'rmse':
-                            if VAR[0] == 't':
-                                units = degree_sign
-                            else:
-                                units = 'mm'
 
                         fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
                         medianprops = dict(color="black")
                         g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
-                        # plt.ylim((-.2, 1))
                         # fill with colors
                         i = 0
-                        color = [colors[x['methodName']] for x in methods if x['var'] == VAR]
+                        color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
                         for patch in g['boxes']:
                             patch.set_facecolor(color[i])
                             i += 1
+
                         if metric == 'correlation':
-                            title = ' '.join((VAR.upper(), metric, season))
+                            units = ''
+                            # title = ' '.join((targetVar, metric, season))
+                            title = targetVar
+                            plt.ylim((0, 1))
                         elif metric == 'variance':
-                            title = ' '.join((VAR.upper(), 'bias', metric, season))
+                            units = '%'
+                            # title = ' '.join((targetVar, 'bias', metric, season))
+                            title = targetVar
                         elif metric == 'rmse':
-                            title = ' '.join((VAR.upper(), metric, season))
-                        plt.title(title)
-                        # plt.title(VAR.upper() + ' ' + metric, fontsize=20)
-                        plt.ylabel(units, rotation=0)
+                            units = predictands_units[targetVar]
+                            # title = ' '.join((targetVar, metric, season))
+                            title = targetVar
+                        plt.title(title, fontsize=20)
+                        # plt.title(title)
+                        plt.ylabel(units, rotation=90)
                         ax.set_xticklabels(names, rotation=90)
                         if metric == 'variance':
                             plt.hlines(y=0, xmin=-1, xmax=nmethods+1, linestyles='--', color='grey')
@@ -176,7 +182,7 @@ def daily_boxplots(metric, by_season):
                             plt.hlines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
                         # plt.show()
                         # exit()
-                        plt.savefig(pathOut + '_'.join(('EVALUATION', metric+'Boxplot', VAR, 'None', 'all',
+                        plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, metric+'Boxplot', targetVar, 'None', 'all',
                                                         season))+ '.png', bbox_inches='tight')
                         plt.close()
 
@@ -189,10 +195,7 @@ def climdex_boxplots(by_season):
     :param by_season: boolean
     """
 
-    if apply_bc == True:
-        sufix = '_BC-'+bc_method
-    else:
-        sufix = ''
+
 
     vars = []
     for method in methods:
@@ -201,14 +204,14 @@ def climdex_boxplots(by_season):
             vars.append(var)
 
     # Go through all variables
-    for VAR in vars:
-        nmethods = len([x for x in methods if x['var'] == VAR])
+    for targetVar in vars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+VAR[0].upper()+'/regions.csv')
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
 
         # Go through all climdex
-        for climdex_name in climdex_names[VAR]:
+        for climdex_name in climdex_names[targetVar]:
 
             # Select season
             for season in season_dict:
@@ -217,29 +220,32 @@ def climdex_boxplots(by_season):
                     # Go through all methods
                     imethod = 0
                     names = []
-                    matrix = np.zeros((hres_npoints[VAR[0]], nmethods))
+                    matrix = np.zeros((hres_npoints[targetVar], nmethods))
                     for method_dict in methods:
                         var = method_dict['var']
-                        if var == VAR:
+                        if var == targetVar:
                             methodName = method_dict['methodName']
                             names.append(methodName)
                             print(var, climdex_name, season, methodName)
 
-                            pathIn = '../results/EVALUATION'+sufix+'/'+VAR.upper()+'/'+methodName+'/climdex/'
-                            obs = np.mean(np.load(pathIn + '_'.join((climdex_name, 'obs', season))+'.npy'), axis=0)
-                            est = np.mean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
+                            pathIn = '../results/EVALUATION'+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'
+                            # obs = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'obs', season))+'.npy'), axis=0)
+                            # est = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
+                            obs = np.nanmean(read.netCDF(pathIn, '_'.join((climdex_name, 'obs', season))+'.nc', climdex_name)['data'], axis=0)
+                            est = np.nanmean(read.netCDF(pathIn, '_'.join((climdex_name, 'est', season))+'.nc', climdex_name)['data'], axis=0)
 
-                            if VAR[0] == 't' and climdex_name in ('TXm', 'TNm', 'TXx', 'TNx', 'TXn', 'TNn', ):
+                            biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                            if biasMode == 'abs':
+                                units = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['units']
                                 bias = est - obs
-                                units = degree_sign
-                                colors = t_methods_colors
-                                linestyles = t_methods_linestyles
-                            else:
-                                obs[obs==0] = 0.001
-                                bias = 100 * (est - obs) / obs
+                            elif biasMode == 'rel':
                                 units = '%'
-                                colors = p_methods_colors
-                                linestyles = p_methods_linestyles
+                                th = 0.001
+                                est[est < th] = 0
+                                obs[obs < th] = 0
+                                bias = 100 * (est - obs) / obs
+                                bias[(obs == 0) * (est == 0)] = 0
+                                bias[np.isinf(bias)] = np.nan
                             matrix[:, imethod] = bias
                             imethod += 1
 
@@ -257,7 +263,7 @@ def climdex_boxplots(by_season):
                             if plotAllRegions == False:
                                 pathOut = pathFigures
                             else:
-                                path = pathFigures + 'biasBoxplot/' + VAR.upper() + '/'
+                                path = pathFigures + 'biasBoxplot/' + targetVar.upper() + '/'
                                 pathOut = path + subDir
                             if not os.path.exists(pathOut):
                                 os.makedirs(pathOut)
@@ -268,21 +274,28 @@ def climdex_boxplots(by_season):
                             # plt.ylim((-.2, 1))
                             # fill with colors
                             i = 0
-                            color = [colors[x['methodName']] for x in methods if x['var'] == VAR]
+                            color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
                             for patch in g['boxes']:
                                 patch.set_facecolor(color[i])
                                 i += 1
-                            # plt.ylim((-.2, 1))
-                            title = ' '.join((VAR.upper(), climdex_name, 'bias', season))
-                            plt.title(title)
-                            # plt.title(climdex_name, fontsize=20)
+                            # if biasMode == 'rel':
+                            #     plt.ylim((-100, 100))
+                            if climdex_name == 'FWI90p':
+                                plt.ylim((-20, 100))
+                            title = ' '.join((targetVar.upper(), climdex_name, 'bias', season))
+                            # plt.title(title)
+                            # if apply_bc == False:
+                            #     title = climdex_name
+                            # else:
+                            #     title = climdex_name + '    bias corrected'
+                            plt.title(title, fontsize=16)
                             ax.set_xticklabels(names, rotation=90)
                             plt.hlines(y=0, xmin=-1, xmax=nmethods + 1, linestyles='--', color='grey')
-                            plt.ylabel(units, rotation=0)
+                            plt.ylabel(units, rotation=90)
                             # plt.show()
                             # exit()
 
-                            filename = '_'.join(('EVALUATION', 'biasClimdexBoxplot', VAR, climdex_name, 'all',
+                            filename = '_'.join(('EVALUATION'+bc_sufix, 'biasClimdexBoxplot', targetVar, climdex_name, 'all',
                                                  season))
                             plt.savefig(pathOut + filename + '.png', bbox_inches='tight')
                             plt.close()
@@ -291,16 +304,16 @@ def climdex_boxplots(by_season):
 
 
 ########################################################################################################################
-def monthly_maps(metric, var, methodName):
+def monthly_maps(metric, targetVar, methodName):
     """
     Correlation or R2_score maps for monthly accumulated precipitation.
     metric: correlation or R2
     """
 
-    print('montly', metric, var, methodName)
+    print('monthly', metric, targetVar, methodName)
 
     # Read data
-    d = postpro_lib.get_data_eval(var, methodName)
+    d = postpro_lib.get_data_eval(targetVar, methodName)
     ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
     del d
     npoints = obs.shape[1]
@@ -322,24 +335,24 @@ def monthly_maps(metric, var, methodName):
         est_acc[idate] = np.nansum(est[idates], axis=0)
 
 
-    filename = '_'.join(('EVALUATION', metric+'MapMonthly', var, 'None', methodName, 'None'))
+    filename = '_'.join(('EVALUATION'+bc_sufix, metric+'MapMonthly', targetVar, 'None', methodName, 'None'))
     # Correlation
     if metric == 'correlation':
-        title = ' '.join(('monthly', metric, var.upper(), methodName))
+        title = ' '.join(('monthly', metric, targetVar.upper(), methodName))
         r = np.zeros((npoints,))
         for ipoint in range(npoints):
             r[ipoint] = pearsonr(obs_acc[:, ipoint], est_acc[:, ipoint])[0]
-        plot.map(var[0], r, 'corrMonth', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
+        plot.map(targetVar, r, 'corrMonth', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
     # R2_score
     if metric == 'R2':
-        title = ' '.join(('monthly', metric.upper() +'_score', var.upper(), methodName))
+        title = ' '.join(('monthly', metric.upper() +'_score', targetVar.upper(), methodName))
         R2 = 1 - np.sum((est_acc-obs_acc)**2, axis=0) / np.sum(obs_acc**2, axis=0)
-        plot.map(var[0], R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
+        plot.map(targetVar, R2, 'r2', path=pathFigures, filename=filename, title=title, regType=None, regName=None)
 
 
 ########################################################################################################################
-def QQplot(var, methodName, obs, est, pathOut, season):
+def QQplot(targetVar, methodName, obs, est, pathOut, season):
     '''
     Save scatter plot of several percentiles of daily data distribution
     '''
@@ -352,17 +365,13 @@ def QQplot(var, methodName, obs, est, pathOut, season):
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
+    units = predictands_units[targetVar]
+
     # Set ylabel, perc_list and c_list
-    if var == 'pcp':
-        units = 'mm'
-        # perc_list = (99, 90, 75, 50, 25)
-        # c_list = ('g', 'm', 'b', 'k', 'r')
+    if targetVar == 'pr':
         perc_list = (99, 90, 75, 50)
         c_list = ('g', 'm', 'b', 'k')
     else:
-        units = degree_sign
-        # perc_list = (1, 10, 25, 50, 75, 90, 99)
-        # c_list = ('k', 'c', 'y', 'b', 'r', 'm', 'g')
         perc_list = (5, 25, 50, 75, 95)
         c_list = ('k', 'c', 'r', 'm', 'g')
 
@@ -390,17 +399,17 @@ def QQplot(var, methodName, obs, est, pathOut, season):
     m -= 5
     M += 5
     plt.plot(range(m, M), range(m, M))
-    title = ' '.join((var.upper(), methodName, season))
+    title = ' '.join((targetVar.upper(), methodName, season))
     plt.title(title)
     # plt.show()
     # exit()
-    filename = '_'.join(('EVALUATION', 'qqPlot', var, 'None', methodName, season)) + '.png'
+    filename = '_'.join(('EVALUATION'+bc_sufix, 'qqPlot', targetVar, 'None', methodName, season)) + '.png'
     plt.savefig(pathOut + filename)
     plt.close()
 
 
 ########################################################################################################################
-def continuous(var, methodName, obs, est, pathOut, season):
+def continuous(targetVar, methodName, obs, est, pathOut, season):
     '''
     Plots the following figures for the whole testing period:
     - MAE (Mean Absolute Error)
@@ -410,51 +419,51 @@ def continuous(var, methodName, obs, est, pathOut, season):
     - Hist2d sorted distributions (performed on a selection of 5000 random points (otherwise memory limit might be exceeded)
     '''
 
-    print('validate continuous scores', var, methodName)
+    print('validate continuous scores', targetVar, methodName)
 
     if plotAllRegions == False:
         pathOut = pathFigures
         subtitle = ''
-        filename = '_'.join((var, methodName, season))
+        filename = '_'.join((targetVar, methodName, season))
     else:
         pathOut += 'scores_continuous/'
-        subtitle = var + ' ' + methodName + '\n' + season
-        filename = '_'.join((var, methodName, season))
+        subtitle = targetVar + ' ' + methodName + '\n' + season
+        filename = '_'.join((targetVar, methodName, season))
 
     # # MAE
-    # filename = '_'.join(('EVALUATION', 'maeMap'', var, 'None', methodName, season))
+    # filename = '_'.join(('EVALUATION'+bc_sufix, 'maeMap'', targetVar, 'None', methodName, season))
     # MAE = np.round(np.nanmean(abs(est - obs), axis=0), 2)
-    # plot.map(var[0], MAE,  var[0]+'_mae', path=pathOut, filename='MAE_' + filename, title='')
+    # plot.map(targetVar], MAE,  targetVar]+'_mae', path=pathOut, filename='MAE_' + filename, title='')
 
-    if var[0] == 't':
+    if targetVar == 't':
         # RMSE
-        filename = '_'.join(('EVALUATION', 'rmseMap', var, 'None', methodName, season))
-        title = ' '.join(('daily RMSE', var.upper(), methodName, season))
+        filename = '_'.join(('EVALUATION'+bc_sufix, 'rmseMap', targetVar, 'None', methodName, season))
+        title = ' '.join(('daily RMSE', targetVar.upper(), methodName, season))
         RMSE = np.round(np.sqrt(np.nanmean((est - obs) ** 2, axis=0)), 2)
-        plot.map(var[0], RMSE,  var[0]+'_rmse', path=pathOut, filename=filename, title=title)
+        plot.map(targetVar, RMSE,  targetVar+'_rmse', path=pathOut, filename=filename, title=title)
     else:
         # # R2_score
-        filename = '_'.join(('EVALUATION', 'r2Map', var, 'None', methodName, season))
-        title = ' '.join(('daily R2_score', var.upper(), methodName, season))
+        filename = '_'.join(('EVALUATION'+bc_sufix, 'r2Map', targetVar, 'None', methodName, season))
+        title = ' '.join(('daily R2_score', targetVar.upper(), methodName, season))
         R2 = 1 - np.nansum((obs-est)**2, axis=0) / np.nansum((obs-np.nanmean(obs, axis=0))**2, axis=0)
-        plot.map(var[0], R2,  'r2', path=pathOut, filename=filename, title=title)
+        plot.map(targetVar, R2,  'r2', path=pathOut, filename=filename, title=title)
 
 
 
 ########################################################################################################################
-def dichotomous(var, methodName, obs, est, pathOut, season):
+def dichotomous(targetVar, methodName, obs, est, pathOut, season):
     '''
     Plots the following figures for the whole testing period:
     Accuracy (proportion of correct classified)
     '''
-    print('validate dichotomous scores', var, methodName)
+    print('validate dichotomous scores', targetVar, methodName)
 
     if plotAllRegions == False:
         pathOut = pathFigures
-        filename = '_'.join((var, methodName, season))
+        filename = '_'.join((targetVar, methodName, season))
     else:
         pathOut += 'scores_continuous/'
-        filename = '_'.join((var, methodName, season))
+        filename = '_'.join((targetVar, methodName, season))
 
     # Calculate hits, misses, false_alarms and correct_negatives.
     # Conditions are written this way so they handle np.nan properly
@@ -470,9 +479,9 @@ def dichotomous(var, methodName, obs, est, pathOut, season):
     correct_negatives[correct_negatives == 0] = 0.001
 
     # Accuracy score
-    filename = '_'.join(('EVALUATION', 'accuracyMap', var, 'None', methodName,
+    filename = '_'.join(('EVALUATION'+bc_sufix, 'accuracyMap', targetVar, 'None', methodName,
                                 season))
-    title = ' '.join(('Daily accuracy_score', var.upper(), methodName, season))
+    title = ' '.join(('Daily accuracy_score', targetVar.upper(), methodName, season))
     accuracy = (hits+correct_negatives) / (hits+correct_negatives+misses+false_alarms)
-    plot.map(var[0], accuracy,  'acc', path=pathOut, filename=filename, title=title)
+    plot.map(targetVar, accuracy,  'acc', path=pathOut, filename=filename, title=title)
 

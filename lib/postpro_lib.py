@@ -33,7 +33,7 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
+def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_ref):
     """
     Calculate all climdex/season and save them into files.
     """
@@ -44,14 +44,22 @@ def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
         os.makedirs(pathOut)
 
     # Select climdex
-    for climdex_name in climdex_names[var]:
+    for climdex_name in climdex_names[targetVar]:
         print(climdex_name)
 
         # Get percentile calendars
-        if climdex_name in ('TX90p', 'TN90p', 'WSDI'):
-            percCalendar = get_perc_calendar(var, times_ref, ref, 90)
-        elif climdex_name in ('TX10p', 'TN10p', 'CSDI'):
-            percCalendar = get_perc_calendar(var, times_ref, ref, 10)
+        if climdex_name in ('TX90p', 'TN90p', 'WSDI', '90p_days'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90)
+        elif climdex_name in ('TX99p', 'TN99p', '99p_days'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 99)
+        elif climdex_name in ('TX95p', 'TN95p', '95p_days'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 95)
+        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', '10p_days'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10)
+        elif climdex_name in ('TX1p', 'TN1p', '1p_days'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 1)
+        elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 5)
         elif climdex_name in ('R95p', 'R95pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
             perc95Calendar = {}
@@ -90,9 +98,12 @@ def calculate_all_climdex(pathOut, filename, var, data, times, ref, times_ref):
                                                   times_season, times_percCalendar_seaon)['data']
 
             # Save results
-            np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
+            # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
+            times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
+            write.netCDF(pathOut, '_'.join((climdex_name, filename, season))+'.nc', climdex_name, data_climdex, '',
+                         hres_lats[targetVar], hres_lons[targetVar], times_years, regular_grid=False)
 
-    print(var, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
+    print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
 
 
 ########################################################################################################################
@@ -103,11 +114,11 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
     Some indexes have two different definitions, one taken from the climdex web page and the other inherited from
     previous woks.
 
-    TXm: mean tmax
+    TXm: mean tasmax
 
-    TNm: mean tmin
+    TNm: mean tasmin
 
-    Pm: mean pcp
+    Pm: mean pr
 
     FD: Number of frost days. Annual count of days when TN (daily minimum temperature) < 0°C.
         Let TNij be daily minimum temperature on day i in year j. Count the number of days where TNij < 0 °C.
@@ -187,124 +198,133 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
     warnings.filterwarnings("ignore", message="Mean of empty slice")
 
-    if climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
-        times_results = [x for x in range(times[0].year, times[-1].year + 1)]
-        results = np.nanpercentile(data, int(climdex_name[1:]), axis=0)
-        results = results[np.newaxis, :]
-        results = np.repeat(results, len(times_results), axis=0)
-
+    # Force myTargetVar to str
+    if myTargetVar == None:
+        myTargetVarStr = 'None'
     else:
-        # Get years range
-        minYear, maxYear = times[0].year, times[-1].year
-        nYears = 1 + maxYear - minYear
+        myTargetVarStr = str(myTargetVar)
 
-        # Sepecific calculations for each climdex
-        results, times_results = [], []
+    # Get years range
+    minYear, maxYear = times[0].year, times[-1].year
+    nYears = 1 + maxYear - minYear
 
-        # Go through all years
-        for iyear in range(nYears):
+    # Sepecific calculations for each climdex
+    results, times_results = [], []
 
-            # Select data from year
-            year = minYear + iyear
-            times_results.append(year)
-            data_year = data[[i for i in range(len(times)) if times[i].year == year]]
-            times_year = [x for x in times if x.year == year]
-            data_nDays, ref_nDays = data_year.shape[0], ref.shape[0]
+    # Go through all years
+    for iyear in range(nYears):
 
-            # Deal with leap years
-            if data_nDays == ref_nDays:
-                aux = 1*ref
-            elif data_nDays == ref_nDays + 1:
-                i_28feb = [times_ref.index(x) for x in times_ref if ((x.month == 2) and (x.day == 28))][0]
-                aux = 0*data_year
-                aux[:i_28feb+1] = ref[:i_28feb+1]
-                aux[i_28feb+1] = ref[i_28feb]
-                aux[i_28feb+1:] = ref[i_28feb:]
-            else:
-                exit(times_year, len(times_year), ref_nDays)
+        # Select data from year
+        year = minYear + iyear
+        times_results.append(year)
+        data_year = data[[i for i in range(len(times)) if times[i].year == year]]
+        times_year = [x for x in times if x.year == year]
+        data_nDays, ref_nDays = data_year.shape[0], ref.shape[0]
 
-            # # Remove days with nan
-            # iNans = np.unique(np.where(np.isnan(data_year))[0])
-            # data_year = np.delete(data_year, iNans, axis=0)
-            # aux = np.delete(aux, iNans, axis=0)
+        # Deal with leap years
+        if data_nDays == ref_nDays:
+            aux = 1*ref
+        elif data_nDays == ref_nDays + 1:
+            i_28feb = [times_ref.index(x) for x in times_ref if ((x.month == 2) and (x.day == 28))][0]
+            aux = 0*data_year
+            aux[:i_28feb+1] = ref[:i_28feb+1]
+            aux[i_28feb+1] = ref[i_28feb]
+            aux[i_28feb+1:] = ref[i_28feb:]
+        else:
+            exit(times_year, len(times_year), ref_nDays)
 
-            # Calculate climdex for iyear
-            if climdex_name in ('TXm', 'TNm', 'Pm'):
-                results.append(np.nanmean(data_year, axis=0))
-            elif climdex_name in ('TX90p', 'TN90p'):
-                results.append(np.nanmean(100.*(data_year > aux), axis=0))
-            elif climdex_name in ('TX10p', 'TN10p'):
-                results.append(np.nanmean(100.*(data_year < aux), axis=0))
-            elif climdex_name in ('TXx', 'TNx'):
-                results.append(np.nanmax(data_year, axis=0))
-            elif climdex_name in ('TXn', 'TNn'):
-                results.append(np.nanmin(data_year, axis=0))
-            elif climdex_name == 'WSDI':
-                results.append(get_spell_duration(data_year > aux, climdex_name))
-            elif climdex_name == 'CSDI':
-                results.append(get_spell_duration(data_year < aux, climdex_name))
-            elif climdex_name == 'FD':
-                results.append(np.nansum(data_year < 0, axis=0))
-            elif climdex_name == 'SU':
-                results.append(np.nansum(data_year > 25, axis=0))
-            elif climdex_name == 'ID':
-                results.append(np.nansum(data_year < 0, axis=0))
-            elif climdex_name == 'TR':
-                results.append(np.nansum(data_year > 20, axis=0))
-            elif climdex_name == 'R01':
-                results.append(np.nansum(data_year >= 1, axis=0))
-            elif climdex_name == 'SDII':
-                # nWetDays = np.nansum(data_year >= 1, axis=0)
-                # nWetDays[nWetDays == 0] = 0.001
-                # data_year[data_year < 1] = 0
-                # results.append(np.nansum(data_year, axis=0) / nWetDays)
-                data_year[data_year < 1] = np.nan
-                sdii = np.nanmean(data_year, axis=0)
-                sdii[np.isnan(sdii)] = 0
-                results.append(sdii)
-            elif climdex_name == 'PRCPTOT':
-                data_year[data_year < 1] = 0
-                results.append(np.nansum(data_year, axis=0))
-            elif climdex_name == 'CDD':
-                results.append(get_spell_duration(data_year < 1, climdex_name))
-            elif climdex_name in ('R95p', 'R99p'):
-                data_year[data_year < aux] = 0
-                data_year[data_year < 1] = 0
-                results.append(np.nansum(data_year, axis=0))
-            elif climdex_name in ('R95pFRAC', 'R99pFRAC'):
-                data_year[data_year < 1] = 0
-                total = np.nansum(data_year, axis=0)
-                data_year[data_year < aux] = 0
-                heavy = np.nansum(data_year, axis=0)
-                total[total == 0] = -1
-                heavy[total == -1] = 0
-                results.append(100.*heavy/total)
-            elif climdex_name == 'CWD':
-                results.append(get_spell_duration(data_year >= 1, climdex_name))
-            elif climdex_name == 'Rx1day':
-                results.append(np.nanmax(data_year,  axis=0))
-            elif climdex_name == 'Rx5day':
-                acc5days = data_year[0:-4] + data_year[1:-3] + data_year[2:-2] + data_year[3:-1] + data_year[4:]
-                results.append(np.nanmax(acc5days,  axis=0))
-            elif climdex_name == 'R10mm':
-                results.append(np.nansum(data_year >= 10, axis=0))
-            elif climdex_name == 'R20mm':
-                results.append(np.nansum(data_year >= 20, axis=0))
+        # # Remove days with nan
+        # iNans = np.unique(np.where(np.isnan(data_year))[0])
+        # data_year = np.delete(data_year, iNans, axis=0)
+        # aux = np.delete(aux, iNans, axis=0)
 
-        results = np.asarray(results)
+        # Calculate climdex for iyear
+        if climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
+            results.append(np.nanpercentile(data_year, int(climdex_name[1:]), axis=0))
+        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'CLTm', 'm'):
+            results.append(np.nanmean(data_year, axis=0))
+        elif climdex_name in ('TX90p', 'TN90p', '90p_days'):
+            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+        elif climdex_name in ('TX99p', 'TN99p', '99p_days'):
+            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+        elif climdex_name in ('TX95p', 'TN95p', '95p_days'):
+            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+        elif climdex_name in ('TX10p', 'TN10p', '10p_days'):
+            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+        elif climdex_name in ('TX1p', 'TN1p', '1p_days'):
+            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+        elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
+            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'x'):
+            results.append(np.nanmax(data_year, axis=0))
+        elif climdex_name in ('TXn', 'TNn', 'Tn', 'n'):
+            results.append(np.nanmin(data_year, axis=0))
+        elif climdex_name == 'WSDI':
+            results.append(get_spell_duration(data_year > aux, climdex_name))
+        elif climdex_name == 'CSDI':
+            results.append(get_spell_duration(data_year < aux, climdex_name))
+        elif climdex_name == 'FD':
+            results.append(np.nansum(data_year < 0, axis=0))
+        elif climdex_name == 'SU':
+            results.append(np.nansum(data_year > 25, axis=0))
+        elif climdex_name == 'ID':
+            results.append(np.nansum(data_year < 0, axis=0))
+        elif climdex_name == 'TR':
+            results.append(np.nansum(data_year > 20, axis=0))
+        elif climdex_name == 'R01':
+            results.append(np.nansum(data_year >= 1, axis=0))
+        elif climdex_name == 'SDII':
+            # nWetDays = np.nansum(data_year >= 1, axis=0)
+            # nWetDays[nWetDays == 0] = 0.001
+            # data_year[data_year < 1] = 0
+            # results.append(np.nansum(data_year, axis=0) / nWetDays)
+            data_year[data_year < 1] = np.nan
+            sdii = np.nanmean(data_year, axis=0)
+            sdii[np.isnan(sdii)] = 0
+            results.append(sdii)
+        elif climdex_name == 'PRCPTOT':
+            data_year[data_year < 1] = 0
+            results.append(np.nansum(data_year, axis=0))
+        elif climdex_name == 'CDD':
+            results.append(get_spell_duration(data_year < 1, climdex_name))
+        elif climdex_name in ('R95p', 'R99p'):
+            data_year[data_year < aux] = 0
+            data_year[data_year < 1] = 0
+            results.append(np.nansum(data_year, axis=0))
+        elif climdex_name in ('R95pFRAC', 'R99pFRAC'):
+            data_year[data_year < 1] = 0
+            total = np.nansum(data_year, axis=0)
+            data_year[data_year < aux] = 0
+            heavy = np.nansum(data_year, axis=0)
+            total[total == 0] = -1
+            heavy[total == -1] = 0
+            results.append(100.*heavy/total)
+        elif climdex_name == 'CWD':
+            results.append(get_spell_duration(data_year >= 1, climdex_name))
+        elif climdex_name == 'Rx1day':
+            results.append(np.nanmax(data_year,  axis=0))
+        elif climdex_name == 'Rx5day':
+            acc5days = data_year[0:-4] + data_year[1:-3] + data_year[2:-2] + data_year[3:-1] + data_year[4:]
+            results.append(np.nanmax(acc5days,  axis=0))
+        elif climdex_name == 'R10mm':
+            results.append(np.nansum(data_year >= 10, axis=0))
+        elif climdex_name == 'R20mm':
+            results.append(np.nansum(data_year >= 20, axis=0))
+
+    results = np.asarray(results)
 
     return {'data': results, 'times': times_results}
 
 
 ########################################################################################################################
-def get_perc_calendar(var, times, data, q):
+def get_perc_calendar(targetVar, times, data, q):
     """
     times: list
     data: numpy array (ntimes, npoints)
     :return: percCalendar: numpy array (365, npoints)
     """
 
-    data = (100 * data).astype(predictands_codification[var]['type'])
+    data = (100 * data).astype(predictands_codification[targetVar]['type'])
 
     # Create empty percCalendar
     percCalendar = np.zeros((365, data.shape[1]))
@@ -391,25 +411,25 @@ def get_spell_duration(a, climdex_name):
     return results
 
 ########################################################################################################################
-def get_data_eval(var, methodName):
+def get_data_eval(targetVar, methodName):
     """
     Reads data for evaluation.
     :return: dictionaty with 'ref', 'times_ref', 'obs', 'est', 'times_scene', 'path'
     """
 
     if apply_bc == False:
-        pathIn = '../results/EVALUATION/' + var.upper() + '/' + methodName + '/daily_data/'
+        pathIn = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     else:
-        pathIn = '../results/EVALUATION_BC-' + bc_method + '/' + var.upper() + '/' + methodName + '/daily_data/'
-    aux = read.hres_data(var, period='testing')
+        pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    aux = read.hres_data(targetVar, period='testing')
     times_scene = aux['times']
     obs = aux['data']
-    est = read.netCDF(pathIn, 'reanalysis_TESTING.nc', var)['data']
+    est = read.netCDF(pathIn, 'reanalysis_TESTING.nc', targetVar)['data']
     del aux
 
-    special_value = predictands_codification[var]['special_value']
+    special_value = predictands_codification[targetVar]['special_value']
     obs[obs==special_value] = np.nan
-    aux = read.hres_data(var, period='reference')
+    aux = read.hres_data(targetVar, period='reference')
     ref = aux['data']
     times_ref = aux['times']
 
@@ -417,7 +437,7 @@ def get_data_eval(var, methodName):
 
 
 ########################################################################################################################
-def get_data_projections(nYears, npoints, climdex_name, season, pathIn, iaux):
+def get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathIn, iaux):
     """
     Get data projections. Return ssp_dict with model names and change.
     """
@@ -432,13 +452,15 @@ def get_data_projections(nYears, npoints, climdex_name, season, pathIn, iaux):
             models = []
             all_data = np.zeros((0, nYears, npoints))
             for model in model_list:
-                fileIn = '_'.join((climdex_name, scene, model, season)) + '.npy'
+                fileIn = '_'.join((climdex_name, scene, model, season)) + '.nc'
                 # Check if scene/model exists
                 if os.path.isfile(pathIn + fileIn):
                     # Read data and select region
-                    data = np.load(pathIn + fileIn)[:, iaux]
-                    ref = np.load(
-                        pathIn + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')[:, iaux]
+                    # data = np.load(pathIn + fileIn)[:, iaux]
+                    data = read.netCDF(pathIn, fileIn, climdex_name)['data'][:, iaux]
+                    # ref = np.load(
+                    #     pathIn + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')[:, iaux]
+                    ref = read.netCDF(pathIn, '_'.join((climdex_name, 'REFERENCE', model, season))+'.nc', climdex_name)['data'][:, iaux]
                     ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
 
                     # # Plot reference mean maps for climdex control, to detect possible errors
@@ -449,20 +471,21 @@ def get_data_projections(nYears, npoints, climdex_name, season, pathIn, iaux):
                     #                   season + '/', filename=model, title=title)
                     #     plt.close()
 
-                    # Calculate change (absolute)
-                    if climdex_name in ('TXm', 'TX90p', 'TX10p', 'TXx', 'TXn', 'WSDI',
-                                        'TNm', 'TN90p', 'TN10p', 'TNx', 'TNn', 'CSDI', 'FD',
-                                        'CDD', 'CWD', 'R01', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC'):
+
+                    biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                    if biasMode == 'abs':
                         change = data - ref_mean
-
-                    # Relative
-                    elif climdex_name in ('Pm', 'PRCPTOT', 'SDII'):
-                        ref_mean[ref_mean == 0] = 0.001
+                    elif biasMode == 'rel':
+                        th = 0.001
+                        data[data < th] = 0
+                        ref_mean[ref_mean < th] = 0
                         change = 100 * (data - ref_mean) / ref_mean
-
+                        change[(ref_mean == 0) * (data == 0)] = 0
+                        change[np.isinf(change)] = np.nan
                     else:
-                        # change = np.nan
-                        change = np.zeros((data.shape))
+                        print(targetVar + '_' + climdex_name + 'not defined at units_and_biasMode_climdex (advanced_settings)')
+                        exit()
+
 
                     del data, ref, ref_mean
 
@@ -488,42 +511,46 @@ def figures_projections(lan='EN'):
     For evolution graphs, all the region is reduced to one value per year/model/scene.
     """
 
-    if apply_bc == False:
-        sufix = ''
-    else:
-        sufix = '_BC-' + bc_method
 
-
-    implemented_climdex = ['TXm', 'TXx', 'TXn', 'TX90p', 'TX10p', 'WSDI', 
+    implemented_climdex = ['TXm', 'TXx', 'TXn', 'TX90p', 'TX10p', 'WSDI',
                            'TNm', 'TNx', 'TNn', 'TN90p', 'TN10p', 'CSDI', 'FD',
-                           'Pm', 'R01', 'SDII', 'PRCPTOT', 'CDD', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC', 'CWD']
+                           'Tm', 'Tx', 'Tn',
+                           'Pm', 'R01', 'SDII', 'PRCPTOT', 'CDD', 'R95p', 'R95pFRAC', 'R99p', 'R99pFRAC', 'CWD',
+                           'Um', 'Ux',
+                           'Vm', 'Vx',
+                           'SFCWINDm', 'SFCWINDx',
+                           'HRm',
+                           'CLTm',
+                           ]
 
     # Go through all methods
     for method_dict in methods:
-        var, methodName = method_dict['var'], method_dict['methodName']
-        print('figures_projections', var, methodName)
+        targetVar, methodName = method_dict['var'], method_dict['methodName']
+        print('figures_projections', targetVar, methodName)
 
         # Define and create paths
-        path = '../results/PROJECTIONS'+sufix+'/' + var.upper() + '/' + methodName + '/'
+        path = '../results/PROJECTIONS'+bc_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
         pathIn = path + 'climdex/'
-        pathRaw = '../results/PROJECTIONS'+sufix+'/' + var.upper() + '/RAW/climdex/'
+        pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
         pathOut = path + 'climdex/figures/'
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
 
         # Read regions csv
-        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+var[0].upper()+'/regions.csv')
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
 
         # Define ylimit and ylabel
-        # ylim_dict = {'TXm': (-1, 10), 'TX90p': (0, 70), 'TX10p': (-70, 0), 'WSDI': (-20, 80),
-        #              'TNm': (-1, 10), 'TN90p': (0, 70), 'TN10p': (-70, 0), 'CSDI': (-80, 20), 'FD': (-60, 20),
-        #              'Pm': (-60, 60), 'R01': (-60, 20), 'SDII': (-60, 60), 'PRCPTOT': (-60, 60),
-        #              'CDD': (-20, 60), 'R95p': (-20, 20), 'R95pFRAC': (-20, 20), 'R99p': (-100, 100), 'R99pFRAC': (-100, 100), 'CWD': (-60, 20)}
         ylim_dict = {'TXm': (-1, 10), 'TXx': (-1, 12), 'TXn': (-1, 8), 'TX90p': (0, 70), 'TX10p': (-70, 0), 'WSDI': (0, 300),
                      'TNm': (-1, 10), 'TNx': (-1, 12), 'TNn': (-1, 8), 'TN90p': (0, 70), 'TN10p': (-70, 0), 'CSDI': (-80, 20), 'FD': (-60, 20),
-                     'Pm': (-60, 60), 'R01': (-80, 40), 'SDII': (-40, 40), 'PRCPTOT': (-60, 20),
-                     'CDD': (-20, 60), 'R95p': (-100, 100), 'R95pFRAC': (-100, 100), 'CWD': (-60, 20),
-                     'R99p': (-100, 100), 'R99pFRAC': (-100, 100)}
+                     'Tm': (-1, 10), 'Tx': (-1, 12), 'Tn': (-1, 8),
+                     'Pm': (-60, 60), 'R01': (-80, 40), 'SDII': (-40, 40), 'PRCPTOT': (-60, 20), 'CDD': (-20, 60), 'R95p': (-100, 100), 'R95pFRAC': (-100, 100), 'CWD': (-60, 20), 'R99p': (-100, 100), 'R99pFRAC': (-100, 100),
+                     'Um': (-50, 50), 'Ux': (-50, 50),
+                     'Vm': (-50, 50), 'Vx': (-50, 50),
+                     'SFCWINDm': (-50, 50), 'SFCWINDx': (-50, 50),
+                     'HRm': (-50, 50),
+                     'CLTm': (-50, 50),
+                     'fwi90p': (-10, 50),
+                     }
 
         if lan == 'ES':
             xlabel = 'Año'
@@ -574,7 +601,9 @@ def figures_projections(lan='EN'):
                            'R95pFRAC': 'Change in R95pFRAC (%)',
                            'R99p': 'Change in R99p (%)',
                            'R99pFRAC': 'Change in R99pFRAC (%)',
-                           'CWD': 'Change in CWD (days)'}
+                           'CWD': 'Change in CWD (days)',
+                           'FWI90p': 'days',
+                           }
 
         # Define years
         years = [x for x in range(ssp_years[0], ssp_years[1] + 1)]
@@ -590,108 +619,115 @@ def figures_projections(lan='EN'):
                 print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
 
                 # Go through all climdex, seasons, scenes and models
-                for climdex_name in climdex_names[var]:
-                    if climdex_name in implemented_climdex:
-                        for season in season_dict:
+                for climdex_name in climdex_names[targetVar]:
 
-                            # Get data
-                            ssp_dict = get_data_projections(nYears, npoints, climdex_name, season, pathIn, iaux)
-                            raw_ssp_dict = get_data_projections(nYears, npoints, climdex_name, season, pathRaw, iaux)
+                    if climdex_name not in ylabel_dict:
+                        ylabel_dict.update({climdex_name: ''})
+                    if climdex_name not in ylim_dict:
+                        ylim_dict.update({climdex_name: None})
 
-                            # Evolution figures of mean trend in the whole region vs RAW
-                            if (regType == typeCompleteRegion):
-                                trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
-                                          ylim_dict[climdex_name], ylabel_dict[climdex_name], season, var, methodName, xlabel)
+                    for season in season_dict:
 
-                            # Csv with data for evolution graphs
-                            # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                            csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season)
+                        # Get data
+                        ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathIn, iaux)
+                        raw_ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
 
-                            # Spaghetti plot
-                            # if climdex_name in ('TXm', 'TNm'):
-                            spaghetti(pathOut, subDir, ssp_dict, years, ylim_dict[climdex_name], climdex_name,
-                                                  ylabel_dict[climdex_name], season, var, methodName, regType, regName, xlabel)
+                        # Evolution figures of mean trend in the whole region vs RAW
+                        if (regType == typeCompleteRegion):
+                            trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
+                                      ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName, xlabel)
 
-                            # Mean and spread ensemble tube plot
-                            # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                            tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
-                                 ylabel_dict[climdex_name], season, var, methodName, regType, regName, xlabel)
+                        # Csv with data for evolution graphs
+                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season)
 
-                            # Change maps
-                            if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                                change_maps(ssp_dict, years, var, methodName, season, climdex_name, pathOut, scene_names_dict)
+                        # Spaghetti plot
+                        # if climdex_name in ('TXm', 'TNm'):
+                        spaghetti(pathOut, subDir, ssp_dict, years, ylim_dict[climdex_name], climdex_name,
+                                              ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+
+                        # Mean and spread ensemble tube plot
+                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
+                             ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+
+                        # Change maps
+                        # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        if regType == typeCompleteRegion:
+                            change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
 
 
 ########################################################################################################################
-def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, var, methodName, xlabel):
+def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar, methodName, xlabel):
 
-    if methodName != 'RAW':
-        if var == 'pcp':
-            colors = p_methods_colors
-            linestyles = p_methods_linestyles
-            sign_ylabel = '%'
-            title_size = 28
-        else:
-            colors = t_methods_colors
-            linestyles = t_methods_linestyles
-            sign_ylabel = degree_sign
-            title_size = 20
+    # if methodName != 'RAW':
+    color = methods_colors[methodName]
+    linestyle = methods_linestyles[methodName]
+    title_size = 28
+    try:
+        sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
+    except:
+        sign_ylabel = ''
 
-        color = colors[methodName]
-        linestyle = linestyles[methodName]
+    # method
+    models = ssp_dict['models']
+    nModels = len(models)
+    data = np.nanmean(ssp_dict['data'], axis=2)
+    if targetVar not in ['tas', 'tasmax', 'tasmin',]:
+        data = gaussian_filter1d(data, 2)
+    # mean = np.nanmean(data, axis=0)
+    # std = np.nanstd(data, axis=0)
+    # fig, ax = plt.subplots(dpi=300)
+    # plt.plot(years, mean, label=methodName, color=color, linestyle=linestyle)
+    # plt.fill_between(years, mean - std, mean + std, color=color, alpha=0.8)
+    median = np.nanmedian(data, axis=0)
+    top = np.nanpercentile(data, 75, axis=0)
+    bottom = np.nanpercentile(data, 25, axis=0)
+    fig, ax = plt.subplots(dpi=300)
+    plt.plot(years, median, label=methodName+ ' (' + str(nModels) + ')', color=plot.lighten_color(color, 1.2), linestyle=linestyle)
+    plt.fill_between(years, bottom, top, color=color, alpha=0.8)
 
-        # method
-        data = np.nanmean(ssp_dict['data'], axis=2)
-        if var == 'pcp':
-            data = gaussian_filter1d(data, 2)
-        # mean = np.nanmean(data, axis=0)
-        # std = np.nanstd(data, axis=0)
-        # fig, ax = plt.subplots(dpi=300)
-        # plt.plot(years, mean, label=methodName, color=color, linestyle=linestyle)
-        # plt.fill_between(years, mean - std, mean + std, color=color, alpha=0.8)
-        median = np.nanmedian(data, axis=0)
-        top = np.nanpercentile(data, 75, axis=0)
-        bottom = np.nanpercentile(data, 25, axis=0)
-        fig, ax = plt.subplots(dpi=300)
-        plt.plot(years, median, label=methodName, color=plot.lighten_color(color, 1.2), linestyle=linestyle)
-        plt.fill_between(years, bottom, top, color=color, alpha=0.8)
+    # RAW
+    models = raw_ssp_dict['models']
+    nModels = len(models)
+    data = np.nanmean(raw_ssp_dict['data'], axis=2)
+    if targetVar not in ['tas', 'tasmax', 'tasmin',]:
+        data = gaussian_filter1d(data, 2)
+    # mean = np.nanmean(data, axis=0)
+    # std = np.nanstd(data, axis=0)
+    # plt.plot(years, mean, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
+    # plt.fill_between(years, mean - std, mean + std, color=methods_colors['RAW'], alpha=0.7)
+    median = np.nanmedian(data, axis=0)
+    top = np.nanpercentile(data, 75, axis=0)
+    bottom = np.nanpercentile(data, 25, axis=0)
+    plt.plot(years, median, label='RAW (' + str(nModels) + ')', color='dimgray', linestyle=methods_linestyles['RAW'])
+    plt.fill_between(years, bottom, top, color=methods_colors['RAW'], alpha=0.7)
 
-        # RAW
-        data = np.nanmean(raw_ssp_dict['data'], axis=2)
-        if var == 'pcp':
-            data = gaussian_filter1d(data, 2)
-        # mean = np.nanmean(data, axis=0)
-        # std = np.nanstd(data, axis=0)
-        # plt.plot(years, mean, label='RAW', color='dimgray', linestyle=linestyles['RAW'])
-        # plt.fill_between(years, mean - std, mean + std, color=colors['RAW'], alpha=0.7)
-        median = np.nanmedian(data, axis=0)
-        top = np.nanpercentile(data, 75, axis=0)
-        bottom = np.nanpercentile(data, 25, axis=0)
-        plt.plot(years, median, label='RAW', color='dimgray', linestyle=linestyles['RAW'])
-        plt.fill_between(years, bottom, top, color=colors['RAW'], alpha=0.7)
-
+    try:
         plt.ylim(ylim)
         plt.ylabel(sign_ylabel)
+    except:
+        pass
+    # plt.xlabel(xlabel)
+    plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
+    plt.legend()
+    # plt.show()
+    # exit()
+    filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName, season))
+    # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
+    if (plotAllRegions == False):
+        plt.title(methodName, fontsize=title_size)
+        if not os.path.exists(pathFigures):
+            os.makedirs(pathFigures)
+        plt.savefig(pathFigures + filename + '.png')
+    elif plotAllRegions == True:
+        title = regName.upper() + '\n' + season
+        plt.title(title)
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
+        plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
+    plt.close()
 
-        # plt.xlabel(xlabel)
-        plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
-        # plt.show()
-        # exit()
-        filename = '_'.join(('PROJECTIONS', 'evolTrendRaw', var, climdex_name, methodName, season))
-        # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
-        if (plotAllRegions == False):
-            plt.title(methodName, fontsize=title_size)
-            if not os.path.exists(pathFigures):
-                os.makedirs(pathFigures)
-            plt.savefig(pathFigures + filename + '.png')
-        elif plotAllRegions == True:
-            plt.legend(loc='upper left')
-            title = regName.upper() + '\n' + season
-            plt.title(title)
-            if not os.path.exists(pathOut):
-                os.makedirs(pathOut)
-            plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
-        plt.close()
 
 ########################################################################################################################
 def csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season):
@@ -714,7 +750,7 @@ def csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season):
                header=';'.join(models_allScenes))
 
 ########################################################################################################################
-def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, season, var,
+def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, season, targetVar,
               methodName, regType, regName, xlabel):
     """Plot evolution graphs all models"""
 
@@ -740,15 +776,22 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
             linestyle = linestyles[i]
             plt.plot(years, data, label=model, color=color, linestyle=linestyle)
 
-    plt.ylim(ylim)
-    plt.ylabel(ylabel)
+    try:
+        plt.ylim(ylim)
+        plt.ylabel(ylabel)
+    except:
+        pass
+
     plt.xlabel(xlabel)
     plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
     plt.legend(loc='upper left', fontsize='xx-small', ncol=3)
     # plt.show()
     # exit()
-    if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
-        filename = '_'.join(('PROJECTIONS', 'evolSpaghetti', var, climdex_name, methodName, season))
+    # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
+    if plotAllRegions == False:
+        if not os.path.exists(pathFigures):
+            os.makedirs(pathFigures)
+        filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolSpaghetti', targetVar, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
         if not os.path.exists(pathOut + 'evolution/' + subDir):
@@ -760,7 +803,7 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
     plt.close()
 
 ########################################################################################################################
-def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, var,
+def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar,
          methodName, regType, regName, xlabel):
     """Plot evolution graphs mean and spread"""
 
@@ -769,8 +812,10 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
         models = ssp_dict[scene]['models']
         nModels = len(models)
         data = ssp_dict[scene]['data'].mean(axis=2)
-        if climdex_name in ('PRCPTOT', 'Pm'):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+        if climdex_name in ('PRCPTOT', 'Pm', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
             data = gaussian_filter1d(data, 2)
+        if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+            data = gaussian_filter1d(data, 8)
         # mean = np.nanmean(data, axis=0)
         # std = np.nanstd(data, axis=0)
         # scene_legend = scene_names_dict[scene]
@@ -784,14 +829,20 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
         plt.fill_between(years, bottom, top, color=color_dict[scene], alpha=0.3)
 
     plt.legend(loc='upper left')
-    plt.ylim(ylim)
-    plt.ylabel(ylabel)
+    try:
+        plt.ylim(ylim)
+        plt.ylabel(ylabel)
+    except:
+        pass
     plt.xlabel(xlabel)
     plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
     # plt.show()
     # exit()
-    if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
-        filename = '_'.join(('PROJECTIONS', 'evolTube', var, climdex_name, methodName, season))
+    # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
+    if plotAllRegions == False:
+        if not os.path.exists(pathFigures):
+            os.makedirs(pathFigures)
+        filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTube', targetVar, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
         if not os.path.exists(pathOut + 'evolution/' + subDir):
@@ -803,7 +854,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, v
     plt.close()
 
 ########################################################################################################################
-def change_maps(ssp_dict, years, var, methodName, season, climdex_name, pathOut, scene_names_dict):
+def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict):
     """Plot change maps"""
 
     # Go through all scenes
@@ -821,32 +872,35 @@ def change_maps(ssp_dict, years, var, methodName, season, climdex_name, pathOut,
             iNans = np.unique(np.where(np.isnan(dataTerm))[0])
             dataTerm = np.delete(dataTerm, iNans, axis=0)
 
-            # Calculatean and plot mean and std
-            mean = np.mean(dataTerm, axis=0)
+            # Calculatean and plot mean and spread
+            # mean = np.mean(dataTerm, axis=0)
+            mean = np.median(dataTerm, axis=0)
             if plotAllRegions == False:
+                # title = scene_names_dict[scene]+'   '+period+'     '+season
+                title = scene_names_dict[scene]+ ' '+period+' change'
                 filename = '_'.join(
-                    ('PROJECTIONS', 'meanChangeMap', var, climdex_name, methodName, season))
-                plot.map(var[0], mean, 'change_' + climdex_name + '_mean', path=pathFigures,
-                         filename=filename, title='')
+                    ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
+                plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
+                         filename=filename, title=title)
             else:
-                filename = '_'.join(('meanChangeMap', climdex_name, scene, season, period))
+                filename = '_'.join(('meanChangeMap', climdex_name, scene, season+'-'+period))
                 # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
                 title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(var[0], mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
+                plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
                          filename=filename, title=title)
-            std = np.std(dataTerm, axis=0)
+            # spread = np.std(dataTerm, axis=0)
+            spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
             if plotAllRegions == False:
                 filename = '_'.join(
-                    ('PROJECTIONS', 'stdChangeMap', var, climdex_name, methodName, season))
-                plot.map(var[0], mean, 'change_' + climdex_name + '_mean', path=pathFigures,
-                         filename=filename, title='')
-                plot.map(var[0], std, 'change_' + climdex_name + '_std', path=pathFigures,
-                         filename=filename, title='')
+                    ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
+                title = scene_names_dict[scene]+' '+period+' spread'
+                plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathFigures,
+                         filename=filename, title=title)
             else:
-                filename = '_'.join(('stdChangeMap', climdex_name, scene, season, period))
-                # title = ' '.join(('mod_std', climdex_name, scene, season, period))
+                filename = '_'.join(('spreadChangeMap', climdex_name, scene, season+'-'+period))
+                # title = ' '.join(('mod_spread', climdex_name, scene, season, period))
                 title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(var[0], std, 'change_' + climdex_name + '_std', path=pathOut + 'maps/',
+                plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
                          filename=filename, title=title)
 
 
@@ -862,7 +916,7 @@ def format_web_AEMET():
 
     # Go through all methods
     for method_dict in methods:
-        var, methodName = method_dict['var'], method_dict['methodName']
+        targetVar, methodName = method_dict['var'], method_dict['methodName']
 
         # Define fields for REJILLA vs ESTACIONES
         df_targetType = pd.DataFrame(columns=['targetType', 'nameForDir', 'nameForDailyData', 'nameForFigAndCsv'])
@@ -871,37 +925,37 @@ def format_web_AEMET():
 
         # Define fields for each var
         df_vars = pd.DataFrame(columns=['var', 'nameForMaps', 'nameForDailyData', 'nameForFigAndCsv'])
-        df_vars = df_vars.append({'var': 'tmax', 'nameForMaps': 'txm', 'nameForDailyData': 'tmax', 'nameForFigAndCsv': 'Tx'}, ignore_index=True)
-        df_vars = df_vars.append({'var': 'tmin', 'nameForMaps': 'tim', 'nameForDailyData': 'tmin', 'nameForFigAndCsv': 'Tm'}, ignore_index=True)
-        df_vars = df_vars.append({'var': 'pcp', 'nameForMaps': 'prm', 'nameForDailyData': 'precip', 'nameForFigAndCsv': 'P'}, ignore_index=True)
+        df_vars = df_vars.append({'var': 'tasmax', 'nameForMaps': 'txm', 'nameForDailyData': 'tasmax', 'nameForFigAndCsv': 'Tx'}, ignore_index=True)
+        df_vars = df_vars.append({'var': 'tasmin', 'nameForMaps': 'tim', 'nameForDailyData': 'tasmin', 'nameForFigAndCsv': 'Tm'}, ignore_index=True)
+        df_vars = df_vars.append({'var': 'pr', 'nameForMaps': 'prm', 'nameForDailyData': 'precip', 'nameForFigAndCsv': 'P'}, ignore_index=True)
 
         # Define fields for each climdex
         df_climdex = pd.DataFrame(columns=['var', 'climdex', 'nameForFigAndCsv'])
-        df_climdex = df_climdex.append({'var': 'tmax', 'climdex': 'TXm', 'nameForFigAndCsv': 'Tx'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'tmax', 'climdex': 'TX90p', 'nameForFigAndCsv': 'WD'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'tmax', 'climdex': 'WSDI', 'nameForFigAndCsv': 'LOC'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'tmin', 'climdex': 'TNm', 'nameForFigAndCsv': 'Tm'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'tmin', 'climdex': 'TN90p', 'nameForFigAndCsv': 'WN'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'tmin', 'climdex': 'FD', 'nameForFigAndCsv': 'FD'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'pcp', 'climdex': 'Pm', 'nameForFigAndCsv': 'P'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'pcp', 'climdex': 'R01', 'nameForFigAndCsv': 'R1'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'pcp', 'climdex': 'CDD', 'nameForFigAndCsv': 'LPS'}, ignore_index=True)
-        df_climdex = df_climdex.append({'var': 'pcp', 'climdex': 'R95pFRAC', 'nameForFigAndCsv': 'CP95'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'tasmax', 'climdex': 'TXm', 'nameForFigAndCsv': 'Tx'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'tasmax', 'climdex': 'TX90p', 'nameForFigAndCsv': 'WD'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'tasmax', 'climdex': 'WSDI', 'nameForFigAndCsv': 'LOC'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'tasmin', 'climdex': 'TNm', 'nameForFigAndCsv': 'Tm'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'tasmin', 'climdex': 'TN90p', 'nameForFigAndCsv': 'WN'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'tasmin', 'climdex': 'FD', 'nameForFigAndCsv': 'FD'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'pr', 'climdex': 'Pm', 'nameForFigAndCsv': 'P'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'pr', 'climdex': 'R01', 'nameForFigAndCsv': 'R1'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'pr', 'climdex': 'CDD', 'nameForFigAndCsv': 'LPS'}, ignore_index=True)
+        df_climdex = df_climdex.append({'var': 'pr', 'climdex': 'R95pFRAC', 'nameForFigAndCsv': 'CP95'}, ignore_index=True)
 
         # Define fields for each method
         # ANÁLOGOS
         df_methods = pd.DataFrame(columns=['var', 'methodName', 'nameForDir', 'nameForDailyData', 'nameForFigAndCsv', 'nameForMaps'])
-        df_methods = df_methods.append({'var': 'tmax', 'methodName': 'ANA', 'nameForDir': 'ANALOGOS', 'nameForDailyData': 'ANALOGOS', 'nameForFigAndCsv': 'A', 'nameForMaps': 'A'}, ignore_index=True)
-        df_methods = df_methods.append({'var': 'tmin', 'methodName': 'ANA', 'nameForDir': 'ANALOGOS', 'nameForDailyData': 'ANALOGOS', 'nameForFigAndCsv': 'A', 'nameForMaps': 'A'}, ignore_index=True)
-        df_methods = df_methods.append({'var': 'pcp', 'methodName': 'ANA-LOC-N', 'nameForDir': 'ANALOGOS', 'nameForDailyData': 'ANALOGOS', 'nameForFigAndCsv': 'A', 'nameForMaps': 'A'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'tasmax', 'methodName': 'ANA', 'nameForDir': 'ANALOGOS', 'nameForDailyData': 'ANALOGOS', 'nameForFigAndCsv': 'A', 'nameForMaps': 'A'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'tasmin', 'methodName': 'ANA', 'nameForDir': 'ANALOGOS', 'nameForDailyData': 'ANALOGOS', 'nameForFigAndCsv': 'A', 'nameForMaps': 'A'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'pr', 'methodName': 'ANA-LOC-N', 'nameForDir': 'ANALOGOS', 'nameForDailyData': 'ANALOGOS', 'nameForFigAndCsv': 'A', 'nameForMaps': 'A'}, ignore_index=True)
         # REGRESIÓN
-        df_methods = df_methods.append({'var': 'tmax', 'methodName': 'MLR', 'nameForDir': 'REGRESION', 'nameForDailyData': 'SDSM', 'nameForFigAndCsv': 'R', 'nameForMaps': 'R'}, ignore_index=True)
-        df_methods = df_methods.append({'var': 'tmin', 'methodName': 'MLR', 'nameForDir': 'REGRESION', 'nameForDailyData': 'SDSM', 'nameForFigAndCsv': 'R', 'nameForMaps': 'R'}, ignore_index=True)
-        df_methods = df_methods.append({'var': 'pcp', 'methodName': 'GLM-EXP', 'nameForDir': 'REGRESION', 'nameForDailyData': 'SDSM', 'nameForFigAndCsv': 'R', 'nameForMaps': 'R'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'tasmax', 'methodName': 'MLR', 'nameForDir': 'REGRESION', 'nameForDailyData': 'SDSM', 'nameForFigAndCsv': 'R', 'nameForMaps': 'R'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'tasmin', 'methodName': 'MLR', 'nameForDir': 'REGRESION', 'nameForDailyData': 'SDSM', 'nameForFigAndCsv': 'R', 'nameForMaps': 'R'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'pr', 'methodName': 'GLM-EXP', 'nameForDir': 'REGRESION', 'nameForDailyData': 'SDSM', 'nameForFigAndCsv': 'R', 'nameForMaps': 'R'}, ignore_index=True)
         # REDES NEURONALES
-        df_methods = df_methods.append({'var': 'tmax', 'methodName': 'ANN', 'nameForDir': 'RRNN', 'nameForDailyData': 'RED_NEURONAL', 'nameForFigAndCsv': 'N', 'nameForMaps': 'N'}, ignore_index=True)
-        df_methods = df_methods.append({'var': 'tmin', 'methodName': 'ANN', 'nameForDir': 'RRNN', 'nameForDailyData': 'RED_NEURONAL', 'nameForFigAndCsv': 'N', 'nameForMaps': 'N'}, ignore_index=True)
-        df_methods = df_methods.append({'var': 'pcp', 'methodName': 'ANN', 'nameForDir': 'RRNN', 'nameForDailyData': 'RED_NEURONAL', 'nameForFigAndCsv': 'N', 'nameForMaps': 'N'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'tasmax', 'methodName': 'ANN', 'nameForDir': 'RRNN', 'nameForDailyData': 'RED_NEURONAL', 'nameForFigAndCsv': 'N', 'nameForMaps': 'N'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'tasmin', 'methodName': 'ANN', 'nameForDir': 'RRNN', 'nameForDailyData': 'RED_NEURONAL', 'nameForFigAndCsv': 'N', 'nameForMaps': 'N'}, ignore_index=True)
+        df_methods = df_methods.append({'var': 'pr', 'methodName': 'ANN', 'nameForDir': 'RRNN', 'nameForDailyData': 'RED_NEURONAL', 'nameForFigAndCsv': 'N', 'nameForMaps': 'N'}, ignore_index=True)
 
         # Define fields for seasons
         df_seasons = pd.DataFrame(columns=['season', 'nameForMaps', 'nameForFigAndCsv'])
@@ -916,14 +970,14 @@ def format_web_AEMET():
         try:
             df_regions = pd.read_csv(regions_file)
         except:
-            print('Copy ../aux/ASSOCIATION/'+var[0].upper()+'/regions.csv to ' + regions_file + ' and fill nameForMaps and nameForFigAndCsv manually')
+            print('Copy ../aux/ASSOCIATION/'+targetVar.upper()+'/regions.csv to ' + regions_file + ' and fill nameForMaps and nameForFigAndCsv manually')
             print('Remove column of points and add columns nameForMaps and nameForFigAndCsv')
             exit()
 
         # Select case from df_targetType, df_methods and df_var
         df_targetType = df_targetType[df_targetType['targetType'] == target_type]
-        df_methods = df_methods[(df_methods['var'] == var) & (df_methods['methodName'] == methodName)]
-        df_vars = df_vars[df_vars['var'] == var]
+        df_methods = df_methods[(df_methods['var'] == targetVar) & (df_methods['methodName'] == methodName)]
+        df_vars = df_vars[df_vars['var'] == targetVar]
 
         # Define and create paths
         pathBase = '../results/web_AEMET/' + df_methods['nameForDir'].values[0] + '_' + df_targetType['nameForDir'].values[0] + '/'
@@ -941,27 +995,27 @@ def format_web_AEMET():
 
 
         # Change maps
-        format_web_AEMET_maps(var, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars, cmipNumber)
+        format_web_AEMET_maps(targetVar, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars, cmipNumber)
 
         # Evolution (png and csv)
-        format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars, cmipNumber)
+        format_web_AEMET_evolution(targetVar, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars, cmipNumber)
 
         # Daily data
-        format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_vars, to_nc=False)
+        format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType, df_vars, to_nc=False)
 
 
 
 ########################################################################################################################
-def format_web_AEMET_maps(var, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars,
+def format_web_AEMET_maps(targetVar, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars,
                           cmipNumber):
     """Copy change maps with dirs/filenames for the website"""
 
     # Define paths
-    pathIn = '../results/PROJECTIONS/' + var.upper() + '/' + methodName + '/' + '/'.join(('climdex', 'figures', 'maps')) + '/'
+    pathIn = '../results/PROJECTIONS/' + targetVar.upper() + '/' + methodName + '/' + '/'.join(('climdex', 'figures', 'maps')) + '/'
     pathOut = '../results/web_AEMET/' + df_methods['nameForDir'].values[0] + '_' + df_targetType['nameForDir'].values[0] + '/MAPAS_PROYECCIONES/IMAGENES/'
 
     # Select climdex
-    for climdex in climdex_names[var]:
+    for climdex in climdex_names[targetVar]:
         if climdex in ('TXm', 'TNm', 'Pm'):
 
             # Select season
@@ -989,20 +1043,20 @@ def format_web_AEMET_maps(var, methodName, df_methods, df_targetType, df_seasons
                                 shutil.copyfile(pathOld+fileOld, pathNew+fileNew)
 
 ########################################################################################################################
-def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars,
+def format_web_AEMET_evolution(targetVar, methodName, df_methods, df_targetType, df_seasons, df_regions, df_vars,
                           cmipNumber):
     """Copy evolution with dirs/filenames for the website"""
 
     # Define paths
-    pathIn = '../results/PROJECTIONS/' + var.upper() + '/' + methodName + '/' + '/'.join(('climdex', 'figures')) + '/'
+    pathIn = '../results/PROJECTIONS/' + targetVar.upper() + '/' + methodName + '/' + '/'.join(('climdex', 'figures')) + '/'
     pathOut = '../results/web_AEMET/' + df_methods['nameForDir'].values[0] + '_' + df_targetType['nameForDir'].values[0] + '/GRAFICOS_EVOLUCION/'
 
     # Select  region
     for index, row_regions in df_regions.iterrows():
-        print(var, methodName, index, '/', df_regions.shape[0])
+        print(targetVar, methodName, index, '/', df_regions.shape[0])
 
         # Select climdex
-        for climdex in climdex_names[var]:
+        for climdex in climdex_names[targetVar]:
 
             # Select season
             for index, row_seasons in df_seasons.iterrows():
@@ -1048,11 +1102,11 @@ def format_web_AEMET_evolution(var, methodName, df_methods, df_targetType, df_se
 
 
 ########################################################################################################################
-def format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_vars, to_nc=False):
+def format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType, df_vars, to_nc=False):
     """Copy dailyData with dirs/filenames for the website"""
 
     # Define and create paths
-    pathIn = '../results/PROJECTIONS/' + var.upper() + '/' + methodName + '/daily_data/'
+    pathIn = '../results/PROJECTIONS/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     pathOut = '../results/web_AEMET/' + df_methods['nameForDir'].values[0] + '_' + df_targetType['nameForDir'].values[0] + '/DATOS_DIARIOS/'
     if not os.path.exists(pathOut+'ASCII/'):
         os.makedirs(pathOut+'ASCII/')
@@ -1060,7 +1114,7 @@ def format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_va
         if not os.path.exists(pathOut+'NETCDF/'):
             os.makedirs(pathOut+'NETCDF/')
 
-    if var == 'pcp':
+    if targetVar == 'pr':
         units = 'décimas de mm'
     else:
         units = degree_sign
@@ -1076,7 +1130,7 @@ def format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_va
             # Check if scene/model exists
             if os.path.isfile(pathIn + model + '_' + scene + '.nc'):
                 # Read scene data
-                nc = read.netCDF(pathIn, model + '_' + scene + '.nc', var)
+                nc = read.netCDF(pathIn, model + '_' + scene + '.nc', targetVar)
                 times = nc['times']
                 data = nc['data']
                 del nc
@@ -1093,13 +1147,13 @@ def format_web_AEMET_dailyData(var, methodName, df_methods, df_targetType, df_va
                     exit()
                     print('writing netCDF', model, scene)
                     if df_targetType['targetType'].values[0] == 'gridded_data':
-                        write.netCDF_rotated(pathOut+'NETCDF/', fileOut_noExt+'.nc', var, data, times)
+                        write.netCDF_rotated(pathOut+'NETCDF/', fileOut_noExt+'.nc', targetVar, data, times)
                     elif df_targetType['targetType'].values[0] == 'stations':
                         shutil.copyfile(pathIn+model+'_'+scene+'.nc', pathOut+'NETCDF/'+fileOut_noExt+'.nc')
 
                 # ASCII: id_stations is added as header and dates is added as first column
                 print('writing ASCII', model, scene)
-                id = list(read.hres_metadata(var[0]).index.values)
+                id = list(read.hres_metadata(targetVar).index.values)
                 times = np.array([10000 * x.year + 100 * x.month + x.day for x in times])
                 data = np.append(times[:, np.newaxis], data, axis=1)
                 id.insert(0, 'YYYYMMDD')

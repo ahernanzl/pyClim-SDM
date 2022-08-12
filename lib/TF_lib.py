@@ -33,40 +33,40 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
+def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
     '''
     Calibrates regression for all points,divided in chunks if run at HPC.
     '''
 
 
     # Define pathOut
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/'
 
     # Declares variables for father process, who creates pathOut
     if iproc == 0:
         if not os.path.exists(pathOut):
             os.makedirs(pathOut)
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+var[0]+'_training.npy')
+            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+var[0]+'_training.npy')
+            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             X_train = saf_calib
         if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+var+'_training.npy')
+            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
             if 'pred' not in fields:
                 X_train = var_calib
             else:
                 # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
                 X_train = np.concatenate((X_train, var_calib), axis=1)
 
-        y_train = read.hres_data(var, period='training')['data']
-        y_train = (100 * y_train).astype(predictands_codification[var]['type'])
-        i_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/i_4nn.npy')
-        j_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/j_4nn.npy')
-        w_4nn = np.load(pathAux + 'ASSOCIATION/' + var[0].upper() + '_' + interp_mode + '/w_4nn.npy')
+        y_train = read.hres_data(targetVar, period='training')['data']
+        y_train = (100 * y_train).astype(predictands_codification[targetVar]['type'])
+        i_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/i_4nn.npy')
+        j_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/j_4nn.npy')
+        w_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/w_4nn.npy')
 
     # Declares variables for the other processes
     else:
@@ -87,10 +87,10 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # create chunks
     n_chunks = nproc
-    len_chunk = int(math.ceil(float(hres_npoints[var[0]]) / n_chunks))
+    len_chunk = int(math.ceil(float(hres_npoints[targetVar]) / n_chunks))
     points_chunk = []
     for ichunk in range(n_chunks):
-        points_chunk.append(list(range(hres_npoints[var[0]]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
+        points_chunk.append(list(range(hres_npoints[targetVar]))[ichunk * len_chunk:(ichunk + 1) * len_chunk])
     ichunk = iproc
     npoints_ichunk = len(points_chunk[ichunk])
 
@@ -99,37 +99,39 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
         points_chunk[ichunk]=[x for x in points_chunk[ichunk] if x%500==0]
 
     # loop through all points of the chunk
-    special_value = 100 * predictands_codification[var]['special_value']
+    special_value = 100 * predictands_codification[targetVar]['special_value']
     for ipoint in points_chunk[ichunk]:
         ipoint_local_index = points_chunk[ichunk].index(ipoint)
         if ipoint_local_index % 1 == 0:
             print('--------------------')
             print('ichunk:	', ichunk, '/', n_chunks)
-            print('training', var, methodName, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
+            print('training', targetVar, methodName, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Get preds from neighbour/s and trains model for echa point
         y_train_ipoint = y_train[:, ipoint]
-        valid = np.where(y_train_ipoint < special_value)[0]
-        if valid.size < 30:
+        valid_y = np.where(y_train_ipoint < special_value)[0]
+        invalid_X = list(set(np.where(np.isnan(X_train))[0]))
+        valid = [x for x in valid_y if x not in invalid_X]
+        if len(valid) < 30:
             exit('Not enough valid predictands to train')
         y_train_ipoint = y_train_ipoint[valid]
         X_train_ipoint = X_train[valid, :, :, :]
 
         # Prepare X_train shape
-        if var+'_'+methodName not in methods_using_preds_from_whole_grid:
+        if methodName not in methods_using_preds_from_whole_grid:
             X_train_ipoint = grids.interpolate_predictors(X_train_ipoint, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        elif methodName not in ['CNN', 'CNN-SYN']:
+        elif methodName not in ['CNN', ]:
             X_train_ipoint = X_train_ipoint.reshape(X_train_ipoint.shape[0], X_train_ipoint.shape[1], -1)
 
         # Train TF (clf and reg)
-        reg, clf = train_point(var, methodName, X_train_ipoint, y_train_ipoint, ipoint)
+        reg, clf = train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)
 
         # Save clf/reg. some objects can be serialized with pickle, but keras models have their own method
         try:
             pickle.dump(reg, open(pathOut + 'reg_'+str(ipoint), 'wb'))
         except:
             reg.save(pathOut + 'reg_'+str(ipoint) + '.h5')
-        if var == 'pcp':
+        if targetVar == 'pr':
             try:
                 pickle.dump(clf, open(pathOut + 'clf_'+str(ipoint), 'wb'))
             except:
@@ -137,7 +139,7 @@ def train_chunk(var, methodName, family, mode, fields, iproc=0, nproc=1):
 
 
 ########################################################################################################################
-def train_point(var, methodName, X, y, ipoint):
+def train_point(targetVar, methodName, X, y, ipoint):
     '''
     Train model (classifiers and regressors)
     '''
@@ -146,6 +148,8 @@ def train_point(var, methodName, X, y, ipoint):
     regressor = None
     history_clf = None
     history_reg = None
+
+
 
     # Define callbacks for neural networks training
     tf_nn_callbacks = [
@@ -165,9 +169,9 @@ def train_point(var, methodName, X, y, ipoint):
 
 
     # For precipitation trains classier+regression, but for temperature only regression
-    if var[0] == 't':
+    if targetVar != 'pr':
 
-        # Regressor t
+        # Regressor
         if methodName == 'MLR':
             regressor = RidgeCV(cv=3)
             regressor.fit(X, y)
@@ -213,23 +217,26 @@ def train_point(var, methodName, X, y, ipoint):
 
             # keras tensorflow implementation
             regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(64, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(64, activation='relu'),
+                keras.layers.Dense(8, activation='relu', input_shape=X.shape[1:]),
+                keras.layers.Dense(8, activation='relu'),
                 keras.layers.Dense(1), ])
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
 
-        elif methodName in ['CNN', 'CNN-SYN']:
+        elif methodName in ('CNN', ):
             # Prepare shape for convolution layer
             X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
             regressor = tf.keras.models.Sequential()
-            regressor.add(layers.Conv2D(filters=64, kernel_size=(2,2), activation='relu', input_shape=X.shape[1:]))
+            if X.shape[1] < 5 or X.shape[2] < 5:
+                regressor.add(layers.Conv2D(filters=16, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+            else:
+                regressor.add(layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
             # if X.shape[1] >= 10 and X.shape[2] >= 10:
             #     regressor.add(layers.MaxPooling2D(pool_size=2))
             #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
             regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(64, activation='relu'))
-            regressor.add(layers.Dense(64, activation='relu'))
+            regressor.add(layers.Dense(16, activation='relu'))
+            regressor.add(layers.Dense(8, activation='relu'))
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
@@ -291,23 +298,27 @@ def train_point(var, methodName, X, y, ipoint):
 
             # keras tensorflow implementation
             classifier = tf.keras.models.Sequential([
-                keras.layers.Dense(64, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(64, activation='relu'),
+                keras.layers.Dense(8, activation='relu', input_shape=X.shape[1:]),
+                keras.layers.Dense(8, activation='relu'),
                 keras.layers.Dense(1, activation='sigmoid'), ])
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
             history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
 
-        elif methodName in ['CNN', 'CNN-SYN']:
+        elif methodName in ['CNN', ]:
             # Prepare shape for convolution
             X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
+            nfilters = 32
             classifier = tf.keras.models.Sequential()
-            classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu', input_shape=X.shape[1:]))
+            if X.shape[1] < 5 or X.shape[2] < 5:
+                classifier.add(layers.Conv2D(filters=nfilters, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+            else:
+                classifier.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
             # if X.shape[1] >= 10 and X.shape[2] >= 10:
             #     classifier.add(layers.MaxPooling2D(pool_size=2))
             #     classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
             classifier.add(layers.Flatten())
-            classifier.add(layers.Dense(64, activation='relu'))
-            classifier.add(layers.Dense(64, activation='relu'))
+            classifier.add(layers.Dense(nfilters, activation='relu'))
+            classifier.add(layers.Dense(8, activation='relu'))
             classifier.add(layers.Dense(1, activation='sigmoid'))
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
             history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
@@ -356,33 +367,37 @@ def train_point(var, methodName, X, y, ipoint):
 
             # keras tensorflow implementation
             regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(64, activation='relu', input_shape=X_rainy_days.shape[1:]),
-                keras.layers.Dense(64, activation='relu'),
+                keras.layers.Dense(8, activation='relu', input_shape=X_rainy_days.shape[1:]),
+                keras.layers.Dense(8, activation='relu'),
                 keras.layers.Dense(1), ])
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0,
                     callbacks=tf_nn_callbacks)
 
-        elif methodName in ['CNN', 'CNN-SYN']:
+        elif methodName in ['CNN', ]:
             # Prepare shape for convolution
             X_rainy_days = np.swapaxes(np.swapaxes(X_rainy_days, 1, 2), 2, 3)
+            nfilters = 32
             regressor = tf.keras.models.Sequential()
-            regressor.add(layers.Conv2D(filters=64, kernel_size=(2,2), activation='relu', input_shape=X.shape[1:]))
+            if X.shape[1] < 5 or X.shape[2] < 5:
+                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+            else:
+                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
             # if X.shape[1] >= 10 and X.shape[2] >= 10:
             #     regressor.add(layers.MaxPooling2D(pool_size=2))
             #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
             regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(64, activation='relu'))
-            regressor.add(layers.Dense(64, activation='relu'))
+            regressor.add(layers.Dense(nfilters, activation='relu'))
+            regressor.add(layers.Dense(8, activation='relu'))
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
 
     # Plot hyperparameters
     if plot_hyperparameters_epochs_nEstimators_featureImportances == True:
-        if var == 'pcp':
-            plot.hyperparameters_epochs_nEstimators_featureImportances(classifier, var, methodName, ipoint, 'classifier', history_clf)
-        plot.hyperparameters_epochs_nEstimators_featureImportances(regressor, var, methodName, ipoint, 'regressor', history_reg)
+        if targetVar == 'pr':
+            plot.hyperparameters_epochs_nEstimators_featureImportances(classifier, targetVar, methodName, ipoint, 'classifier', history_clf)
+        plot.hyperparameters_epochs_nEstimators_featureImportances(regressor, targetVar, methodName, ipoint, 'regressor', history_reg)
 
 
     return regressor, classifier
@@ -394,11 +409,11 @@ if __name__=="__main__":
     nproc = MPI.COMM_WORLD.Get_size()         # Size of communicator
     iproc = MPI.COMM_WORLD.Get_rank()         # Ranks in communicator
     inode = MPI.Get_processor_name()          # Node where this MPI process runs
-    var = sys.argv[1]
+    targetVar = sys.argv[1]
     methodName = sys.argv[2]
     family = sys.argv[3]
     mode = sys.argv[4]
     fields = sys.argv[5]
 
-    train_chunk(var, methodName, family, mode, fields, iproc, nproc)
+    train_chunk(targetVar, methodName, family, mode, fields, iproc, nproc)
     MPI.COMM_WORLD.Barrier()            # Waits for all subprocesses to complete last step

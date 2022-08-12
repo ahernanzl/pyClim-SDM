@@ -41,8 +41,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# import absl.logging
-# absl.logging.set_verbosity(absl.logging.ERROR)
+import absl.logging
+absl.logging.set_verbosity(absl.logging.ERROR)
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, models
