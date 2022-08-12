@@ -38,7 +38,7 @@ def reanalisys(method_dict, scene, model):
     This function calls the down_scene in two different ways depending on the server it is run.
     """
 
-    var = method_dict['var']
+    targetVar = method_dict['var']
     methodName = method_dict['methodName']
     family = method_dict['family']
     mode = method_dict['mode']
@@ -47,27 +47,29 @@ def reanalisys(method_dict, scene, model):
     # Serial processing
     if running_at_HPC == False:
         if family == 'ANA':
-            down_scene_ANA.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_ANA.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            down_scene_ANA.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+            down_scene_ANA.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
         elif family == 'TF':
-            down_scene_TF.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_TF.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            down_scene_TF.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+            down_scene_TF.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
         elif family == 'RAW':
-            down_scene_RAW.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_RAW.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            down_scene_RAW.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+            down_scene_RAW.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
         elif family == 'MOS':
-            down_scene_MOS.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_MOS.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            down_scene_MOS.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+            down_scene_MOS.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
         elif family == 'WG':
-            down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            down_scene_WG.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+            down_scene_WG.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
         elif family == 'DEEP':
-            down_scene_DEEP.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-            down_scene_DEEP.collect_chunks(var, methodName, family, mode, fields, scene, model)
+            down_scene_DEEP.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+            down_scene_DEEP.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
 
     # Parallel processing
     elif running_at_HPC == True:
-        launch_jobs.process(var, methodName, family, mode, fields, scene, model)
+        launch_jobs.process(targetVar, methodName, family, mode, fields, scene, model)
+        print('Downscaling', targetVar, methodName, 'reanalysis')
+
 
 ########################################################################################################################
 def models(method_dict, scene, model):
@@ -76,7 +78,7 @@ def models(method_dict, scene, model):
     different ways depending on the server it is run.
     """
 
-    var = method_dict['var']
+    targetVar = method_dict['var']
     methodName = method_dict['methodName']
     family = method_dict['family']
     mode = method_dict['mode']
@@ -88,32 +90,33 @@ def models(method_dict, scene, model):
         pathOut += 'pseudoreality_' + GCM_longName + '_' + RCM + '/'
 
     # Check if scene/model has already been processed
-    if os.path.isfile(pathOut + var.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc'):
+    if os.path.isfile(pathOut + targetVar.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc')\
+            and force_downscaling == False:
         print('-------------------------------')
-        print(var, scene, model, methodName, 'Already processed')
+        print(targetVar, scene, model, methodName, 'Already processed')
     else:
         # Serial processing
         if running_at_HPC == False:
             print('-------------------------------')
-            print(var, scene, model, methodName, 'Processing')
+            print(targetVar, scene, model, methodName, 'Processing')
             if family == 'ANA':
-                down_scene_ANA.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_ANA.collect_chunks(var, methodName, family, mode, fields, scene, model)
+                down_scene_ANA.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_ANA.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'TF':
-                down_scene_TF.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_TF.collect_chunks(var, methodName, family, mode, fields, scene, model)
+                down_scene_TF.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_TF.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'RAW':
-                down_scene_RAW.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_RAW.collect_chunks(var, methodName, family, mode, fields, scene, model)
+                down_scene_RAW.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_RAW.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'MOS':
-                down_scene_MOS.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_MOS.collect_chunks(var, methodName, family, mode, fields, scene, model)
+                down_scene_MOS.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_MOS.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'WG':
-                down_scene_WG.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_WG.collect_chunks(var, methodName, family, mode, fields, scene, model)
+                down_scene_WG.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_WG.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'DEEP':
-                down_scene_DEEP.downscale_chunk(var, methodName, family, mode, fields, scene, model)
-                down_scene_DEEP.collect_chunks(var, methodName, family, mode, fields, scene, model)
+                down_scene_DEEP.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_DEEP.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
 
         # Parallel processing
         elif running_at_HPC == True:
@@ -148,13 +151,13 @@ def models(method_dict, scene, model):
                 f.close()
                 time.sleep(1)
                 if nJobs < max_nJobs:
-                    print('nJobs', nJobs)
-                    print('-------------------------------')
-                    print(var, scene, model, methodName, 'Processing')
                     break
 
             # Send new job
-            launch_jobs.process(var, methodName, family, mode, fields, scene, model)
+            launch_jobs.process(targetVar, methodName, family, mode, fields, scene, model)
+            print('nJobs', nJobs)
+            print('-------------------------------')
+            print(targetVar, scene, model, methodName, 'Processing')
 
 ########################################################################################################################
 def downscale():

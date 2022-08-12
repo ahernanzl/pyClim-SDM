@@ -56,23 +56,23 @@ def lighten_color(color, amount=0.5):
 
 
 ########################################################################################################################
-def feature_importances(estimator, var, methodName, ipoint, estimatorType):
+def feature_importances(estimator, targetVar, methodName, ipoint, estimatorType):
     '''
     Plot feature_importances
     '''
 
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
     # Plot feature importances
     importances = estimator.best_estimator_.feature_importances_
     std = np.std([tree.feature_importances_ for tree in estimator.best_estimator_.estimators_], axis=0)
-    if var == 'pcp':
+    if targetVar == 'pr':
         feature_names = [x for x in preds_p_list]
     else:
         feature_names = [x for x in preds_t_list]
-    feature_names.append(var)
+    feature_names.append(targetVar)
     forest_importances = pd.Series(importances, index=feature_names)
 
     fig, ax = plt.subplots()
@@ -86,12 +86,12 @@ def feature_importances(estimator, var, methodName, ipoint, estimatorType):
     plt.close('all')
 
 ########################################################################################################################
-def hyperparameters(estimator, var, methodName, ipoint, estimatorType):
+def hyperparameters(estimator, targetVar, methodName, ipoint, estimatorType):
     '''
     Plot hyperparameters
     '''
 
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
@@ -136,12 +136,12 @@ def hyperparameters(estimator, var, methodName, ipoint, estimatorType):
         plt.close('all')
 
 ########################################################################################################################
-def epochs(estimator, var, methodName, ipoint, estimatorType, history):
+def epochs(estimator, targetVar, methodName, ipoint, estimatorType, history):
     '''
     Plot loss and metric vs epochs
     '''
 
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
@@ -182,12 +182,12 @@ def epochs(estimator, var, methodName, ipoint, estimatorType, history):
 
 
 ########################################################################################################################
-def nEstimators(estimator, var, methodName, ipoint, estimatorType, history):
+def nEstimators(estimator, targetVar, methodName, ipoint, estimatorType, history):
     '''
     Plot loss and metric vs epochs
     '''
 
-    pathOut = pathAux + 'TRAINED_MODELS/' + var.upper() + '/' + methodName + '/hyperparameters/'
+    pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
@@ -218,20 +218,103 @@ def nEstimators(estimator, var, methodName, ipoint, estimatorType, history):
 
 
 ########################################################################################################################
-def hyperparameters_epochs_nEstimators_featureImportances(estimator, var, methodName, ipoint, estimatorType, history):
+def hyperparameters_epochs_nEstimators_featureImportances(estimator, targetVar, methodName, ipoint, estimatorType, history):
     '''
     Plot hyperparameters or epochs to analyze the machine learning method tuning
     '''
 
     if methodName == 'RF':
-        feature_importances(estimator, var, methodName, ipoint, estimatorType)
+        feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
 
     if methodName in ('SVM', 'LS-SVM', 'RF'):
-        hyperparameters(estimator, var, methodName, ipoint, estimatorType)
-    elif methodName in ('ANN', 'CNN', 'CNN-SYN'):
-        epochs(estimator, var, methodName, ipoint, estimatorType, history)
+        hyperparameters(estimator, targetVar, methodName, ipoint, estimatorType)
+    elif methodName in ('ANN', 'CNN', ):
+        epochs(estimator, targetVar, methodName, ipoint, estimatorType, history)
     elif methodName in ('XGB', ):
-        nEstimators(estimator, var, methodName, ipoint, estimatorType, history)
+        nEstimators(estimator, targetVar, methodName, ipoint, estimatorType, history)
+
+
+########################################################################################################################
+def area_of_study():
+    '''
+    Plot regions for different weighting for synoptic analogy
+    '''
+    lat_up, lat_down = pred_lat_up + grid_res * 6, pred_lat_down - grid_res * 6
+    lon_left, lon_right = pred_lon_left - grid_res * 9, pred_lon_right + grid_res * 9
+    nlats = int(((lat_up - lat_down) / 1.5) + 1)
+    nlons = int(((lon_right - lon_left) / 1.5) + 1)
+    lats = np.linspace(lat_up, lat_down, nlats)
+    lons = np.linspace(lon_left, lon_right, nlons)
+
+    # Define mapç
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
+    map = Basemap(llcrnrlon=lons[0] - grid_res, llcrnrlat=lats[-1] - grid_res,
+                  urcrnrlon=lons[-1] + grid_res, urcrnrlat=lats[0] + grid_res,
+                  projection='merc', resolution='i')
+    # map.drawcoastlines()
+    map.drawlsmask()
+
+    # Create grid
+    mlons, mlats = np.meshgrid(lons, lats)
+    X, Y = list(map(mlons, mlats))
+
+    # Plot map
+    map.scatter(X, Y, c='k', s=1, marker='.')
+
+    # labels = [left,right,top,bottom]
+    map.drawparallels(lats[::4], linewidth=0.2, labels=[1, 0, 0, 0], fontsize=6)
+    meridians = map.drawmeridians(lons[1::4], linewidth=0.2, labels=[0, 0, 0, 1], fontsize=6)
+
+    # Rotate lon labels
+    for m in meridians:
+        try:
+            meridians[m][1][0].set_rotation(90)
+        except:
+            pass
+
+    # saf grid (for synoptic analogy)
+    domains = ['', ]
+    colors = ['r', ]
+    shifts = [1, ]
+    t = .5
+    fw = 10
+    fh = 3
+    text = [(0, 0, t, -fh * t), (-1, 0, -fw * t, -fh * t), (0, 0, t, -fh * t), (-1, -1, -fw * t, t), (0, -1, t, t)]
+    for idomain in range(len(domains)):
+        domain = domains[idomain]
+        color = colors[idomain]
+        shift = shifts[idomain]
+        if domain == '':
+            saf_lat_up, saf_lat_down = pred_lat_up + grid_res * 3, pred_lat_down - grid_res * 3
+            saf_lon_left, saf_lon_right = pred_lon_left - grid_res * 5, pred_lon_right + grid_res * 5
+        saf_grid_res = 1.5
+        saf_nlats = int(((saf_lat_up - saf_lat_down) / 1.5) + 1)
+        saf_nlons = int(((saf_lon_right - saf_lon_left) / 1.5) + 1)
+        saf_lats = np.linspace(saf_lat_up, saf_lat_down, saf_nlats)
+        saf_lons = np.linspace(saf_lon_left, saf_lon_right, saf_nlons)
+
+        map.plot(np.array([saf_lons[0] - shift, saf_lons[-1] + shift, saf_lons[-1] + shift, saf_lons[0] - shift,
+                           saf_lons[0] - shift]),
+                 np.array([saf_lats[-1] - shift, saf_lats[-1] - shift, saf_lats[0] + shift, saf_lats[0] + shift,
+                           saf_lats[-1] - shift]),
+                 latlon=True, color=color)
+
+        x, y = map(saf_lons[text[idomain][0]] + text[idomain][2], saf_lats[text[idomain][1]] + text[idomain][3])
+        plt.text(x, y, domain, fontsize=12, color=color, fontweight='bold')
+
+    lats = hres_lats[targetVars[0]]
+    lons = hres_lons[targetVars[0]]
+    X, Y = list(map(lons, lats))
+    map.scatter(X, Y, c=0 * lats, s=3, cmap='cividis', marker='s')
+    # plt.show()
+    # exit()
+
+    # Save image
+    pathOut = '../results/Figures/'
+    filename = 'area_of_study.png'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+    plt.savefig(pathOut + filename)
 
 
 ########################################################################################################################
@@ -314,8 +397,8 @@ def spatial_domains():
         x, y = map(saf_lons[text[idomain][0]] + text[idomain][2], saf_lats[text[idomain][1]] + text[idomain][3])
         plt.text(x, y, domain, fontsize=12, color=color, fontweight='bold')
 
-    lats = hres_lats[target_vars0[0]]
-    lons = hres_lons[target_vars0[0]]
+    lats = hres_lats[targetVars[0]]
+    lons = hres_lons[targetVars[0]]
     X, Y = list(map(lons, lats))
     map.scatter(X, Y, c=0 * lats, s=3, cmap='Accent_r')
     # plt.show()
@@ -389,14 +472,14 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
 
 
 ########################################################################################################################
-def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None,
+def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None,
         plot_library='Basemap',
         regType=None, regName=None, colorbar_out=False, pointSize=None, grid=None, plot_lat_lon=True, marker='s'):
     """
     This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
     data as colormesh.
 
-    :param var0: 'p' for precipitation or 't' for temperature. It controls the hres_metadata to use.
+    :param targetVar: 'p' for precipitation or 't' for temperature. It controls the hres_metadata to use.
     :param data:
     :param palette: differente palettes are defined in the function
     :param lats: if none provided, hres_lats will be used
@@ -417,12 +500,22 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     if (filename != None) and (not os.path.exists(path)):
         os.makedirs(path)
 
+    abs_limit = max(abs(data.min()), abs(data.max()))
+
     # Create dictionary of all possible palettes
     dict = {}
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
                                    'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
+    dict.update({'bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['b', 'w', 'r'], 'ext': 'both'}})
+    dict.update({'changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['b', 'w', 'r'], 'ext': 'both'}})
+    dict.update({'rel_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
+    dict.update({'rel_changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+                        'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
     dict.update({'tmax_TXm': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
                               'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'tmax_p10': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
@@ -570,6 +663,9 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
                                              'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
                                              'colors': None, 'ext': 'max'}})
 
+
+
+
     ############ Theses palettes are to be tuned
     dict.update({'p': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 50, 'n_bin': 50,
                        'colors': ['g', 'y', 'r', 'm', 'b', 'c'], 'ext': 'max'}})
@@ -631,17 +727,29 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
                                                                       30, 40, 50, 100, 150]), 'cmap': None,
                                     'vmin': None, 'vmax': None, 'n_bin': None,
                                     'colors': ['r', 'y', 'g'], 'ext': 'both'}})
-    dict.update({'change_TXm_std': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
+    dict.update({'change_TXm_spread': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
                                     'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_TNm_std': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
+    dict.update({'change_TNm_spread': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
                                     'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_Pm_std': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
+    dict.update({'change_Pm_spread': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
                                    'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_PRCPTOT_std': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
+    dict.update({'change_PRCPTOT_spread': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
                                         'colors': ['g', 'y', 'r'], 'ext': 'max'}})
+    # dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 35,
+    #                                  'n_bin': 35, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
+    dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': np.arange(0, 90, 20), 'cmap': 'viridis', 'vmin': None, 'vmax': None,
+                                     'n_bin': None, 'colors': None, 'ext': 'both'}})
+    dict.update({'change_FWI90p_spread': {'units': 'days', 'bounds': np.array([0, 10, 20, 30, 40, 50]),
+                                             'cmap': 'Reds', 'vmin': None, 'vmax': None, 'n_bin': None,
+                                             'colors': None, 'ext': 'max'}})
+
 
     # dict.update({'none': {'units': degree_sign, 'bounds': np.array([0, 1]), 'cmap': 'bwr', 'ext': 'both'}})
-    #
+
+    # For not defined palettes use None
+    if palette not in dict:
+        palette = None
+
     # Select palette
     units = dict[palette]['units']
     bounds = dict[palette]['bounds']
@@ -660,8 +768,8 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
     if grid == None:
         # Read lats lons
         if lats[0] == None:
-            lats = hres_lats[var0]
-            lons = hres_lons[var0]
+            lats = hres_lats[targetVar]
+            lons = hres_lons[targetVar]
 
             # Set map limits
             latmin = np.min(hres_lats_all) - 2
@@ -670,7 +778,7 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
             lonMax = np.max(hres_lons_all) + 2
 
         if regType != None:
-            regNames = pd.read_csv(pathAux + 'ASSOCIATION/' + var0.upper() + '/association.csv')[regType].values
+            regNames = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() + '/association.csv')[regType].values
             iaux = [i for i in range(len(regNames)) if regNames[i] == regName]
             lats, lons = lats[iaux], lons[iaux]
 
@@ -697,6 +805,8 @@ def map(var0, data, palette=None, lats=[None, None], lons=[None, None], path=Non
             lats, lons, grid_res_local = pred_lats, pred_lons, grid_res
 
         # Give lats/lons proper format for colormesh function
+        if lats[0] > lats[-1]:
+            data = np.flip(data, axis=0)
         lats = np.sort(lats)
         lons = np.sort(lons)
         lats = np.append(lats, lats[-1] + grid_res_local) - grid_res_local / 2
