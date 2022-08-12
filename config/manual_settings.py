@@ -10,6 +10,7 @@ experiment = 'EVALUATION'
 ####################################################################################################################
 #                                        targetVars                                                                   #
 ####################################################################################################################
+# Activate/deactivate targetVars
 targetVars = [
     'tasmax',
     'tasmin',
@@ -30,8 +31,8 @@ methods = {
         # 'QM',
         # 'DQM',
         # 'QDM',
-        # 'PSDM',
-        # 'ANA-SYN-1NN',
+        'PSDM',
+        'ANA-SYN-1NN',
         # 'ANA-SYN-kNN',
         # 'ANA-SYN-rand',
         # 'ANA-LOC-1NN',
@@ -49,7 +50,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
-        # 'WG-PDF',
+        'WG-PDF',
     ],
     'tasmin': [
         'RAW',
