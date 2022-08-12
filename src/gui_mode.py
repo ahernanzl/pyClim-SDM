@@ -2958,10 +2958,10 @@ def write_tmpMain_file(steps):
     f.write("    start = datetime.datetime.now()\n")
     f.write("    main()\n")
     f.write("    end = datetime.datetime.now()\n")
+    f.write("    print('Elapsed time: ' + str(end - start))\n")
     if running_at_HPC == True:
         f.write("    pyClim-SDM has finished, but submited jobs can be still running\n")
         f.write("    Do not launch more jobs until they have succesfully finished\n")
-    f.write("    print('Elapsed time: ' + str(end - start))\n")
 
     # Close f
     f.close()

@@ -226,17 +226,16 @@ def train_point(targetVar, methodName, X, y, ipoint):
         elif methodName in ('CNN', ):
             # Prepare shape for convolution layer
             X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
-            nfilters = 16
             regressor = tf.keras.models.Sequential()
             if X.shape[1] < 5 or X.shape[2] < 5:
-                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+                regressor.add(layers.Conv2D(filters=16, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
             else:
-                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
+                regressor.add(layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
             # if X.shape[1] >= 10 and X.shape[2] >= 10:
             #     regressor.add(layers.MaxPooling2D(pool_size=2))
             #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
             regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(nfilters, activation='relu'))
+            regressor.add(layers.Dense(16, activation='relu'))
             regressor.add(layers.Dense(8, activation='relu'))
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
