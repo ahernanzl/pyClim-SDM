@@ -972,6 +972,7 @@ def GCMs_evaluation_future():
                                         title = ' '.join((predName, model, sceneName, season+'-'+period, '\nmean anomaly ' + '(' + unitspred + ')'))
                                         plot.map(targetVar, mean_change, 'changeMap', grid='pred', path=pathOut, filename=filename, title=title)
 
+                                iseason += 1
 
                         elif predName == 'pr' or (targetVar == myTargetVar and myTargetVarIsAdditive == False):
                             matrix = np.load(pathTmp + '_'.join((targetVar, predName, sceneName, 'matrix.npy')))
@@ -1032,6 +1033,6 @@ def GCMs_evaluation():
     """
 
     print('GCMs_evaluation...')
-
-    GCMs_evaluation_historical()
+    print(season_dict)
+    # GCMs_evaluation_historical()
     GCMs_evaluation_future()
