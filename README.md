@@ -58,7 +58,7 @@ pyClim-SDM has been originally designed for **Linux** and might present problems
 
 In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
 requirements.txt. You can install them by following these steps: 
-- Install Miniconda (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html#linux-installers
+- Install Miniconda (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
 - Create a virtual environment: **conda create --name env**
 - Activate your environment: **conda activate env**
 - Install the requirements.txt: **python install_requirements.py**
