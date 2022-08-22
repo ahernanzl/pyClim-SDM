@@ -58,7 +58,7 @@ pyClim-SDM has been originally designed for **Linux** and might present problems
 
 In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
 requirements.txt. You can install them by following these steps: 
-- Install Miniconda (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
+- Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
 - Create a virtual environment: **conda create --name env**
 - Activate your environment: **conda activate env**
 - Install the requirements.txt: **python install_requirements.py**
@@ -68,8 +68,8 @@ requirements.txt. You can install them by following these steps:
 # How to use
 
 - For your first steps you can use some example datsets included in the 'input_data_template' just by renaming this folder as 'input_data', but limit your selection to the default sets of predictors and target variables. Be aware that only a few predictors have been included as well as few target points, so no conclusion about the methods skill must be reached using these data
-- Run src/gui_mode.py and follow the very intuitive menu
-- Alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
+- Open a terminal, go to the src/ directory and run 'python gui_mode.py'
+- Alternatively, pyClim-SDM can be used without the graphical interface by running manual_mode.py and tuning the config/manual_settings.py file.
 - In order to use your own datasets, spatial domain, etc., prepare your 'input_data' directory following the structure and format of the 'input_data_template'. Beware that the targetVariables themselves, given by reanalysis/GCMs are mandatory files for some methods and purposes. hres format: tas/tasmax/tasmin in degrees, pr in mm, uas/vas in m/s, hurs in %, clt in %. One row per date. The first column corresponds to the date yyyymmdd, and the other rows (as many as grid points) containing data.  Missing data must be coded as -999. Reanalysis and models format: One netCDF file per variable, models and scene, with all pressure levels. 
 - When working in a HPC, define partition name at config/advanced_settings.py and tune jobs specifications at lib/launch_jobs.py.
 
