@@ -8,7 +8,7 @@
 
 **License:** GNU General Public License v3.0
 
-**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Statistical downscaling in the Tropics and Mid-latitudes: a comparative assessment for generating regional information on climate change. Journal of Applied Meteorology and Climatology. Submitted.
+**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Service for generation of statistical downscaled climate change projections supporting national adaptation strategies. Climate Services. Submitted.
 ___
 
 pyClim-SDM is a software for statistical downscaling of climate change projections for the following daily surface variables: mean, maximum and minimum temperature, precipitation, zonal and meridional wind components, relative humidity and cloud cover.
