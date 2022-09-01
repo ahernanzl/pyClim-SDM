@@ -193,6 +193,11 @@ methods_using_preds_from_whole_grid = ['CNN', ]
 # The following Transfer Function methods will be replaced by a MLR where predictos lie out of the training range
 # This is done for all targetVars except for precipitation
 methods_to_extrapolate_with_MLR = ['RF', 'XGB', ]
+for methodName in methods_using_preds_from_whole_grid:
+    if methodName in methods_to_extrapolate_with_MLR:
+        print('Remove', methodName, 'from methods_using_preds_from_whole_grid or from'
+            'methods_to_extrapolate_with_MLR at advanced_settings.\nBoth options are not compatible.')
+        exit()
 
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the

@@ -256,7 +256,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                 iDaysOutOfRange = list(dict.fromkeys(np.where((X_test_ipoint < np.nanmin(X_train_ipoint, axis=0)) |
                                        (X_test_ipoint > np.nanmax(X_train_ipoint, axis=0)))[0]))
                 if len(iDaysOutOfRange) != 0:
-                    print('ipoint:', ipoint, '/ nDaysOutOfRange:', len(iDaysOutOfRange),
+                    print('ipoint:', ipoint_local_index, '/ nDaysOutOfRange:', len(iDaysOutOfRange),
                           '/ percDaysOutOfRange:', round(100*len(iDaysOutOfRange)/X_test_ipoint.shape[0], 2), '%')
 
                     # Remove var from preds before applying MLR (because it is not standardized)
@@ -276,12 +276,14 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                     est_MLR = down_point.TF_others(X_test_ipoint, reg_MLR)
 
                     # Replace days with predictors out of the observed range with results from MLR
-                    est[iDaysOutOfRange, ipoint] = est_MLR[iDaysOutOfRange]
+                    est[iDaysOutOfRange, ipoint_local_index] = est_MLR[iDaysOutOfRange]
 
         # Set to np.nan days with missing predictors for TF methods
         if (recalibrating_when_missing_preds == False) and (len(idays_with_missing_preds) != 0):
             est[idays_with_missing_preds, ipoint_local_index] = special_value
 
+    print('************************************************** BORRAR EL EXIT ')
+    exit()
     # Undo converssion
     est = est.astype('float64') / 100.
 
