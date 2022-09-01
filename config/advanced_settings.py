@@ -190,6 +190,10 @@ recalibrating_when_missing_preds = False
 # will arise.
 methods_using_preds_from_whole_grid = ['CNN', ]
 
+# The following Transfer Function methods will be replaced by a MLR where predictos lie out of the training range
+# This is done for all targetVars except for precipitation
+methods_to_extrapolate_with_MLR = ['RF', 'XGB', ]
+
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the
 # climdex (projections), set to False. This parameter is used in postporcess.get_climdex_oneModel

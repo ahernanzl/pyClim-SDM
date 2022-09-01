@@ -231,6 +231,9 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Check for days with missing predictors to set them to np.nan later
         elif recalibrating_when_missing_preds == False:
+            X_train_ipoint = grids.interpolate_predictors(X_train, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint],
+                                                          interp_mode)
+            y_train_ipoint = y_train[:, ipoint]
             idays_with_missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[0])
             if len(idays_with_missing_preds) != 0:
                 X_test_ipoint[np.isnan(X_test_ipoint)] = special_value
@@ -245,6 +248,35 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             est[:, ipoint_local_index] = down_point.TF_pr(methodName, X_test_ipoint, clf, reg)
         else:
             est[:, ipoint_local_index] = down_point.TF_others(X_test_ipoint, reg)
+
+            # For some methods (with bad or no extrapolation at all), extapolation is done with a MLR instead
+            if methodName in methods_to_extrapolate_with_MLR:
+
+                # Select days with predictors lying out of the observed range
+                iDaysOutOfRange = list(dict.fromkeys(np.where((X_test_ipoint < np.nanmin(X_train_ipoint, axis=0)) |
+                                       (X_test_ipoint > np.nanmax(X_train_ipoint, axis=0)))[0]))
+                if len(iDaysOutOfRange) != 0:
+                    print('ipoint:', ipoint, '/ nDaysOutOfRange:', len(iDaysOutOfRange),
+                          '/ percDaysOutOfRange:', round(100*len(iDaysOutOfRange)/X_test_ipoint.shape[0], 2), '%')
+
+                    # Remove var from preds before applying MLR (because it is not standardized)
+                    if 'var' in fields:
+                        if recalibrating_when_missing_preds == True:
+                            if (npreds-1) not in missing_preds:
+                                X_train_ipoint = X_train_ipoint[:, :-1]
+                                X_test_ipoint = X_test_ipoint[:, :-1]
+                        else:
+                            X_train_ipoint = X_train_ipoint[:, :-1]
+                            X_test_ipoint = X_test_ipoint[:, :-1]
+
+                    # Train MLR
+                    reg_MLR, clf_MLR = TF_lib.train_point(targetVar, 'MLR', X_train_ipoint, y_train_ipoint, ipoint)
+
+                    # Downscale MLR
+                    est_MLR = down_point.TF_others(X_test_ipoint, reg_MLR)
+
+                    # Replace days with predictors out of the observed range with results from MLR
+                    est[iDaysOutOfRange, ipoint] = est_MLR[iDaysOutOfRange]
 
         # Set to np.nan days with missing predictors for TF methods
         if (recalibrating_when_missing_preds == False) and (len(idays_with_missing_preds) != 0):
