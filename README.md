@@ -42,8 +42,8 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 ### Machine Learning:
 - **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
 - **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
-- **RF**: Random Forest. Non-linear machine learning classification/regression. 
-- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression.  
+- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range.
+- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range.
 - **ANN**: Artificial Neural Networks. Non-linear machine learning classification/regression. See García-Valero (2021) and Hernanz *et al.* (2021).
 - **CNN**: Convoltional Neural Networks. Non-linear machine learning classification/regression. 
 ### Weather Generators:
