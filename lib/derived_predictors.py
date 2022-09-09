@@ -969,11 +969,11 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             v = aux['data']['vgsl'][idates]
         else:
             dates = calibration_dates
-            aux = read.one_direct_predictor('u', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
             idates = [i for i in range(len(times)) if times[i] in dates]
             u = aux['data'][idates]
-            v = read.one_direct_predictor('v', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data'][idates]
     else:
         if level == 'sl':
             datesDefined = False
@@ -988,10 +988,10 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             aux = geostrophic(model=model, scene=scene)
             u, v = aux['data']['ugsl'], aux['data']['vgsl']
         else:
-            aux = read.one_direct_predictor('u', level=level, grid='ext', model=model, scene=scene)
+            aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
             dates = aux['times']
             u = aux['data']
-            v = read.one_direct_predictor('v', level=level, grid='ext', model=model, scene=scene)['data']
+            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data']
 
     # Calculate wind gradients
     ndates = len(dates)
