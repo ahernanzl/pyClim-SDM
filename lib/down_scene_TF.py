@@ -282,8 +282,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if (recalibrating_when_missing_preds == False) and (len(idays_with_missing_preds) != 0):
             est[idays_with_missing_preds, ipoint_local_index] = special_value
 
-    print('************************************************** BORRAR EL EXIT ')
-    exit()
+
     # Undo converssion
     est = est.astype('float64') / 100.
 
