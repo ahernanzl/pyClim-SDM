@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -32,6 +33,7 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
 def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     """
@@ -55,7 +57,6 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     # 	# print(nc.variables[var][:])
     # 	print(nc.variables[var][:].shape)
     # exit()
-
 
     # Define dimension names
     time_name = 'time'
@@ -89,7 +90,6 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     lons[lons > 180] -= 360
     nlats, nlons = len(lats), len(lons)
 
-
     if level == None:
         data = nc.variables[nc_variable][:]
     else:
@@ -98,19 +98,17 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
                 level_factor = 100
             else:
                 level_factor = 1
-            ilevel = np.where(abs((nc.variables[level_name][:] - int(level*level_factor))) < 0.001)[0]
+            ilevel = np.where(abs((nc.variables[level_name][:] - int(level * level_factor))) < 0.001)[0]
         except:
             ilevel = 0
         dim = nc.variables[nc_variable][:].shape
         data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
 
-
     # Set invalid data to Nan
     if hasattr(nc.variables[nc_variable], '_FillValue'):
-        data[data==nc.variables[nc_variable]._FillValue] = np.nan
+        data[data == nc.variables[nc_variable]._FillValue] = np.nan
     if np.ma.is_masked(data):
         data = np.ma.MaskedArray.filled(data, fill_value=np.nan)
-
 
     if calendar in ['360_day', '360']:
         valid_idates = []
@@ -157,11 +155,11 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         units = 'Unknown'
 
     end = datetime.datetime.now()
-    if ((end-start).seconds > 30):
+    if ((end - start).seconds > 30):
         print('......................................................................')
-        print(nc_variable, level, end-start, 'access to var_time very slow')
+        print(nc_variable, level, end - start, 'access to var_time very slow')
 
-    return {'data': data, 'times': times, 'lats': lats, 'lons': lons,  'calendar': calendar, 'units': units}
+    return {'data': data, 'times': times, 'lats': lats, 'lons': lons, 'calendar': calendar, 'units': units}
 
 
 ########################################################################################################################
@@ -188,7 +186,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
             for aux_level in all_levels:
                 predName = predName.replace(str(aux_level), '')
             ncVar = reaNames[predName]
-        filename = ncVar+'_'+reanalysisName+'_'+reanalysisPeriodFilename+'.nc'
+        filename = ncVar + '_' + reanalysisName + '_' + reanalysisPeriodFilename + '.nc'
     else:
         if scene in ('historical', 'HISTORICAL'):
             periodFilename = historicalPeriodFilename
@@ -202,7 +200,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
                 predName = predName.replace(str(aux_level), '')
             ncVar = modNames[predName]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
-        filename = ncVar+'_'+modelName+'_'+scene+'_'+modelRun+'_'+periodFilename+'.nc'
+        filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
 
     nc = netCDF(pathIn, filename, ncVar, grid=grid, level=level)
 
@@ -210,17 +208,17 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
     # print(predName, nc['units'], print(np.nanmean(nc['data'])))
     if predName in ('tasmax', 'tasmin', 'tas'):
         if nc['units'] == 'K':
-            nc.update({'data': nc['data']-273.15})
+            nc.update({'data': nc['data'] - 273.15})
             nc.update({'units': degree_sign})
         elif (nc['units'] == 'Unknown') and (np.nanmean(nc['data']) > 100):
-            nc.update({'data': nc['data']-273.15})
+            nc.update({'data': nc['data'] - 273.15})
             nc.update({'units': degree_sign})
     elif predName == 'pr':
         if nc['units'] == 'kg m-2 s-1':
-            nc.update({'data': 24 * 60 * 60 * nc['data']}) # from mm/s to mm/day
+            nc.update({'data': 24 * 60 * 60 * nc['data']})  # from mm/s to mm/day
             nc.update({'units': 'mm'})
         elif (nc['units'] == 'Unknown') and (model == 'reanalysis'):
-            nc.update({'data': 1000 * nc['data']}) # from m/day to mm/day
+            nc.update({'data': 1000 * nc['data']})  # from m/day to mm/day
             nc.update({'units': 'mm'})
     elif predName == 'clt':
         if nc['units'] != '%' and (int(np.nanmax(nc['data'])) <= 1):
@@ -228,12 +226,11 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
             nc.update({'units': '%'})
     elif predName == 'zg':
         if nc['units'] != 'm':
-            nc.update({'data': nc['data'] / 9.8}) # from m2/s2 to m
+            nc.update({'data': nc['data'] / 9.8})  # from m2/s2 to m
             nc.update({'units': 'm'})
     # print(predName, nc['units'], print(np.nanmean(nc['data'])))
     # exit()
     return nc
-
 
 
 ########################################################################################################################
@@ -251,7 +248,6 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     Beware that different GCMs can have different calendars
     return: data (ndays, npreds, nlats, nlons) and times
     """
-
 
     # Define variables
     if field == 'var':
@@ -293,7 +289,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 break
             except:
                 pass
-        
+
     ndates = len(dates)
 
     data = np.zeros((nvar, ndates, ext_nlats, ext_nlons))
@@ -330,106 +326,141 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
 
             # tasmax
             if 'tasmax' in preds:
-                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data'][
+                    idates];
+                i += 1
             # tasmin
             if 'tasmin' in preds:
-                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data'][
+                    idates];
+                i += 1
             # pr
             if 'pr' in preds:
-                data[i] = one_direct_predictor('pr', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('pr', level=None, grid='ext', model=model, scene=scene)['data'][idates];
+                i += 1
             # psl
             if 'psl' in preds:
-                data[i] = one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data'][idates];
+                i += 1
             # psl_trend
             if 'psl_trend' in preds:
-                data[i] = derived_predictors.psl_trend(model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.psl_trend(model=model, scene=scene)['data'][idates];
+                i += 1
             # ps
             if 'ps' in preds:
-                data[i] = one_direct_predictor('ps', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('ps', level=None, grid='ext', model=model, scene=scene)['data'][idates];
+                i += 1
             # ins
             if 'ins' in preds:
-                data[i] = derived_predictors.insolation(model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.insolation(model=model, scene=scene)['data'][idates];
+                i += 1
             # clt
             if 'clt' in preds:
-                data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data'][idates];
+                i += 1
             # uas, vas
             for var in ('uas', 'vas'):
                 if var in preds:
-                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][
+                        idates];
+                    i += 1
             # sfcWind
             if 'sfcWind' in preds:
-                data[i] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data'][idates];
+                i += 1
             # tas
             if 'tas' in preds:
-                data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data'][idates];
+                i += 1
             # tdps
             if 'tdps' in preds:
-                data[i] = derived_predictors.dew_point('sfc')['data'][idates]; i += 1
+                data[i] = derived_predictors.dew_point('sfc')['data'][idates];
+                i += 1
             # huss
             if 'huss' in preds:
-                data[i] = derived_predictors.specific_humidity('sfc')['data'][idates]; i += 1
+                data[i] = derived_predictors.specific_humidity('sfc')['data'][idates];
+                i += 1
             # hurs
             if 'hurs' in preds:
-                data[i] = derived_predictors.relative_humidity('sfc')['data'][idates]; i += 1
+                data[i] = derived_predictors.relative_humidity('sfc')['data'][idates];
+                i += 1
 
             # ua, va, ta, zg (direct predictors)
             for var in ['ua', 'va', 'ta', 'zg']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][idates]; i += 1
+                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][
+                            idates];
+                        i += 1
             # hus
             var = 'hus'
             for level in preds_levels:
                 if var + str(level) in preds:
-                    data[i] = derived_predictors.specific_humidity(level)['data'][idates]; i += 1
+                    data[i] = derived_predictors.specific_humidity(level)['data'][idates];
+                    i += 1
 
             # hur
             var = 'hur'
             for level in preds_levels:
                 if var + str(level) in preds:
-                    data[i] = derived_predictors.relative_humidity(level)['data'][idates]; i += 1
+                    data[i] = derived_predictors.relative_humidity(level)['data'][idates];
+                    i += 1
 
             # td
             var = 'td'
             for level in preds_levels:
                 if var + str(level) in preds:
-                    data[i] = derived_predictors.dew_point(level)['data'][idates]; i += 1
+                    data[i] = derived_predictors.dew_point(level)['data'][idates];
+                    i += 1
 
             # Dtd
             var = 'Dtd'
             for level in preds_levels:
                 if var + str(level) in preds:
-                    t = one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+                    t = one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)['data'][idates]
                     td = derived_predictors.dew_point(level)['data'][idates]
-                    data[i] = t - td; i += 1
+                    data[i] = t - td;
+                    i += 1
 
             # vort, div
             for var in ['vort', 'div']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = derived_predictors.vorticity_and_divergence(model=model, scene=scene, level=level)['data'][var][idates]; i += 1
+                        data[i] = \
+                        derived_predictors.vorticity_and_divergence(model=model, scene=scene, level=level)['data'][var][
+                            idates];
+                        i += 1
             # thermal vertical gradients (tvg)
             for (level0, level1) in [(1000, 850), (850, 700), (700, 500)]:
                 var = 'vtg_' + str(level0) + '_' + str(level1)
                 if var in preds:
-                    data[i] = derived_predictors.vtg(level0, level1, model=model, scene=scene)['data'][idates]; i += 1
+                    data[i] = derived_predictors.vtg(level0, level1, model=model, scene=scene)['data'][idates];
+                    i += 1
             # ugsl, vgsl
             for var in ('u', 'v'):
-                if var+'gsl' in preds:
-                    data[i] = derived_predictors.geostrophic(model=model, scene=scene)['data'][var+'gsl'][idates]; i += 1
+                if var + 'gsl' in preds:
+                    data[i] = derived_predictors.geostrophic(model=model, scene=scene)['data'][var + 'gsl'][idates];
+                    i += 1
             # vortgsl, divgsl
             for var in ('vort', 'div'):
-                if var+'gsl' in preds:
-                    data[i] = derived_predictors.vorticity_and_divergence(model=model, scene=scene, level='sl')['data'][var][idates]; i += 1
+                if var + 'gsl' in preds:
+                    data[i] = \
+                    derived_predictors.vorticity_and_divergence(model=model, scene=scene, level='sl')['data'][var][
+                        idates];
+                    i += 1
             # Instability indexes
             if 'K_index' in preds:
-                data[i] = derived_predictors.K_index(model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.K_index(model=model, scene=scene)['data'][idates];
+                i += 1
             if 'TT_index' in preds:
-                data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'][idates];
+                i += 1
             if 'SSI_index' in preds:
-                data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'][idates];
+                i += 1
             if 'LI_index' in preds:
-                data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'][idates]; i += 1
+                data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'][idates];
+                i += 1
             if myTargetVar in preds:
                 data[i] = one_direct_predictor(myTargetVar, grid='ext', model=model, scene=scene)['data'][idates]
 
@@ -451,102 +482,132 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             i = 0
             # tasmax
             if 'tasmax' in preds:
-                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # tasmin
             if 'tasmin' in preds:
-                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # pr
             if 'pr' in preds:
-                data[i] = one_direct_predictor('pr', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('pr', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # psl
             if 'psl' in preds:
-                data[i] = one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # psl_trend
             if 'psl_trend' in preds:
-                data[i] = derived_predictors.psl_trend(model=model,scene=scene)['data']; i += 1
+                data[i] = derived_predictors.psl_trend(model=model, scene=scene)['data'];
+                i += 1
             # ps
             if 'ps' in preds:
-                data[i] = one_direct_predictor('ps', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('ps', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # ins
             if 'ins' in preds:
-                data[i] = derived_predictors.insolation(model=model,scene=scene)['data']; i += 1
+                data[i] = derived_predictors.insolation(model=model, scene=scene)['data'];
+                i += 1
             # clt
             if 'clt' in preds:
-                data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # uas, vas
             for var in ('uas', 'vas'):
                 if var in preds:
-                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'];
+                    i += 1
             # sfcWind
             if 'sfcWind' in preds:
-                data[i] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.wind_speed('sfc', model=model, scene=scene)['data'];
+                i += 1
             # tas
             if 'tas' in preds:
-                data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data']; i += 1
+                data[i] = one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # tdps
             if 'tdps' in preds:
-                data[i] = derived_predictors.dew_point('sfc', model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.dew_point('sfc', model=model, scene=scene)['data'];
+                i += 1
             # huss
             if 'huss' in preds:
-                data[i] = derived_predictors.specific_humidity('sfc', model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.specific_humidity('sfc', model=model, scene=scene)['data'];
+                i += 1
             # hurs
             if 'hurs' in preds:
-                data[i] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.relative_humidity('sfc', model=model, scene=scene)['data'];
+                i += 1
 
             # ua, va, ta (direct predictors)
             for var in ['ua', 'va', 'ta']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'];
+                        i += 1
             # zg
             for level in preds_levels:
                 if 'zg' + str(level) in preds:
-                    data[i] = one_direct_predictor('zg', level=level, grid='ext', model=model, scene=scene)['data']; i += 1
+                    data[i] = one_direct_predictor('zg', level=level, grid='ext', model=model, scene=scene)['data'];
+                    i += 1
             # hus
             for level in preds_levels:
                 if 'hus' + str(level) in preds:
-                    data[i] = derived_predictors.specific_humidity(level, model=model, scene=scene)['data']; i += 1
+                    data[i] = derived_predictors.specific_humidity(level, model=model, scene=scene)['data'];
+                    i += 1
             # hur
             for level in preds_levels:
                 if 'hur' + str(level) in preds:
-                    data[i] = derived_predictors.relative_humidity(level, model=model, scene=scene)['data']; i += 1
+                    data[i] = derived_predictors.relative_humidity(level, model=model, scene=scene)['data'];
+                    i += 1
             # td
             for level in preds_levels:
                 if 'td' + str(level) in preds:
-                    data[i] = derived_predictors.dew_point(level, model=model, scene=scene)['data']; i += 1
+                    data[i] = derived_predictors.dew_point(level, model=model, scene=scene)['data'];
+                    i += 1
             # Dtd
             for level in preds_levels:
                 if 'Dtd' + str(level) in preds:
-                        td = derived_predictors.dew_point(level, model=model, scene=scene)['data']
-                        t = one_direct_predictor('t', level=level, grid='ext', model=model, scene=scene)['data']
-                        data[i] = t - td; i+=1
+                    td = derived_predictors.dew_point(level, model=model, scene=scene)['data']
+                    t = one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)['data']
+                    data[i] = t - td;
+                    i += 1
             # vort, div
             for var in ['vort', 'div']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = derived_predictors.vorticity_and_divergence(model=model, scene=scene, level=level)['data'][var]; i += 1
+                        data[i] = \
+                        derived_predictors.vorticity_and_divergence(model=model, scene=scene, level=level)['data'][var];
+                        i += 1
             # thermal vertical gradients (tvg)
             for (level0, level1) in [(1000, 850), (850, 700), (700, 500)]:
                 var = 'vtg_' + str(level0) + '_' + str(level1)
                 if var in preds:
-                    data[i] = derived_predictors.vtg(level0, level1, model=model,scene=scene)['data']; i += 1
+                    data[i] = derived_predictors.vtg(level0, level1, model=model, scene=scene)['data'];
+                    i += 1
             # ugsl, vgsl
             for var in ('u', 'v'):
                 if var + 'gsl' in preds:
-                    data[i] = derived_predictors.geostrophic(model=model, scene=scene)['data'][var + 'gsl']; i += 1
+                    data[i] = derived_predictors.geostrophic(model=model, scene=scene)['data'][var + 'gsl'];
+                    i += 1
             # vortgsl, divgsl
             for var in ('vort', 'div'):
                 if var + 'gsl' in preds:
-                    data[i] = derived_predictors.vorticity_and_divergence(model=model, scene=scene, level='sl')['data'][var]; i += 1
+                    data[i] = derived_predictors.vorticity_and_divergence(model=model, scene=scene, level='sl')['data'][
+                        var];
+                    i += 1
             # Instability indexes
             if 'K_index' in preds:
-                data[i] = derived_predictors.K_index(model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.K_index(model=model, scene=scene)['data'];
+                i += 1
             if 'TT_index' in preds:
-                data[i] = derived_predictors.TT_index(model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'];
+                i += 1
             if 'SSI_index' in preds:
-                data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'];
+                i += 1
             if 'LI_index' in preds:
-                data[i] = derived_predictors.LI_index(model=model, scene=scene)['data']; i += 1
+                data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'];
+                i += 1
             if myTargetVar in preds:
                 data[i] = one_direct_predictor(myTargetVar, grid='ext', model=model, scene=scene)['data']
 
@@ -603,18 +664,19 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
 
     masterFile = dataPath + targetVar + '_hres_metadata.txt'
 
-    #------------------------
+    # ------------------------
     # read master file
-    #------------------------
+    # ------------------------
     npMaster = np.loadtxt(masterFile)
     try:
-        df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2], 'h': npMaster[:,3]})
+        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1], 'lats': npMaster[:, 2], 'h': npMaster[:, 3]})
     except:
-        df = pd.DataFrame({'id': npMaster[:,0], 'lons': npMaster[:,1], 'lats': npMaster[:,2]})
+        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1], 'lats': npMaster[:, 2]})
     df['id'] = df['id'].astype(int)
     df.set_index("id", inplace=True)
 
     return df
+
 
 ########################################################################################################################
 def hres_data(targetVar, period=None):
@@ -631,19 +693,19 @@ def hres_data(targetVar, period=None):
     maxYear = int(hresPeriodFilename[targetVar].split('-')[1][:4])
 
     # If data is in ASCII, binary files are created for a faster reading
-    if not os.path.isfile(filename +'.npy'):
+    if not os.path.isfile(filename + '.npy'):
         aux_lib.prepare_hres_data_ascii2npy(targetVar)
 
     # ------------------------
     # read data
     # ------------------------
-    data = np.load(filename +'.npy')
+    data = np.load(filename + '.npy')
 
     # ------------------------
     # Creates list of dates
     # ------------------------
     times = []
-    for time in data[:,0]:
+    for time in data[:, 0]:
         year = int(str(time)[:4])
         month = int(str(time)[4:6])
         day = int(str(time)[6:8])
@@ -653,19 +715,19 @@ def hres_data(targetVar, period=None):
     data = data[:, 1:]
 
     # Set period
-    if period== None:
+    if period == None:
         first_date = datetime.datetime(minYear, 1, 1, 12, 0)
         last_date = datetime.datetime(maxYear, 12, 31, 12, 0)
         dates = [first_date + datetime.timedelta(days=i) for i in range((last_date - first_date).days + 1)]
-    elif period== 'calibration':
+    elif period == 'calibration':
         dates = calibration_dates
-    elif period== 'training':
+    elif period == 'training':
         dates = training_dates
-    elif period== 'testing':
+    elif period == 'testing':
         dates = testing_dates
-    elif period== 'reference':
+    elif period == 'reference':
         dates = reference_dates
-    elif period== 'biasCorr':
+    elif period == 'biasCorr':
         dates = biasCorr_dates
 
     # Select period
@@ -676,17 +738,17 @@ def hres_data(targetVar, period=None):
 
     # Checks for values out of range and counts percentage of missing data
     out_of_range = np.where((data < predictands_codification[targetVar]['min_valid']) |
-                         (data > predictands_codification[targetVar]['max_valid']))[0].size
+                            (data > predictands_codification[targetVar]['max_valid']))[0].size
     data[np.isnan(data)] = predictands_codification[targetVar]['special_value']
     special_value = predictands_codification[targetVar]['special_value']
     missing_data = np.where(data == special_value)[0].size
     if missing_data > 0:
-        perc = np.round(100*missing_data/data.size, 2)
+        perc = np.round(100 * missing_data / data.size, 2)
         print('\nInfo: predictands contain', missing_data, 'missing data (', perc, '% )')
         # print('Do not worry about the "RuntimeWarning: invalid value encountered"')
         # print('It is showed because there are np.nan, but they are properly handled by the program.')
-        aux = 1*(data == special_value)
-        aux = 100*np.mean(aux, axis=0)
+        aux = 1 * (data == special_value)
+        aux = 100 * np.mean(aux, axis=0)
         if np.max(aux) >= max_perc_missing_predictands_allowed:
             print('At least one point contains too many missing data (', np.max(aux), '%) at', period, 'period')
 
