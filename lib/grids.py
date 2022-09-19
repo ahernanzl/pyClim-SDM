@@ -43,6 +43,7 @@ def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp):
     :return: predOut(ndays, npreds)
     '''
 
+    warnings.filterwarnings("ignore")
 
     # Define npreds, ndays, predOut
     npreds, ndays = pred.shape[1], pred.shape[0]

@@ -223,7 +223,7 @@ def hyperparameters_epochs_nEstimators_featureImportances(estimator, targetVar, 
     Plot hyperparameters or epochs to analyze the machine learning method tuning
     '''
 
-    if methodName == 'RF':
+    if methodName in ('RF', 'XGB'):
         feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
 
     if methodName in ('SVM', 'LS-SVM', 'RF'):
