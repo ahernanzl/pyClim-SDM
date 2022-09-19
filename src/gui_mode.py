@@ -515,7 +515,7 @@ class tabDomain(tk.Frame):
         lab.grid(sticky="W", column=icol, row=irow, padx=10, columnspan=5); icol+=2
         grid_resTesting_Entry = ttk.Entry(frameDomain, textvariable=self.grid_res_var, width=4, justify='right', takefocus=False)
         grid_resTesting_Entry.insert(END, grid_res)
-        CreateToolTip(lab, 'Grid resolution')
+        CreateToolTip(lab, 'Grid resolution (reanalysis and models)')
         grid_resTesting_Entry.grid(sticky="W", column=icol+1, row=irow)
         irow+=1; icol-=2
 
@@ -1132,7 +1132,8 @@ class frameMethodsClass(tk.Frame):
             disabled_methods = ['MLR', 'MLR-ANA', 'MLR-WT']
         else:
             disabled_methods = ['GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
-            if targetVar == 'myTargetVar' and isGaussian != True:
+            gaussian_variables = ['tasmax', 'tasmin', 'tas', 'uas', 'vas', 'psl', 'ps', ]
+            if (targetVar == 'myTargetVar' and isGaussian != True):
                 disabled_methods.append('PSDM')
                 disabled_methods.append('WG-PDF')
 
@@ -1371,8 +1372,106 @@ class frameClimdexClass(tk.Frame):
             'hurs': {
                 'HRm': 'Mean relative humidity',
             },
+            'huss': {
+                'HUSSm': 'Mean specific humidity',
+                'HUSSx': 'Maximum specific humidity',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
             'clt': {
                 'CLTm': 'Mean cloud cover',
+            },
+            'rsds': {
+                'RSDSm': 'Mean Surface Downwelling Shortwave Radiation',
+                'RSDSx': 'Maximum Surface Downwelling Shortwave Radiation',
+                'RSDSn': 'Minimum Surface Downwelling Shortwave Radiation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'rlds': {
+                'RLDSm': 'Mean Surface Downwelling Longwave Radiation',
+                'RLDSx': 'Maximum Surface Downwelling Longwave Radiation',
+                'RLDSn': 'Minimum Surface Downwelling Longwave Radiation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'evspsbl': {
+                'Em': 'Evaporation',
+                'Ex': 'Evaporation',
+                'En': 'Evaporation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'evspsblpot': {
+                'EPm': 'Potential Evaporation',
+                'EPx': 'Potential Evaporation',
+                'EPn': 'Potential Evaporation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'psl': {
+                'PSLm': 'Sea Level Pressure',
+                'PSLx': 'Sea Level Pressure',
+                'PSLn': 'Sea Level Pressure',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'ps': {
+                'PSm': 'Surface Pressure',
+                'PSx': 'Surface Pressure',
+                'PSn': 'Surface Pressure',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'mrro': {
+                'RUNOFFm': 'Mean Runoff',
+                'RUNOFFx': 'Maximum Runoff',
+                'RUNOFFn': 'Minimum Runoff',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'mrso': {
+                'SOILMOISTUREm': 'Mean Soil Water Content',
+                'SOILMOISTUREx': 'Maximum Soil Water Content',
+                'SOILMOISTUREn': 'Minimum Soil Water Content',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
             },
             'myTargetVar': {
                 'm': 'Mean value',
@@ -1424,7 +1523,7 @@ class tabTasmax(tk.Frame):
     def __init__(self, notebook):
         targetVar = 'tasmax'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='T1')
         # notebook.add(tab, text='Temperature: max')
 
         frames = []
@@ -1479,7 +1578,7 @@ class tabTasmin(tk.Frame):
     def __init__(self, notebook):
         targetVar = 'tasmin'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='T2')
         # notebook.add(tab, text='Temperature: min')
 
 
@@ -1535,7 +1634,7 @@ class tabTas(tk.Frame):
     def __init__(self, notebook):
         targetVar = 'tas'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='T3')
         # notebook.add(tab, text='Temperature: mean')
 
 
@@ -1593,7 +1692,7 @@ class tabPr(tk.Frame):
 
         targetVar = 'pr'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='P')
         # notebook.add(tab, text='Precipitation')
 
 
@@ -1650,7 +1749,7 @@ class tabUas(tk.Frame):
 
         targetVar = 'uas'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='W1 ')
         # notebook.add(tab, text='Wind: u')
 
 
@@ -1707,7 +1806,7 @@ class tabVas(tk.Frame):
 
         targetVar = 'vas'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='W2')
         # notebook.add(tab, text='Wind: v')
 
 
@@ -1763,7 +1862,7 @@ class tabSfcWind(tk.Frame):
 
         targetVar = 'sfcWind'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='W3')
         # notebook.add(tab, text='Wind: speed')
 
 
@@ -1820,7 +1919,7 @@ class tabHurs(tk.Frame):
 
         targetVar = 'hurs'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        notebook.add(tab, text='H1')
         # notebook.add(tab, text='Humidity')
 
 
@@ -1871,17 +1970,14 @@ class tabHurs(tk.Frame):
 
 
 ########################################################################################################################
-class tabClt(tk.Frame):
+class tabHuss(tk.Frame):
 
     def __init__(self, notebook):
 
-        targetVar = 'clt'
+        targetVar = 'huss'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
-        # notebook.add(tab, text='Clouds')
-
-        irow, icol = 0, 0
-        Label(tab, text="Cloud Cover").grid(column=icol, row=irow, padx=100, pady=(20, 0), columnspan=100); irow+=1
+        notebook.add(tab, text='H2')
+        # notebook.add(tab, text='Humidity')
 
 
         frames = []
@@ -1891,7 +1987,513 @@ class tabClt(tk.Frame):
         self.targetVar_active_var = tk.BooleanVar(value=False)
         if targetVar in targetVars:
             self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Specific Humidity', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabClt(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'clt'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='R1')
+        # notebook.add(tab, text='Clouds')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
         c = Checkbutton(tab, text='Cloud Cover', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabRsds(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'rsds'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='R2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Surface Downwelling Shortwave Radiation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabRlds(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'rlds'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='R3')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Surface Downwelling Longwave Radiation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabEvspsbl(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'evspsbl'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='E1')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Evaporation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabEvspsblpot(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'evspsblpot'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='E2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Potential Evaporation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+
+########################################################################################################################
+class tabPsl(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'psl'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='PS1')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Sea Level Pressure', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabPs(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'ps'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='PS2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Surface Pressure', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabMrro(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'mrro'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='S1')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Total Runoff', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+
+########################################################################################################################
+class tabMrso(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'mrso'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='S2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Soil Water Content', variable=self.targetVar_active_var,
                         command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
@@ -2373,13 +2975,34 @@ class selectionWindow():
         self.targetVars_dict.update({'sfcWind': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabHurs(notebook).get()
         self.targetVars_dict.update({'hurs': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabHuss(notebook).get()
+        self.targetVars_dict.update({'huss': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabClt(notebook).get()
         self.targetVars_dict.update({'clt': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabRsds(notebook).get()
+        self.targetVars_dict.update({'rsds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabRlds(notebook).get()
+        self.targetVars_dict.update({'rlds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabEvspsbl(notebook).get()
+        self.targetVars_dict.update({'evspsbl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabEvspsblpot(notebook).get()
+        self.targetVars_dict.update({'evspsblpot': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabPsl(notebook).get()
+        self.targetVars_dict.update({'psl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabPs(notebook).get()
+        self.targetVars_dict.update({'ps': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabMrro(notebook).get()
+        self.targetVars_dict.update({'mrro': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabMrso(notebook).get()
+        self.targetVars_dict.update({'mrso': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+
         aux = tabMyTargetVar(notebook).get()
         self.targetVars_dict.update({'myTargetVar': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
 
         # Tab: visualization
         tabFigures(notebook)
+
+
 
         # Logo
         w = 120

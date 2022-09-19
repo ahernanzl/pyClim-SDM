@@ -241,7 +241,8 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
         # Calculate climdex for iyear
         if climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
             results.append(np.nanpercentile(data_year, int(climdex_name[1:]), axis=0))
-        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'CLTm', 'm'):
+        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'HUSSm', 'CLTm',
+                              'RSDSm', 'RLDSm', 'Em', 'EPm', 'PSLm', 'PSm', 'RUNOFFm', 'SOILMOISTUREm', 'm'):
             results.append(np.nanmean(data_year, axis=0))
         elif climdex_name in ('TX90p', 'TN90p', '90p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
@@ -255,9 +256,11 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
         elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'x'):
+        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'HUSSx',
+                              'RSDSx', 'RLDSx', 'Ex', 'EPx', 'PSLx', 'PSx', 'RUNOFFx', 'SOILMOISTUREx','x'):
             results.append(np.nanmax(data_year, axis=0))
-        elif climdex_name in ('TXn', 'TNn', 'Tn', 'n'):
+        elif climdex_name in ('TXn', 'TNn', 'Tn', 'HUSSn',
+                              'RSDSn', 'RLDSn', 'En', 'EPn', 'PSLn', 'PSn', 'RUNOFFn', 'SOILMOISTUREn''n'):
             results.append(np.nanmin(data_year, axis=0))
         elif climdex_name == 'WSDI':
             results.append(get_spell_duration(data_year > aux, climdex_name))

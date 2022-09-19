@@ -115,6 +115,7 @@ def standardize(targetVar, data, model, grid):
     """Provided the data array, it is standardized and returned """
 
     pathIn=pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar.upper()+'/'
+    warnings.filterwarnings("ignore")
 
     # Get mean and std
     if mean_and_std_from_GCM == True and model != 'reanalysis':

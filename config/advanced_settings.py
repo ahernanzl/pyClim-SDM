@@ -34,7 +34,16 @@ interp_mode = 'bilinear'
 
 
 ###################################     predictands           #################################################
-all_possible_targetVars = ['tasmax', 'tasmin', 'tas', 'pr', 'uas', 'vas', 'sfcWind', 'hurs', 'clt']
+all_possible_targetVars = [
+    'tasmax', 'tasmin', 'tas',
+    'pr',
+    'uas', 'vas', 'sfcWind',
+    'hurs', 'huss',
+    'clt', 'rsds', 'rlds',
+    'evspsbl', 'evspsblpot',
+    'psl', 'ps',
+    'mrro', 'mrso',
+    ]
 
 ###################################     myTargetVar           #################################################
 if 'myTargetVar' in targetVars:
@@ -73,7 +82,16 @@ predictands_codification = {
     'vas': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
     'sfcWind': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
     'hurs': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
-    'clt': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
+    'huss': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
+    'clt': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
+    'rsds': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
+    'rlds': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
+    'evspsbl': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
+    'evspsblpot': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
+    'psl': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
+    'ps': {'type': 'uint32', 'min_valid': 0, 'max_valid': 42949672.94, 'special_value': 42949672.95},
+    'mrro': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
+    'mrso': {'type': 'uint16', 'min_valid': 0, 'max_valid': 655.34, 'special_value': 655.35},
 }
 if myTargetVar in targetVars:
     predictands_codification.update(
@@ -92,7 +110,16 @@ predictands_range = {
     'vas': {'min': None, 'max': None},
     'sfcWind': {'min': 0, 'max': None},
     'hurs': {'min': 0, 'max': 100},
+    'huss': {'min': 0, 'max': None},
     'clt': {'min': 0, 'max': 100},
+    'rsds': {'min': 0, 'max': None},
+    'rlds': {'min': 0, 'max': None},
+    'evspsbl': {'min': 0, 'max': None},
+    'evspsblpot': {'min': 0, 'max': None},
+    'psl': {'min': 0, 'max': None},
+    'ps': {'min': 0, 'max': None},
+    'mrro': {'min': 0, 'max': None},
+    'mrso': {'min': 0, 'max': None},
 }
 if myTargetVar in targetVars:
     predictands_range.update({myTargetVar: {'min': myTargetVarMinAllowed, 'max': myTargetVarMaxAllowed}})
@@ -108,7 +135,16 @@ predictands_units = {
     'vas': 'm/s',
     'sfcWind': 'm/s',
     'hurs': '%',
+    'huss': '1',
     'clt': '%',
+    'rsds': 'W/m2',
+    'rlds': 'W/m2',
+    'evspsbl': 'kg m-2 s-1',
+    'evspsblpot': 'kg m-2 s-1',
+    'psl': 'Pa',
+    'ps': 'Pa',
+    'mrro': 'kg m-2 s-1',
+    'mrso': 'kg m-2',
 }
 if myTargetVar in targetVars:
     predictands_units.update({myTargetVar: myTargetVarUnits})
@@ -160,7 +196,16 @@ anal_corr_th_dict = {
     'vas': 0.7,
     'sfcWind': 0.7,
     'hurs': 0.7,
+    'huss': 0.7,
     'clt': 0.7,
+    'rsds': 0.7,
+    'rlds': 0.7,
+    'evspsbl': 0.7,
+    'evspsblpot': 0.7,
+    'psl': 0.7,
+    'ps': 0.7,
+    'mrro': 0.7,
+    'mrso': 0.7,
 }
 if myTargetVar in targetVars:
     anal_corr_th_dict.update({myTargetVar: .5})
@@ -704,6 +749,16 @@ units_and_biasMode_climdex = {
     'hurs_p5': {'units': '%', 'biasMode': 'abs'},
     'hurs_p1': {'units': '%', 'biasMode': 'abs'},
 
+    'huss_HUSSm': {'units': '%', 'biasMode': 'rel'},
+    'huss_HUSSx': {'units': '%', 'biasMode': 'rel'},
+    'huss_HUSSn': {'units': '%', 'biasMode': 'rel'},
+    'huss_p99': {'units': '%', 'biasMode': 'rel'},
+    'huss_p95': {'units': '%', 'biasMode': 'rel'},
+    'huss_p90': {'units': '%', 'biasMode': 'rel'},
+    'huss_p10': {'units': '%', 'biasMode': 'rel'},
+    'huss_p5': {'units': '%', 'biasMode': 'rel'},
+    'huss_p1': {'units': '%', 'biasMode': 'rel'},
+
     'clt_CLTm': {'units': '%', 'biasMode': 'abs'},
     'clt_p99': {'units': '%', 'biasMode': 'abs'},
     'clt_p95': {'units': '%', 'biasMode': 'abs'},
@@ -711,6 +766,86 @@ units_and_biasMode_climdex = {
     'clt_p10': {'units': '%', 'biasMode': 'abs'},
     'clt_p5': {'units': '%', 'biasMode': 'abs'},
     'clt_p1': {'units': '%', 'biasMode': 'abs'},
+
+    'rsds_RSDSm': {'units': '%', 'biasMode': 'rel'},
+    'rsds_RSDSx': {'units': '%', 'biasMode': 'rel'},
+    'rsds_RSDSn': {'units': '%', 'biasMode': 'rel'},
+    'rsds_p99': {'units': '%', 'biasMode': 'rel'},
+    'rsds_p95': {'units': '%', 'biasMode': 'rel'},
+    'rsds_p90': {'units': '%', 'biasMode': 'rel'},
+    'rsds_p10': {'units': '%', 'biasMode': 'rel'},
+    'rsds_p5': {'units': '%', 'biasMode': 'rel'},
+    'rsds_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'rlds_RLDSm': {'units': '%', 'biasMode': 'rel'},
+    'rlds_RLDSx': {'units': '%', 'biasMode': 'rel'},
+    'rlds_RLDSn': {'units': '%', 'biasMode': 'rel'},
+    'rlds_p99': {'units': '%', 'biasMode': 'rel'},
+    'rlds_p95': {'units': '%', 'biasMode': 'rel'},
+    'rlds_p90': {'units': '%', 'biasMode': 'rel'},
+    'rlds_p10': {'units': '%', 'biasMode': 'rel'},
+    'rlds_p5': {'units': '%', 'biasMode': 'rel'},
+    'rlds_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'e_Em': {'units': '%', 'biasMode': 'rel'},
+    'e_Ex': {'units': '%', 'biasMode': 'rel'},
+    'e_En': {'units': '%', 'biasMode': 'rel'},
+    'e_p99': {'units': '%', 'biasMode': 'rel'},
+    'e_p95': {'units': '%', 'biasMode': 'rel'},
+    'e_p90': {'units': '%', 'biasMode': 'rel'},
+    'e_p10': {'units': '%', 'biasMode': 'rel'},
+    'e_p5': {'units': '%', 'biasMode': 'rel'},
+    'e_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'ep_EPm': {'units': '%', 'biasMode': 'rel'},
+    'ep_EPx': {'units': '%', 'biasMode': 'rel'},
+    'ep_EPn': {'units': '%', 'biasMode': 'rel'},
+    'ep_p99': {'units': '%', 'biasMode': 'rel'},
+    'ep_p95': {'units': '%', 'biasMode': 'rel'},
+    'ep_p90': {'units': '%', 'biasMode': 'rel'},
+    'ep_p10': {'units': '%', 'biasMode': 'rel'},
+    'ep_p5': {'units': '%', 'biasMode': 'rel'},
+    'ep_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'psl_PSLm': {'units': '%', 'biasMode': 'rel'},
+    'psl_PSLx': {'units': '%', 'biasMode': 'rel'},
+    'psl_PSLn': {'units': '%', 'biasMode': 'rel'},
+    'psl_p99': {'units': '%', 'biasMode': 'rel'},
+    'psl_p95': {'units': '%', 'biasMode': 'rel'},
+    'psl_p90': {'units': '%', 'biasMode': 'rel'},
+    'psl_p10': {'units': '%', 'biasMode': 'rel'},
+    'psl_p5': {'units': '%', 'biasMode': 'rel'},
+    'psl_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'ps_PSm': {'units': '%', 'biasMode': 'rel'},
+    'ps_PSx': {'units': '%', 'biasMode': 'rel'},
+    'ps_PSn': {'units': '%', 'biasMode': 'rel'},
+    'ps_p99': {'units': '%', 'biasMode': 'rel'},
+    'ps_p95': {'units': '%', 'biasMode': 'rel'},
+    'ps_p90': {'units': '%', 'biasMode': 'rel'},
+    'ps_p10': {'units': '%', 'biasMode': 'rel'},
+    'ps_p5': {'units': '%', 'biasMode': 'rel'},
+    'ps_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'mrro_RUNOFFm': {'units': '%', 'biasMode': 'rel'},
+    'mrro_RUNOFFx': {'units': '%', 'biasMode': 'rel'},
+    'mrro_RUNOFFn': {'units': '%', 'biasMode': 'rel'},
+    'mrro_p99': {'units': '%', 'biasMode': 'rel'},
+    'mrro_p95': {'units': '%', 'biasMode': 'rel'},
+    'mrro_p90': {'units': '%', 'biasMode': 'rel'},
+    'mrro_p10': {'units': '%', 'biasMode': 'rel'},
+    'mrro_p5': {'units': '%', 'biasMode': 'rel'},
+    'mrro_p1': {'units': '%', 'biasMode': 'rel'},
+
+    'mrso_SOILMOISTUREm': {'units': '%', 'biasMode': 'rel'},
+    'mrso_SOILMOISTUREx': {'units': '%', 'biasMode': 'rel'},
+    'mrso_SOILMOISTUREn': {'units': '%', 'biasMode': 'rel'},
+    'mrso_p99': {'units': '%', 'biasMode': 'rel'},
+    'mrso_p95': {'units': '%', 'biasMode': 'rel'},
+    'mrso_p90': {'units': '%', 'biasMode': 'rel'},
+    'mrso_p10': {'units': '%', 'biasMode': 'rel'},
+    'mrso_p5': {'units': '%', 'biasMode': 'rel'},
+    'mrso_p1': {'units': '%', 'biasMode': 'rel'},
 }
 if myTargetVar in targetVars:
     if myTargetVarIsAdditive == True:
@@ -793,3 +928,4 @@ methods_linestyles = {
     'WG-PDF': '-',
     'WG-NMM': '--',
 }
+
