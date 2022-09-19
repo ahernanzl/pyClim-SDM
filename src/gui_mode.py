@@ -562,7 +562,7 @@ class tabDomain(tk.Frame):
         # reaNames and modNames
         self.reaNames = {}
         self.modNames = {}
-        ncols = 13
+        ncols = 14
         all_vars = {
                 'tasmax': 'Surface maximum temperature',
                 'tasmin': 'Surface minimum temperature',
@@ -584,6 +584,12 @@ class tabDomain(tk.Frame):
                 'hur': 'Relative humidity',
                 'td': 'Dew point',
                 'psl': 'Mean sea level pressure',
+                'rsds': 'Surface Downwelling Shortwave Radiation',
+                'rlds': 'Surface Downwelling Longwave Radiation',
+                'evspsbl': 'Evaporation',
+                'evspsblpot': 'Potential evaporation',
+                'mrro': 'Total runoff',
+                'mrso': 'Soil water content',
         }
         for var in all_vars:
 
