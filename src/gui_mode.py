@@ -842,7 +842,7 @@ class tabDates(tk.Frame):
             icol -= 1
 
         icol, irow = 0, 0
-        Label(frameSeasons, text='Defina season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
+        Label(frameSeasons, text='Define season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
         for (xMonth, text, seasonName) in [
             (0, 'All year:', inverse_seasonNames[0]),
             (1, 'Jan:', inverse_seasonNames[1]),
