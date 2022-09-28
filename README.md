@@ -29,7 +29,7 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).
 - **DQM**: Detrended Quantile Mapping (Cannon *et al.*, 2015). Quantile adjustment over detrended series.
 - **QDM**: Quantile Delta Mapping in (Cannon *et al.*, 2015). Delta change over quantiles.
-- **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2021).
+- **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2017).
 ### Analogs / Weather Typing:
 - **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).
 - **ANA-LOC**: Same as ANA-SYN but using synoptic+local analogy. See Petisco de Lara, (2008a), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
@@ -42,10 +42,10 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 ### Machine Learning:
 - **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
 - **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
-- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range.
-- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range.
+- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
+- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
 - **ANN**: Artificial Neural Networks. Non-linear machine learning classification/regression. See García-Valero (2021) and Hernanz *et al.* (2021).
-- **CNN**: Convoltional Neural Networks. Non-linear machine learning classification/regression. 
+- **CNN**: Convolutional Neural Networks. Non-linear machine learning classification/regression. 
 ### Weather Generators:
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 - **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).

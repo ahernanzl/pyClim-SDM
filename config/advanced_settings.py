@@ -521,8 +521,20 @@ target_type = 'gridded_data'
 # target_type = 'stations'
 
 hres_npoints, hres_lats, hres_lons = {}, {}, {}
-targetVars = [x for x in targetVars if os.path.isfile(pathHres + x + '_hres_metadata.txt')
-              and os.path.isfile(pathHres + x + '_'+hresPeriodFilename[x]+'.txt')]
+
+aux = []
+for targetVar in targetVars:
+    if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
+        if os.path.isfile(pathHres + targetVar + '_'+hresPeriodFilename[targetVar]+'.txt'):
+            aux.append(targetVar)
+        else:
+            for file in os.listdir(pathHres):
+                if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
+                    newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
+                    hresPeriodFilename.update({targetVar: newHresPeriodFilename})
+                aux.append(targetVar)
+targetVars = aux
+
 for targetVar in targetVars:
     aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt')
     hres_npoints.update({targetVar: aux_hres_metadata.shape[0]})
