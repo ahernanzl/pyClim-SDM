@@ -67,25 +67,7 @@ requirements.txt. You can install them by following these steps:
 
 # How to use
 
-* For your first steps you can use some example datsets included in the 'input_data_template' just by renaming this folder as 'input_data', but limit your selection to the default sets of predictors and target variables. Be aware that only a few predictors have been included as well as few target points, so no conclusion about the methods skill must be reached using these data
-* Open a terminal, go to the src/ directory and run 'python gui_mode.py'
-* Alternatively, pyClim-SDM can be used without the graphical interface by running manual_mode.py and tuning the config/manual_settings.py file.
-* In order to use your own datasets, spatial domain, etc., prepare your 'input_data' directory following the structure and format of the 'input_data_template'. Beware that the targetVariables themselves, given by reanalysis/GCMs are mandatory files for some methods and purposes. 
-    * hres format (high-resolution observations): 
-        * One row per date. The first column corresponds to the date yyyymmdd, and the other rows (as many as target points) containing data (1D flatten list of points). Missing data must be coded as -999. 
-        * Temperature (tas/tasmax/tasmin) in degrees
-        * Precipitation (pr) in mm
-        * Wind (uas/vas/sfcWind) in m/s
-        * Relative humidity (hurs) in %
-        * Specific humidity (huss) dimensionless
-        * Cloud cover (clt) in %
-        * Radiation (shortwave rsds and longwave rlds) in W/m2
-        * Evaporation (evspsbl) and potential evaporation (evspsblpot) in kg m-2 s-1
-        * Sea level and surface pressure (psl and ps) in Pa
-        * Total runoff (mrro) in kg m-2 s-1
-        * Soil water content (mrso) in kg m-2
-    * Reanalysis and models format (low resolution predictors for calibration and downscaling): One netCDF file per variable, models and scene, with all pressure levels, in a regular 2D grid. 
-* When working in a HPC, define partition name at config/advanced_settings.py and tune jobs specifications at lib/launch_jobs.py.
+Click [here](doc/User_Manual.pdf) to read the pyClim-SDM User Manual 
 
 
 # References
