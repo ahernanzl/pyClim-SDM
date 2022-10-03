@@ -47,20 +47,32 @@ all_possible_targetVars = [
 
 ###################################     myTargetVar           #################################################
 if 'myTargetVar' in targetVars:
-
     myTargetVar = myTargetVarName
 
     targetVars.remove('myTargetVar')
     targetVars.append(myTargetVar)
 
     # Define myTargetVar reaNames and modNames
-    reaNames.update({myTargetVar: myTargetVar})
-    modNames.update({myTargetVar: myTargetVar})
-
-    methods[myTargetVar] = methods.pop('myTargetVar')
-    hresPeriodFilename[myTargetVar] = hresPeriodFilename.pop('myTargetVar')
-    preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
-    climdex_names[myTargetVar] = climdex_names.pop('myTargetVar')
+    try:
+        reaNames.update({myTargetVar: myTargetVar})
+    except:
+        pass
+    try:
+        modNames.update({myTargetVar: myTargetVar})
+    except:
+        pass
+    try:
+        methods[myTargetVar] = methods.pop('myTargetVar')
+    except:
+        pass
+    try:
+        preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
+    except:
+        pass
+    try:
+        climdex_names[myTargetVar] = climdex_names.pop('myTargetVar')
+    except:
+        pass
     # climdex_names[myTargetVar] = [x.replace('MYTARGETVAR', myTargetVar.upper()) for x in climdex_names[myTargetVar]]
 
     # Define whether myTargetVar can be treated as gaussian
@@ -265,6 +277,21 @@ else:
 
 ########################################       DATES      ##############################################################
 # Definition of testing_years and historical_years depending on the experiment (do not change)
+nyears = calibration_years[1]-calibration_years[0]+1
+block = nyears//5
+rest = nyears%5
+blocks = [block, block, block, block, block, ]
+for i in range(rest):
+    blocks[i] += 1
+first_years = [calibration_years[0],]
+for i in range(4):
+    first_years.append(first_years[i]+blocks[i])
+
+fold1_testing_years = (first_years[0], first_years[0]+blocks[0]-1)
+fold2_testing_years = (first_years[1], first_years[1]+blocks[1]-1)
+fold3_testing_years = (first_years[2], first_years[2]+blocks[2]-1)
+fold4_testing_years = (first_years[3], first_years[3]+blocks[3]-1)
+fold5_testing_years = (first_years[4], first_years[4]+blocks[4]-1)
 
 if split_mode == 'all_training':
     testing_years = (calibration_years[1] + 1, calibration_years[1] + 2)
@@ -284,6 +311,66 @@ elif split_mode == 'fold5':
     testing_years = fold5_testing_years
 
 biasCorr_years = reference_years
+
+# Detect reanalysisPeriodFilename
+reanalysisPeriodFilenames = []
+for file in os.listdir('../input_data/reanalysis/'):
+    if file.endswith(".nc"):
+        aux = file.split('_')[-1].split('.')[0]
+        if aux[4:8] != '0101' or aux[-4:] != '1231':
+            print('Invalid filename at input_data/reanalysis/: ' + file)
+            print('Please, modify filename')
+            exit()
+        else:
+            if aux not in reanalysisPeriodFilenames:
+                reanalysisPeriodFilenames.append(aux)
+if len(reanalysisPeriodFilenames) > 1:
+    print('Different periods detected at input_data/reanalysis/: ' + reanalysisPeriodFilenames)
+    print('Please, modify filenames so all files contain the same period.')
+    exit()
+elif len(reanalysisPeriodFilenames) == 1:
+    reanalysisPeriodFilename = reanalysisPeriodFilenames[0]
+
+
+# Detect historicalPeriodFilename, sspPeriodFilename, historical_years  and ssp_years
+historicalPeriodFilenames = []
+sspPeriodFilenames = []
+if os.path.exists('../input_data/models/'):
+    for file in os.listdir('../input_data/models/'):
+        if file.endswith(".nc"):
+            aux = file.split('_')[-1].split('.')[0]
+            if aux[4:8] != '0101' or aux[-4:] != '1231':
+                print('Invalid filename at input_data/models/: ' + file)
+                print('Please, modify filename')
+                exit()
+            else:
+                if 'historical' in file:
+                    if aux not in historicalPeriodFilenames:
+                        historicalPeriodFilenames.append(aux)
+                else:
+                    if aux not in sspPeriodFilenames:
+                        sspPeriodFilenames.append(aux)
+if len(historicalPeriodFilenames) > 1:
+    print('Different periods detected at input_data/models/: ' + historicalPeriodFilenames)
+    print('Please, modify filenames so all files contain the same period.')
+    exit()
+elif len(historicalPeriodFilenames) == 1:
+    historicalPeriodFilename = historicalPeriodFilenames[0]
+    historical_years = (int(historicalPeriodFilenames[0][:4]), int(historicalPeriodFilenames[0][9:13]))
+elif len(historicalPeriodFilenames) == 0:
+    historicalPeriodFilename = ''
+    historical_years = ('', '')
+
+if len(sspPeriodFilenames) > 1:
+    print('Different periods detected at input_data/models/: ' + sspPeriodFilenames)
+    print('Please, modify filenames so all files contain the same period.')
+    exit()
+elif len(sspPeriodFilenames) == 1:
+    sspPeriodFilename = sspPeriodFilenames[0]
+    ssp_years = (int(sspPeriodFilenames[0][:4]), int(sspPeriodFilenames[0][9:13]))
+elif len(sspPeriodFilenames) == 0:
+    sspPeriodFilename = ''
+    ssp_years = ('', '')
 
 if experiment == 'PSEUDOREALITY':
     calibration_years = (1961, 2005)
@@ -523,16 +610,15 @@ target_type = 'gridded_data'
 hres_npoints, hres_lats, hres_lons = {}, {}, {}
 
 aux = []
+hresPeriodFilename = {}
 for targetVar in targetVars:
     if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
-        if os.path.isfile(pathHres + targetVar + '_'+hresPeriodFilename[targetVar]+'.txt'):
+        for file in os.listdir(pathHres):
+            if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
+                newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
+                hresPeriodFilename.update({targetVar: newHresPeriodFilename})
+        if targetVar not in aux:
             aux.append(targetVar)
-        else:
-            for file in os.listdir(pathHres):
-                if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
-                    newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
-                    hresPeriodFilename.update({targetVar: newHresPeriodFilename})
-                aux.append(targetVar)
 targetVars = aux
 
 for targetVar in targetVars:
@@ -570,12 +656,75 @@ if 'lat' in nc.variables:
 elif 'latitude' in nc.variables:
     lat_name, lon_name = 'latitude', 'longitude'
 lats = nc.variables[lat_name][:]
+grid_res = abs(lats[0]-lats[1])
 lons = nc.variables[lon_name][:]
 lons[lons > 180] -= 360
-saf_lat_down = np.min(lats[lats >= saf_lat_down])
-saf_lat_up = np.max(lats[lats <= saf_lat_up])
-saf_lon_left = np.min(lons[lons >= saf_lon_left])
-saf_lon_right = np.max(lons[lons <= saf_lon_right])
+
+# force saf_lat_down
+try:
+    old = saf_lat_down
+    saf_lat_down = np.min(lats[lats >= saf_lat_down])
+    if old != saf_lat_down:
+        print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
+except:
+    try:
+        old = saf_lat_down
+        saf_lat_down = np.max(lats[lats <= np.min(hres_lats_all)])
+        if old != saf_lat_down:
+            print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
+    except:
+        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
+        exit()
+
+# force saf_lat_up
+try:
+    old = saf_lat_up
+    saf_lat_up = np.max(lats[lats <= saf_lat_up])
+    if old != saf_lat_up:
+        print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
+except:
+    try:
+        old = saf_lat_up
+        saf_lat_up = np.min(lats[lats >= np.max(hres_lats_all)])
+        if old != saf_lat_up:
+            print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
+    except:
+        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
+        exit()
+
+
+# force saf_lon_left
+try:
+    old = saf_lon_left
+    saf_lon_left = np.min(lons[lons >= saf_lon_left])
+    if old != saf_lon_left:
+        print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
+except:
+    try:
+        old = saf_lon_left
+        saf_lon_left = np.max(lons[lons <= np.min(hres_lons_all)])
+        if old != saf_lon_left:
+            print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
+    except:
+        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
+        exit()
+
+# force saf_lon_right
+try:
+    old = saf_lon_right
+    saf_lon_right = np.max(lons[lons <= saf_lon_right])
+    if old != saf_lon_right:
+        print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
+except:
+    try:
+        old = saf_lon_right
+        saf_lon_right = np.min(lons[lons >= np.max(hres_lons_all)])
+        if old != saf_lon_right:
+            print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
+    except:
+        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
+        exit()
+
 
 # ext
 ext_lat_up, ext_lat_down = saf_lat_up + grid_res, saf_lat_down - grid_res
@@ -598,8 +747,7 @@ saf_ilons = [i for i in range(ext_nlons) if ext_lons[i] in saf_lons]
 # Check that hres_points are fully contained in the defined domain
 if saf_lats[saf_lats >= np.max(hres_lats_all)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats_all)].size == 0 or \
         saf_lons[saf_lons >= np.max(hres_lons_all)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons_all)].size == 0:
-    print('hres_points are not fully contained inside the domain defined for Synoptic Analogy Fields')
-    print('Please, define a larger domain')
+    print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
     exit()
 
 # pred grid (for predictors). Smaller area which covers, at least, the target region.
