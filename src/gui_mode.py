@@ -515,7 +515,8 @@ class tabDomain(tk.Frame):
         lab.grid(sticky="W", column=icol, row=irow, padx=10, columnspan=5); icol+=2
         grid_resTesting_Entry = ttk.Entry(frameDomain, textvariable=self.grid_res_var, width=4, justify='right', takefocus=False)
         grid_resTesting_Entry.insert(END, grid_res)
-        CreateToolTip(lab, 'Grid resolution (reanalysis and models)')
+        CreateToolTip(lab, 'Grid resolution from reanalysis and models (automatically detected)')
+        grid_resTesting_Entry.config(state='disabled')
         grid_resTesting_Entry.grid(sticky="W", column=icol+1, row=irow)
         irow+=1; icol-=2
 
@@ -668,8 +669,6 @@ class tabDates(tk.Frame):
             ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
                                             'The choice of the reference period is constrained by availability of \n'
                                             'reanalysis, historical GCMs and hres data.'),
-            ('Historical years:', historical_years, 'For historical projections'),
-            ('SSPs years:', ssp_years, 'For future projections'),
             ]:
 
             lab = tk.Label(frameDates, text=text)
@@ -692,37 +691,11 @@ class tabDates(tk.Frame):
                 self.calibration_years = (firstYear_var, lastYear_var)
             elif text == 'Reference years:':
                 self.reference_years = (firstYear_var, lastYear_var)
-            elif text == 'Historical years:':
-                self.historical_years = (firstYear_var, lastYear_var)
-            elif text == 'SSPs years:':
-                self.ssp_years = (firstYear_var, lastYear_var)
             icol -= 2
 
 
 
         entriesW = 17
-
-        # reanalysisPeriodFilename
-        self.reanalysisPeriodFilename_var = tk.StringVar()
-        Label(frameDates, text='Reanalysis period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        reanalysisPeriodFilename_Entry = ttk.Entry(frameDates, textvariable=self.reanalysisPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        reanalysisPeriodFilename_Entry.insert(END, reanalysisPeriodFilename)
-        reanalysisPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
-
-        # historicalPeriodFilename
-        self.historicalPeriodFilename_var = tk.StringVar()
-        Label(frameDates, text='Historical period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        historicalPeriodFilename_Entry = ttk.Entry(frameDates, textvariable=self.historicalPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        historicalPeriodFilename_Entry.insert(END, historicalPeriodFilename)
-        historicalPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
-
-        # sspPeriodFilename
-        self.sspPeriodFilename_var = tk.StringVar()
-        Label(frameDates, text='SSP period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        sspPeriodFilename_Entry = ttk.Entry(frameDates, textvariable=self.sspPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        sspPeriodFilename_Entry.insert(END, sspPeriodFilename)
-        sspPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
-
 
         # Bias correction
         irow, icol = 0, 0
@@ -732,7 +705,7 @@ class tabDates(tk.Frame):
             'Yes': 'Apply bias correction after downscaling.',
             'By season': 'Apply a customized bias correction after downscaling for each season.',
         }
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=30, columnspan=3); irow+=1
         Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
         if apply_bc == False:
             last_bc_opt = 'No'
@@ -769,13 +742,8 @@ class tabDates(tk.Frame):
         irow, icol = 0, 0
         Label(frameSplitMode, text='Define how to split the calibration period for training/testing:')\
             .grid(sticky="W", column=icol, row=irow, columnspan=10, padx=30, pady=10); irow += 1; icol+=2
-        Label(frameSplitMode, text='Testing years:')\
-            .grid(column=icol, row=irow, columnspan=4);
-        irow += 1; icol-=1
-
 
         def add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol):
-
 
             c = Radiobutton(frameSplitMode, text=str(text), variable=self.split_mode, value=split_modeName,
                             command=lambda: switch_splitMode(split_modeName, self.dict_buttons), takefocus=False)
@@ -784,7 +752,7 @@ class tabDates(tk.Frame):
             CreateToolTip(c, info)
             self.split_mode.set(split_mode)
 
-            if split_modeName in ('single_split', 'fold1', 'fold2', 'fold3', 'fold4', 'fold5'):
+            if split_modeName in ('single_split', ):
                 icol+=2
                 firstYear, lastYear = years[0], years[1]
                 firstYear_var = tk.StringVar()
@@ -816,12 +784,12 @@ class tabDates(tk.Frame):
         for (text, split_modeName, years, info) in [
             ('All training', 'all_training', None, 'The whole calibration period is used for training'),
             ('All testing', 'all_testing', None, 'The whole calibration period is used for testing'),
-            ('Single train/test split', 'single_split', single_split_testing_years, 'Single train/test split'),
-            ('k-fold 1/5', 'fold1', fold1_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 2/5', 'fold2', fold2_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 3/5', 'fold3', fold3_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 4/5', 'fold4', fold4_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 5/5', 'fold5', fold5_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('Testing years', 'single_split', single_split_testing_years, 'Single train/test split'),
+            ('k-fold 1/5', 'fold1', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 2/5', 'fold2', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 3/5', 'fold3', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 4/5', 'fold4', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 5/5', 'fold5', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
             ]:
 
             add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol)
@@ -842,7 +810,7 @@ class tabDates(tk.Frame):
             icol -= 1
 
         icol, irow = 0, 0
-        Label(frameSeasons, text='Define season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
+        Label(frameSeasons, text='Define season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=(35, 15), columnspan=5); irow+=1
         for (xMonth, text, seasonName) in [
             (0, 'All year:', inverse_seasonNames[0]),
             (1, 'Jan:', inverse_seasonNames[1]),
@@ -864,9 +832,8 @@ class tabDates(tk.Frame):
 
 
     def get(self):
-        return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.bc_option, \
-               self.bc_method, self.testing_years_dict, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
-               self.sspPeriodFilename_var, self.split_mode, self.seasons
+        return self.calibration_years, self.reference_years, self.bc_option, \
+               self.bc_method, self.testing_years_dict, self.split_mode, self.seasons
 
 
 
@@ -994,7 +961,7 @@ class frameTargetVarInfoClass(tk.Frame):
         irow = 0
         entriesW = 17
 
-        self.chk = {'hresPeriodFilename': tk.StringVar()}
+        self.chk = {}
 
         # try:
         #     isMyTargetVar = (targetVar == myTargetVar)
@@ -1042,17 +1009,6 @@ class frameTargetVarInfoClass(tk.Frame):
             modName_Entry = ttk.Entry(root, textvariable=self.chk['modName'], width=entriesW, justify='right', takefocus=False)
             modName_Entry.insert(END, modName)
             modName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
-
-
-        # hresPeriodFilename
-        Label(root, text='Hres period filename:').grid(sticky="NE", column=icol, row=irow, padx=10); icol+=1
-        hresPeriodFilename_Entry = ttk.Entry(root, textvariable=self.chk['hresPeriodFilename'], width=entriesW, justify='right', takefocus=False)
-        try:
-            hresPeriodFilename_Entry.insert(END, hresPeriodFilename[targetVar])
-        except:
-            hresPeriodFilename_Entry.insert(END, '')
-        hresPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
 
         if isMyTargetVar == True:
 
@@ -2556,7 +2512,6 @@ class tabMyTargetVar(tk.Frame):
             if methods[i]['var'] == myTargetVar:
                 methods[i]['var'] = 'myTargetVar'
         try:
-            hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
             preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
             climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
         except:
@@ -2955,9 +2910,8 @@ class selectionWindow():
             self.reanalysisName_var_chk = tabModelsAndScenes(notebook).get()
 
         # Tab: dates
-        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
-            self.bc_method_chk, self.testing_years_dict_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
-            self.sspPeriodFilename_var_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
+        self.calibration_years_chk, self.reference_years_chk, self.bc_option_chk, \
+            self.bc_method_chk, self.testing_years_dict_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
 
         # Tab: domain
         self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, self.saf_lon_right_var_chk, \
@@ -3086,9 +3040,7 @@ class selectionWindow():
                 if targetVar == 'myTargetVar':
                     targetVarName = self.targetVars_dict[targetVar]['info']['myTargetVarName'].get()
                 if self.all_checks_ok == True:
-                    aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
-                    if not os.path.isfile(pathHres + targetVarName + '_hres_metadata.txt') or \
-                            not os.path.isfile(pathHres + targetVarName + '_'+aux+'.txt'):
+                    if not os.path.isfile(pathHres + targetVarName + '_hres_metadata.txt'):
                         messagebox.showerror("pyClim-SDM",  'Missing hres data for variable ' + targetVarName + '.\n'
                            'Remove ' + targetVarName + ' from your selection or prepare the input_data/hres/ directory properly.')
                         self.all_checks_ok = False
@@ -3112,102 +3064,6 @@ class selectionWindow():
                         aux.append(method['methodName'])
                 if len(aux) != 0:
                     self.methods.update({targetVar: aux})
-
-            # Years
-            ini, end = [], []
-            for targetVar in self.targetVars:
-                aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
-                try:
-                    ini.append(int(aux.split('-')[0][:4]))
-                    end.append(int(aux.split('-')[1][:4]))
-                except:
-                    pass
-            ini = np.max(np.array(ini))
-            end = np.min(np.array(end))
-            self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
-            self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
-            self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
-            self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
-            self.all_years_hres = [x for x in range(ini, end+1)]
-            self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.reanalysisPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.historicalPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.sspPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-
-            # Force calibration years
-            if self.all_checks_ok == True:
-                year = self.aux_calibration_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-            if self.all_checks_ok == True:
-                year = self.aux_calibration_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force reference years
-            if self.all_checks_ok == True:
-                year = self.aux_reference_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-            if self.all_checks_ok == True:
-                year = self.aux_reference_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force historical years
-            if self.all_checks_ok == True:
-                year = self.aux_historical_years[0]
-                if year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_historical_years[1]
-                if year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force ssp years
-            if self.all_checks_ok == True:
-                year = self.aux_ssp_years[0]
-                if year not in self.all_years_ssp:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_ssp_years[1]
-                if year not in self.all_years_ssp:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
 
             # seasons
             if self.all_checks_ok == True:
@@ -3265,24 +3121,12 @@ class selectionWindow():
                 # Years
                 self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
                 self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
-                self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
-                self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
 
                 # split_mode and testing years
                 self.split_mode = self.split_mode_chk.get()
                 self.single_split_testing_years = (
                     self.testing_years_dict_chk['single_split'][0].get(),
                     self.testing_years_dict_chk['single_split'][1].get())
-                self.fold1_testing_years = (
-                    self.testing_years_dict_chk['fold1'][0].get(), self.testing_years_dict_chk['fold1'][1].get())
-                self.fold2_testing_years = (
-                    self.testing_years_dict_chk['fold2'][0].get(), self.testing_years_dict_chk['fold2'][1].get())
-                self.fold3_testing_years = (
-                    self.testing_years_dict_chk['fold3'][0].get(), self.testing_years_dict_chk['fold3'][1].get())
-                self.fold4_testing_years = (
-                    self.testing_years_dict_chk['fold4'][0].get(), self.testing_years_dict_chk['fold4'][1].get())
-                self.fold5_testing_years = (
-                    self.testing_years_dict_chk['fold5'][0].get(), self.testing_years_dict_chk['fold5'][1].get())
 
                 # grid_res
                 self.grid_res = self.grid_res_var_chk.get()
@@ -3316,15 +3160,7 @@ class selectionWindow():
                     for scene in otherScenes.split(';'):
                         self.scene_names_list.append(scene)
 
-                # period filenames
-                self.hresPeriodFilename = {}
-                for targetVar in self.targetVars:
-                    self.hresPeriodFilename.update({targetVar: self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()})
                 self.reanalysisName = self.reanalysisName_var_chk.get()
-                self.reanalysisPeriodFilename = self.reanalysisPeriodFilename_var_chk.get()
-                self.historicalPeriodFilename = self.historicalPeriodFilename_var_chk.get()
-                self.sspPeriodFilename = self.sspPeriodFilename_var_chk.get()
-
 
                 # reaNames and modNames
                 for var in self.reaNames:
@@ -3390,20 +3226,9 @@ class selectionWindow():
                 # print(self.methods)
                 # print(self.calibration_years)
                 # print(self.single_split_testing_years)
-                # print(self.fold1_testing_years)
-                # print(self.fold2_testing_years)
-                # print(self.fold3_testing_years)
-                # print(self.fold4_testing_years)
-                # print(self.fold5_testing_years)
                 # print(self.split_mode)
                 # print(self.reference_years)
-                # print(self.historical_years)
-                # print(self.ssp_years)
-                # print(self.hresPeriodFilename)
                 # print(self.reanalysisName)
-                # print(self.reanalysisPeriodFilename)
-                # print(self.historicalPeriodFilename)
-                # print(self.sspPeriodFilename)
                 # print(self.grid_res)
                 # print(self.saf_lat_up)
                 # print(self.saf_lat_down)
@@ -3429,12 +3254,8 @@ class selectionWindow():
 
                 # Write settings file
                 write_settings_file(self.showWelcomeMessage, self.experiment, self.targetVars, self.steps, self.methods,
-                                    self.calibration_years, self.single_split_testing_years,
-                                    self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
-                                    self.fold4_testing_years, self.fold5_testing_years, self.split_mode,
-                                    self.reference_years, self.historical_years, self.ssp_years,
-                                    self.hresPeriodFilename, self.reanalysisName, self.reanalysisPeriodFilename,
-                                    self.historicalPeriodFilename, self.sspPeriodFilename,
+                                    self.calibration_years, self.single_split_testing_years, self.split_mode,
+                                    self.reference_years, self.reanalysisName,
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
                                     self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
@@ -3467,12 +3288,8 @@ class selectionWindow():
 
 ########################################################################################################################
 def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, methods,
-                                calibration_years, single_split_testing_years,
-                                fold1_testing_years, fold2_testing_years, fold3_testing_years,
-                                fold4_testing_years, fold5_testing_years, split_mode,
-                                reference_years, historical_years, ssp_years,
-                                hresPeriodFilename, reanalysisName, reanalysisPeriodFilename,
-                                historicalPeriodFilename, sspPeriodFilename,
+                                calibration_years, single_split_testing_years, split_mode,
+                                reference_years, reanalysisName,
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
                                 reaNames, modNames, preds_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
@@ -3494,20 +3311,9 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("methods = " + str(methods) + "\n")
     f.write("calibration_years = (" + str(calibration_years[0]) + ", " + str(calibration_years[1]) + ")\n")
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
-    f.write("fold1_testing_years = (" + str(fold1_testing_years[0]) + ", " + str(fold1_testing_years[1]) + ")\n")
-    f.write("fold2_testing_years = (" + str(fold2_testing_years[0]) + ", " + str(fold2_testing_years[1]) + ")\n")
-    f.write("fold3_testing_years = (" + str(fold3_testing_years[0]) + ", " + str(fold3_testing_years[1]) + ")\n")
-    f.write("fold4_testing_years = (" + str(fold4_testing_years[0]) + ", " + str(fold4_testing_years[1]) + ")\n")
-    f.write("fold5_testing_years = (" + str(fold5_testing_years[0]) + ", " + str(fold5_testing_years[1]) + ")\n")
     f.write("split_mode = '" + str(split_mode) + "'\n")
     f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
-    f.write("historical_years = (" + str(historical_years[0]) + ", " + str(historical_years[1]) + ")\n")
-    f.write("ssp_years = (" + str(ssp_years[0]) + ", " + str(ssp_years[1]) + ")\n")
-    f.write("hresPeriodFilename = " + str(hresPeriodFilename) + "\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
-    f.write("reanalysisPeriodFilename = '" + str(reanalysisPeriodFilename) + "'\n")
-    f.write("historicalPeriodFilename = '" + str(historicalPeriodFilename) + "'\n")
-    f.write("sspPeriodFilename = '" + str(sspPeriodFilename) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
     f.write("saf_lon_left = " + str(saf_lon_left) + "\n")

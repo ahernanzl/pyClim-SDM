@@ -532,13 +532,7 @@ methods = {
 # calibration_years corresponds to the longest period available by reanalysis and hres_data, which then can be split for
 # training and testing
 calibration_years = (1979, 2020)
-
 single_split_testing_years = (2006, 2020)
-fold1_testing_years = (1979, 1987)
-fold2_testing_years = (1988, 1996)
-fold3_testing_years = (1997, 2005)
-fold4_testing_years = (2006, 2014)
-fold5_testing_years = (2015, 2020)
 
 # Activate one of the following training/testing split options
 # split_mode  = 'all_training'
@@ -553,37 +547,9 @@ split_mode = 'single_split'
 # Reference: for standardization and future signal of change. The choice of the reference period is constrained by
 # availability of reanalysis, historical GCMs and hres data.
 reference_years = (1979, 2005)
-historical_years = (1950, 2014)
-ssp_years = (2015, 2100)
-
-hresPeriodFilename = {}
-hresPeriodFilename.update({'tasmax': '19510101-20201231'})
-hresPeriodFilename.update({'tasmin': '19510101-20201231'})
-hresPeriodFilename.update({'tas': '19510101-20201231'})
-hresPeriodFilename.update({'pr': '19510101-20201231'})
-hresPeriodFilename.update({'uas': '19510101-20201231'})
-hresPeriodFilename.update({'vas': '19510101-20201231'})
-hresPeriodFilename.update({'sfcWind': '19510101-20201231'})
-hresPeriodFilename.update({'hurs': '19510101-20201231'})
-hresPeriodFilename.update({'huss': '19510101-20201231'})
-hresPeriodFilename.update({'clt': '19510101-20201231'})
-hresPeriodFilename.update({'rsds': '19510101-20201231'})
-hresPeriodFilename.update({'rlds': '19510101-20201231'})
-hresPeriodFilename.update({'evspsbl': '19510101-20201231'})
-hresPeriodFilename.update({'evspsblpot': '19510101-20201231'})
-hresPeriodFilename.update({'psl': '19510101-20201231'})
-hresPeriodFilename.update({'ps': '19510101-20201231'})
-hresPeriodFilename.update({'mrro': '19510101-20201231'})
-hresPeriodFilename.update({'mrso': '19510101-20201231'})
-hresPeriodFilename.update({'myTargetVar': '19510101-20201231'})
 reanalysisName = 'ERA5'
-reanalysisPeriodFilename = '19790101-20201231'
-historicalPeriodFilename = '19500101-20141231'
-sspPeriodFilename = '20150101-21001231'
 
 #############################################  GRIDS  ##################################################################
-grid_res = 1.5
-
 # saf grid (for synoptic analogy). All files (reanalysis and models) need to contain at least this region plus one grid box border.
 saf_lat_up, saf_lat_down =  49.0, 29.5
 saf_lon_left, saf_lon_right = -18.0, 12.0
