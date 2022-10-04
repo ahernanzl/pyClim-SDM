@@ -659,72 +659,44 @@ lats = nc.variables[lat_name][:]
 grid_res = abs(lats[0]-lats[1])
 lons = nc.variables[lon_name][:]
 lons[lons > 180] -= 360
+hres_max_lat, hres_min_lat, hres_max_lon, hres_min_lon = np.max(hres_lats_all), np.min(hres_lats_all), np.max(hres_lons_all), np.min(hres_lons_all)
+lres_max_lat, lres_min_lat, lres_max_lon, lres_min_lon = np.max(lats), np.min(lats), np.max(lons), np.min(lons)
 
-# force saf_lat_down
-try:
-    old = saf_lat_down
-    saf_lat_down = np.min(lats[lats >= saf_lat_down])
-    if old != saf_lat_down:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
-except:
-    try:
-        old = saf_lat_down
-        saf_lat_down = np.max(lats[lats <= np.min(hres_lats_all)])
-        if old != saf_lat_down:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
-# force saf_lat_up
-try:
-    old = saf_lat_up
-    saf_lat_up = np.max(lats[lats <= saf_lat_up])
-    if old != saf_lat_up:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
-except:
-    try:
+# Check if hres domain is fully contained by the low resolution grid from the netCDFs
+if lres_max_lat < hres_max_lat or lres_min_lat > hres_min_lat or lres_max_lon < hres_max_lon or lres_min_lon > hres_min_lon:
+    print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
+    exit()
+# Check if hres domain is fully contained by the low resolution grid from the netCDFs, after saving a one gridbox border
+elif lres_max_lat-grid_res < hres_max_lat or lres_min_lat+grid_res > hres_min_lat or lres_max_lon-grid_res < hres_max_lon or lres_min_lon+grid_res > hres_min_lon:
+    print('Domain at netCDF files not large enough. At least one-gridbox border is needed around the domain at hres files.')
+    print('Prepare yout netCDF files covering a larger spatial domain')
+    exit()
+# Force synoptic domain to be compatible with spatial domains at hres and netCDF files
+else:
+    possible_saf_lat_up_list = [x for x in lats[1:] if x >= hres_max_lat]
+    possible_saf_lat_down_list = [x for x in lats[:-1] if x <= hres_min_lat]
+    possible_saf_lon_left_list = [x for x in lons[1:] if x <= hres_min_lon]
+    possible_saf_lon_right_list = [x for x in lons[:-1] if x >= hres_max_lon]
+    if saf_lat_up not in possible_saf_lat_up_list:
         old = saf_lat_up
-        saf_lat_up = np.min(lats[lats >= np.max(hres_lats_all)])
-        if old != saf_lat_up:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
-
-# force saf_lon_left
-try:
-    old = saf_lon_left
-    saf_lon_left = np.min(lons[lons >= saf_lon_left])
-    if old != saf_lon_left:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
-except:
-    try:
+        saf_lat_up = min(possible_saf_lat_up_list, key=lambda x:abs(x-saf_lat_up))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
+        time.sleep(1)
+    if saf_lat_down not in possible_saf_lat_down_list:
+        old = saf_lat_down
+        saf_lat_down = min(possible_saf_lat_down_list, key=lambda x:abs(x-saf_lat_down))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
+        time.sleep(1)
+    if saf_lon_left not in possible_saf_lon_left_list:
         old = saf_lon_left
-        saf_lon_left = np.max(lons[lons <= np.min(hres_lons_all)])
-        if old != saf_lon_left:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
-# force saf_lon_right
-try:
-    old = saf_lon_right
-    saf_lon_right = np.max(lons[lons <= saf_lon_right])
-    if old != saf_lon_right:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
-except:
-    try:
+        saf_lon_left = min(possible_saf_lon_left_list, key=lambda x:abs(x-saf_lon_left))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
+        time.sleep(1)
+    if saf_lon_right not in possible_saf_lon_right_list:
         old = saf_lon_right
-        saf_lon_right = np.min(lons[lons >= np.max(hres_lons_all)])
-        if old != saf_lon_right:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
+        saf_lon_right = min(possible_saf_lon_right_list, key=lambda x:abs(x-saf_lon_right))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
+        time.sleep(1)
 
 # ext
 ext_lat_up, ext_lat_down = saf_lat_up + grid_res, saf_lat_down - grid_res
@@ -743,12 +715,6 @@ saf_lats = np.linspace(saf_lat_up, saf_lat_down, saf_nlats)
 saf_lons = np.linspace(saf_lon_left, saf_lon_right, saf_nlons)
 saf_ilats = [i for i in range(ext_nlats) if ext_lats[i] in saf_lats]
 saf_ilons = [i for i in range(ext_nlons) if ext_lons[i] in saf_lons]
-
-# Check that hres_points are fully contained in the defined domain
-if saf_lats[saf_lats >= np.max(hres_lats_all)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats_all)].size == 0 or \
-        saf_lons[saf_lons >= np.max(hres_lons_all)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons_all)].size == 0:
-    print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-    exit()
 
 # pred grid (for predictors). Smaller area which covers, at least, the target region.
 pred_lat_up = np.min(saf_lats[saf_lats >= np.max(hres_lats_all)])
