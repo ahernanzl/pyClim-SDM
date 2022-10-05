@@ -1,5 +1,16 @@
 import sys
 import shutil
+import os
+
+version = ''
+# Save version last execution
+for file in os.listdir('../doc/'):
+    if file.startswith('User_Manual_'):
+        version = str(file.split('.')[0].split('_')[-1])
+text_file = open('../config/.version_last_execution.txt', "w")
+text_file.write(version)
+text_file.close()
+
 shutil.copyfile('../config/manual_settings.py', '../config/settings.py')
 # shutil.copyfile('../config/default_gui_settings.py', '../config/settings.py')
 sys.path.append('../config/')

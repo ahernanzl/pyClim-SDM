@@ -1,5 +1,32 @@
 import sys
 import os
+import time
+
+# Save version
+version_last_execution_file = '../config/.version_last_execution.txt'
+version = ''
+for file in os.listdir('../doc/'):
+    if file.startswith('User_Manual_'):
+        version = str(file.split('.')[0].split('_')[-1])
+if os.path.isfile(version_last_execution_file):
+    text_file = open(version_last_execution_file, "r")
+    version_last_execution = text_file.read()
+    text_file.close()
+else:
+    version_last_execution = 'previous to v3.5'
+if version != version_last_execution:
+    print('--------------------------------------------------------------')
+    print('This is the first time version', version, 'is executed.')
+    print('Last execution was made with a different version of pyClim-SDM.')
+    print('Default settings have been restored. Please make your selection again.')
+    print('--------------------------------------------------------------')
+    time.sleep(1)
+    if os.path.isfile('../config/settings.py'):
+        os.remove('../config/settings.py')
+    text_file = open(version_last_execution_file, "w")
+    text_file.write(version)
+    text_file.close()
+
 import shutil
 sys.path.append('../config/')
 from manual_settings import *
@@ -9,6 +36,7 @@ if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py
 from imports import *
 from settings import *
 from advanced_settings import *
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
@@ -773,8 +801,8 @@ class tabDates(tk.Frame):
                 self.testing_years_dict.update({split_modeName: (firstYear_var, lastYear_var)})
                 self.dict_buttons.update({split_modeName: [c, firstYearTesting_Entry, lastYearTesting_Entry]})
                 icol -= 4
-            else:
-                self.dict_buttons.update({split_modeName: [c, None, None]})
+            # else:
+            #     self.dict_buttons.update({split_modeName: [c, None, None]})
 
 
         self.testing_years_dict = {}
@@ -2892,7 +2920,10 @@ class selectionWindow():
 
         # Root menu
         root = tk.Tk()
-        root.title("pyClim-SDM")
+        for file in os.listdir('../doc/'):
+            if file.startswith('User_Manual_'):
+                version = file.split('.')[0].split('_')[-1]
+        root.title("pyClim-SDM " + version)
         rootW, rootH = 1280, 620
         root.minsize(rootW, rootH )
         root.maxsize(rootW, rootH )
