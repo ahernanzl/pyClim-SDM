@@ -637,8 +637,10 @@ def figures_projections(lan='EN'):
 
                         # Evolution figures of mean trend in the whole region vs RAW
                         if (regType == typeCompleteRegion):
-                            trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
-                                      ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName, xlabel)
+                            for scene in ssp_dict.keys():
+                                trend_raw(pathOut, subDir, ssp_dict[scene], raw_ssp_dict[scene], climdex_name, years,
+                                          ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
+                                          xlabel, scene)
 
                         # Csv with data for evolution graphs
                         # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
@@ -661,7 +663,8 @@ def figures_projections(lan='EN'):
 
 
 ########################################################################################################################
-def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar, methodName, xlabel):
+def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar, methodName,
+              xlabel, scene):
 
     # if methodName != 'RAW':
     color = methods_colors[methodName]
@@ -716,7 +719,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
     plt.legend()
     # plt.show()
     # exit()
-    filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName, season))
+    filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName+'-'+scene, season))
     # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
     if (plotAllRegions == False):
         plt.title(methodName, fontsize=title_size)
