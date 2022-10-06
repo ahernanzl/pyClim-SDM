@@ -613,10 +613,18 @@ aux = []
 hresPeriodFilename = {}
 for targetVar in targetVars:
     if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
+        files_with_data = []
         for file in os.listdir(pathHres):
             if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
                 newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
                 hresPeriodFilename.update({targetVar: newHresPeriodFilename})
+                files_with_data.append(file)
+        if len(files_with_data) > 1:
+            print('------------------------------------------------------------------------------------------------')
+            print('ERROR:', len(files_with_data),'files have been found at input_data/hres/ containing data for:', targetVar)
+            print('Please, remove all files except one from the following list:', files_with_data)
+            print('------------------------------------------------------------------------------------------------')
+            exit()
         if targetVar not in aux:
             aux.append(targetVar)
 targetVars = aux
