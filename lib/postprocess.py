@@ -161,7 +161,7 @@ def bias_correction_allModels(targetVar, methodName):
                         not os.path.isfile(pathOut + model + '_' + scene + '.nc'):
                     to_be_corrected = True
 
-            if to_be_corrected == True:
+            if to_be_corrected == True or force_bias_correction == True:
 
                 print(targetVar, methodName, model, bc_sufix, 'bias_correction')
 
