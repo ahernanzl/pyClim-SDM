@@ -44,8 +44,11 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
 
     # Declares variables for father process, who creates pathOut
     if iproc == 0:
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
         if 'pred' in fields:
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')

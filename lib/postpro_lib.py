@@ -40,8 +40,11 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
     start = datetime.datetime.now()
 
     # Create path for results
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Select climdex
     for climdex_name in climdex_names[targetVar]:
@@ -536,8 +539,11 @@ def figures_projections(lan='EN'):
         pathIn = path + 'climdex/'
         pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
         pathOut = path + 'climdex/figures/'
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
 
         # Read regions csv
         df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
@@ -733,8 +739,11 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         elif plotAllRegions == True:
             title = regName.upper() + '\n' + season
             plt.title(title)
-            if not os.path.exists(pathOut):
+
+            try:
                 os.makedirs(pathOut)
+            except:
+                pass
             plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
         plt.close()
 

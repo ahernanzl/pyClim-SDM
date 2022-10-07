@@ -72,8 +72,11 @@ def bias_correction_renalysis(targetVar, methodName):
     # Define and create paths
     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     pathTmp = '../tmp/'+'_'.join((targetVar, methodName, bc_sufix)) + '/'
     if not os.path.exists(pathTmp):
         os.makedirs(pathTmp)
@@ -145,8 +148,14 @@ def bias_correction_allModels(targetVar, methodName):
     # Define and create paths
     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
+
+
+    iterable = []
 
     # Go through all models
     for model in model_list:
@@ -167,7 +176,10 @@ def bias_correction_allModels(targetVar, methodName):
 
                 # Serial processing
                 if running_at_HPC == False:
-                    bias_correction_oneModel(targetVar, methodName, model)
+                    if runInParallel_multiprocessing == False:
+                        bias_correction_oneModel(targetVar, methodName, model)
+                    else:
+                        iterable.append([targetVar, methodName, model])
 
                 # Parallel processing
                 elif running_at_HPC == True:
@@ -208,6 +220,10 @@ def bias_correction_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.biasCorrection(model, targetVar, methodName)
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True:
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(bias_correction_oneModel, iterable)
 
 
 ########################################################################################################################
@@ -224,8 +240,11 @@ def bias_correction_oneModel(targetVar, methodName, model):
         # Define and create paths
         pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
         pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
 
         # Read obs and mod in bias correction period
         obs_data = read.hres_data(targetVar, period='biasCorr')['data']
@@ -327,6 +346,8 @@ def get_climdex_allModels(targetVar, methodName):
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
 
+    iterable = []
+
     # Go through all models
     for model in model_list:
 
@@ -350,8 +371,12 @@ def get_climdex_allModels(targetVar, methodName):
             if os.path.isfile(pathIn + model + '_historical.nc'):
                 # Serial processing
                 if running_at_HPC == False:
-                    print(targetVar, methodName, model, 'calculating climdex')
-                    get_climdex_oneModel(targetVar, methodName, model)
+                    if runInParallel_multiprocessing == False:
+                        print(targetVar, methodName, model, 'calculating climdex')
+                        get_climdex_oneModel(targetVar, methodName, model)
+                    else:
+                        iterable.append([targetVar, methodName, model])
+
 
                 # Parallel processing
                 elif running_at_HPC == True:
@@ -393,6 +418,10 @@ def get_climdex_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.climdex(model, targetVar, methodName)
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True:
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(get_climdex_oneModel, iterable)
 
 ########################################################################################################################
 def get_climdex_oneModel(targetVar, methodName, model):
@@ -411,8 +440,10 @@ def get_climdex_oneModel(targetVar, methodName, model):
             path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
-    if not os.path.exists(pathOut):
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Read reference data (as a scene)
     aux = read.netCDF(pathIn, model + '_historical.nc', targetVar)
@@ -515,8 +546,11 @@ def nc2ascii():
                     header = ' '.join((model, scene, period, targetVar, '('+units+')',
                                        methodName)) + '\n' + ';'.join(id)
                     pathOut = pathOutBase + targetVar.upper()+'/'+methodName+'/daily_data/'
-                    if not os.path.exists(pathOut):
+
+                    try:
                         os.makedirs(pathOut)
+                    except:
+                        pass
                     np.savetxt(pathOut+fileName+'.dat', data, fmt=['%.i'] + ['%.2f'] * (len(id) - 1), delimiter=';', header=header)
 
 
