@@ -40,6 +40,9 @@ def bias_correction():
     Bias correction of projections and get climdex from bias corrected daily data.
     """
 
+    # Define list for multiprocessing
+    iterable = []
+
     if apply_bc == True:
         if bc_method == None:
             print('Select a bc_method at advanced_settings.')
@@ -58,8 +61,16 @@ def bias_correction():
                         launch_jobs.biasCorrection('reanalysis', targetVar, methodName)
 
                 elif experiment == 'PROJECTIONS':
-                    bias_correction_allModels(targetVar, methodName)
+                    aux = bias_correction_allModels(targetVar, methodName)
+                    for x in aux:
+                        iterable.append(x)
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True and experiment == 'PROJECTIONS':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(bias_correction_oneModel, iterable)
+
+    return  iterable
 
 ########################################################################################################################
 def bias_correction_renalysis(targetVar, methodName):
@@ -154,7 +165,7 @@ def bias_correction_allModels(targetVar, methodName):
     except:
         pass
 
-
+    # Define list for multiprocessing
     iterable = []
 
     # Go through all models
@@ -174,14 +185,15 @@ def bias_correction_allModels(targetVar, methodName):
 
                 print(targetVar, methodName, model, bc_sufix, 'bias_correction')
 
-                # Serial processing
                 if running_at_HPC == False:
                     if runInParallel_multiprocessing == False:
+                        # Serial processing
                         bias_correction_oneModel(targetVar, methodName, model)
                     else:
+                        # Append combination for multiprocessing
                         iterable.append([targetVar, methodName, model])
 
-                # Parallel processing
+                # Parallel processing at HPC
                 elif running_at_HPC == True:
                     while 1:
                         # Check for error files, save them and kill erroneous jobs
@@ -220,11 +232,7 @@ def bias_correction_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.biasCorrection(model, targetVar, methodName)
 
-    # Parallel processing
-    if runInParallel_multiprocessing == True:
-        with Pool(processes=nCPUs_multiprocessing) as pool:
-            pool.starmap(bias_correction_oneModel, iterable)
-
+    return iterable
 
 ########################################################################################################################
 def bias_correction_oneModel(targetVar, methodName, model):
@@ -286,6 +294,8 @@ def get_climdex():
     Calls to get_climdex_for_evaluation (reanalysis) or get_climdex_allModels (models)
     """
 
+    # Define list for multiprocessing
+    iterable = []
 
     # Go through all methods
     for method_dict in methods:
@@ -298,8 +308,14 @@ def get_climdex():
         if experiment == 'EVALUATION':
             get_climdex_for_evaluation(targetVar, methodName)
         else:
-            get_climdex_allModels(targetVar, methodName)
+            aux = get_climdex_allModels(targetVar, methodName)
+            for x in aux:
+                iterable.append(x)
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True and experiment != 'EVALUATION':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(get_climdex_oneModel, iterable)
 
 ########################################################################################################################
 def get_climdex_for_evaluation(targetVar, methodName):
@@ -346,6 +362,7 @@ def get_climdex_allModels(targetVar, methodName):
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
 
+    # Define list for multiprocessing
     iterable = []
 
     # Go through all models
@@ -369,16 +386,16 @@ def get_climdex_allModels(targetVar, methodName):
 
             # Check if model historical exists
             if os.path.isfile(pathIn + model + '_historical.nc'):
-                # Serial processing
                 if running_at_HPC == False:
                     if runInParallel_multiprocessing == False:
                         print(targetVar, methodName, model, 'calculating climdex')
+                        # Serial processing
                         get_climdex_oneModel(targetVar, methodName, model)
                     else:
+                        # Append combination for multiprocessing
                         iterable.append([targetVar, methodName, model])
 
-
-                # Parallel processing
+                # Parallel processing at HPC
                 elif running_at_HPC == True:
                     while 1:
                         # Check for error files, save them and kill erroneous jobs
@@ -418,10 +435,7 @@ def get_climdex_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.climdex(model, targetVar, methodName)
 
-    # Parallel processing
-    if runInParallel_multiprocessing == True:
-        with Pool(processes=nCPUs_multiprocessing) as pool:
-            pool.starmap(get_climdex_oneModel, iterable)
+    return iterable
 
 ########################################################################################################################
 def get_climdex_oneModel(targetVar, methodName, model):
