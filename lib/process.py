@@ -61,9 +61,6 @@ def reanalisys(method_dict, scene, model):
         elif family == 'WG':
             down_scene_WG.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
             down_scene_WG.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
-        elif family == 'DEEP':
-            down_scene_DEEP.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
-            down_scene_DEEP.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
 
     # Parallel processing
     elif running_at_HPC == True:
@@ -114,9 +111,6 @@ def models(method_dict, scene, model):
             elif family == 'WG':
                 down_scene_WG.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
                 down_scene_WG.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
-            elif family == 'DEEP':
-                down_scene_DEEP.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
-                down_scene_DEEP.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
 
         # Parallel processing
         elif running_at_HPC == True:
@@ -165,6 +159,8 @@ def downscale():
     Calls to downscale reanalysis or downscale models/scenes.
     """
 
+    iterable = []
+
     # Go through all methods
     for method_dict in methods:
 
@@ -178,5 +174,15 @@ def downscale():
                 if model == 'reanalysis':
                     reanalisys(method_dict, scene, model)
                 else:
-                    models(method_dict, scene, model)
+                    if runInParallel_multiprocessing == False:
+                        models(method_dict, scene, model)
+                    else:
+                        iterable.append([method_dict, scene, model])
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True and model != 'reanalysis':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            if model == 'reanalysis':
+                pool.starmap(reanalisys, iterable)
+            else:
+                pool.starmap(models, iterable)

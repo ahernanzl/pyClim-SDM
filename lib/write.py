@@ -42,8 +42,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	"""
 	This function writes data to netCDF file.
 	"""
-	if not os.path.exists(path):
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	if filename[-3:] != '.nc':
 		filename += '.nc'
@@ -113,8 +115,11 @@ def netCDF_rotated(path, filename, varName, data, dates):
 	"""
 	This function writes data to netCDF file.
 	"""
-	if not os.path.exists(path):
+
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	df = pd.read_csv('../input_data/hres/rotated_coordinates.csv')
 	# print(df)
@@ -282,8 +287,10 @@ def netCDF_rotated_seasonal_forecast(path, filename, varName, data, year):
 	This function writes data to netCDF with the format required for S-ClimWare.
 	"""
 
-	if not os.path.exists(path):
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	df = pd.read_csv('../input_data/hres/rotated_coordinates.csv')
 	# print(df)

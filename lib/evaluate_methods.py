@@ -99,8 +99,11 @@ def annual_cycle():
                 else:
                     path = pathFigures + 'annual_cycle/' + targetVar.upper() + '/'
                     pathOut = path + subDir
-                if not os.path.exists(pathOut):
+
+                try:
                     os.makedirs(pathOut)
+                except:
+                    pass
 
                 # Select region
                 if regType == typeCompleteRegion:

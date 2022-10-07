@@ -62,8 +62,11 @@ def feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Plot feature importances
     importances = estimator.best_estimator_.feature_importances_
@@ -92,8 +95,11 @@ def hyperparameters(estimator, targetVar, methodName, ipoint, estimatorType):
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Read parameters from gridSearchCV
     params = estimator.cv_results_['params']
@@ -142,8 +148,11 @@ def epochs(estimator, targetVar, methodName, ipoint, estimatorType, history):
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # summarize history for loss
     if estimatorType == 'classifier':
@@ -188,8 +197,11 @@ def nEstimators(estimator, targetVar, methodName, ipoint, estimatorType, history
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # summarize history for loss
     if estimatorType == 'classifier':
@@ -312,8 +324,11 @@ def area_of_study():
     # Save image
     pathOut = '../results/Figures/'
     filename = 'area_of_study.png'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     plt.savefig(pathOut + filename)
 
 
@@ -407,8 +422,11 @@ def spatial_domains():
     # Save image
     pathOut = '../results/Figures/'
     filename = 'spatial_domains.png'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     plt.savefig(pathOut + filename)
 
 
@@ -458,8 +476,11 @@ def weights_regions():
     pathOut = pathAux + 'WEATHER_TYPES/'
     filename = 'weights_regions.png'
     print('See ' + pathOut + filename + ' to decide about the weighting regions.')
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     plt.savefig(pathOut + filename)
 
 

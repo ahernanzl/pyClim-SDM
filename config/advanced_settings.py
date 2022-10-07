@@ -21,6 +21,14 @@ if running_at_HPC == True:
 if running_at_HPC == False:
     from mpl_toolkits.basemap import Basemap
 
+# ########################################  MULTIPROCESSING   ##########################################################
+nCPUs_multiprocessing = 10
+if running_at_HPC == True or nCPUs_multiprocessing == 1:
+    runInParallel_multiprocessing = False
+else:
+    runInParallel_multiprocessing = True
+
+
 # ########################################  RUNNING OPTIONS   ##########################################################
 # Predictands preprarataion. When working with stations, files with all stations have to be previously prepared.
 # All stations should have the same number of data and have to be between the ranges indicated below.

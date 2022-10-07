@@ -53,8 +53,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
     # Parent process reads all data, broadcasts to the other processes and creates paths for results
     if iproc == 0:
         print(targetVar, methodName, scene, model)
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
 
         # Read data and converts obs to uint16 or int16 to save memory
         y_train = read.hres_data(targetVar, period='training')['data']

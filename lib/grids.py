@@ -174,8 +174,11 @@ def association(interp, targetVar):
 
     # Save results
     pathOut=pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp+'/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     df_association.to_csv(pathOut+'association.csv')
 
     # Create arrays for speed

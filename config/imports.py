@@ -13,6 +13,7 @@ import math
 import seaborn as sns
 from sys import exit
 import collections
+from multiprocessing import Pool
 from os import listdir
 import matplotlib as mpl
 import matplotlib.pyplot as plt
