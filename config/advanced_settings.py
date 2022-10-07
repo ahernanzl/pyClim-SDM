@@ -195,6 +195,7 @@ mean_and_std_from_GCM = True
 # Force calculations even if files already exist
 force_downscaling = False
 force_climdex_calculation = False
+force_bias_correction = False
 
 exp_var_ratio_th = .95  # threshold for PCA of SAFs
 k_clusters = 250  # set to None first time, and when weather_types.set_number_of_clusters ends see elbow curve and
