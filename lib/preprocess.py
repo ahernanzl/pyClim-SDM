@@ -155,6 +155,8 @@ def train_methods():
     """
     Each family of methods needs a different preprocess (training)
     """
+    
+    iterable_TF = []
 
     # Go through all methods
     for method_dict in methods:
@@ -191,7 +193,11 @@ def train_methods():
         if family == 'TF':
             # Serial processing
             if running_at_HPC == False:
-                TF_lib.train_chunk(targetVar, methodName, family, mode, fields)
+                if runInParallel_multiprocessing == False:
+                    TF_lib.train_chunk(targetVar, methodName, family, mode, fields)
+                else:
+                    iterable_TF.append([targetVar, methodName, family, mode, fields])
+
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(targetVar, methodName, family, mode, fields)
@@ -204,3 +210,12 @@ def train_methods():
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(targetVar, methodName, family, mode, fields)
+
+    # Parallel processing of TF
+    if runInParallel_multiprocessing == True:
+        for x in iterable_TF:
+            iterable = []
+            for iproc in range(nCPUs_multiprocessing):
+                iterable.append([x[0], x[1], x[2], x[3], x[4], iproc, nCPUs_multiprocessing])
+            with Pool(processes=nCPUs_multiprocessing) as pool:
+                pool.starmap(TF_lib.train_chunk, iterable)

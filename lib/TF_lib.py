@@ -38,17 +38,17 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
     Calibrates regression for all points,divided in chunks if run at HPC.
     '''
 
-
     # Define pathOut
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/'
 
     # Declares variables for father process, who creates pathOut
-    if iproc == 0:
+    if iproc == 0 or running_at_HPC == False:
 
         try:
             os.makedirs(pathOut)
         except:
             pass
+
         if 'pred' in fields:
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
@@ -80,7 +80,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
         w_4nn = None
 
     # Share data with all subprocesses
-    if nproc > 1:
+    if nproc > 1 and running_at_HPC == True:
         X_train = MPI.COMM_WORLD.bcast(X_train, root=0)
         y_train = MPI.COMM_WORLD.bcast(y_train, root=0)
         i_4nn = MPI.COMM_WORLD.bcast(i_4nn, root=0)
