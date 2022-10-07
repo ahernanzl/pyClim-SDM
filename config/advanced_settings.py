@@ -22,7 +22,7 @@ if running_at_HPC == False:
     from mpl_toolkits.basemap import Basemap
 
 # ########################################  MULTIPROCESSING   ##########################################################
-nCPUs_multiprocessing = 10
+nCPUs_multiprocessing = 1
 if running_at_HPC == True or nCPUs_multiprocessing == 1:
     runInParallel_multiprocessing = False
 else:
