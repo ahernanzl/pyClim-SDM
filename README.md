@@ -65,11 +65,6 @@ requirements.txt. You can install them by following these steps:
 
 
 
-# How to use
-
-Click [here](doc/User_Manual.pdf) to read the pyClim-SDM User Manual 
-
-
 # References
  
 - Amblar-Francés, P., Casado-Calle, M.J., Pastor-Saavedra, M.A., Ramos-Calzado, P., and Rodríguez-Camino, E. (2017). Guía de escenarios regionalizados de cambio climático sobre España a partir de los resultados del IPCC-AR5. Available at: https://www.aemet.es/documentos/es/conocermas/recursos_en_linea/publicaciones_y_estudios/publicaciones/Guia_escenarios_AR5/Guia_escenarios_AR5.pdf
