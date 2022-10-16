@@ -106,7 +106,11 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
 
     # Set invalid data to Nan
     if hasattr(nc.variables[nc_variable], '_FillValue'):
-        data[data == nc.variables[nc_variable]._FillValue] = np.nan
+        try:
+            data[data == nc.variables[nc_variable]._FillValue] = np.nan
+        except:
+            data = data.astype('float64')
+            data[data == nc.variables[nc_variable]._FillValue] = np.nan
     if np.ma.is_masked(data):
         data = np.ma.MaskedArray.filled(data, fill_value=np.nan)
 
@@ -144,9 +148,13 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = data[:, :, ilons]
 
     # Force lats sorted from North to South
-    if lats[0] < lats[-1]:
-        lats = np.flip(lats)
-        data = np.flip(data, axis=1)
+    try:
+        if lats[0] < lats[-1]:
+            lats = np.flip(lats)
+            data = np.flip(data, axis=1)
+    except:
+        pass
+
 
     # Get units
     try:
