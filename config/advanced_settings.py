@@ -368,7 +368,7 @@ elif len(historicalPeriodFilenames) == 1:
     historical_years = (int(historicalPeriodFilenames[0][:4]), int(historicalPeriodFilenames[0][9:13]))
 elif len(historicalPeriodFilenames) == 0:
     historicalPeriodFilename = ''
-    historical_years = ('', '')
+    historical_years = (1950, 2014)
 
 if len(sspPeriodFilenames) > 1:
     print('Different periods detected at input_data/models/: ' + sspPeriodFilenames)
@@ -379,7 +379,7 @@ elif len(sspPeriodFilenames) == 1:
     ssp_years = (int(sspPeriodFilenames[0][:4]), int(sspPeriodFilenames[0][9:13]))
 elif len(sspPeriodFilenames) == 0:
     sspPeriodFilename = ''
-    ssp_years = ('', '')
+    ssp_years = (2015, 2100)
 
 if experiment == 'PSEUDOREALITY':
     calibration_years = (1961, 2005)
