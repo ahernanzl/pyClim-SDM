@@ -644,15 +644,17 @@ for targetVar in targetVars:
     hres_lats.update({targetVar: aux_hres_metadata[:, 2]})
     hres_lons.update({targetVar: aux_hres_metadata[:, 1]})
 
-hres_lats_all = []
-for targetVar in targetVars:
-    for i in list(hres_lats[targetVar]):
-        hres_lats_all.append(i)
+
+hres_lats_all, hres_lons_all = [], []
+for targetVar in all_possible_targetVars:
+    try:
+        aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt')
+        for i in range(len(aux_hres_metadata[:, 2])):
+            hres_lats_all.append(aux_hres_metadata[i, 2])
+            hres_lons_all.append(aux_hres_metadata[i, 1])
+    except:
+        pass
 hres_lats_all = np.asarray(hres_lats_all)
-hres_lons_all = []
-for targetVar in targetVars:
-    for i in list(hres_lons[targetVar]):
-        hres_lons_all.append(i)
 hres_lons_all = np.asarray(hres_lons_all)
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
@@ -676,7 +678,7 @@ lats = nc.variables[lat_name][:]
 grid_res = abs(lats[0]-lats[1])
 lons = nc.variables[lon_name][:]
 lons[lons > 180] -= 360
-if len(hres_lats) == 0:
+if len(hres_lats_all) == 0:
     print('Make sure there are files at input_data/hres/')
     exit()
 hres_max_lat, hres_min_lat, hres_max_lon, hres_min_lon = np.max(hres_lats_all), np.min(hres_lats_all), np.max(hres_lons_all), np.min(hres_lons_all)
