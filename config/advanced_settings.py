@@ -676,6 +676,9 @@ lats = nc.variables[lat_name][:]
 grid_res = abs(lats[0]-lats[1])
 lons = nc.variables[lon_name][:]
 lons[lons > 180] -= 360
+if len(hres_lats) == 0:
+    print('Make sure there are files at input_data/hres/')
+    exit()
 hres_max_lat, hres_min_lat, hres_max_lon, hres_min_lon = np.max(hres_lats_all), np.min(hres_lats_all), np.max(hres_lons_all), np.min(hres_lons_all)
 lres_max_lat, lres_min_lat, lres_max_lon, lres_min_lon = np.max(lats), np.min(lats), np.max(lons), np.min(lons)
 
