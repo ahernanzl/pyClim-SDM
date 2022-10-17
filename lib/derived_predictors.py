@@ -981,25 +981,25 @@ def insolation(model='reanalysis', scene='TESTING'):
     pi = 3.14
 
     # Read data
-    if model == 'reanalysis':
-        dates = calibration_dates
-    else:
-        datesDefined = False
-        for ipred in range(len(all_preds.keys())):
-            try:
-                ncName = list(all_preds.keys())[ipred]
-                dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
-                datesDefined = True
-                continue
-            except:
-                pass
-        if datesDefined == False:
-            print('At least one direct predictors is needed, not only derived predictors.')
-            exit()
+    # if model == 'reanalysis':
+    #     dates = calibration_dates
+    # else:
+    datesDefined = False
+    for ipred in range(len(all_preds.keys())):
+        try:
+            ncName = list(all_preds.keys())[ipred]
+            times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+            datesDefined = True
+            continue
+        except:
+            pass
+    if datesDefined == False:
+        print('At least one direct predictors is needed, not only derived predictors.')
+        exit()
 
     # Calculate ins
     ins = []
-    for date in dates:
+    for date in times:
         ndays = datetime.date(date.year, 12, 31).timetuple().tm_yday
         equinox = datetime.date(date.year, 3, 21).timetuple().tm_yday
         iday = date.timetuple().tm_yday
@@ -1010,7 +1010,7 @@ def insolation(model='reanalysis', scene='TESTING'):
     ins = np.repeat(ins, ext_nlats, axis=1)
     ins = np.repeat(ins, ext_nlons, axis=2)
 
-    return {'data': ins, 'times': dates}
+    return {'data': ins, 'times': times}
 
 
 ########################################################################################################################
