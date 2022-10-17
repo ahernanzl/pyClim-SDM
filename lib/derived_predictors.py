@@ -89,17 +89,17 @@ def SSI_index(model='reanalysis', scene='TESTING'):  # author: Carlos Correa ; e
 
     # Prepare times
     times = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['times']
-    if model == 'reanalysis':
-        dates = calibration_dates
-    else:
-        dates = times
-    idates = [i for i in range(len(times)) if times[i] in dates]
+    # if model == 'reanalysis':
+    #     dates = calibration_dates
+    # else:
+    #     dates = times
+    # idates = [i for i in range(len(times)) if times[i] in dates]
 
     # Read data
-    t850 = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['data'][idates]
-    z850 = read.one_direct_predictor('zg', level=850, grid='ext', model=model, scene=scene)['data'][idates]
-    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
+    t850 = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['data']
+    z850 = read.one_direct_predictor('zg', level=850, grid='ext', model=model, scene=scene)['data']
+    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data']
+    td850 = dew_point(850, model=model, scene=scene)['data']
 
     # Constants
     cp = 1005  # Isobaric specific heat in dry air
@@ -189,7 +189,7 @@ def SSI_index(model='reanalysis', scene='TESTING'):  # author: Carlos Correa ; e
 
     SSI_index = np.array(SSI_index_lst).reshape(t500.shape)
 
-    return {'data': SSI_index, 'times': dates}
+    return {'data': SSI_index, 'times': times}
 
 
 ########################################################################################################################
@@ -203,18 +203,18 @@ def LI_index(model='reanalysis', scene='TESTING'):  # author: Carlos Correa ; em
 
     # Prepare times
     times = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['times']
-    if model == 'reanalysis':
-        dates = calibration_dates
-    else:
-        dates = times
-    idates = [i for i in range(len(times)) if times[i] in dates]
+    # if model == 'reanalysis':
+    #     dates = calibration_dates
+    # else:
+    #     dates = times
+    # idates = [i for i in range(len(times)) if times[i] in dates]
 
     # Read data
-    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    psl = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data'][idates]
-    tas = read.one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data'][idates]
-    q1000 = read.one_direct_predictor('hus', level=1000, grid='ext', model=model, scene=scene)['data'][
-        idates]  # q1000 used instead of huss (huss ESGF and 2d(ID:168) to calculate huss in ERA5 are not available)
+    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data']
+    psl = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data']
+    tas = read.one_direct_predictor('tas', level=None, grid='ext', model=model, scene=scene)['data']
+    q1000 = read.one_direct_predictor('hus', level=1000, grid='ext', model=model, scene=scene)['data']
+    # q1000 used instead of huss (huss ESGF and 2d(ID:168) to calculate huss in ERA5 are not available)
     huss = q1000  # q1000 is used instead of huss because huss (ESGF) and 2d (ID:168 ERA5) are not available)
 
     # Constants
@@ -309,7 +309,7 @@ def LI_index(model='reanalysis', scene='TESTING'):  # author: Carlos Correa ; em
 
     LI_index = np.array(LI_index_lst).reshape(t500.shape)
 
-    return {'data': LI_index, 'times': dates}
+    return {'data': LI_index, 'times': times}
 
 
 ########################################################################################################################
@@ -318,22 +318,17 @@ def K_index(model='reanalysis', scene='TESTING'):
 
     # Prepare times
     times = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['times']
-    if model == 'reanalysis':
-        dates = calibration_dates
-    else:
-        dates = times
-    idates = [i for i in range(len(times)) if times[i] in dates]
 
     # Read data
-    t850 = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['data'][idates]
-    t700 = read.one_direct_predictor('ta', level=700, grid='ext', model=model, scene=scene)['data'][idates]
-    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
-    td700 = dew_point(700, model=model, scene=scene)['data'][idates]
+    t850 = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['data']
+    t700 = read.one_direct_predictor('ta', level=700, grid='ext', model=model, scene=scene)['data']
+    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data']
+    td850 = dew_point(850, model=model, scene=scene)['data']
+    td700 = dew_point(700, model=model, scene=scene)['data']
 
     K_index = (t850 - t500) + td850 - (t700 - td700)
 
-    return {'data': K_index, 'times': dates}
+    return {'data': K_index, 'times': times}
 
 
 ########################################################################################################################
@@ -342,20 +337,15 @@ def TT_index(model='reanalysis', scene='TESTING'):
 
     # Prepare times
     times = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['times']
-    if model == 'reanalysis':
-        dates = calibration_dates
-    else:
-        dates = times
-    idates = [i for i in range(len(times)) if times[i] in dates]
 
     # Read data
-    t850 = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['data'][idates]
-    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data'][idates]
-    td850 = dew_point(850, model=model, scene=scene)['data'][idates]
+    t850 = read.one_direct_predictor('ta', level=850, grid='ext', model=model, scene=scene)['data']
+    t500 = read.one_direct_predictor('ta', level=500, grid='ext', model=model, scene=scene)['data']
+    td850 = dew_point(850, model=model, scene=scene)['data']
 
     TT_index = t850 + td850 - 2 * t500
 
-    return {'data': TT_index, 'times': dates}
+    return {'data': TT_index, 'times': times}
 
 
 ########################################################################################################################
@@ -366,28 +356,24 @@ def aux_sfcWind_direct(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('sfcWind', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            sfcWind = aux['data'][idates]
+            sfcWind = aux['data']
         else:
             aux = read.one_direct_predictor('sfcWind', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             sfcWind = aux['data']
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('sfcWind', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            sfcWind = aux['data'][idates]
+            sfcWind = aux['data']
         else:
             aux = read.one_direct_predictor('sfcWind', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             sfcWind = aux['data']
 
-    return {'data': sfcWind, 'times': dates}
+    return {'data': sfcWind, 'times': times}
 
 
 ########################################################################################################################
@@ -398,36 +384,30 @@ def aux_sfcWind_from_uas_vas(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('uas', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            u = aux['data'][idates]
-            v = read.one_direct_predictor('vas', grid='ext', model=model, scene=scene)['data'][idates]
+            u = aux['data']
+            v = read.one_direct_predictor('vas', grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('uas', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             u = aux['data']
             v = read.one_direct_predictor('vas', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
-            p = level
-            dates = calibration_dates
             aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            u = aux['data'][idates]
-            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            u = aux['data']
+            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data']
         else:
-            p = level
             aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             u = aux['data']
             v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data']
 
     sfcWind = np.sqrt(u**2 + v**2)
 
-    return {'data': sfcWind, 'times': dates}
+    return {'data': sfcWind, 'times': times}
 
 
 ########################################################################################################################
@@ -462,28 +442,24 @@ def aux_r_direct(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            r = aux['data'][idates]
+            r = aux['data']
         else:
             aux = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             r = aux['data']
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            r = aux['data'][idates]
+            r = aux['data']
         else:
             aux = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             r = aux['data']
 
-    return {'data': r, 'times': dates}
+    return {'data': r, 'times': times}
 
 
 ########################################################################################################################
@@ -494,13 +470,11 @@ def aux_r_from_q(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            q = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)['data'][idates]
-            p = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            q = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)['data']
+            p = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)['data']
             p /= 100
         else:
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
@@ -512,12 +486,10 @@ def aux_r_from_q(level, model, scene):
     else:
         if model == 'reanalysis':
             p = level
-            dates = calibration_dates
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            q = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            q = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)['data']
         else:
             p = level
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
@@ -534,7 +506,7 @@ def aux_r_from_q(level, model, scene):
     r = 100 * e / es
     r[invalid] = np.nan
 
-    return {'data': r, 'times': dates}
+    return {'data': r, 'times': times}
 
 
 ########################################################################################################################
@@ -545,25 +517,21 @@ def aux_r_from_Td(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            td = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            td = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             td = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            td = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            td = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
             dates = aux['times']
@@ -581,7 +549,7 @@ def aux_r_from_Td(level, model, scene):
     es = Clausius_Clapeyron(t)
     r = 100 * e / es
 
-    return {'data': r, 'times': dates}
+    return {'data': r, 'times': times}
 
 
 ########################################################################################################################
@@ -592,16 +560,16 @@ def relative_humidity(level, model='reanalysis', scene='TESTING'):
 
     try:
         aux = aux_r_direct(level, model=model, scene=scene)
-        r, dates = aux['data'], aux['times']
+        r, times = aux['data'], aux['times']
     except:
         # print('relative humidity', level, 'not available. Retrieving it indirectly')
         try:
             aux = aux_r_from_q(level, model=model, scene=scene)
-            r, dates = aux['data'], aux['times']
+            r, times = aux['data'], aux['times']
         except:
             try:
                 aux = aux_r_from_Td(level, model=model, scene=scene)
-                r, dates = aux['data'], aux['times']
+                r, times = aux['data'], aux['times']
             except:
                 print('relative humidity', level, 'not available neither directly nor indirectly')
                 exit()
@@ -611,7 +579,7 @@ def relative_humidity(level, model='reanalysis', scene='TESTING'):
     r[r < 0] = 0
     r[r > 100] = 100
 
-    return {'data': r, 'times': dates}
+    return {'data': r, 'times': times}
 
 
 ########################################################################################################################
@@ -622,28 +590,24 @@ def aux_q_direct(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            q = aux['data'][idates]
+            q = aux['data']
         else:
             aux = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             q = aux['data']
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            q = aux['data'][idates]
+            q = aux['data']
         else:
             aux = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             q = aux['data']
 
-    return {'data': q, 'times': dates}
+    return {'data': q, 'times': times}
 
 
 ########################################################################################################################
@@ -654,28 +618,24 @@ def aux_q_from_r(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            r = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)['data'][idates]
-            p = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            r = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)['data']
+            p = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             r = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)['data']
             p = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
             p = level
-            dates = calibration_dates
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            r = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            r = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)['data']
         else:
             p = level
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
@@ -687,7 +647,7 @@ def aux_q_from_r(level, model, scene):
     e = r * es / 100
     q = e * 0.622 / (p - e * 0.378)
 
-    return {'data': q, 'times': dates}
+    return {'data': q, 'times': times}
 
 
 ########################################################################################################################
@@ -698,17 +658,15 @@ def aux_q_from_Td(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            td = aux['data'][idates]
+            td = aux['data']
             aux = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)
             units = aux['units']
-            p = aux['data'][idates]
+            p = aux['data']
         else:
             aux = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             td = aux['data']
             aux = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)
             units = aux['units']
@@ -723,15 +681,13 @@ def aux_q_from_Td(level, model, scene):
             exit()
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            td = aux['data'][idates]
+            td = aux['data']
             p = level
         else:
             aux = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             td = aux['data']
             p = level
 
@@ -743,7 +699,7 @@ def aux_q_from_Td(level, model, scene):
     q = (0.622 * 6.11 / p) * np.exp((1 / 273.15 - 1 / td) / (Rv / L))
     q[invalid] = np.nan
 
-    return {'data': q, 'times': dates}
+    return {'data': q, 'times': times}
 
 
 ########################################################################################################################
@@ -754,15 +710,15 @@ def specific_humidity(level, model='reanalysis', scene='TESTING'):
 
     try:
         aux = aux_q_direct(level, model=model, scene=scene)
-        q, dates = aux['data'], aux['times']
+        q, times = aux['data'], aux['times']
     except:
         try:
             aux = aux_q_from_r(level, model=model, scene=scene)
-            q, dates = aux['data'], aux['times']
+            q, times = aux['data'], aux['times']
         except:
             try:
                 aux = aux_q_from_Td(level, model=model, scene=scene)
-                q, dates = aux['data'], aux['times']
+                q, times = aux['data'], aux['times']
             except:
                 print('specific humidity', level, 'not available neither directly nor indirectly')
                 exit()
@@ -770,7 +726,7 @@ def specific_humidity(level, model='reanalysis', scene='TESTING'):
     warnings.filterwarnings("ignore", message="invalid value encountered in greater")
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
 
-    return {'data': q, 'times': dates}
+    return {'data': q, 'times': times}
 
 
 ########################################################################################################################
@@ -781,28 +737,24 @@ def aux_Td_direct(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            td = aux['data'][idates]
+            td = aux['data']
         else:
             aux = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)
             dates = aux['times']
             td = aux['data']
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('Td', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            td = aux['data'][idates]
+            td = aux['data']
         else:
             aux = read.one_direct_predictor('Td', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             td = aux['data']
 
-    return {'data': td, 'times': dates}
+    return {'data': td, 'times': times}
 
 
 ########################################################################################################################
@@ -813,17 +765,15 @@ def aux_Td_from_q(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            q = aux['data'][idates]
+            q = aux['data']
             aux = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)
             units = aux['units']
-            p = aux['data'][idates]
+            p = aux['data']
         else:
             aux = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             q = aux['data']
             aux = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)
             units = aux['units']
@@ -839,15 +789,13 @@ def aux_Td_from_q(level, model, scene):
     else:
         if model == 'reanalysis':
             p = level
-            dates = calibration_dates
             aux = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            q = aux['data'][idates]
+            q = aux['data']
         else:
             p = level
             aux = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             q = aux['data']
 
     L = 2.5 * 10 ** 6
@@ -858,7 +806,7 @@ def aux_Td_from_q(level, model, scene):
     td = 1 / (1 / 273 - (Rv / L) * np.log(p * q / (0.622 * 6.11)))
     td[invalid] = np.nan
 
-    return {'data': td, 'times': dates}
+    return {'data': td, 'times': times}
 
 
 ########################################################################################################################
@@ -869,28 +817,24 @@ def aux_Td_from_r(level, model, scene):
 
     if level == 'sfc':
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            r = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            r = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             r = read.one_direct_predictor('hurs', grid='ext', model=model, scene=scene)['data']
     else:
         if model == 'reanalysis':
-            dates = calibration_dates
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            t = aux['data'][idates]
-            r = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            t = aux['data']
+            r = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             r = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)['data']
 
@@ -898,7 +842,7 @@ def aux_Td_from_r(level, model, scene):
     e = r * es / 100
     td = Clausius_Clapeyron_inverse(e)
 
-    return {'data': td, 'times': dates}
+    return {'data': td, 'times': times}
 
 
 ########################################################################################################################
@@ -909,16 +853,16 @@ def dew_point(level, model='reanalysis', scene='TESTING'):
 
     try:
         aux = aux_Td_direct(level, model=model, scene=scene)
-        td, dates = aux['data'], aux['times']
+        td, times = aux['data'], aux['times']
     except:
         # print('dew point', level, 'not available. Retrieving it indirectly')
         try:
             aux = aux_Td_from_q(level, model=model, scene=scene)
-            td, dates = aux['data'], aux['times']
+            td, times = aux['data'], aux['times']
         except:
             try:
                 aux = aux_Td_from_r(level, model=model, scene=scene)
-                td, dates = aux['data'], aux['times']
+                td, times = aux['data'], aux['times']
             except:
                 print('dew point', level, 'not available neither directly nor indirectly')
                 exit()
@@ -926,7 +870,7 @@ def dew_point(level, model='reanalysis', scene='TESTING'):
     warnings.filterwarnings("ignore", message="invalid value encountered in greater")
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
 
-    return {'data': td, 'times': dates}
+    return {'data': td, 'times': times}
 
 
 ########################################################################################################################
@@ -935,23 +879,20 @@ def vtg(level0, level1, model='reanalysis', scene='TESTING'):
 
     # Read data
     if model == 'reanalysis':
-        dates = calibration_dates
-
         aux = read.one_direct_predictor('ta', level=level1, grid='ext', model=model, scene=scene)
         times = aux['times']
-        idates = [i for i in range(len(times)) if times[i] in dates]
-        t_level1 = aux['data'][idates]
-        t_level0 = read.one_direct_predictor('ta', level=level0, grid='ext', model=model, scene=scene)['data'][idates]
+        t_level1 = aux['data']
+        t_level0 = read.one_direct_predictor('ta', level=level0, grid='ext', model=model, scene=scene)['data']
     else:
         aux = read.one_direct_predictor('ta', level=level1, grid='ext', model=model, scene=scene)
-        dates = aux['times']
+        times = aux['times']
         t_level1 = aux['data']
         t_level0 = read.one_direct_predictor('ta', level=level0, grid='ext', model=model, scene=scene)['data']
 
     # Calculate GTV
     vtg = t_level0 - t_level1
 
-    return {'data': vtg, 'times': dates}
+    return {'data': vtg, 'times': times}
 
 
 ########################################################################################################################
@@ -961,19 +902,15 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
     # Read data
     if model == 'reanalysis':
         if level == 'sl':
-            dates = calibration_dates
             aux = geostrophic(model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            u = aux['data']['ugsl'][idates]
-            v = aux['data']['vgsl'][idates]
+            u = aux['data']['ugsl']
+            v = aux['data']['vgsl']
         else:
-            dates = calibration_dates
             aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
             times = aux['times']
-            idates = [i for i in range(len(times)) if times[i] in dates]
-            u = aux['data'][idates]
-            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data'][idates]
+            u = aux['data']
+            v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data']
     else:
         if level == 'sl':
             datesDefined = False
@@ -989,12 +926,12 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             u, v = aux['data']['ugsl'], aux['data']['vgsl']
         else:
             aux = read.one_direct_predictor('ua', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             u = aux['data']
             v = read.one_direct_predictor('va', level=level, grid='ext', model=model, scene=scene)['data']
 
     # Calculate wind gradients
-    ndates = len(dates)
+    ndates = len(times)
     delta_x = []
     for lat in ext_lats:
         delta_x.append(dist((lat, -grid_res / 2), (lat, grid_res / 2)).km)
@@ -1013,7 +950,7 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
     grad_vy = -np.gradient(u)[2] / delta_y
     div = grad_ux + grad_vy
 
-    return {'data': {'vort': vort, 'div': div}, 'times': dates}
+    return {'data': {'vort': vort, 'div': div}, 'times': times}
 
 
 ########################################################################################################################
@@ -1022,14 +959,12 @@ def psl_trend(model='reanalysis', scene='TESTING'):
 
     # Read data
     if model == 'reanalysis':
-        dates = calibration_dates
         aux = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)
         times = aux['times']
-        idates = [i for i in range(len(times)) if times[i] in dates]
-        psl = aux['data'][idates]
+        psl = aux['data']
     else:
         aux = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)
-        dates = aux['times']
+        times = aux['times']
         psl = aux['data']
 
     # Calculate psl_trend
@@ -1037,7 +972,7 @@ def psl_trend(model='reanalysis', scene='TESTING'):
     psl_dayBefore[1:][:][:] = psl[:-1][:][:]
     psl_trend = psl - psl_dayBefore
 
-    return {'data': psl_trend, 'times': dates}
+    return {'data': psl_trend, 'times': times}
 
 
 ########################################################################################################################
@@ -1092,19 +1027,17 @@ def geostrophic(model='reanalysis', scene='TESTING'):
         level = 1000
         aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
         times = aux['times']
-        idates = [i for i in range(len(times)) if times[i] in calibration_dates]
-        dates = calibration_dates
-        t1000 = aux['data'][idates]
-        psl = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data'][idates]
+        t1000 = aux['data']
+        psl = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)['data']
         tsl = t1000 / (100000 / psl) ** (R * alpha / g)
         denssl = psl / (R * tsl)
     else:
         aux = read.one_direct_predictor('psl', level=None, grid='ext', model=model, scene=scene)
-        dates = aux['times']
+        times = aux['times']
         psl = aux['data']
         denssl = 1.225  # Density
 
-    ndates = len(dates)
+    ndates = len(times)
 
     # Calculate lat lon distances in meters
     delta_x = []
@@ -1134,5 +1067,5 @@ def geostrophic(model='reanalysis', scene='TESTING'):
     ugsl /= denssl
     vgsl /= denssl
 
-    return {'data': {'ugsl': ugsl, 'vgsl': vgsl}, 'times': dates}
+    return {'data': {'ugsl': ugsl, 'vgsl': vgsl}, 'times': times}
 
