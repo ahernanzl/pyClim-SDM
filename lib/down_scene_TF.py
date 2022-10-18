@@ -239,7 +239,8 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             y_train_ipoint = y_train[:, ipoint]
             idays_with_missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[0])
             if len(idays_with_missing_preds) != 0:
-                X_test_ipoint[np.isnan(X_test_ipoint)] = special_value
+                # X_test_ipoint[np.isnan(X_test_ipoint)] = special_value
+                X_test_ipoint[np.isnan(X_test_ipoint)] = 0
                 # if idays_with_missing_preds.shape == est[:, ipoint_local_index].shape:
                 #     exit('there is at least one predictor which is missing in all days. You should set '
                 #           'recalibrating_when_missing_preds to True at settings')
@@ -273,6 +274,12 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                             X_test_ipoint = X_test_ipoint[:, :-1]
 
                     # Train MLR
+                    valid = np.where(y_train_ipoint < special_value)[0]
+                    if valid.size < 30:
+                        exit('Not enough valid predictands to train')
+                    if valid.size != y_train_ipoint.size:
+                        X_train_ipoint = X_train_ipoint[valid]
+                        y_train_ipoint = y_train_ipoint[valid]
                     reg_MLR, clf_MLR = TF_lib.train_point(targetVar, 'MLR', X_train_ipoint, y_train_ipoint, ipoint)
 
                     # Downscale MLR

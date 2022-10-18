@@ -305,6 +305,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
+        datesDefined = False
         for var in targetVars:
             try:
                 if var == 'hurs':
@@ -313,9 +314,25 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                     aux_times = derived_predictors.wind_speed('sfc', model=model, scene=scene)['times']
                 else:
                     aux_times = one_direct_predictor(var, grid='ext', model=model, scene=scene)['times']
+                datesDefined = True
                 break
             except:
                 pass
+        if datesDefined == False:
+            for ipred in range(len(all_preds.keys())):
+                try:
+                    ncName = list(all_preds.keys())[ipred]
+                    aux_times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)[
+                        'times']
+                    datesDefined = True
+                    break
+                except:
+                    pass
+        if datesDefined == False:
+            print('ERROR retrieving dates from netCDF reanalysis files')
+            print('At least one direct predictors is needed, not only derived predictors.')
+            exit()
+
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var
