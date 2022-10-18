@@ -69,12 +69,13 @@ def feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
         pass
 
     # Plot feature importances
-    importances = estimator.best_estimator_.feature_importances_
-    std = np.std([tree.feature_importances_ for tree in estimator.best_estimator_.estimators_], axis=0)
-    if targetVar == 'pr':
-        feature_names = [x for x in preds_p_list]
-    else:
-        feature_names = [x for x in preds_t_list]
+    try:
+        importances = estimator.best_estimator_.feature_importances_
+        std = np.std([tree.feature_importances_ for tree in estimator.best_estimator_.estimators_], axis=0)
+    except:
+        importances = estimator.feature_importances_
+        std = np.std(estimator.feature_importances_, axis=0)
+    feature_names = [x for x in preds_dict[targetVar]]
     feature_names.append(targetVar)
     forest_importances = pd.Series(importances, index=feature_names)
 
