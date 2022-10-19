@@ -360,7 +360,7 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 
 	if nproc > 1:
 		obs = MPI.COMM_WORLD.bcast(obs, root=0)
-	special_value = 100*predictands_codification[targetVar]['special_value']
+	special_value = int(100 * predictands_codification[targetVar]['special_value'])
 
 	# Create chunks
 	n_chunks = nproc
@@ -516,7 +516,7 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 	if nproc > 1:
 		obs = MPI.COMM_WORLD.bcast(obs, root=0)
 
-	special_value = 100*predictands_codification[targetVar]['special_value']
+	special_value = int(100 * predictands_codification[targetVar]['special_value'])
 
 
 	# Create chunks

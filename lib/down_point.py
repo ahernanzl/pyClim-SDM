@@ -166,7 +166,7 @@ def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, ob
         X = X[:,valid_preds]
 
     # Checks for missing predictands and remove them from training datasets
-    special_value = 100*predictands_codification[targetVar]['special_value']
+    special_value = int(100 * predictands_codification[targetVar]['special_value'])
 
     if train_regressor == True:
         valid = np.where(Y_train < special_value)[0]

@@ -102,7 +102,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
         points_chunk[ichunk]=[x for x in points_chunk[ichunk] if x%500==0]
 
     # loop through all points of the chunk
-    special_value = 100 * predictands_codification[targetVar]['special_value']
+    special_value = int(100 * predictands_codification[targetVar]['special_value'])
     for ipoint in points_chunk[ichunk]:
         ipoint_local_index = points_chunk[ichunk].index(ipoint)
         if ipoint_local_index % 1 == 0:
