@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -32,9 +33,10 @@ import val_lib
 import WG_lib
 import write
 
+
 ########################################################################################################################
 def ANA_pr(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, var_calib, obs, corr,
-             i_4nn, j_4nn, w_4nn, methodName, special_value):
+           i_4nn, j_4nn, w_4nn, methodName, special_value):
     """
 
     :param syn_dist: (n_analogs_preselection,)
@@ -70,13 +72,13 @@ def ANA_pr(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, v
                 loc_dist = syn_dist
             # Consider local distances
             else:
-                pred_scene = grids.interpolate_predictors(pred_scene,  i_4nn, j_4nn, w_4nn, interp_mode)
+                pred_scene = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode)
                 pred_calib = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)
                 loc_dist = ANA_lib.get_local_distances(pred_calib, pred_scene, sigPreds)
     elif analogy_mode == 'HYB':
         loc_dist = syn_dist
         nSigPreds = 0
-        var_scene = grids.interpolate_predictors(var_scene[np.newaxis, :, :, :],  i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
+        var_scene = grids.interpolate_predictors(var_scene[np.newaxis, :, :, :], i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
         var_calib = grids.interpolate_predictors(var_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
 
     # Remove days with no predictand, unless there is no day with predictand
@@ -109,7 +111,7 @@ def ANA_pr(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, v
 
     else:
         # Gets weight based on distances
-        dist[dist==0] = 0.000000001
+        dist[dist == 0] = 0.000000001
         W = np.ones(dist.shape) / dist
 
         # Estimates precipitation with one decimal
@@ -118,15 +120,14 @@ def ANA_pr(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, v
         elif estimation_mode == 'kNN':
             est = np.average(obs_analogs, weights=W)
         elif estimation_mode == 'rand':
-            est = np.random.choice(obs_analogs, p=W/W.sum())
+            est = np.random.choice(obs_analogs, p=W / W.sum())
 
     return est
 
 
 ########################################################################################################################
 def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, obs, coef, intercept, dist_centroid,
-           i_4nn, j_4nn, w_4nn, methodName, th_metric='median'):
-
+               i_4nn, j_4nn, w_4nn, methodName, th_metric='median'):
     """
     This function downscale a particular point.
     Return: array of estimated temperature
@@ -135,7 +136,7 @@ def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, ob
     mode = 'PP'
 
     # Interpolate and reshapes for regression
-    X = grids.interpolate_predictors(pred_scene,  i_4nn, j_4nn, w_4nn, interp_mode)
+    X = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode)
 
     # If there are missing predictors, or regression is not precalibrated by clusters, or distance of problem day to
     # centroid too large, or intercept is nan because there where not enough valid data to pre-calibrate the regression,
@@ -151,19 +152,19 @@ def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, ob
     elif th_metric == 'p90':
         dist_th = np.percentile(np.load(pathAux + 'WEATHER_TYPES/dist.npy'), 90)
 
-    if (len(missing_preds) != 0) or (methodName!='MLR-WT') \
-            or (dist_centroid>dist_th) or (np.isnan(intercept) == True):
-        train_regressor=True
+    if (len(missing_preds) != 0) or (methodName != 'MLR-WT') \
+            or (dist_centroid > dist_th) or (np.isnan(intercept) == True):
+        train_regressor = True
 
-    if train_regressor==True:
-        X_train = grids.interpolate_predictors(pred_calib[iana],  i_4nn, j_4nn, w_4nn, interp_mode)
+    if train_regressor == True:
+        X_train = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)
         Y_train = obs[iana]
 
     # Remove missing predictors
     if len(missing_preds) != 0:
         valid_preds = [x for x in range(X.shape[1]) if x not in missing_preds]
-        X_train = X_train[:,valid_preds]
-        X = X[:,valid_preds]
+        X_train = X_train[:, valid_preds]
+        X = X[:, valid_preds]
 
     # Checks for missing predictands and remove them from training datasets
     special_value = int(100 * predictands_codification[targetVar]['special_value'])
@@ -185,14 +186,13 @@ def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, ob
             est = reg.predict(X)[0]
     else:
         # Regression by clusters precalibrated, apply coefficients
-        est = np.sum(X*coef)+intercept[0]
+        est = np.sum(X * coef) + intercept[0]
 
     return est
 
 
 ########################################################################################################################
-def TF_others(X, reg_ipoint):
-
+def TF_others(X, reg_ipoint, targetVar):
     """
     This function downscale a particular point.
     Return: array of estimated temperature
@@ -206,7 +206,15 @@ def TF_others(X, reg_ipoint):
     if Y.ndim > 1:
         Y = Y[:, 0]
 
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        Y[Y < 100*minAllowed] = 100*minAllowed
+    if  maxAllowed != None:
+        Y[Y > 100*maxAllowed] = 100*maxAllowed
+
     return Y
+
 
 ########################################################################################################################
 def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
@@ -248,7 +256,7 @@ def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
     if methodName == 'GLM-EXP':
         Y = np.exp(Y, dtype='float128')
     elif methodName == 'GLM-CUB':
-        Y = Y**3
+        Y = Y ** 3
 
     # # Set to 0.99 mm points classified as not rainy, set to 1 mm points classified as rainy where the regression
     # # predicts no rain, and set to zero negative values
@@ -257,9 +265,16 @@ def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
     # Y[Y < 0] = 0
 
     # Set to zero points classified as not rainy
-    Y[(Y >= 100*wetDry_th)*(israiny == False)] = 0
+    Y[(Y >= 100 * wetDry_th) * (israiny == False)] = 0
 
     # Set to zero negative values
     Y[Y < 0] = 0
+
+    # Force to theoretical range
+    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
+    if  minAllowed != None:
+        Y[Y < 100*minAllowed] = 100*minAllowed
+    if  maxAllowed != None:
+        Y[Y > 100*maxAllowed] = 100*maxAllowed
 
     return Y
