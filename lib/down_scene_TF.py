@@ -251,7 +251,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if targetVar == 'pr':
             est[:, ipoint_local_index] = down_point.TF_pr(methodName, X_test_ipoint, clf, reg)
         else:
-            est[:, ipoint_local_index] = down_point.TF_others(X_test_ipoint, reg)
+            est[:, ipoint_local_index] = down_point.TF_others(X_test_ipoint, reg, targetVar)
 
             # For some methods (with bad or no extrapolation at all), extapolation is done with a MLR instead
             if methodName in methods_to_extrapolate_with_MLR:
@@ -283,7 +283,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                     reg_MLR, clf_MLR = TF_lib.train_point(targetVar, 'MLR', X_train_ipoint, y_train_ipoint, ipoint)
 
                     # Downscale MLR
-                    est_MLR = down_point.TF_others(X_test_ipoint, reg_MLR)
+                    est_MLR = down_point.TF_others(X_test_ipoint, reg_MLR, targetVar)
 
                     # Replace days with predictors out of the observed range with results from MLR
                     est[iDaysOutOfRange, ipoint_local_index] = est_MLR[iDaysOutOfRange]
@@ -379,9 +379,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
     if  minAllowed != None:
-        est[est < 100*minAllowed] == 100*minAllowed
+        est[est < 100*minAllowed] = 100*minAllowed
     if  maxAllowed != None:
-        est[est > 100*maxAllowed] == 100*maxAllowed
+        est[est > 100*maxAllowed] = 100*maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
