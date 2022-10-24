@@ -101,11 +101,11 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	var.long_name = varName
 	var[:] = data
 
-	# print nc
+	# # print(nc)
 	# for var in nc.variables:
-	# 	print var
-	# 	print nc.variables[var]
-	# 	print nc.variables[var][:].shape
+	# 	print(var)
+	# 	print(nc.variables[var])
+	# 	print(nc.variables[var][:].shape)
 
 	# Write to file
 	nc.close()

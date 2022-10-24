@@ -852,8 +852,15 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # Define map
     # fig = plt.figure(dpi=300)
     if plot_library == 'Basemap':
-
-        map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
+        try:
+            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
+                      resolution='l')
+        except:
+            latmin = np.min(lats) - 1
+            latMax = np.max(lats) + 1
+            lonmin = np.min(lons) - 1
+            lonMax = np.max(lons) + 1
+            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
                       resolution='l')
         map.drawcoastlines(linewidth=0.5)
         if plot_lat_lon == True:
