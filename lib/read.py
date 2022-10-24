@@ -147,14 +147,13 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = data[:, ilats]
         data = data[:, :, ilons]
 
-    # Force lats sorted from North to South
+    # Force lats sorted from North to South if data is 2D (plus time dimension)
     try:
-        if lats[0] < lats[-1]:
+        if (lats[0] < lats[-1]) and (np.dim(data) > 2):
             lats = np.flip(lats)
             data = np.flip(data, axis=1)
     except:
         pass
-
 
     # Get units
     try:
