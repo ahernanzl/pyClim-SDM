@@ -283,6 +283,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     if model == 'reanalysis':
         dates = calibration_dates
     else:
+        datesDefined = False
         for pred in preds_dict[targetVar]:
             if len(pred) > 4 and pred[-4:] in all_levels:
                 level = pred[-4:]
@@ -293,9 +294,15 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             try:
                 dates = np.ndarray.tolist(
                     read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene=scene)['times'])
+                datesDefined = True
                 break
             except:
                 pass
+            if datesDefined == False:
+                print('ERROR retrieving dates from netCDF models files')
+                print('Make sure your input_data/models directory contains the needed files.')
+                print('At least one direct predictors is needed, not only derived predictors.')
+                exit()
 
     ndates = len(dates)
 
