@@ -3290,7 +3290,7 @@ class selectionWindow():
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
                                     self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
-                                    self.apply_bc, self.apply_bc_bySeason, self.bc_method,
+                                    self.apply_bc, self.apply_bc_bySeason, self.inverse_seasonNames, self.bc_method,
                                     self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
                                     self.myTargetVarUnits, self.myTargetVarIsAdditive,
                                     # self.myTargetVarIsGaussian,self.treatAsAdditiveBy_DQM_and_QDM
@@ -3324,7 +3324,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
                                 reaNames, modNames, preds_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
-                                apply_bc, apply_bc_bySeason, bc_method,
+                                apply_bc, apply_bc_bySeason, inverse_seasonNames, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
                                 myTargetVarUnits, myTargetVarIsAdditive,
                                 # myTargetVarIsGaussian, treatAsAdditiveBy_DQM_and_QDM
