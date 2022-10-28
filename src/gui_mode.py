@@ -2720,6 +2720,8 @@ class tabFigures(tk.Frame):
                                        'and accumulated for pcp) series by one method with observations. ',
             'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole testing period '
                                              'by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_TaylorDiagram': 'Taylor Diagram of the spatial distribution for the mean climdex in the whole '
+                                        'testing period by all methods.',
             'EVALUATION_obsMap': 'Mean observed values in the whole period.',
             'EVALUATION_estMap': 'Mean estimated (downscaled) values in the whole period by one method.',
             'EVALUATION_biasMap': 'Bias (absolute/relative) in the whole period by one method.',
