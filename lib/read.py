@@ -47,6 +47,8 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     start = datetime.datetime.now()
     if filename[-3:] != '.nc':
         filename += '.nc'
+    if dataPath[-1] != '/':
+        dataPath += '/'
     nc = Dataset(dataPath + filename)
 
     # # print(nc)

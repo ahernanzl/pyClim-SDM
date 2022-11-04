@@ -418,12 +418,12 @@ def wind_speed(level, model='reanalysis', scene='TESTING'):
 
     try:
         aux = aux_sfcWind_direct(level, model=model, scene=scene)
-        sfcWind, dates = aux['data'], aux['times']
+        sfcWind, times = aux['data'], aux['times']
     except:
         print('wind speed', level, 'not available. Retrieving it indirectly')
         try:
             aux = aux_sfcWind_from_uas_vas(level, model=model, scene=scene)
-            sfcWind, dates = aux['data'], aux['times']
+            sfcWind, times = aux['data'], aux['times']
         except:
             print('wind speed', level, 'not available neither directly nor indirectly')
             exit()
@@ -432,7 +432,7 @@ def wind_speed(level, model='reanalysis', scene='TESTING'):
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
     sfcWind[sfcWind < 0] = 0
 
-    return {'data': sfcWind, 'times': dates}
+    return {'data': sfcWind, 'times': times}
 
 ########################################################################################################################
 def aux_r_direct(level, model, scene):
@@ -478,7 +478,7 @@ def aux_r_from_q(level, model, scene):
             p /= 100
         else:
             aux = read.one_direct_predictor('tas', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             q = read.one_direct_predictor('huss', grid='ext', model=model, scene=scene)['data']
             p = read.one_direct_predictor('ps', grid='ext', model=model, scene=scene)['data']
@@ -493,7 +493,7 @@ def aux_r_from_q(level, model, scene):
         else:
             p = level
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             q = read.one_direct_predictor('hus', level=level, grid='ext', model=model, scene=scene)['data']
 
@@ -534,7 +534,7 @@ def aux_r_from_Td(level, model, scene):
             td = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)['data']
         else:
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             td = read.one_direct_predictor('Td', level=level, grid='ext', model=model, scene=scene)['data']
 
@@ -639,7 +639,7 @@ def aux_q_from_r(level, model, scene):
         else:
             p = level
             aux = read.one_direct_predictor('ta', level=level, grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             t = aux['data']
             r = read.one_direct_predictor('hur', level=level, grid='ext', model=model, scene=scene)['data']
 
@@ -742,7 +742,7 @@ def aux_Td_direct(level, model, scene):
             td = aux['data']
         else:
             aux = read.one_direct_predictor('tdps', grid='ext', model=model, scene=scene)
-            dates = aux['times']
+            times = aux['times']
             td = aux['data']
     else:
         if model == 'reanalysis':
@@ -917,7 +917,7 @@ def vorticity_and_divergence(model='reanalysis', scene='TESTING', level=None):
             for ipred in range(len(all_preds.keys())):
                 try:
                     ncName = list(all_preds.keys())[ipred]
-                    dates = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
+                    times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)['times']
                     datesDefined = True
                     continue
                 except:
@@ -982,7 +982,7 @@ def insolation(model='reanalysis', scene='TESTING'):
 
     # Read data
     # if model == 'reanalysis':
-    #     dates = calibration_dates
+    #     times = calibration_dates
     # else:
     datesDefined = False
     for ipred in range(len(all_preds.keys())):
