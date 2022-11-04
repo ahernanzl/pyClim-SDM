@@ -482,16 +482,16 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                         idates];
                     i += 1
             # Instability indexes
-            if 'K_index' in preds:
+            if 'K' in preds:
                 data[i] = derived_predictors.K_index(model=model, scene=scene)['data'][idates];
                 i += 1
-            if 'TT_index' in preds:
+            if 'TT' in preds:
                 data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'][idates];
                 i += 1
-            if 'SSI_index' in preds:
+            if 'SSI' in preds:
                 data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'][idates];
                 i += 1
-            if 'LI_index' in preds:
+            if 'LI' in preds:
                 data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'][idates];
                 i += 1
             if myTargetVar in preds:
@@ -629,16 +629,16 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                         var];
                     i += 1
             # Instability indexes
-            if 'K_index' in preds:
+            if 'K' in preds:
                 data[i] = derived_predictors.K_index(model=model, scene=scene)['data'];
                 i += 1
-            if 'TT_index' in preds:
+            if 'TT' in preds:
                 data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'];
                 i += 1
-            if 'SSI_index' in preds:
+            if 'SSI' in preds:
                 data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'];
                 i += 1
-            if 'LI_index' in preds:
+            if 'LI' in preds:
                 data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'];
                 i += 1
             if myTargetVar in preds:
