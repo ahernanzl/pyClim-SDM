@@ -1004,7 +1004,6 @@ class frameTargetVarInfoClass(tk.Frame):
                     'myTargetVarMaxAllowed': tk.StringVar(),
                     'myTargetVarUnits': tk.StringVar(),
                     # 'myTargetVarIsGaussian': tk.StringVar(),
-                    # 'treatAsAdditiveBy_DQM_and_QDM': tk.StringVar(),
                     'myTargetVarIsAdditive': tk.StringVar(),
                     })
 
@@ -1092,20 +1091,6 @@ class frameTargetVarInfoClass(tk.Frame):
             # except:
             #     myTargetVarIsGaussian_Entry.insert(END, '')
             # myTargetVarIsGaussian_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
-            # # treatAsAdditiveBy_DQM_and_QDM
-            # l = Label(root, text='Additive DQM/QDM:')
-            # l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            # CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise\n'
-            #                  'True is recommended in general, unless your variable is similar to precipitation, with a nongaussian\n'
-            #                  'distribution and many zeros.')
-            # treatAsAdditiveBy_DQM_and_QDM_Entry = ttk.Entry(root, textvariable=self.chk['treatAsAdditiveBy_DQM_and_QDM'], width=entriesW, justify='right', takefocus=False)
-            # try:
-            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, str(treatAsAdditiveBy_DQM_and_QDM))
-            # except:
-            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, '')
-            # treatAsAdditiveBy_DQM_and_QDM_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
 
     def get(self):
         return self.chk
@@ -3235,7 +3220,6 @@ class selectionWindow():
                         self.myTargetVarIsAdditive = True
                     else:
                         self.myTargetVarIsAdditive = False
-                    # self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
                     self.reaNames.update({'myTargetVar': self.myTargetReaName})
                     self.modNames.update({'myTargetVar': self.myTargetModName})
                 else:
@@ -3247,7 +3231,6 @@ class selectionWindow():
                     self.myTargetVarUnits = ''
                     # self.myTargetVarIsGaussian = False
                     self.myTargetVarIsAdditive = False
-                    # self.treatAsAdditiveBy_DQM_and_QDM = False
                 if self.myTargetVarMinAllowed == '':
                     self.myTargetVarMinAllowed = None
                 if self.myTargetVarMaxAllowed == '':
@@ -3282,7 +3265,6 @@ class selectionWindow():
                 # print(self.myTargetVarUnits)
                 # print(self.myTargetVarIsGaussian)
                 # print(self.myTargetVarIsAdditive)
-                # print(self.treatAsAdditiveBy_DQM_and_QDM)
                 # exit()
 
                 # Write settings file
@@ -3295,7 +3277,7 @@ class selectionWindow():
                                     self.apply_bc, self.apply_bc_bySeason, self.inverse_seasonNames, self.bc_method,
                                     self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
                                     self.myTargetVarUnits, self.myTargetVarIsAdditive,
-                                    # self.myTargetVarIsGaussian,self.treatAsAdditiveBy_DQM_and_QDM
+                                    # self.myTargetVarIsGaussian
                                     )
 
                 # Write tmp_main file
@@ -3329,7 +3311,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
                                 apply_bc, apply_bc_bySeason, inverse_seasonNames, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
                                 myTargetVarUnits, myTargetVarIsAdditive,
-                                # myTargetVarIsGaussian, treatAsAdditiveBy_DQM_and_QDM
+                                # myTargetVarIsGaussian
                         ):
 
     """This function prepares a new settings file with the user selected options"""
@@ -3370,8 +3352,6 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("myTargetVarUnits = '" + str(myTargetVarUnits) + "'\n")
     # f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
     f.write("myTargetVarIsAdditive = " + str(myTargetVarIsAdditive) + "\n")
-    # f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
-
 
     # Close f
     f.close()

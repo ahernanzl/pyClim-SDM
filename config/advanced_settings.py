@@ -1009,8 +1009,34 @@ if myTargetVar in targetVars:
             newUnits = units
         units_and_biasMode_climdex.update({myTargetVar + '_' + climdex: {'units': newUnits, 'biasMode': biasMode}})
 
-# ####################  COLORS AND STYLES    #####################################################
+######################################## BIAS CORRECTION MODE ##########################################################
+# Two bias correction / MOS methods, DQM and QDM, can be applied as an additive or multiplicative correction
+# The following parameter controls how to apply them for each targetVar ('abs' / 'rel')
+bc_mode_dict = {
+    'tasmax': 'abs',
+    'tasmin': 'abs',
+    'tas': 'abs',
+    'pr': 'abs',
+    'uas': 'abs',
+    'vas': 'abs',
+    'sfcWind': 'abs',
+    'hurs': 'abs',
+    'huss': 'abs',
+    'clt': 'abs',
+    'rsds': 'abs',
+    'rlds': 'abs',
+    'evspsbl': 'abs',
+    'evspsblpot': 'abs',
+    'psl': 'abs',
+    'ps': 'abs',
+    'mrro': 'abs',
+    'mrso': 'abs',
+}
+if myTargetVar in targetVars:
+    bc_mode_dict.update({myTargetVar: 'abs'})
 
+
+# ####################  COLORS AND STYLES    #####################################################
 methods_colors = {
     'RAW': 'lightgray',
     'RAW-BIL': 'lightgray',
