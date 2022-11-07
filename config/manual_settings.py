@@ -968,9 +968,9 @@ preds_targetVars_dict = {
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
         # 'K',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'vas': [
         # 'tasmax',             # maximum daily temperature
@@ -1045,10 +1045,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'sfcWind': [
         # 'tasmax',             # maximum daily temperature
@@ -1123,10 +1123,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'hurs': [
         # 'tasmax',             # maximum daily temperature
@@ -1201,10 +1201,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'huss': [
         # 'tasmax',             # maximum daily temperature
@@ -1279,10 +1279,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'clt': [
         # 'tasmax',             # maximum daily temperature
@@ -1357,10 +1357,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'rsds': [
         # 'tasmax',             # maximum daily temperature
@@ -1435,10 +1435,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'rlds': [
         # 'tasmax',             # maximum daily temperature
@@ -1513,10 +1513,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'evspsbl': [
         # 'tasmax',             # maximum daily temperature
@@ -1591,10 +1591,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'evspsblpot': [
         # 'tasmax',             # maximum daily temperature
@@ -1669,10 +1669,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'psl': [
         # 'tasmax',             # maximum daily temperature
@@ -1747,10 +1747,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'ps': [
         # 'tasmax',             # maximum daily temperature
@@ -1825,10 +1825,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'mrro': [
         # 'tasmax',             # maximum daily temperature
@@ -1903,10 +1903,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'mrso': [
         # 'tasmax',             # maximum daily temperature
@@ -1981,10 +1981,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
     'myTargetVar': [
         # 'tasmax',             # maximum daily temperature
@@ -2059,10 +2059,10 @@ preds_targetVars_dict = {
         # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
         # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
         # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-        # 'K_index',          # K instability index
-        # 'TT_index',         # Total Totals instability index
-        # 'SSI_index',        # Showalter index
-        # 'LI_index',         # Lifted index
+        # 'K',          # K instability index
+        # 'TT',         # Total Totals instability index
+        # 'SSI',        # Showalter index
+        # 'LI',         # Lifted index
     ],
 }
 
@@ -2143,10 +2143,10 @@ saf_list = [
     # 'vgsl',             # geostrophic wind at sea level (derived from t and mslp)
     # 'vortgsl',          # vorticity of geostrophic wind at sea level (derived from t and mslp)
     # 'divgsl',           # divergence of geostrophic wind at sea level (derived from t and mslp)
-    # 'K_index',          # K instability index
-    # 'TT_index',         # Total Totals instability index
-    # 'SSI_index',        # Showalter index
-    # 'LI_index',         # Lifted index
+    # 'K',          # K instability index
+    # 'TT',         # Total Totals instability index
+    # 'SSI',        # Showalter index
+    # 'LI',         # Lifted index
 ]
 
 
