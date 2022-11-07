@@ -132,9 +132,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
 
-            # For precipitation or non gaussian customized target variables
-            # if targetVar == 'pr':
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
+            # For multiplicative correction
+            if bc_mode_dict[targetVar] == 'rel':
 
                 # Treat zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
@@ -153,7 +152,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
                 # Add correction and change in the mean value
                 sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist_data)
 
-            # For the other target variables or for additive customized target variable
+            # For additive correction
             else:
 
                 # Remove mean and detrend
@@ -229,8 +228,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             sce_data = sce_data[ivalid]
 
             # Treat zeros
-            # if targetVar == 'pr':
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
+            # For multiplicative correction
+            if bc_mode_dict[targetVar] == 'rel':
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
@@ -240,12 +239,11 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             p = sce_ecdf(sce_data) * 100
 
             # Calculate and apply delta correction
-            # For precipitation or non gaussian customized target variables
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
-            # if targetVar == 'pr':
+            # For multiplicative correction
+            if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
-            # For the other target variables or for additive customized target variable
+            # For additive corretcion
             else:
                 delta = sce_data - np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
