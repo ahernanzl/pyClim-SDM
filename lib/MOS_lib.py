@@ -91,7 +91,7 @@ def quantile_mapping(obs, hist, sce, targetVar):
 def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
     """
     Detrendend Quantile Mapping: remove trend and mean, and then apply empirical quantile mapping (Cannon et al., 2015).
-    Ratio correction for precipitation and additive correction for the rest
+    Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
@@ -183,7 +183,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
-    Ratio correction for precipitation and additive correction for the rest
+    Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
