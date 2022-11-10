@@ -853,6 +853,11 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # fig = plt.figure(dpi=300)
     if plot_library == 'Basemap':
         try:
+            # Projection used for the European Domain
+            # map = Basemap(width=3600000, height=3700000,
+            #               rsphere=(6378137.00, 6356752.3142), \
+            #               resolution='l', area_thresh=1000., projection='lcc', \
+            #               lat_1=46., lat_2=56, lat_0=51, lon_0=9.5)
             map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
                       resolution='l')
         except:

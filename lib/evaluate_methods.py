@@ -159,6 +159,9 @@ def daily_data(by_season=True):
     val_lib.daily_boxplots('correlation', by_season)
     val_lib.daily_boxplots('variance', by_season)
 
+    # Spatial correlation of the daily patterns, boxplots of all methods together
+    val_lib.daily_spatial_correlation_boxplots()
+
     # Go through all methods
     for method_dict in methods:
         targetVar, methodName = method_dict['var'], method_dict['methodName']

@@ -2776,12 +2776,13 @@ class tabFigures(tk.Frame):
                                     seasons.append(file.split('_')[5].replace('.png', ''))
 
                             # sort seasons
-                            ordered_seasons = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
-                            aux = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
-                            for sea in ordered_seasons:
-                                if sea not in seasons:
-                                    aux.remove(sea)
-                            seasons = aux
+                            for sorted_seasons in (
+                                    ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON'],
+                                   ['ANNUAL', 'DJFM', 'A', 'MJJ', 'ASO', 'N'],
+                                   ):
+                                if set(seasons) == set(sorted_seasons):
+                                    seasons = sorted_seasons
+                                    break
                             self.seasonVar = tk.StringVar()
                             combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
                             combobox['values'] = seasons
