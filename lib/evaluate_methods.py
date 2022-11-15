@@ -311,20 +311,23 @@ def climdex(by_season=True):
                             if plotAllRegions == False or index == 0:
 
                                 palette = targetVar + '_' + climdex_name
+
                                 if (biasMode == 'abs'):
                                     bias_palette = palette + '_bias'
                                 else:
                                     bias_palette = palette + '_rel_bias'
 
-                                # Plot obs, est and bias (est-obs) maps
+                                # Plot obs, est and bias maps
                                 filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, 'None',
                                                      season))
                                 title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
                                 plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
+
                                 filename = '_'.join(('EVALUATION'+bc_sufix, 'estMap', targetVar, climdex_name, methodName,
                                                      season))
                                 title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
                                 plot.map(targetVar, mean_est, palette, path=pathFigures, filename=filename, title=title)
+
                                 filename = '_'.join(('EVALUATION'+bc_sufix, 'biasMap', targetVar, climdex_name, methodName,
                                                      season))
                                 title = ' '.join((targetVar.upper(), climdex_name, 'bias', methodName, season))

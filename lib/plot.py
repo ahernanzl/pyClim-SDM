@@ -501,7 +501,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
     data as colormesh.
 
-    :param targetVar: 'p' for precipitation or 't' for temperature. It controls the hres_metadata to use.
+    :param targetVar: It controls the hres_metadata to use.
     :param data:
     :param palette: differente palettes are defined in the function
     :param lats: if none provided, hres_lats will be used
@@ -526,6 +526,17 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
 
     # Create dictionary of all possible palettes
     dict = {}
+
+    # Example for regular intervals with temperatura colors
+    # dict.update({'tasmax_TXm_bias': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -5, 'vmax': 5, 'n_bin': 11,
+    #                               'colors': ['b', 'white', 'r'], 'ext': 'both'}})
+    # Example for irregular intervals with precipitation colors
+    # dict.update({'pr_PRCPTOT_rel_bias': {'units': '%',
+    #                                       'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+    #                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+    #                                       'ext': 'max'}})
+
+
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
@@ -846,7 +857,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
         cmap = plt.get_cmap(cmap)
     else:
         cmap = LinearSegmentedColormap.from_list('my_list', c, N=n_bin)
-    if palette in ('pcp_PRCPTOT', 'pcp_SDII', 'pcp_p95', 'pcp_R95p', 'pcp_R01'):
+    if palette in ('pr_Pm', 'pr_PRCPTOT', 'pr_SDII', 'pr_p95', 'pr_R95p', 'pr_R01'):
         cmap = truncate_colormap(cmap, .3)
 
     # Define map
