@@ -49,8 +49,7 @@ def preprocess():
 def common():
     """
     Association between high and low resolution grids
-    Calculate derived predictors
-    Calculate mean and std of all models
+    Standardize reanalysis
     """
 
     # Association between high resolution and low resolution grids, and regions labels.
@@ -58,7 +57,7 @@ def common():
         for interp_mode in ('nearest', 'bilinear', ):
             grids.association(interp_mode, targetVar)
 
-    # Calculates mean and std for all predictors both at reanalysis and models (standardization period)
+    # Standardize reanalysis (pred and saf, standardization period)
     for grid in (
             'pred',
             'saf',
@@ -72,10 +71,11 @@ def common():
 ########################################################################################################################
 def common_fold_dependent():
     """
-    Standardize and split training/testing
+    Split training/testing
     Weather types clustering
     """
 
+    # Define and create output path
     pathOut = pathAux + 'STANDARDIZATION/VAR/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
@@ -97,6 +97,7 @@ def common_fold_dependent():
             time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
             data_calib = data[time_first:time_last]
 
+        # Get days for training and testing and saves split data to files
         years = np.array([x.year for x in calibration_dates])
         idates_test = np.array(
             [i for i in range(years.size) if ((years[i] >= testing_years[0]) * (years[i] <= testing_years[1]))])

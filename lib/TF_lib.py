@@ -49,6 +49,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
         except:
             pass
 
+        # Load data (X_train)
         if 'pred' in fields:
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
@@ -65,6 +66,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
                 # For Radom Forest and Extreme Gradient Boost mixing pred (standardized) and var (pcp) is allowed
                 X_train = np.concatenate((X_train, var_calib), axis=1)
 
+        # Load data (y_train and association)
         y_train = read.hres_data(targetVar, period='training')['data']
         y_train = (100 * y_train).astype(predictands_codification[targetVar]['type'])
         i_4nn = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_' + interp_mode + '/i_4nn.npy')
@@ -110,7 +112,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
             print('ichunk:	', ichunk, '/', n_chunks)
             print('training', targetVar, methodName, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
-        # Get preds from neighbour/s and trains model for echa point
+        # Get preds from neighbour/s and trains model for each point
         y_train_ipoint = y_train[:, ipoint]
         valid_y = np.where(y_train_ipoint < special_value)[0]
         invalid_X = list(set(np.where(np.isnan(X_train))[0]))

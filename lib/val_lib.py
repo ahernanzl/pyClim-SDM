@@ -379,10 +379,10 @@ def daily_spatial_correlation_boxplots():
                             times = aux['times']
 
                         not_valid_obs = np.where(np.isnan(obs_season))[1]
-                        not_valid_es = np.where(np.isnan(est_season))[1]
-                        ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_es)]
-                        obs_season = obs_season[:, ivalid]
-                        est_season = est_season[:, ivalid]
+                        not_valid_est = np.where(np.isnan(est_season))[1]
+                        ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_est)]
+                        obs_season = obs_season[ivalid, :]
+                        est_season = est_season[ivalid, :]
 
                         ndays_valid = obs_season.shape[0]
                         matrix = np.zeros((ndays_valid, ))
@@ -466,6 +466,8 @@ def daily_spatial_correlation_boxplots():
                 plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'spatialCorrBoxplot', targetVar, 'all',
                                                 season))+ '.png', bbox_inches='tight')
                 plt.close()
+
+    methods.reverse()
 
 ########################################################################################################################
 def climdex_boxplots(by_season):
