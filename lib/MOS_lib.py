@@ -171,9 +171,9 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
+    if  minAllowed is not None:
         sce_corrected[sce_corrected < minAllowed] == minAllowed
-    if  maxAllowed != None:
+    if  maxAllowed is not None:
         sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
@@ -490,9 +490,9 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if minAllowed != None:
+    if minAllowed is not None:
         scene_bc[scene_bc < minAllowed] == minAllowed
-    if maxAllowed != None:
+    if maxAllowed is not None:
         scene_bc[scene_bc > maxAllowed] == maxAllowed
 
     return scene_bc

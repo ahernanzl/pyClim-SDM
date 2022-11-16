@@ -44,7 +44,7 @@ def bias_correction():
     iterable = []
 
     if apply_bc == True:
-        if bc_method == None:
+        if bc_method is None:
             print('Select a bc_method at advanced_settings.')
             exit()
         else:

@@ -208,9 +208,9 @@ def TF_others(X, reg_ipoint, targetVar):
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
+    if  minAllowed is not None:
         Y[Y < 100*minAllowed] = 100*minAllowed
-    if  maxAllowed != None:
+    if  maxAllowed is not None:
         Y[Y > 100*maxAllowed] = 100*maxAllowed
 
     return Y
@@ -272,9 +272,9 @@ def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
+    if  minAllowed is not None:
         Y[Y < 100*minAllowed] = 100*minAllowed
-    if  maxAllowed != None:
+    if  maxAllowed is not None:
         Y[Y > 100*maxAllowed] = 100*maxAllowed
 
     return Y

@@ -61,7 +61,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	else:
 		nc.createDimension('point', len(lats))
 
-	if level != None:
+	if level is not None:
 		nc.createDimension(level_name, 1)
 		# levelVar = nc.createVariable(level_name, 'f4', (level_name))
 		# levelVar.units='degrees north'
@@ -80,7 +80,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	if regular_grid == True:
 		latitude = nc.createVariable(lat_name, 'f4', (lat_name))
 		longitude = nc.createVariable(lon_name, 'f4', (lon_name))
-		if level == None:
+		if level is None:
 			var = nc.createVariable(varName, 'f4', (time_name, lat_name, lon_name,))
 		else:
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
