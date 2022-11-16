@@ -391,7 +391,7 @@ class tabModelsAndScenes(tk.Frame):
             checked = tk.BooleanVar(value=False)
             if name in list:
                 checked = tk.BooleanVar(value=True)
-            if obj == None:
+            if obj is None:
                 c = Checkbutton(frame, text=name.split('_')[0], variable=checked, takefocus=False)
             else:
                 c = Checkbutton(frame, text=name.split('_')[0], variable=checked, command=lambda: switch(obj), takefocus=False)

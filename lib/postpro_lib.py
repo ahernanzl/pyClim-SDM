@@ -202,7 +202,7 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
     warnings.filterwarnings("ignore", message="Mean of empty slice")
 
     # Force myTargetVar to str
-    if myTargetVar == None:
+    if myTargetVar is None:
         myTargetVarStr = 'None'
     else:
         myTargetVarStr = str(myTargetVar)

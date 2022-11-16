@@ -69,7 +69,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     else:
         print('lat_name not recognized')
         exit()
-    if level != None:
+    if level is not None:
         if 'level' in nc.variables:
             level_name = 'level'
         elif 'plev' in nc.variables:
@@ -92,7 +92,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     lons[lons > 180] -= 360
     nlats, nlons = len(lats), len(lons)
 
-    if level == None:
+    if level is None:
         data = nc.variables[nc_variable][:]
     else:
         try:
@@ -136,7 +136,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     # data = np.frombuffer(data.getdata).reshape(data.shape)
 
     # Selects a specific gr defined at settings
-    if grid != None:
+    if grid is not None:
         if grid == 'ext':
             grid_lats, grid_lons = ext_lats, ext_lons
         elif grid == 'saf':
@@ -184,7 +184,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
     :return: dictionary with data, times, lats, lons and calendar
     """
 
-    if level != None:
+    if level is not None:
         predName += str(level)
 
     if model == 'reanalysis':
@@ -267,7 +267,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     elif field == 'pred':
         preds = preds_dict[targetVar]
         nvar = len(preds)
-        if predName != None:
+        if predName is not None:
             nvar = 1
             try:
                 if predName == myTargetVar:
@@ -645,7 +645,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 data[i] = one_direct_predictor(myTargetVar, grid='ext', model=model, scene=scene)['data']
 
     # Select grid
-    if grid == None:
+    if grid is None:
         grid = field
     if grid in ('var', 'pred'):
         ilats, ilons = pred_ilats, pred_ilons
@@ -658,7 +658,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     data = np.swapaxes(data, 0, 1)
 
     # If a selection of dates is desired
-    if period != None:
+    if period is not None:
         if model == 'reanalysis':
             if period == 'calibration':
                 years = calibration_years
@@ -688,9 +688,9 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     :return:
     """
 
-    if pathIn != None:
+    if pathIn is not None:
         dataPath = pathIn
-    elif GCM_local != None:
+    elif GCM_local is not None:
         dataPath = '../input_data/OBS_PSEUDO/hres_' + GCM_local + '_' + RCM_local + '/'
     else:
         dataPath = pathHres
@@ -748,7 +748,7 @@ def hres_data(targetVar, period=None):
     data = data[:, 1:]
 
     # Set period
-    if period == None:
+    if period is None:
         first_date = datetime.datetime(minYear, 1, 1, 12, 0)
         last_date = datetime.datetime(maxYear, 12, 31, 12, 0)
         dates = [first_date + datetime.timedelta(days=i) for i in range((last_date - first_date).days + 1)]
