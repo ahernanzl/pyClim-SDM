@@ -107,7 +107,7 @@ def down_day(targetVar, pred_scene, saf_scene, var_scene, pred_calib, saf_calib,
 
         # Downscale at point level
         else:
-            if pred_scene != None:
+            if np.any(pred_scene != None) == True:
                 # Adds axis so scene and calib have the same dimensions
                 pred_scene = pred_scene[np.newaxis, :, :, :]
 
