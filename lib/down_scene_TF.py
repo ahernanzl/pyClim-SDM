@@ -361,7 +361,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Set units
     units = predictands_units[targetVar]
-    if units == None:
+    if units is None:
         units = ''
 
     if split_mode[:4] == 'fold':
@@ -378,9 +378,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
+    if  minAllowed is not None:
         est[est < minAllowed] = minAllowed
-    if  maxAllowed != None:
+    if  maxAllowed is not None:
         est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file

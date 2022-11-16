@@ -519,7 +519,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     :return: void
     """
 
-    if (filename != None) and (not os.path.exists(path)):
+    if (filename is not None) and (not os.path.exists(path)):
         os.makedirs(path)
 
     abs_limit = max(abs(data.min()), abs(data.max()))
@@ -798,9 +798,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     else:
         irregular_bins = True
 
-    if grid == None:
+    if grid is None:
         # Read lats lons
-        if lats[0] == None:
+        if lats[0] is None:
             lats = hres_lats[targetVar]
             lons = hres_lons[targetVar]
 
@@ -810,7 +810,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             lonmin = np.min(hres_lons_all) - 2
             lonMax = np.max(hres_lons_all) + 2
 
-        if regType != None:
+        if regType is not None:
             regNames = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() + '/association.csv')[regType].values
             iaux = [i for i in range(len(regNames)) if regNames[i] == regName]
             lats, lons = lats[iaux], lons[iaux]
@@ -828,7 +828,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             lonmin = np.min(lons) - 10
             lonMax = np.max(lons) + 20
 
-    elif grid != None:
+    elif grid is not None:
         # Read lats lons
         if grid == 'ext':
             lats, lons, grid_res_local = ext_lats, ext_lons, ext_grid_res
@@ -889,8 +889,8 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                 except:
                     pass
 
-        if grid == None:
-            if pointSize != None:
+        if grid is None:
+            if pointSize is not None:
                 s = pointSize
             elif pseudoreality == False:
                 # s = 1
@@ -905,7 +905,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                 map.scatter(X, Y, c=data, s=s, norm=norm, cmap=cmap, marker=marker)
             else:
                 map.scatter(X, Y, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax, marker=marker)
-        elif grid != None:
+        elif grid is not None:
             x = np.linspace(0, map.urcrnrx, lons.shape[0])
             y = np.linspace(0, map.urcrnry, lats.shape[0])
             X, Y = np.meshgrid(x, y)
@@ -932,7 +932,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     #     # ax.add_feature(country_borders, edgecolor='gray')
     #     # ax.add_feature(Cartopy.feature.OCEAN, zorder=100, color='w')
     #
-    #     if pointSize != None:
+    #     if pointSize is not None:
     #         s = pointSize
     #     elif pseudoreality == False:
     #         s = 1
@@ -986,9 +986,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # plt.show()
     # exit()
 
-    if title != None:
+    if title is not None:
         plt.title(title)
-    if filename == None:
+    if filename is None:
         plt.show()
         # exit()
     else:
