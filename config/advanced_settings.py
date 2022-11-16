@@ -212,7 +212,7 @@ anal_corr_th_dict = {
     'tasmax': 0.7,
     'tasmin': 0.7,
     'tas': 0.7,
-    'precipitation': 0.2,
+    'pr': 0.2,
     'uas': 0.7,
     'vas': 0.7,
     'sfcWind': 0.7,
