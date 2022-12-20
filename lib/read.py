@@ -695,18 +695,16 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     else:
         dataPath = pathHres
 
-    masterFile = dataPath + targetVar + '_hres_metadata.txt'
-
     # ------------------------
     # read master file
     # ------------------------
-    npMaster = np.loadtxt(masterFile)
+    npMaster = np.loadtxt(dataPath + targetVar + '_hres_metadata.txt', dtype='str')
     try:
-        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1], 'lats': npMaster[:, 2], 'h': npMaster[:, 3]})
+        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(np.float), 'lats': npMaster[:, 2].astype(np.float), 'h': npMaster[:, 3].astype(np.float)})
     except:
-        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1], 'lats': npMaster[:, 2]})
-    df['id'] = df['id'].astype(int)
-    df.set_index("id", inplace=True)
+        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(np.float), 'lats': npMaster[:, 2].astype(np.float)})
+    # df['id'] = df['id'].astype(int)
+    # df.set_index("id", inplace=True)
 
     return df
 
