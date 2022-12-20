@@ -552,7 +552,8 @@ def nc2ascii():
                     data[np.isnan(data)] = -999
                     del nc
                     print('writing daily data to ASCCI file for', targetVar, methodName, bc_sufix, scene, model, '...')
-                    id = list(read.hres_metadata(targetVar).index.values)
+                    # id = list(read.hres_metadata(targetVar).index.values)
+                    id = list(read.hres_metadata(targetVar)['id'].values)
                     times = np.array([10000 * x.year + 100 * x.month + x.day for x in times])
                     data = np.append(times[:, np.newaxis], data, axis=1)
                     id.insert(0, 'YYYYMMDD')
@@ -579,7 +580,8 @@ def nc2ascii():
                         fileOut = '_'.join((climdex, scene, model, season))
                         if os.path.isfile(pathIn + fileIn +'.nc'):
                             data = read.netCDF(pathIn, fileIn, climdex)['data']
-                            id = list(read.hres_metadata(targetVar).index.values)
+                            # id = list(read.hres_metadata(targetVar).index.values)
+                            id = list(read.hres_metadata(targetVar)['id'].values)
                             times = np.array(years)
                             data = np.append(times[:, np.newaxis], data, axis=1)
                             id.insert(0, 'YYYY')
