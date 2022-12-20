@@ -151,6 +151,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
                 # Add correction and change in the mean value
                 sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist_data)
+                sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
 
             # For additive correction
             else:
@@ -167,14 +168,6 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
                 # Add correction and mean values removed while detrending
                 sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs_data) - np.mean(hist_data)
-
-
-    # Force to theoretical range
-    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed is not None:
-        sce_corrected[sce_corrected < minAllowed] == minAllowed
-    if  maxAllowed is not None:
-        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
 
     return sce_corrected
 
@@ -243,6 +236,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
+                sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
             # For additive corretcion
             else:
                 delta = sce_data - np.percentile(hist_data, p)
