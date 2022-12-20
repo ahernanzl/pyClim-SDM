@@ -501,9 +501,22 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
     data as colormesh.
 
+
     :param targetVar: It controls the hres_metadata to use.
     :param data:
-    :param palette: differente palettes are defined in the function
+    :param palette: differente palettes are defined in the function. Palettes can be defined by the user following these
+    examples. For regular bins, define vmin,vmax,n_bin and leave bounds as None. For irregular bins, define bounds and
+    leave vmin,vmax,n_bin as None. For python cmap colors, use cmap and leave colors as None. For a user defined color
+    consisting on a sequence of colors, define colors and leave cmap as None. Finally, define ext as max,min,neither,both
+    for a colorbar extended (open interval) or limited (not values out of range allowed).
+    # Example for regular intervals with temperatura colors
+    # dict.update({'tasmax_TXm_bias': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -5, 'vmax': 5, 'n_bin': 11,
+    #                               'colors': ['b', 'white', 'r'], 'ext': 'both'}})
+    # Example for irregular intervals with precipitation colors
+    # dict.update({'pr_PRCPTOT_rel_bias': {'units': '%',
+    #                                       'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+    #                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+    #                                       'ext': 'max'}})
     :param lats: if none provided, hres_lats will be used
     :param lons: if none provided, hres_lons will be used
     :param path: pathOut
@@ -527,14 +540,6 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # Create dictionary of all possible palettes
     dict = {}
 
-    # Example for regular intervals with temperatura colors
-    # dict.update({'tasmax_TXm_bias': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -5, 'vmax': 5, 'n_bin': 11,
-    #                               'colors': ['b', 'white', 'r'], 'ext': 'both'}})
-    # Example for irregular intervals with precipitation colors
-    # dict.update({'pr_PRCPTOT_rel_bias': {'units': '%',
-    #                                       'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
-    #                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-    #                                       'ext': 'max'}})
 
 
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,

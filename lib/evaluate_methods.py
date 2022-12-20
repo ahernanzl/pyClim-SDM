@@ -243,6 +243,7 @@ def climdex(by_season=True):
 
     # Bias boxplots of all methods together
     val_lib.climdex_boxplots(by_season)
+    val_lib.climdex_Taylor_diagrams(by_season)
 
     # Go through all methods
     for method_dict in methods:

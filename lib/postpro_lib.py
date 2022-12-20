@@ -682,6 +682,8 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim
         title_size = 28
         try:
             sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
+            if units_and_biasMode_climdex[targetVar+'_'+climdex_name]['biasMode'] == 'rel':
+                sign_ylabel = '%'
         except:
             sign_ylabel = ''
 
