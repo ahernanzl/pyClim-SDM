@@ -67,10 +67,9 @@ def Clausius_Clapeyron_inverse(es):
     t0 = 273.15
     L = 2.5 * 10 ** 6
     Rv = 461
-    t = 1 / [(1 / t0) - (np.log(es / 6.11) / (L / Rv))]
 
     aux = (es / 6.11)
-    invalid = np.where(aux == 0)
+    invalid = np.where(aux <= 0)
     aux[invalid] = 1
     t = 1 / [(1 / t0) - (np.log(es / 6.11) / (L / Rv))]
     t[invalid] = np.nan
@@ -801,7 +800,7 @@ def aux_Td_from_q(level, model, scene):
     L = 2.5 * 10 ** 6
     Rv = 461
 
-    invalid = np.where(q == 0)
+    invalid = np.where(q <= 0)
     q[invalid] = 1
     td = 1 / (1 / 273 - (Rv / L) * np.log(p * q / (0.622 * 6.11)))
     td[invalid] = np.nan

@@ -248,7 +248,7 @@ elif experiment in ('PROJECTIONS', 'PSEUDOREALITY'):
 
 # When a point and day has missing predictors, all days (for that point) will be recalibrated if True.
 # If False, all days (for that point) will be calculated normally, and that particular day and point will be set to Nan
-recalibrating_when_missing_preds = False
+recalibrating_when_missing_preds = True
 
 # Transfer function methods can use local predictors (nearest neightbour / bilinear) or predictors from the whole grid
 # When using the whole grid, they have more information as inputs, but that consumes more memory
