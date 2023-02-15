@@ -201,39 +201,38 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             X_test_ipoint = X_test
 
         # Check missing predictors, remove them and recalibrate
-        if recalibrating_when_missing_preds == True:
-            missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
-            if len(missing_preds) != 0:
-                print('Recalibrating because of missing predictors:', missing_preds%npreds)
-                y_train_ipoint = y_train[:, ipoint]
+        missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
+        if recalibrating_when_missing_preds == True and len(missing_preds) != 0:
+            print('Recalibrating because of missing predictors:', missing_preds%npreds)
+            y_train_ipoint = y_train[:, ipoint]
 
-                # Interpolate valid_preds
-                valid_preds = [x for x in range(X_test_ipoint.shape[1]) if x not in missing_preds]
-                if methodName not in methods_using_preds_from_whole_grid:
-                    X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
-                                                                  j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-                elif methodName not in ['CNN', ]:
-                    X_train_ipoint = X_train[:, valid_preds, :, :].reshape(X_train.shape[0], len(valid_preds), -1)
-                else:
-                    X_train_ipoint = X_train[:, valid_preds, :, :]
+            # Interpolate valid_preds
+            valid_preds = [x for x in range(X_test_ipoint.shape[1]) if x not in missing_preds]
+            if methodName not in methods_using_preds_from_whole_grid:
+                X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
+                                                              j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+            elif methodName not in ['CNN', ]:
+                X_train_ipoint = X_train[:, valid_preds, :, :].reshape(X_train.shape[0], len(valid_preds), -1)
+            else:
+                X_train_ipoint = X_train[:, valid_preds, :, :]
 
-                # Check for missing predictands and remove them (if no missing predictors there is no need to check on
-                # predictands, because classifier/regressor are already trained
-                valid = np.where(y_train_ipoint < special_value)[0]
-                if valid.size < 30:
-                    exit('Not enough valid predictands to train')
-                if valid.size != y_train_ipoint.size:
-                    X_train_ipoint = X_train_ipoint[valid]
-                    y_train_ipoint = y_train_ipoint[valid]
+            # Check for missing predictands and remove them (if no missing predictors there is no need to check on
+            # predictands, because classifier/regressor are already trained
+            valid = np.where(y_train_ipoint < special_value)[0]
+            if valid.size < 30:
+                exit('Not enough valid predictands to train')
+            if valid.size != y_train_ipoint.size:
+                X_train_ipoint = X_train_ipoint[valid]
+                y_train_ipoint = y_train_ipoint[valid]
 
-                # Train regressors and classifiers without missing predictors or predictands
-                reg, clf = TF_lib.train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)
+            # Train regressors and classifiers without missing predictors or predictands
+            reg, clf = TF_lib.train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)
 
-                # Remove missing predictors from X_test
-                X_test_ipoint = X_test_ipoint[:, valid_preds]
+            # Remove missing predictors from X_test
+            X_test_ipoint = X_test_ipoint[:, valid_preds]
 
         # Check for days with missing predictors to set them to np.nan later
-        elif recalibrating_when_missing_preds == False:
+        else:
             X_train_ipoint = grids.interpolate_predictors(X_train, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint],
                                                           interp_mode)
             y_train_ipoint = y_train[:, ipoint]
