@@ -909,10 +909,10 @@ class framePredictorsClass(tk.Frame):
         # Levels
         tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
         tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=0, padx=30); irow+=1
-        self.levels = [1000, 850, 700, 500, 250]
+        self.levels = [1000, 925, 850, 700, 500, 250]
         for level in self.levels:
             Label(root,  text=str(level) + " hPa").grid(sticky="E", padx=10,  row=irow, column=icol); irow+=1
-        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=6; icol+=1
+        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=(len(self.levels)+1); icol+=1
 
         self.preds = {}
 
@@ -948,11 +948,11 @@ class framePredictorsClass(tk.Frame):
             padx = 2
             for level in self.levels:
                 irow, icol = add_chk_bt_upperAir(self.preds, str(var) + str(level), irow, icol)
-            irow -= 6; icol += 1
+            irow -= (len(self.levels)+1); icol += 1
 
         Label(root, text="").grid(sticky="W", padx=20, row=irow, column=icol); icol += 1
 
-        irow += 5
+        irow += len(self.levels)
         icol -= 11
 
         singleLevelVars = {

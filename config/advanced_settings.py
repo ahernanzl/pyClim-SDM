@@ -527,7 +527,7 @@ season_dict.update({inverse_seasonNames[0]: range(1, 13)})
 annualName = inverse_seasonNames[0]
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
-all_levels = [1000, 850, 700, 500, 250]
+all_levels = [1000, 925, 850, 700, 500, 250]
 
 # Force to define at least one synoptic analogy field
 if len(saf_list) == 0:
@@ -539,7 +539,7 @@ if len(saf_list) == 0:
 # Build saf_dict
 saf_dict = {}
 for pred in saf_list:
-    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+    key = pred.replace('1000', '').replace('925', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
     if key in reaNames:
         reaName = reaNames[key]
         modName = modNames[key]
@@ -556,7 +556,7 @@ preds_dict = {}
 for targetVar in targetVars:
     preds_dict.update({targetVar: {}})
     for pred in preds_targetVars_dict[targetVar]:
-        key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+        key = pred.replace('1000', '').replace('925', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
         if key in reaNames:
             reaName = reaNames[key]
             modName = modNames[key]
