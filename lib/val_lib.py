@@ -388,8 +388,8 @@ def daily_spatial_correlation_boxplots():
                         matrix = np.zeros((ndays_valid, ))
 
                         for iday in range(ndays_valid):
-                            if iday % 1000 == 0:
-                                print(iday, ndays_valid)
+                            # if iday % 1000 == 0:
+                            #     print(iday, ndays_valid)
                             X = obs_season[iday, :]
                             Y = est_season[iday, :]
                             # not_valid_obs = np.where(np.isnan(X))[0]
