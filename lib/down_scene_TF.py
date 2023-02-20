@@ -71,6 +71,10 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
+        if 'spred' in fields:
+            pred_calib = np.load(pathAux+'STANDARDIZATION/SPRED/'+targetVar+'_training.npy')
+            pred_calib = pred_calib.astype('float32')
+            X_train = pred_calib
         if 'saf' in fields:
             saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
@@ -88,6 +92,10 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = testing_dates
             if 'pred' in fields:
                 pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_testing.npy')
+                pred_scene = pred_scene.astype('float32')
+                X_test = pred_scene
+            if 'spred' in fields:
+                pred_scene = np.load(pathAux+'STANDARDIZATION/SPRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
@@ -119,6 +127,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
                 pred_scene = standardization.standardize(targetVar, pred_scene, model, 'pred')
+                pred_scene = pred_scene.astype('float32')
+                X_test = pred_scene
+            if 'spred' in fields:
+                pred_scene = read.lres_data(targetVar, fields='pred', grid='saf', model=model, scene=scene)['data'][idates]
+                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'spred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
@@ -191,14 +204,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             print('ichunk:	', ichunk, '/', n_chunks)
             print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
-
         # Prepare X_test shape
-        if methodName not in methods_using_preds_from_whole_grid:
-            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        elif methodName not in ['CNN',]:
-            X_test_ipoint = X_test.reshape(X_test.shape[0], X_test.shape[1], -1)
-        else:
+        if methodName in convolutional_methods:
             X_test_ipoint = X_test
+        else:
+            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
 
         # Check missing predictors, remove them and recalibrate
         missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
@@ -208,13 +218,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
             # Interpolate valid_preds
             valid_preds = [x for x in range(X_test_ipoint.shape[1]) if x not in missing_preds]
-            if methodName not in methods_using_preds_from_whole_grid:
+            if methodName in convolutional_methods:
+                X_train_ipoint = X_train[:, valid_preds, :, :]
+            else:
                 X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
                                                               j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-            elif methodName not in ['CNN', ]:
-                X_train_ipoint = X_train[:, valid_preds, :, :].reshape(X_train.shape[0], len(valid_preds), -1)
-            else:
-                X_train_ipoint = X_train[:, valid_preds, :, :]
 
             # Check for missing predictands and remove them (if no missing predictors there is no need to check on
             # predictands, because classifier/regressor are already trained
@@ -245,7 +253,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                 #           'recalibrating_when_missing_preds to True at settings')
 
         # Apply downscaling
-        if methodName in ['CNN', ]:
+        if methodName in convolutional_methods:
             X_test_ipoint = np.swapaxes(np.swapaxes(X_test_ipoint, 1, 2), 2, 3)
         if targetVar == 'pr':
             est[:, ipoint_local_index] = down_point.TF_pr(methodName, X_test_ipoint, clf, reg)

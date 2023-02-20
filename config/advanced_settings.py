@@ -10,7 +10,7 @@ from settings import *
 # ####################  HIGH PERFORMANCE COMPUTER (HPC) OPTIONS    #####################################################
 # Ir running in a HPC, define partition to lauch jobs here or in a private_settings.py file
 user = os.popen('whoami').read().split('\n')[0]
-max_nJobs = 5  # Max number of jobs
+max_nJobs = 10  # Max number of jobs
 if os.path.isfile('../private/private_settings.py'):
     sys.path.append(('../private/'))
     from private_settings import *
@@ -254,14 +254,14 @@ recalibrating_when_missing_preds = True
 # When using the whole grid, they have more information as inputs, but that consumes more memory
 # Furthermore, when using the whole grid, a missing value affects all points, so more problems related to missing data
 # will arise.
-methods_using_preds_from_whole_grid = ['CNN', ]
+convolutional_methods = ['CNN', ]
 
 # The following Transfer Function methods will be replaced by a MLR where predictos lie out of the training range
 # This is done for all targetVars except for precipitation
 methods_to_extrapolate_with_MLR = ['RF', 'XGB', ]
-for methodName in methods_using_preds_from_whole_grid:
+for methodName in convolutional_methods:
     if methodName in methods_to_extrapolate_with_MLR:
-        print('Remove', methodName, 'from methods_using_preds_from_whole_grid or from'
+        print('Remove', methodName, 'from convolutional_methods or from'
             'methods_to_extrapolate_with_MLR at advanced_settings.\nBoth options are not compatible.')
         exit()
 
@@ -447,8 +447,9 @@ longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 # ####################  METHODS    #####################################################
 # Family, mode and fields for each method is defined here. Field var stands for the target variable it self (at low res).
-# Field pred stands for predictors (the ones selected for each target variable). And field saf stands for synoptic
-# analogy fields
+# Field pred stands for local predictors (the ones selected for each target variable).
+# Field spred stands for synoptic predictos (the same variables but on a synoptic domain, for convolutional methods)
+# And field saf stands for synoptic analogy fields
 families_modes_and_fields = {
     'RAW': ['RAW', 'RAW', 'var'],
     'RAW-BIL': ['RAW', 'RAW', 'var'],
@@ -476,7 +477,7 @@ families_modes_and_fields = {
     'RF': ['TF', 'PP', 'pred+var'],
     'XGB': ['TF', 'PP', 'pred+var'],
     'ANN': ['TF', 'PP', 'pred'],
-    'CNN': ['TF', 'PP', 'pred'],
+    'CNN': ['TF', 'PP', 'spred'],
     'WG-PDF': ['WG', 'PP', 'var'],
     'WG-NMM': ['WG', 'PP', 'var'],
 }
