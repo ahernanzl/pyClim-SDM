@@ -35,24 +35,36 @@ import val_lib
 import WG_lib
 import write
 
-def get_mean_and_std_reanalysis(targetVar, grid):
+def get_mean_and_std_reanalysis(targetVar, fields_and_grid):
     """
     Calculates mean and standard deviation for reanalysis and models and all predictors.
     The time period used is the one with data from both reanalysis and models historical: 1980-2005.
     """
 
-    pathOut = pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar.upper()+'/'
+    # For pred (local predictors) and saf (synoptic analogy fields), fields and grid (spatial domain) are the same,
+    # but for spred (synoptic predictors), fields are predictors and grid is synoptic
+    if fields_and_grid == 'pred':
+        field, grid = 'pred', 'pred'
+    elif fields_and_grid == 'saf':
+        field, grid = 'saf', 'saf'
+    elif fields_and_grid == 'spred':
+        field, grid = 'pred', 'saf'
+    else:
+        print('wrong fields_and_grid')
+        exit()
+
+    pathOut = pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/'+targetVar.upper()+'/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
     # Read low resolution data from reanalysis
     if pseudoreality == True:
-        aux = read.lres_data(targetVar, grid, model=GCM_shortName, scene=scene)
+        aux = read.lres_data(targetVar, field=field, grid=grid, model=GCM_shortName, scene=scene)
         dates = aux['times']
         data = aux['data']
     else:
         dates = calibration_dates
-        data = read.lres_data(targetVar, grid)['data']
+        data = read.lres_data(targetVar, field=field, grid=grid)['data']
 
     calib_data = 1*data
     ref_data = 1*data
@@ -69,17 +81,27 @@ def get_mean_and_std_reanalysis(targetVar, grid):
     np.save(pathOut+'reanalysis_std', std)
 
     # Save standardized predictors matrix
-    calib_data = standardize(targetVar, calib_data, 'reanalysis', grid)
-    np.save(pathAux + 'STANDARDIZATION/' + grid.upper() + '/' + targetVar + '_reanalysis_standardized', calib_data)
+    calib_data = standardize(targetVar, calib_data, 'reanalysis', fields_and_grid)
+    np.save(pathAux + 'STANDARDIZATION/' + fields_and_grid.upper() + '/' + targetVar + '_reanalysis_standardized', calib_data)
 
 
 ########################################################################################################################
-def get_mean_and_std_oneModel(targetVar, grid, model):
+def get_mean_and_std_oneModel(targetVar, fields_and_grid, model):
 
-    print('get_mean_and_std_oneModel', targetVar, grid, model)
+    print('get_mean_and_std_oneModel', targetVar, fields_and_grid, model)
+
+    if fields_and_grid == 'pred':
+        field, grid = 'pred', 'pred'
+    elif fields_and_grid == 'saf':
+        field, grid = 'saf', 'saf'
+    elif fields_and_grid == 'spred':
+        field, grid = 'pred', 'saf'
+    else:
+        print('wrong fields_and_grid')
+        exit()
 
     # Read data and times from model
-    aux = read.lres_data(targetVar, grid, model=model, scene='historical')
+    aux = read.lres_data(targetVar, field=field, grid=grid, model=model, scene='historical')
     scene_dates = aux['times']
 
     # Read calendar
@@ -111,15 +133,15 @@ def get_mean_and_std_oneModel(targetVar, grid, model):
 
 
 ########################################################################################################################
-def standardize(targetVar, data, model, grid):
+def standardize(targetVar, data, model, fields_and_grid):
     """Provided the data array, it is standardized and returned """
 
-    pathIn=pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar.upper()+'/'
+    pathIn=pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/'+targetVar.upper()+'/'
     warnings.filterwarnings("ignore")
 
     # Get mean and std
     if mean_and_std_from_GCM == True and model != 'reanalysis':
-        aux = get_mean_and_std_oneModel(targetVar, grid, model)
+        aux = get_mean_and_std_oneModel(targetVar, fields_and_grid, model)
         mean = aux['mean']
         std = aux['std']
     else:

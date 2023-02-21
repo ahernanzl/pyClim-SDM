@@ -75,7 +75,7 @@ def missing_data_check():
                     # Calculate percentaje of nans
                     perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
                     PERC_NAN[ipred, iscene, imodel] = perc_nan
-                    print(targetVar, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
+                    print(targetVar, predName, sceneName, model, 'max perc_nan per grid-box', np.max(perc_nan))
 
                     if np.max(perc_nan) != 0:
                         # Plot map

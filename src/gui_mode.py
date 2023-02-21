@@ -551,7 +551,7 @@ class tabDomain(tk.Frame):
         # safGrid
         tk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
         padx, pady, width = 2, 2, 5
-        lab = Label(frameDomain, text='Domain for synoptic analogy fields \n'
+        lab = Label(frameDomain, text='Synoptic domain \n'
                                      '(lat up, lat down, lon left and long right):', justify=LEFT)
         lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
 
@@ -909,10 +909,10 @@ class framePredictorsClass(tk.Frame):
         # Levels
         tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
         tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=0, padx=30); irow+=1
-        self.levels = [1000, 850, 700, 500, 250]
+        self.levels = [1000, 925, 850, 700, 500, 250]
         for level in self.levels:
             Label(root,  text=str(level) + " hPa").grid(sticky="E", padx=10,  row=irow, column=icol); irow+=1
-        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=6; icol+=1
+        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=(len(self.levels)+1); icol+=1
 
         self.preds = {}
 
@@ -948,11 +948,11 @@ class framePredictorsClass(tk.Frame):
             padx = 2
             for level in self.levels:
                 irow, icol = add_chk_bt_upperAir(self.preds, str(var) + str(level), irow, icol)
-            irow -= 6; icol += 1
+            irow -= (len(self.levels)+1); icol += 1
 
         Label(root, text="").grid(sticky="W", padx=20, row=irow, column=icol); icol += 1
 
-        irow += 5
+        irow += len(self.levels)
         icol -= 11
 
         singleLevelVars = {
@@ -2703,6 +2703,10 @@ class tabFigures(tk.Frame):
                                                 'tmax/tmin and Spearman for pcp.',
             'EVALUATION_r2MapMonthly': 'R2 score (coefficient of determination)  for the monthly (mean for tmax/tmin '
                                        'and accumulated for pcp) series by one method with observations. ',
+            'EVALUATION_correlationBoxplotMonthly': 'Correlation for the monthly (mean for tmax/tmin and accumulated for '
+                                                'pcp) series by one method with observations.',
+            'EVALUATION_R2BoxplotMonthly': 'R2 score (coefficient of determination) for the monthly (mean for tmax/tmin '
+                                       'and accumulated for pcp) series by one method with observations.',
             'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole testing period '
                                              'by all methods. Boxes contain one value per grid point.',
             'EVALUATION_TaylorDiagram': 'Taylor Diagram of the spatial distribution for the mean climdex in the whole '
