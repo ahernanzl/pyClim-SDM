@@ -226,6 +226,9 @@ def monthly_data():
     Plots monthly accumulated correlation maps of pcp.
     """
 
+    val_lib.monthly_boxplots('correlation')
+    val_lib.monthly_boxplots('R2')
+
     # Go through all methods
     for method_dict in methods:
         var, methodName = method_dict['var'], method_dict['methodName']

@@ -342,6 +342,10 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est = np.append(est, np.load(filename), axis=1)
     shutil.rmtree(path)
 
+    # Points with a constant value (due to problems in the machine learning tuning) are set to nan
+    iconstant = np.where(np.nanmin(est, axis=0) == np.nanmax(est, axis=0))
+    est[:, iconstant] = np.nan
+
     # Save to file
     if experiment == 'EVALUATION':
         pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
