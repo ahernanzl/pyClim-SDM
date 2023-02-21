@@ -388,8 +388,8 @@ def daily_spatial_correlation_boxplots():
                         matrix = np.zeros((ndays_valid, ))
 
                         for iday in range(ndays_valid):
-                            if iday % 1000 == 0:
-                                print(iday, ndays_valid)
+                            # if iday % 1000 == 0:
+                            #     print(iday, ndays_valid)
                             X = obs_season[iday, :]
                             Y = est_season[iday, :]
                             # not_valid_obs = np.where(np.isnan(X))[0]
@@ -690,6 +690,141 @@ def climdex_Taylor_diagrams(by_season):
                             # exit()
                             plt.savefig(pathOut + filename + '.png', bbox_inches='tight')
                             plt.close()
+
+
+########################################################################################################################
+def monthly_boxplots(metric):
+    """
+    Boxplots of metric,  by subregions (optional).
+    :param metric: correlation or variance
+    """
+
+    vars = []
+    for method in methods:
+        var = method['var']
+        if var not in vars:
+            vars.append(var)
+
+    # Go through all variables
+    for targetVar in targetVars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+
+        # Go through all methods
+        imethod = 0
+        for method_dict in methods:
+            var = method_dict['var']
+            if var == targetVar:
+                methodName = method_dict['methodName']
+                print(var, methodName, metric)
+
+                # Read data
+                d = postpro_lib.get_data_eval(var, methodName)
+                ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+                del d
+
+                # Accumulate months
+
+                npoints = obs.shape[1]
+                firstYear = times_scene[0].year
+                lastYear = times_scene[-1].year
+
+                dates = []
+                for year in range(firstYear, lastYear + 1):
+                    for month in range(1, 13):
+                        dates.append((month, year))
+                ndates = len(dates)
+                est_acc = np.zeros((ndates, npoints))
+                obs_acc = np.zeros((ndates, npoints))
+
+                for idate in range(ndates):
+                    month, year = dates[idate][0], dates[idate][1]
+                    idates = [i for i in range(len(times_scene)) if
+                              ((times_scene[i].year == year) and (times_scene[i].month == month))]
+                    obs_acc[idate] = np.nansum(obs[idates], axis=0)
+                    est_acc[idate] = np.nansum(est[idates], axis=0)
+
+                not_valid_obs = np.where(np.isnan(obs_acc))[0]
+                not_valid_es = np.where(np.isnan(est_acc))[0]
+                ivalid = [i for i in range(len(dates)) if (i not in not_valid_obs) and (i not in not_valid_es)]
+                obs_acc = obs_acc[ivalid]
+                est_acc = est_acc[ivalid]
+                matrix = np.zeros((hres_npoints[targetVar], ))
+                if metric == 'correlation':
+                    for ipoint in range(hres_npoints[targetVar]):
+                        X = obs_acc[:, ipoint]
+                        Y = est_acc[:, ipoint]
+                        try:
+                            r = round(pearsonr(X, Y)[0], 3)
+                        except:
+                            r = np.nan
+                        if np.isnan(r) == True:
+                            r = 0
+                        matrix[ipoint] = r
+                elif metric == 'R2':
+                    matrix = 1 - np.nansum((est_acc - obs_acc) ** 2, axis=0) / np.nansum(obs_acc ** 2, axis=0)
+                np.save('../tmp/'+targetVar+'_'+methodName+'_monthly_' +metric, matrix)
+            imethod += 1
+
+
+    # Correlations have been calculated and storaged. Now they will be plotted
+    for targetVar in vars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+        # Read regions csv
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() +'/regions.csv')
+        matrix = np.zeros((hres_npoints[targetVar], nmethods))
+        imethod = 0
+        names = []
+        for method_dict in methods:
+            var = method_dict['var']
+            if var == targetVar:
+                methodName = method_dict['methodName']
+                names.append(methodName)
+                print(metric, var, methodName)
+                matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_monthly_'+metric+'.npy')
+                imethod += 1
+
+        # Go through all regions
+        for index, row in df_reg.iterrows():
+            if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+                regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+                iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+                npoints = len(iaux)
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+                matrix_region = matrix[iaux]
+
+                # Create pathOut
+                if plotAllRegions == False:
+                    pathOut = pathFigures
+                else:
+                    path = pathFigures + 'daily_'+metric+'/' + targetVar.upper() + '/'
+                    pathOut = path + subDir
+                if not os.path.exists(pathOut):
+                    os.makedirs(pathOut)
+
+                fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
+                medianprops = dict(color="black")
+                g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
+                # fill with colors
+                i = 0
+                color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
+                for patch in g['boxes']:
+                    patch.set_facecolor(color[i])
+                    i += 1
+
+                units = ''
+                title = ' '.join((targetVar, 'monthly', metric))
+                # title = targetVar
+                plt.ylim((0, 1))
+                plt.title(title, fontsize=20)
+                # plt.title(title)
+                plt.ylabel(units, rotation=90)
+                ax.set_xticklabels(names, rotation=90)
+                plt.hlines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
+                # plt.show()
+                # exit()
+                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, metric+'BoxplotMonthly', targetVar, 'None', 'all'))+
+                            '.png', bbox_inches='tight')
+                plt.close()
 
 
 ########################################################################################################################

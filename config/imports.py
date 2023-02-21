@@ -8,6 +8,7 @@ import datetime
 import numpy as np
 import time
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
 import pickle
 import math
 import seaborn as sns

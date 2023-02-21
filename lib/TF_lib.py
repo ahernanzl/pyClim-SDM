@@ -54,6 +54,10 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
             pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
+        if 'spred' in fields:
+            pred_calib = np.load(pathAux+'STANDARDIZATION/SPRED/'+targetVar+'_training.npy')
+            pred_calib = pred_calib.astype('float32')
+            X_train = pred_calib
         if 'saf' in fields:
             saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
@@ -123,10 +127,8 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
         X_train_ipoint = X_train[valid, :, :, :]
 
         # Prepare X_train shape
-        if methodName not in methods_using_preds_from_whole_grid:
+        if methodName not in convolutional_methods:
             X_train_ipoint = grids.interpolate_predictors(X_train_ipoint, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        elif methodName not in ['CNN', ]:
-            X_train_ipoint = X_train_ipoint.reshape(X_train_ipoint.shape[0], X_train_ipoint.shape[1], -1)
 
         # Train TF (clf and reg)
         reg, clf = train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)
