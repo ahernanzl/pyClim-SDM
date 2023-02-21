@@ -2703,6 +2703,10 @@ class tabFigures(tk.Frame):
                                                 'tmax/tmin and Spearman for pcp.',
             'EVALUATION_r2MapMonthly': 'R2 score (coefficient of determination)  for the monthly (mean for tmax/tmin '
                                        'and accumulated for pcp) series by one method with observations. ',
+            'EVALUATION_correlationBoxplotMonthly': 'Correlation for the monthly (mean for tmax/tmin and accumulated for '
+                                                'pcp) series by one method with observations.',
+            'EVALUATION_R2BoxplotMonthly': 'R2 score (coefficient of determination) for the monthly (mean for tmax/tmin '
+                                       'and accumulated for pcp) series by one method with observations.',
             'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole testing period '
                                              'by all methods. Boxes contain one value per grid point.',
             'EVALUATION_TaylorDiagram': 'Taylor Diagram of the spatial distribution for the mean climdex in the whole '
