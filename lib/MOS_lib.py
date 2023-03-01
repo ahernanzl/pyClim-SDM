@@ -35,6 +35,39 @@ import val_lib
 import WG_lib
 import write
 
+
+########################################################################################################################
+def treat_frecuencies(obs, hist, sce, th=0.05, jitter=0.01):
+    """
+    This function is a preprocess for QDM, in order to maintain the expected wet/dry frecuency and, at the same time,
+    to avoid artifacted delta changes when bias correcting Transfer Function methods for precipitation, where the
+    simulated distribution is discontinuous (it has zeros by the classifier and wet days far from zero by the regressor,
+    i.e. there is a marked discontinuity in the PDF).
+    The strategy is:
+    1 - To avoid artifacted high delta by setting the problematic interval of wet days at scene to dry
+    2 - To preserve the expected frequency by forzing wet days in obs
+    """
+    obs_dryFreq = np.sum(obs<th)/obs.size
+    hist_dryFreq = np.sum(hist<th)/hist.size
+    sce_dryFreq = np.sum(sce<th)/sce.size
+
+    # If too many wet days (which QDM does not automatically correct)
+    if hist_dryFreq > sce_dryFreq:
+
+        # Setting the problematic interval of wet days at scene to dry
+        p1, p2 = 100*sce_dryFreq, 100*hist_dryFreq
+        iTodry = np.where((sce>np.percentile(sce, p1)) * (sce<np.percentile(sce, p2)))[0]
+        sce[iTodry] = 0
+
+        # Forze needed observed zeros to dry
+        expected_dryFreq = obs_dryFreq + sce_dryFreq - hist_dryFreq
+        p1, p2 = 100*expected_dryFreq, 100*obs_dryFreq
+        iToWet = np.where((obs>np.percentile(obs, p1)) * (obs<np.percentile(obs, p2)))[0]
+        obs[iToWet] = th + np.random.uniform(low=0, high=jitter, size=iToWet.shape)
+
+    return obs, hist, sce
+
+
 ########################################################################################################################
 def quantile_mapping(obs, hist, sce, targetVar):
     """
@@ -216,6 +249,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
         if hist_data.size == 0:
             sce_corrected.T[ipoint] = np.nan
         else:
+
             # Select valid data from sce
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
@@ -223,6 +257,15 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
             # Treat zeros
             # For multiplicative correction
             if bc_mode_dict[targetVar] == 'rel':
+
+                # percWet = {'obs': int(100*np.sum(obs_data>th)/obs_data.size),
+                #            'hist': int(100*np.sum(hist_data>th)/hist_data.size),
+                #            'sce': int(100*np.sum(sce_data>th)/sce_data.size),
+                #            }
+
+                # Treat frecuencies
+                obs_data, hist_data, sce_data = treat_frecuencies(obs_data, hist_data, sce_data)
+                # Add noise to zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
@@ -237,6 +280,34 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
                 sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
+
+                # for p in range(100):
+                #     print('p', str(p).ljust(3),
+                #           'hist', str(np.round(np.percentile(hist_data, p), 3)).ljust(8),
+                #           'sce', str(np.round(np.percentile(sce_data, p), 3)).ljust(8),
+                #           'delta', str(np.round(np.percentile(sce_data, p)/np.percentile(hist_data, p), 3)).ljust(8),
+                #           'obs', str(np.round(np.percentile(obs_data, p), 3)).ljust(8),
+                #           'sce_corrected', str(np.round((np.percentile(sce_data, p)/np.percentile(hist_data, p))*np.percentile(obs_data, p), 3)).ljust(8))
+
+
+                # percWet.update({'corr': int(100*np.sum(sce_corrected.T[ipoint]>th)/sce_corrected.T[ipoint].size)})
+                # print('obs', percWet['obs'], '% wet days')
+                # print('hist', percWet['hist'], '% wet days')
+                # print('sce', percWet['sce'], '% wet days')
+                # print('corr', percWet['corr'], '% wet days')
+                # print('expected', percWet['obs']+percWet['sce']-percWet['hist'], '% wet days')
+
+                # r = (0, 10)
+                # bins = 100
+                # plt.hist(hist_data, range=r, bins=bins, density=True, color='g', alpha=0.5, label='hist')
+                # plt.hist(sce_data, range=r, bins=bins, density=True, color='orange', alpha=0.5, label='fut')
+                # plt.hist(obs_data, range=r, bins=bins, density=True, color='b', alpha=0.5, label='obs')
+                # plt.hist(sce_corrected.T[ipoint], range=r, bins=bins, density=True, color='red', alpha=0.5, label='corr')
+                # plt.legend()
+                # plt.show()
+                # exit()
+
+
             # For additive corretcion
             else:
                 delta = sce_data - np.percentile(hist_data, p)
