@@ -206,7 +206,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
 
 ########################################################################################################################
-def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
+def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, treat_zeros=True):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
     Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
@@ -264,7 +264,9 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
                 #            }
 
                 # Treat frecuencies
-                obs_data, hist_data, sce_data = treat_frecuencies(obs_data, hist_data, sce_data)
+                if treat_zeros == True:
+                    obs_data, hist_data, sce_data = treat_frecuencies(obs_data, hist_data, sce_data)
+
                 # Add noise to zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
