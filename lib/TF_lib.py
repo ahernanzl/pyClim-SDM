@@ -219,16 +219,20 @@ def train_point(targetVar, methodName, X, y, ipoint):
             # skelear implementation
             # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
             # regressor = GridSearchCV(MLPRegressor(max_iter=100000),
-            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            #              param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
             # regressor.fit(X, y)
 
             # keras tensorflow implementation
             regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(8, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(8, activation='relu'),
-                keras.layers.Dense(1), ])
+                layers.Dense(8, activation='relu', input_shape=X.shape[1:]),
+                layers.Dense(8, activation='relu'),
+                layers.Dense(1), ])
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            while True:
+                history_reg = regressor.fit(X, y, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
+                if regressor.predict(X).T.std() != 0:
+                    break
+                print('Calibration trapped in local minima. Recalibrating...')
 
         elif methodName in ('CNN', ):
             # Prepare shape for convolution layer
@@ -246,8 +250,11 @@ def train_point(targetVar, methodName, X, y, ipoint):
             regressor.add(layers.Dense(8, activation='relu'))
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
+            while True:
+                history_reg = regressor.fit(X, y, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
+                if regressor.predict(X).T.std() != 0:
+                    break
+                print('Calibration trapped in local minima. Recalibrating...')
     else:
         # Prepare data for precipitation
         israiny = (y > (100 * wetDry_th))
@@ -309,7 +316,11 @@ def train_point(targetVar, methodName, X, y, ipoint):
                 keras.layers.Dense(8, activation='relu'),
                 keras.layers.Dense(1, activation='sigmoid'), ])
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            while True:
+                history_clf = classifier.fit(X, 1*israiny, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
+                if classifier.predict(X).T.std() != 0:
+                    break
+                print('Calibration trapped in local minima. Recalibrating...')
 
         elif methodName in ['CNN', ]:
             # Prepare shape for convolution
@@ -328,8 +339,11 @@ def train_point(targetVar, methodName, X, y, ipoint):
             classifier.add(layers.Dense(8, activation='relu'))
             classifier.add(layers.Dense(1, activation='sigmoid'))
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
-
+            while True:
+                history_clf = classifier.fit(X, 1*israiny, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
+                if classifier.predict(X).T.std() != 0:
+                    break
+                print('Calibration trapped in local minima. Recalibrating...')
         # Regressor
         if methodName == 'GLM-LIN':
             regressor = RidgeCV(cv=3)
@@ -378,8 +392,11 @@ def train_point(targetVar, methodName, X, y, ipoint):
                 keras.layers.Dense(8, activation='relu'),
                 keras.layers.Dense(1), ])
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0,
-                    callbacks=tf_nn_callbacks)
+            while True:
+                history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
+                if regressor.predict(X_rainy_days).T.std() != 0:
+                    break
+                print('Calibration trapped in local minima. Recalibrating...')
 
         elif methodName in ['CNN', ]:
             # Prepare shape for convolution
@@ -398,7 +415,12 @@ def train_point(targetVar, methodName, X, y, ipoint):
             regressor.add(layers.Dense(8, activation='relu'))
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            while True:
+                history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=1000, validation_split=.2, verbose=0,
+                                            callbacks=tf_nn_callbacks, )
+                if regressor.predict(X_rainy_days).T.std() != 0:
+                    break
+                print('Calibration trapped in local minima. Recalibrating...')
 
     # Plot hyperparameters
     if plot_hyperparameters_epochs_nEstimators_featureImportances == True:

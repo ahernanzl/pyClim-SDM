@@ -206,7 +206,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
 
 ########################################################################################################################
-def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, treat_zeros=True):
+def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, treat_zeros=True,
+                           th_artifacted_delta=3):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
     Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
@@ -215,6 +216,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
     * obs (nDaysObs, nPoints): the observational data
     * hist (nDaysHist, nPoints): the model data at the reference period
     * sce (nDaysSce, nPoints): the scenario data that shall be corrected
+    * th_artifacted_delta: for some distributions, extremely high artifacted delta corrections can appear. They are
+        set to NaN if the delta change is applied as multiplicative.
 
     Adapted from https://github.com/pacificclimate/ClimDown
 
@@ -280,24 +283,32 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
             # For multiplicative correction
             if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
+                delta[delta>th_artifacted_delta] = np.nan
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
                 sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
 
-                # for p in range(100):
+                # for p in np.linspace(99., 100., 100):
                 #     print('p', str(p).ljust(3),
                 #           'hist', str(np.round(np.percentile(hist_data, p), 3)).ljust(8),
                 #           'sce', str(np.round(np.percentile(sce_data, p), 3)).ljust(8),
                 #           'delta', str(np.round(np.percentile(sce_data, p)/np.percentile(hist_data, p), 3)).ljust(8),
                 #           'obs', str(np.round(np.percentile(obs_data, p), 3)).ljust(8),
                 #           'sce_corrected', str(np.round((np.percentile(sce_data, p)/np.percentile(hist_data, p))*np.percentile(obs_data, p), 3)).ljust(8))
-
-
+                #
+                #
                 # percWet.update({'corr': int(100*np.sum(sce_corrected.T[ipoint]>th)/sce_corrected.T[ipoint].size)})
                 # print('obs', percWet['obs'], '% wet days')
                 # print('hist', percWet['hist'], '% wet days')
                 # print('sce', percWet['sce'], '% wet days')
                 # print('corr', percWet['corr'], '% wet days')
                 # print('expected', percWet['obs']+percWet['sce']-percWet['hist'], '% wet days')
+                # print('sce_max',np.nanmax(sce_data))
+                # print('obs_max',np.nanmax(obs_data))
+                # print('sce_corrected_max',np.nanmax(sce_corrected.T[ipoint]))
+                # print('delta_max', np.nanmax(delta))
+                # print(np.max(hist_data), np.max(sce_data))
+                # print(obs_data[i], hist_data[i], sce_data[i])
+                # exit()
 
                 # r = (0, 10)
                 # bins = 100
@@ -308,7 +319,6 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
                 # plt.legend()
                 # plt.show()
                 # exit()
-
 
             # For additive corretcion
             else:
