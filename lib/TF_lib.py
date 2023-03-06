@@ -230,7 +230,10 @@ def train_point(targetVar, methodName, X, y, ipoint):
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             while True:
                 history_reg = regressor.fit(X, y, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
-                if regressor.predict(X).T.std() != 0:
+                X_aux = 0*X + np.random.normal(0, .00001, X.shape)
+                y_aux = regressor.predict(X_aux)
+                nDifferent = np.sum(y_aux != y_aux[0])
+                if nDifferent != 0:
                     break
                 print('Calibration trapped in local minima. Recalibrating...')
 
@@ -252,7 +255,10 @@ def train_point(targetVar, methodName, X, y, ipoint):
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             while True:
                 history_reg = regressor.fit(X, y, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
-                if regressor.predict(X).T.std() != 0:
+                X_aux = 0*X + np.random.normal(0, .00001, X.shape)
+                y_aux = regressor.predict(X_aux)
+                nDifferent = np.sum(y_aux != y_aux[0])
+                if nDifferent != 0:
                     break
                 print('Calibration trapped in local minima. Recalibrating...')
     else:
@@ -318,7 +324,10 @@ def train_point(targetVar, methodName, X, y, ipoint):
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
             while True:
                 history_clf = classifier.fit(X, 1*israiny, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
-                if classifier.predict(X).T.std() != 0:
+                X_aux = 0*X + np.random.normal(0, .00001, X.shape)
+                y_aux = classifier.predict(X_aux)
+                nDifferent = np.sum(y_aux != y_aux[0])
+                if nDifferent != 0:
                     break
                 print('Calibration trapped in local minima. Recalibrating...')
 
@@ -341,9 +350,14 @@ def train_point(targetVar, methodName, X, y, ipoint):
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
             while True:
                 history_clf = classifier.fit(X, 1*israiny, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
-                if classifier.predict(X).T.std() != 0:
+                X_aux = 0*X + np.random.normal(0, .00001, X.shape)
+                y_aux = classifier.predict(X_aux)
+                nDifferent = np.sum(y_aux != y_aux[0])
+                if nDifferent != 0:
                     break
                 print('Calibration trapped in local minima. Recalibrating...')
+
+
         # Regressor
         if methodName == 'GLM-LIN':
             regressor = RidgeCV(cv=3)
@@ -394,7 +408,10 @@ def train_point(targetVar, methodName, X, y, ipoint):
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
             while True:
                 history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
-                if regressor.predict(X_rainy_days).T.std() != 0:
+                X_aux = 0*X_rainy_days + np.random.normal(0, .00001, X.shape)
+                y_aux = regressor.predict(X_aux)
+                nDifferent = np.sum(y_aux != y_aux[0])
+                if nDifferent != 0:
                     break
                 print('Calibration trapped in local minima. Recalibrating...')
 
@@ -418,7 +435,10 @@ def train_point(targetVar, methodName, X, y, ipoint):
             while True:
                 history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=1000, validation_split=.2, verbose=0,
                                             callbacks=tf_nn_callbacks, )
-                if regressor.predict(X_rainy_days).T.std() != 0:
+                X_aux = 0*X_rainy_days + np.random.normal(0, .00001, X.shape)
+                y_aux = regressor.predict(X_aux)
+                nDifferent = np.sum(y_aux != y_aux[0])
+                if nDifferent != 0:
                     break
                 print('Calibration trapped in local minima. Recalibrating...')
 
