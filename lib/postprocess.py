@@ -196,19 +196,6 @@ def bias_correction_allModels(targetVar, methodName):
                 # Parallel processing at HPC
                 elif running_at_HPC == True:
                     while 1:
-                        # Check for error files, save them and kill erroneous jobs
-                        # for file in os.listdir('../job/'):
-                        #     if file.endswith(".err"):
-                        #         filename = os.path.join('../job/', file)
-                        #         filesize = os.path.getsize(filename)
-                        #         if filesize != 0:
-                        #             jobid = filename.split('/')[-1].split('.')[0]
-                        #             print('-----------------------')
-                        #             print(filename, filesize)
-                        #             os.system('mv ' + filename + ' ../job/err/')
-                        #             os.system('mv ' + filename[:-3] + 'out ../job/err/')
-                        #             os.system('scancel ' + str(jobid))
-
                         # Check for correctly finished jobs
                         for file in os.listdir('../job/'):
                             if file.endswith(".out"):
@@ -398,18 +385,6 @@ def get_climdex_allModels(targetVar, methodName):
                 # Parallel processing at HPC
                 elif running_at_HPC == True:
                     while 1:
-                        # Check for error files, save them and kill erroneous jobs
-                        # for file in os.listdir('../job/'):
-                        #     if file.endswith(".err"):
-                        #         filename = os.path.join('../job/', file)
-                        #         filesize = os.path.getsize(filename)
-                        #         if filesize != 0:
-                        #             jobid = filename.split('/')[-1].split('.')[0]
-                        #             print('-----------------------')
-                        #             print(filename, filesize)
-                        #             os.system('mv ' + filename + ' ../job/err/')
-                        #             os.system('mv ' + filename[:-3] + 'out ../job/err/')
-                        #             os.system('scancel ' + str(jobid))
 
                         # Check for correctly finished jobs
                         for file in os.listdir('../job/'):
