@@ -1,4 +1,7 @@
 import sys
+
+import keras.layers
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -144,19 +147,9 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
             except:
                 clf.save(pathOut + 'clf_'+str(ipoint) + '.h5')
 
-
 ########################################################################################################################
-def train_point(targetVar, methodName, X, y, ipoint):
-    '''
-    Train model (classifiers and regressors)
-    '''
-
-    classifier = None
-    regressor = None
-    history_clf = None
-    history_reg = None
-
-
+def fit_and_prevent_constant_output(model, X, y, ipoint):
+    """This function fits ANN/CNN and checks for potential constant ouptuts recalibrating if neccessary"""
 
     # Define callbacks for neural networks training
     tf_nn_callbacks = [
@@ -173,7 +166,39 @@ def train_point(targetVar, methodName, X, y, ipoint):
             patience=3,
         )
     ]
+    # Loop checking for constant outuputs
+    counter = 0
+    maxRecalibrations = 5
+    while True:
+        history = model.fit(X, y, epochs=1000, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks, )
+        trapped = False
+        # Go through predictors following normal distributions os std=0.1 and mean from -1 to 1
+        for i in (-1, -.5, 0, .5, 1):
+            X_aux = 0 * X + np.random.normal(i, .01, X.shape)
+            y_aux = model.predict(X_aux, verbose=0)
+            nDifferent = np.sum(y_aux != y_aux[0])
+            if nDifferent == 0:
+                trapped = True
+                break
+        if trapped == False:
+            break
+        if counter >= maxRecalibrations:
+            print('Model recalibrated too many times for ipoint ',ipoint,'and still producing constant output...')
+            break
+        print('Model produces constant output for ipoint ',ipoint,'. Recalibrating...', counter,'/',maxRecalibrations)
+        counter += 1
+    return model, history
 
+########################################################################################################################
+def train_point(targetVar, methodName, X, y, ipoint):
+    '''
+    Train model (classifiers and regressors)
+    '''
+
+    classifier = None
+    regressor = None
+    history_clf = None
+    history_reg = None
 
     # For precipitation trains classier+regression, but for temperature only regression
     if targetVar != 'pr':
@@ -219,34 +244,42 @@ def train_point(targetVar, methodName, X, y, ipoint):
             # skelear implementation
             # regressor = MLPRegressor(hidden_layer_sizes=(200,), max_iter=100000)
             # regressor = GridSearchCV(MLPRegressor(max_iter=100000),
-            #                          param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
+            #              param_grid={'hidden_layer_sizes': [5,10,20,50,100,200]}, cv=3)
             # regressor.fit(X, y)
 
             # keras tensorflow implementation
             regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(8, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(8, activation='relu'),
+                keras.layers.Dense(8, input_shape=X.shape[1:]),
+                keras.layers.LeakyReLU(),
+                keras.layers.Dense(8),
+                keras.layers.LeakyReLU(),
                 keras.layers.Dense(1), ])
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            regressor, history_reg = fit_and_prevent_constant_output(regressor, X, y, ipoint)
 
         elif methodName in ('CNN', ):
             # Prepare shape for convolution layer
             X = np.swapaxes(np.swapaxes(X, 1, 2), 2, 3)
+            nfilters = 16
             regressor = tf.keras.models.Sequential()
             if X.shape[1] < 5 or X.shape[2] < 5:
-                regressor.add(layers.Conv2D(filters=16, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+                print('Too few latitudes/longitudes for training CNN')
+                print('Set a larger synoptic domain')
+                exit()
             else:
-                regressor.add(layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
-            # if X.shape[1] >= 10 and X.shape[2] >= 10:
-            #     regressor.add(layers.MaxPooling2D(pool_size=2))
-            #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), input_shape=X.shape[1:]))
+            regressor.add(layers.LeakyReLU())
+            # regressor.add(layers.MaxPooling2D(pool_size=2))
+            # regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(2, 2)))
+            # regressor.add(layers.LeakyReLU())
             regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(16, activation='relu'))
-            regressor.add(layers.Dense(8, activation='relu'))
+            regressor.add(layers.Dense(16))
+            regressor.add(layers.LeakyReLU())
+            regressor.add(layers.Dense(8))
+            regressor.add(layers.LeakyReLU())
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X, y, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            regressor, history_reg = fit_and_prevent_constant_output(regressor, X, y, ipoint)
 
     else:
         # Prepare data for precipitation
@@ -305,11 +338,14 @@ def train_point(targetVar, methodName, X, y, ipoint):
 
             # keras tensorflow implementation
             classifier = tf.keras.models.Sequential([
-                keras.layers.Dense(8, activation='relu', input_shape=X.shape[1:]),
-                keras.layers.Dense(8, activation='relu'),
+                keras.layers.Dense(8, input_shape=X.shape[1:]),
+                keras.layers.LeakyReLU(),
+                keras.layers.Dense(8),
+                keras.layers.LeakyReLU(),
                 keras.layers.Dense(1, activation='sigmoid'), ])
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            classifier, history_clf = fit_and_prevent_constant_output(classifier, X, 1*israiny, ipoint)
+
 
         elif methodName in ['CNN', ]:
             # Prepare shape for convolution
@@ -317,18 +353,23 @@ def train_point(targetVar, methodName, X, y, ipoint):
             nfilters = 32
             classifier = tf.keras.models.Sequential()
             if X.shape[1] < 5 or X.shape[2] < 5:
-                classifier.add(layers.Conv2D(filters=nfilters, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+                print('Too few latitudes/longitudes for training CNN')
+                print('Set a larger synoptic domain')
+                exit()
             else:
-                classifier.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
-            # if X.shape[1] >= 10 and X.shape[2] >= 10:
-            #     classifier.add(layers.MaxPooling2D(pool_size=2))
-            #     classifier.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+                classifier.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), input_shape=X.shape[1:]))
+            classifier.add(layers.LeakyReLU())
+            # classifier.add(layers.MaxPooling2D(pool_size=3))
+            # classifier.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3)))
+            # classifier.add(layers.LeakyReLU())
             classifier.add(layers.Flatten())
-            classifier.add(layers.Dense(nfilters, activation='relu'))
-            classifier.add(layers.Dense(8, activation='relu'))
+            classifier.add(layers.Dense(nfilters))
+            classifier.add(layers.LeakyReLU())
+            classifier.add(layers.Dense(8))
+            classifier.add(layers.LeakyReLU())
             classifier.add(layers.Dense(1, activation='sigmoid'))
             classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            history_clf = classifier.fit(X, 1*israiny, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            classifier, history_clf = fit_and_prevent_constant_output(classifier, X, 1*israiny, ipoint)
 
         # Regressor
         if methodName == 'GLM-LIN':
@@ -374,12 +415,14 @@ def train_point(targetVar, methodName, X, y, ipoint):
 
             # keras tensorflow implementation
             regressor = tf.keras.models.Sequential([
-                keras.layers.Dense(8, activation='relu', input_shape=X_rainy_days.shape[1:]),
-                keras.layers.Dense(8, activation='relu'),
+                keras.layers.Dense(8, input_shape=X_rainy_days.shape[1:]),
+                keras.layers.LeakyReLU(),
+                keras.layers.Dense(8),
+                keras.layers.LeakyReLU(),
                 keras.layers.Dense(1), ])
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0,
-                    callbacks=tf_nn_callbacks)
+            regressor, history_reg = fit_and_prevent_constant_output(regressor, X_rainy_days, y_rainy_days, ipoint)
+
 
         elif methodName in ['CNN', ]:
             # Prepare shape for convolution
@@ -387,18 +430,24 @@ def train_point(targetVar, methodName, X, y, ipoint):
             nfilters = 32
             regressor = tf.keras.models.Sequential()
             if X.shape[1] < 5 or X.shape[2] < 5:
-                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(1, 1), activation='relu', input_shape=X.shape[1:]))
+                print('Too few latitudes/longitudes for training CNN')
+                print('Set a larger synoptic domain')
+                exit()
             else:
-                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), activation='relu', input_shape=X.shape[1:]))
-            # if X.shape[1] >= 10 and X.shape[2] >= 10:
-            #     regressor.add(layers.MaxPooling2D(pool_size=2))
-            #     regressor.add(layers.Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+                regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(3, 3), input_shape=X.shape[1:]))
+            regressor.add(layers.LeakyReLU())
+            # regressor.add(layers.MaxPooling2D(pool_size=2))
+            # regressor.add(layers.Conv2D(filters=nfilters, kernel_size=(2, 2)))
+            # regressor.add(layers.LeakyReLU())
             regressor.add(layers.Flatten())
-            regressor.add(layers.Dense(nfilters, activation='relu'))
-            regressor.add(layers.Dense(8, activation='relu'))
+            regressor.add(layers.Dense(nfilters))
+            regressor.add(layers.LeakyReLU())
+            regressor.add(layers.Dense(8))
+            regressor.add(layers.LeakyReLU())
             regressor.add(layers.Dense(1))
             regressor.compile(optimizer='adam', loss='mse', metrics=['mse'])
-            history_reg = regressor.fit(X_rainy_days, y_rainy_days, epochs=100, validation_split=.2, verbose=0, callbacks=tf_nn_callbacks)
+            regressor, history_reg = fit_and_prevent_constant_output(regressor, X_rainy_days, y_rainy_days, ipoint)
+
 
     # Plot hyperparameters
     if plot_hyperparameters_epochs_nEstimators_featureImportances == True:

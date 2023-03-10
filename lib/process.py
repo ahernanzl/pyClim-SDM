@@ -119,11 +119,18 @@ def models(method_dict, scene, model):
                 for file in os.listdir('../job/'):
                     if file.endswith(".err"):
                         filename = os.path.join('../job/', file)
-                        filesize = os.path.getsize(filename)
-                        if filesize != 0:
+                        # filesize = os.path.getsize(filename)
+                        emptyFileErr = True
+                        f = open(filename, 'r')
+                        for line in f.readlines():
+                            if not line.startswith('[CIRRUSDESA-INFO -epilog]'):
+                                emptyFileErr = False
+                                break
+                        # if filesize != 0:
+                        if emptyFileErr == False:
                             jobid = filename.split('/')[-1].split('.')[0]
                             print('-----------------------')
-                            print(filename, filesize)
+                            # print(filename, filesize)
                             os.system('mv ' + filename + ' ../job/err/')
                             os.system('mv ' + filename[:-3]+'out ../job/err/')
                             os.system('scancel ' + str(jobid))
