@@ -568,8 +568,8 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
     if minAllowed is not None:
-        scene_bc[scene_bc < minAllowed] == minAllowed
+        scene_bc[scene_bc < minAllowed] = minAllowed
     if maxAllowed is not None:
-        scene_bc[scene_bc > maxAllowed] == maxAllowed
+        scene_bc[scene_bc > maxAllowed] = maxAllowed
 
     return scene_bc
