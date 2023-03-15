@@ -429,7 +429,9 @@ def daily_spatial_correlation_boxplots():
                         methodName = method_dict['methodName']
                         names.append(methodName)
                         print('spatial correlation', season, var, methodName)
-                        matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_spatial_corr.npy')
+                        aux = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_spatial_corr.npy')
+                        matrix[:, imethod] = np.nan                        
+                        matrix[:aux.size, imethod] = aux
                         imethod += 1
 
                 # Create pathOut
