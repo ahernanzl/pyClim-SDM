@@ -101,6 +101,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	var.long_name = varName
 	var[:] = data
 
+	if varName == 'huss':
+		print('huss modification *1000...')
+		data /= 1000
+
 	# # print(nc)
 	# for var in nc.variables:
 	# 	print(var)
