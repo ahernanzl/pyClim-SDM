@@ -298,7 +298,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 level = None
             try:
                 dates = np.ndarray.tolist(
-                    read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene=scene)['times'])
+                    read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)['times'])
                 datesDefined = True
                 break
             except:
