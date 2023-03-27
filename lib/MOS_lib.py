@@ -526,6 +526,9 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     :return:
     """
 
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        obs /= 1000
 
     if apply_bc_bySeason == False:
         # Correct bias
