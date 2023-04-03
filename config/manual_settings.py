@@ -2664,12 +2664,12 @@ inverse_seasonNames = ['ANNUAL',
 
 
 ###################################     Bias correction   #################################################
-apply_bc = False    # Apply bias correction after downscaling
-apply_bc_bySeason = False # Apply bias correction customized for each season after downcaling
+apply_bc = True    # Apply bias correction after downscaling
+apply_bc_bySeason = True # Apply bias correction customized for each season after downcaling
 
-bc_method = 'QM'
+# bc_method = 'QM'
 # bc_method = 'DQM'
-# bc_method = 'QDM'
+bc_method = 'QDM'
 # bc_method = 'PSDM'
 
 
