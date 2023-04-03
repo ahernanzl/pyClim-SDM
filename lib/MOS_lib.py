@@ -206,7 +206,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
 
 ########################################################################################################################
-def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
+def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05,
+                maxExtrapolationFactor=1):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
     Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
@@ -215,8 +216,10 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
     * obs (nDaysObs, nPoints): the observational data
     * hist (nDaysHist, nPoints): the model data at the reference period
     * sce (nDaysSce, nPoints): the scenario data that shall be corrected
-    * th_artifacted_delta: for some distributions, extremely high artifacted delta corrections can appear. They are
-        set to NaN if the delta change is applied as multiplicative.
+    * default_th: threshold for zero values by default. Inside the function specific thresholds for each target variable
+                are defined.
+    * maxExtrapolationFactor: for multiplicative (rel) correction, extreme values can produce artifacts. They are limited
+        to maxExtrapolationFactor times the maximum observed value
 
     Adapted from https://github.com/pacificclimate/ClimDown
 
@@ -228,7 +231,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
     # Define specific thresholds for 'zero value' for each targetVar
     th_dict = {'tas': None, 'tasmax': None, 'tasmin': None, 'pr': .2, 'uas': None, 'vas': None, 'sfcWind': None,
         'hurs': None, 'huss': .00001, 'clt': None, 'rsds': None, 'rlds': None, 'psl': None, 'ps': None,
-        'evspsbl': None, 'evspsblpot': None, 'mrro': None, 'mrso': None, myTargetVar: None,}
+        'evspsbl': None, 'evspsblpot': None, 'mrro': None, 'mrso': None,}
     th = th_dict[targetVar]
     if th == None:
         th = default_th
@@ -282,11 +285,10 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
-            else:
-                # Add a small amount of noise to accomodate ties due to limited precision
-                obs_data += np.random.uniform(low=-jitter, high=jitter, size=obs_data.shape)
-                hist_data += np.random.uniform(low=-jitter, high=jitter, size=hist_data.shape)
-                sce_data += np.random.uniform(low=-jitter, high=jitter, size=sce_data.shape)
+                # # Add a small amount of noise to accomodate ties due to limited precision
+                # obs_data += np.random.uniform(low=-jitter, high=jitter, size=obs_data.shape)
+                # hist_data += np.random.uniform(low=-jitter, high=jitter, size=hist_data.shape)
+                # sce_data += np.random.uniform(low=-jitter, high=jitter, size=sce_data.shape)
             # Calculate percentiles
             sce_ecdf = ECDF(sce_data)
             p = sce_ecdf(sce_data) * 100
@@ -297,6 +299,10 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
                 delta = sce_data / np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
                 sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
+                maxAllowedValue = maxExtrapolationFactor*np.nanmax(obs_data)
+                if np.nanmax(sce_corrected.T[ipoint][ivalid] > maxAllowedValue):
+                    iOut = np.where(sce_corrected.T[ipoint][ivalid] > maxAllowedValue)
+                    sce_corrected.T[ipoint][iOut] = maxAllowedValue
 
             # For additive corretcion
             else:
@@ -325,6 +331,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
         # plt.legend()
         # plt.show()
         # exit()
+
     return sce_corrected
 
 
@@ -355,7 +362,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
     cdf_th = kwargs.get('cdf_th', 0.99999)
     if targetVar == 'pr':
-        low_lim = kwargs.get('low_lim', 0.1)
+        # low_lim = kwargs.get('low_lim', 0.1)
+        low_lim = kwargs.get('low_lim', 1)
         min_sample_size = kwargs.get('min_sample_size', 10)
 
     # Define parameters and variables
