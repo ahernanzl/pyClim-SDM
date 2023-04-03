@@ -104,7 +104,10 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         except:
             ilevel = 0
         dim = nc.variables[nc_variable][:].shape
-        data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
+        if len(list(dim)) == 4:
+            data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
+        elif len(list(dim)) == 3:
+            data = nc.variables[nc_variable][:].reshape(dim[0], dim[1], dim[2])
 
     # Set invalid data to Nan
     if hasattr(nc.variables[nc_variable], '_FillValue'):
@@ -295,7 +298,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 level = None
             try:
                 dates = np.ndarray.tolist(
-                    read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene=scene)['times'])
+                    read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)['times'])
                 datesDefined = True
                 break
             except:
@@ -766,6 +769,10 @@ def hres_data(targetVar, period=None):
     idates = [times.index(time) for time in times if time in dates]
     data = data[idates]
     times = [times[i] for i in range(len(times)) if i in idates]
+
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        data *= 1000
 
     # Checks for values out of range and counts percentage of missing data
     out_of_range = np.where((data < predictands_codification[targetVar]['min_valid']) |

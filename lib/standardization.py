@@ -113,7 +113,7 @@ def get_mean_and_std_oneModel(targetVar, fields_and_grid, model):
         else:
             level = None
         try:
-            calendar = read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene='historical')['calendar']
+            calendar = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene='historical')['calendar']
             break
         except:
             pass
