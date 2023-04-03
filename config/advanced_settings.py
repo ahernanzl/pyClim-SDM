@@ -1016,7 +1016,7 @@ bc_mode_dict = {
     'tasmax': 'abs',
     'tasmin': 'abs',
     'tas': 'abs',
-    'pr': 'abs',
+    'pr': 'rel',
     'uas': 'abs',
     'vas': 'abs',
     'sfcWind': 'abs',
