@@ -347,6 +347,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     print('-------------------------------------------------------------------------')
     print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        est /= 1000
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']

@@ -219,11 +219,11 @@ def daily_boxplots(metric, by_season):
                             aux = postpro_lib.get_season(est, times_scene, season)
                             est_season = aux['data']
                             times = aux['times']
-                        not_valid_obs = np.where(np.isnan(obs_season))[0]
-                        not_valid_es = np.where(np.isnan(est_season))[0]
-                        ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_es)]
-                        obs_season = obs_season[ivalid]
-                        est_season = est_season[ivalid]
+                        # not_valid_obs = np.where(np.isnan(obs_season))[0]
+                        # not_valid_est = np.where(np.isnan(est_season))[0]
+                        # ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_est)]
+                        # obs_season = obs_season[ivalid]
+                        # est_season = est_season[ivalid]
                         matrix = np.zeros((hres_npoints[targetVar], ))
                         if metric == 'correlation':
                             for ipoint in range(hres_npoints[targetVar]):
@@ -240,8 +240,8 @@ def daily_boxplots(metric, by_season):
                                     r = 0
                                 matrix[ipoint] = r
                         elif metric == 'variance':
-                            obs_var = np.var(obs_season, axis=0)
-                            est_var = np.var(est_season, axis=0)
+                            obs_var = np.nanvar(obs_season, axis=0)
+                            est_var = np.nanvar(est_season, axis=0)
                             th = 0.001
                             est_var[est_var < th] = 0
                             obs_var[obs_var < th] = np.nan
@@ -275,7 +275,6 @@ def daily_boxplots(metric, by_season):
                         matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_'+metric+'.npy')
                         imethod += 1
 
-
                 # Go through all regions
                 for index, row in df_reg.iterrows():
                     if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
@@ -284,6 +283,10 @@ def daily_boxplots(metric, by_season):
                         npoints = len(iaux)
                         print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
                         matrix_region = matrix[iaux]
+
+                        # Deal with nans
+                        mask = ~np.isnan(matrix_region)
+                        matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
 
                         # Create pathOut
                         if plotAllRegions == False:
@@ -393,12 +396,12 @@ def daily_spatial_correlation_boxplots():
                             X = obs_season[iday, :]
                             Y = est_season[iday, :]
                             # not_valid_obs = np.where(np.isnan(X))[0]
-                            # not_valid_es = np.where(np.isnan(Y))[0]
+                            # not_valid_est = np.where(np.isnan(Y))[0]
                             # # ivalid = [i for i in range(hres_npoints[targetVar])]
                             # # del ivalid[not_valid_obs]
                             # # del ivalid[not_valid_est]
                             # ivalid = [i for i in range(hres_npoints[targetVar]) if
-                            #           (i not in not_valid_obs) and (i not in not_valid_es)]
+                            #           (i not in not_valid_obs) and (i not in not_valid_est)]
                             # X = X[ivalid]
                             # Y = Y[ivalid]
                             try:
@@ -549,6 +552,10 @@ def climdex_boxplots(by_season):
                                 pathOut = path + subDir
                             if not os.path.exists(pathOut):
                                 os.makedirs(pathOut)
+
+                            # Deal with nans
+                            mask = ~np.isnan(matrix_region)
+                            matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
 
                             fig, ax = plt.subplots(dpi=300)
                             medianprops = dict(color="black")
@@ -746,8 +753,8 @@ def monthly_boxplots(metric):
                     est_acc[idate] = np.nansum(est[idates], axis=0)
 
                 not_valid_obs = np.where(np.isnan(obs_acc))[0]
-                not_valid_es = np.where(np.isnan(est_acc))[0]
-                ivalid = [i for i in range(len(dates)) if (i not in not_valid_obs) and (i not in not_valid_es)]
+                not_valid_est = np.where(np.isnan(est_acc))[0]
+                ivalid = [i for i in range(len(dates)) if (i not in not_valid_obs) and (i not in not_valid_est)]
                 obs_acc = obs_acc[ivalid]
                 est_acc = est_acc[ivalid]
                 matrix = np.zeros((hres_npoints[targetVar], ))

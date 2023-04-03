@@ -206,8 +206,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
 
 ########################################################################################################################
-def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, treat_zeros=True,
-                           th_artifacted_delta=3):
+def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
     Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
@@ -226,14 +225,23 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
     https://doi.org/10.1175/JCLI-D-14-00754.1
     """
 
+    # Define specific thresholds for 'zero value' for each targetVar
+    th_dict = {'tas': None, 'tasmax': None, 'tasmin': None, 'pr': .2, 'uas': None, 'vas': None, 'sfcWind': None,
+        'hurs': None, 'huss': .00001, 'clt': None, 'rsds': None, 'rlds': None, 'psl': None, 'ps': None,
+        'evspsbl': None, 'evspsblpot': None, 'mrro': None, 'mrso': None, myTargetVar: None,}
+    th = th_dict[targetVar]
+    if th == None:
+        th = default_th
+
+    # Define jitter as maximum machine precision
+    eps_obs = np.finfo(type(obs[0][0])).eps
+    eps_hist = np.finfo(type(hist[0][0])).eps
+    eps_sce = np.finfo(type(sce[0][0])).eps
+    jitter = max(eps_obs, eps_hist, eps_sce)
+
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
     sce_corrected = 1*sce
-
-    # Add a small amount of noise to accomodate ties due to limited precision
-    obs += np.random.uniform(low=-jitter, high=jitter, size=obs.shape)
-    hist += np.random.uniform(low=-jitter, high=jitter, size=hist.shape)
-    sce += np.random.uniform(low=-jitter, high=jitter, size=sce.shape)
 
     # Go through all points
     for ipoint in range(nPoints):
@@ -244,6 +252,10 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
         obs_data = obs.T[ipoint]
         hist_data = hist.T[ipoint]
         sce_data = sce.T[ipoint]
+        #
+        # obs_auxPlot = 1* obs_data
+        # hist_auxPlot = 1* hist_data
+        # sce_auxPlot = 1*sce_data
 
         # Remove missing data from obs and hist
         obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
@@ -257,24 +269,24 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
 
-            # Treat zeros
             # For multiplicative correction
             if bc_mode_dict[targetVar] == 'rel':
-
-                # percWet = {'obs': int(100*np.sum(obs_data>th)/obs_data.size),
-                #            'hist': int(100*np.sum(hist_data>th)/hist_data.size),
-                #            'sce': int(100*np.sum(sce_data>th)/sce_data.size),
-                #            }
-
-                # Treat frecuencies
-                if treat_zeros == True:
-                    obs_data, hist_data, sce_data = treat_frecuencies(obs_data, hist_data, sce_data)
-
+                # Multiply hist, sce by a factor so artifacted high deltas for TF methods are avoided
+                aux = 1*hist_data; aux[aux<=th] = np.nan; m1 = np.nanmin(aux)
+                aux = 1*sce_data; aux[aux<=th] = np.nan; m2 = np.nanmin(aux)
+                # print(m1, m2)
+                factor = min(m1, m2)/th
+                hist_data /= factor
+                sce_data /= factor
                 # Add noise to zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
-
+            else:
+                # Add a small amount of noise to accomodate ties due to limited precision
+                obs_data += np.random.uniform(low=-jitter, high=jitter, size=obs_data.shape)
+                hist_data += np.random.uniform(low=-jitter, high=jitter, size=hist_data.shape)
+                sce_data += np.random.uniform(low=-jitter, high=jitter, size=sce_data.shape)
             # Calculate percentiles
             sce_ecdf = ECDF(sce_data)
             p = sce_ecdf(sce_data) * 100
@@ -283,48 +295,36 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01, trea
             # For multiplicative correction
             if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
-                delta[delta>th_artifacted_delta] = np.nan
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
                 sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
-
-                # for p in np.linspace(99., 100., 100):
-                #     print('p', str(p).ljust(3),
-                #           'hist', str(np.round(np.percentile(hist_data, p), 3)).ljust(8),
-                #           'sce', str(np.round(np.percentile(sce_data, p), 3)).ljust(8),
-                #           'delta', str(np.round(np.percentile(sce_data, p)/np.percentile(hist_data, p), 3)).ljust(8),
-                #           'obs', str(np.round(np.percentile(obs_data, p), 3)).ljust(8),
-                #           'sce_corrected', str(np.round((np.percentile(sce_data, p)/np.percentile(hist_data, p))*np.percentile(obs_data, p), 3)).ljust(8))
-                #
-                #
-                # percWet.update({'corr': int(100*np.sum(sce_corrected.T[ipoint]>th)/sce_corrected.T[ipoint].size)})
-                # print('obs', percWet['obs'], '% wet days')
-                # print('hist', percWet['hist'], '% wet days')
-                # print('sce', percWet['sce'], '% wet days')
-                # print('corr', percWet['corr'], '% wet days')
-                # print('expected', percWet['obs']+percWet['sce']-percWet['hist'], '% wet days')
-                # print('sce_max',np.nanmax(sce_data))
-                # print('obs_max',np.nanmax(obs_data))
-                # print('sce_corrected_max',np.nanmax(sce_corrected.T[ipoint]))
-                # print('delta_max', np.nanmax(delta))
-                # print(np.max(hist_data), np.max(sce_data))
-                # print(obs_data[i], hist_data[i], sce_data[i])
-                # exit()
-
-                # r = (0, 10)
-                # bins = 100
-                # plt.hist(hist_data, range=r, bins=bins, density=True, color='g', alpha=0.5, label='hist')
-                # plt.hist(sce_data, range=r, bins=bins, density=True, color='orange', alpha=0.5, label='fut')
-                # plt.hist(obs_data, range=r, bins=bins, density=True, color='b', alpha=0.5, label='obs')
-                # plt.hist(sce_corrected.T[ipoint], range=r, bins=bins, density=True, color='red', alpha=0.5, label='corr')
-                # plt.legend()
-                # plt.show()
-                # exit()
 
             # For additive corretcion
             else:
                 delta = sce_data - np.percentile(hist_data, p)
                 sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
 
+        # obs_auxPlot = np.sort(obs_auxPlot)
+        # hist_auxPlot = np.sort(hist_auxPlot)
+        # sce_auxPlot = np.sort(sce_auxPlot)
+        # pred_data = sce_corrected.T[ipoint]
+        # pred_data = np.sort(pred_data)
+        #
+        # hist_wetDays_freq = np.sum(hist_auxPlot>th) / hist_auxPlot.size
+        # sce_wetDays_freq = np.sum(sce_auxPlot>th) / sce_auxPlot.size
+        # if hist_wetDays_freq < sce_wetDays_freq:
+        #     case = 'need to add wet days'
+        # else:
+        #     case = 'auto fixed'
+        #
+        # plt.plot(obs_auxPlot, ECDF(obs_auxPlot)(obs_auxPlot), label='obs', color='k')
+        # plt.plot(hist_auxPlot, ECDF(hist_auxPlot)(hist_auxPlot), label='hist', color='b')
+        # plt.plot(sce_auxPlot, ECDF(sce_auxPlot)(sce_auxPlot), label='sce', color='green')
+        # plt.plot(pred_data, ECDF(pred_data)(pred_data), label='sce_corrected', color='r')
+        # # plt.ylim((0,1))
+        # plt.title('DQMs '+bc_mode_dict[targetVar]+ '\n' + case)
+        # plt.legend()
+        # plt.show()
+        # exit()
     return sce_corrected
 
 
@@ -526,6 +526,9 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     :return:
     """
 
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        obs /= 1000
 
     if apply_bc_bySeason == False:
         # Correct bias
