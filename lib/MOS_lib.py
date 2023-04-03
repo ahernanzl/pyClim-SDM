@@ -282,10 +282,11 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, default_th=0.05):
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
                 hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
                 sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
-                # # Add a small amount of noise to accomodate ties due to limited precision
-                # obs_data += np.random.uniform(low=-jitter, high=jitter, size=obs_data.shape)
-                # hist_data += np.random.uniform(low=-jitter, high=jitter, size=hist_data.shape)
-                # sce_data += np.random.uniform(low=-jitter, high=jitter, size=sce_data.shape)
+            else:
+                # Add a small amount of noise to accomodate ties due to limited precision
+                obs_data += np.random.uniform(low=-jitter, high=jitter, size=obs_data.shape)
+                hist_data += np.random.uniform(low=-jitter, high=jitter, size=hist_data.shape)
+                sce_data += np.random.uniform(low=-jitter, high=jitter, size=sce_data.shape)
             # Calculate percentiles
             sce_ecdf = ECDF(sce_data)
             p = sce_ecdf(sce_data) * 100
