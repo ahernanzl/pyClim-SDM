@@ -437,6 +437,10 @@ def daily_spatial_correlation_boxplots():
                         matrix[:aux.size, imethod] = aux
                         imethod += 1
 
+                # Deal with nans
+                mask = ~np.isnan(matrix)
+                matrix = [d[m] for d, m in zip(matrix.T, mask.T)]
+
                 # Create pathOut
                 if plotAllRegions == False:
                     pathOut = pathFigures
@@ -800,6 +804,10 @@ def monthly_boxplots(metric):
                 npoints = len(iaux)
                 print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
                 matrix_region = matrix[iaux]
+
+                # Deal with nans
+                mask = ~np.isnan(matrix_region)
+                matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
 
                 # Create pathOut
                 if plotAllRegions == False:
