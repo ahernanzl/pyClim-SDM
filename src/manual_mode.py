@@ -39,7 +39,7 @@ def main():
     # process.downscale()
     # postprocess.bias_correction()
     # postprocess.get_climdex()
-    postprocess.plot_results()
+    # postprocess.plot_results()
     # postprocess.nc2ascii()
 
 

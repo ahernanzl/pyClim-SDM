@@ -286,24 +286,6 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
                 censor_tail_value = np.nanpercentile(sceCorr_data, censor_tail)
                 mean_over_censor_tail_value = np.nanmean(sceCorr_data[sceCorr_data >= censor_tail_value])
                 sceCorr_data[sceCorr_data > censor_tail_value] = mean_over_censor_tail_value
-                #
-                # # Force preserve trend in the mean values by year
-                # if force_preserve_mean_change == True:
-                #
-                #     # Group days by year
-                #     years = np.array([x.year for x in sce_times_ipoint])
-                #     yearsUnique = list(dict.fromkeys(years))
-                #     nYears = len(yearsUnique)
-                #
-                #     # Compute and apply the needed factor
-                #     factor_trend = np.ones((sce_data.shape))
-                #     for iYear in range(nYears):
-                #         idatesYear = [i for i in range(len(sce_times)) if sce_times[i].year==yearsUnique[iYear]]
-                #         if np.nanmean(sceCorr_data[idatesYear]) * np.nanmean(hist_data) != 0:
-                #             factor_trend[idatesYear] = \
-                #                 (np.nanmean(sce_data[idatesYear]) * np.nanmean(obs_data)) / \
-                #                 (np.nanmean(sceCorr_data[idatesYear]) * np.nanmean(hist_data))
-                #     sceCorr_data *= factor_trend
 
             # For additive corretcion
             else:
@@ -336,76 +318,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             factor_trend[idatesYear][:, iNotValid] = 1
         sce_corrected *= factor_trend
 
-        # obs_auxPlot = np.sort(obs_auxPlot)
-        # hist_auxPlot = np.sort(hist_auxPlot)
-        # sce_auxPlot = np.sort(sce_auxPlot)
-        # pred_data = sce_corrected.T[ipoint]
-        # pred_data = np.sort(pred_data)
-        #
-        # hist_wetDays_freq = np.sum(hist_auxPlot>th) / hist_auxPlot.size
-        # sce_wetDays_freq = np.sum(sce_auxPlot>th) / sce_auxPlot.size
-        # if hist_wetDays_freq < sce_wetDays_freq:
-        #     case = 'need to add wet days'
-        # else:
-        #     case = 'auto fixed'
-        #
-        # plt.plot(obs_auxPlot, ECDF(obs_auxPlot)(obs_auxPlot), label='obs', color='k')
-        # plt.plot(hist_auxPlot, ECDF(hist_auxPlot)(hist_auxPlot), label='hist', color='b')
-        # plt.plot(sce_auxPlot, ECDF(sce_auxPlot)(sce_auxPlot), '--', label='sce', color='green')
-        # plt.plot(pred_data, ECDF(pred_data)(pred_data), '--', label='sce_corrected', color='r')
-        # # plt.ylim((0,1))
-        # plt.title('DQMs '+bc_mode_dict[targetVar]+ '\n' + case)
-        # plt.legend()
-        # plt.show()
-        # plt.close()
-
-        # # #
-        # # #
-        # # obs_mean = np.nanmean(obs_data)
-        # # est_mean = np.nanmean(sce_corrected.T[ipoint])
-        # # print(obs_mean, est_mean, round(est_mean/obs_mean, 2))
-        # print('---------------------')
-        # for p in range(100):
-        #     # print(p, np.nanpercentile(obs_data, p), np.nanpercentile(sce_corrected.T[ipoint], p))
-        #     delta1 = round(np.nanpercentile(sce_data, p)/np.nanpercentile(hist_data, p), 4)
-        #     delta2 = round(np.nanpercentile(sce_corrected.T[ipoint], p)/np.nanpercentile(obs_data, p), 4)
-        #     diff = np.round(delta2-delta1, 2)
-        #     print(p, 'delta hist->sce:', delta1, 'delta obs->sce_corr:', delta2, 'diff:', diff)
-        # delta1 = round(np.nanmean(sce_data)/np.nanmean(hist_data), 4)
-        # delta2 = round(np.nanmean(sce_corrected.T[ipoint])/np.nanmean(obs_data), 4)
-        # diff = np.round(delta2-delta1, 2)
-        # print('MEAN', 'delta hist->sce:', delta1, 'delta obs->sce_corr:', delta2, 'diff:', diff)
-        # print(np.nanmax(obs_data), np.nanmax(sce_data*factor), np.nanmax(sce_corrected.T[ipoint]))
-        # est = sce_corrected.T[ipoint]
-        # isort = np.argsort(est)
-        # est_sorted = est[isort]
-        # print(est_sorted)
-        # for p in np.linspace(99, 100, 100):
-        #     print(p, np.nanpercentile(est, p))
-        # exit()
-
-        # pred = sce_corrected.T[ipoint]
-        # ipoint = 3592
-        # fig, axs = plt.subplots(1, 2, sharex=True, sharey=True)
-        # axs[0].plot(range(obs_data.size), obs_data, '.', label='obs')
-        # axs[1].plot(range(pred.size), pred, '.', label='pred')
-        # axs[0].legend()
-        # axs[1].legend()
-        # plt.title('ssp585 RAW JJA')
-        # # M = 2
-        # # nbins = 100
-        # # # log = True
-        # # log = False
-        # # plt.hist(obs_data, label='obs', range=(0, M), bins=nbins, density=True, color='b', alpha=0.5, log=log)
-        # # plt.hist(pred, label='pred', range=(0, M), bins=nbins, density=True, color='r', alpha=0.5, log=log)
-        # # plt.ylim((0, 25))
-        # # plt.legend()
-        # plt.show()
-        # plt.close()
-        # exit()
-
     return sce_corrected
-
 
 
 ########################################################################################################################
@@ -592,20 +505,6 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
             correction[sce_argsort[-expected_sce_wetdays:]] = x_vals
             sce_corrected.T[ipoint][ivalid] = correction
 
-
-        for p in range(100):
-            hist_data[hist_data==0] = .0001
-            obs_data[obs_data==0] = .0001
-            # print(p, np.nanpercentile(obs_data, p), np.nanpercentile(sce_corrected.T[ipoint], p))
-            delta1 = round(np.nanpercentile(sce_data, p)/np.nanpercentile(hist_data, p), 4)
-            delta2 = round(np.nanpercentile(sce_corrected.T[ipoint], p)/np.nanpercentile(obs_data, p), 4)
-            diff = np.round(delta2-delta1, 2)
-            print(p, 'delta hist->sce:', delta1, 'delta obs->sce_corr:', delta2, 'diff:', diff)
-        delta1 = round(np.nanmean(sce_data)/np.nanmean(hist_data), 4)
-        delta2 = round(np.nanmean(sce_corrected.T[ipoint])/np.nanmean(obs_data), 4)
-        diff = np.round(delta2-delta1, 2)
-        print('MEAN', 'delta hist->sce:', delta1, 'delta obs->sce_corr:', delta2, 'diff:', diff)
-        exit()
 
     return sce_corrected
 
