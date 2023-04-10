@@ -120,6 +120,30 @@ if myTargetVar in targetVars:
     )
 
 
+# Threshold used to treat zeros for relative bias/changes denominator
+zero_division_th = {
+    'tasmax': 0.001,
+    'tasmin': 0.001,
+    'tas': 0.001,
+    'pr': 0.001,
+    'uas': 0.001,
+    'vas': 0.001,
+    'sfcWind': 0.001,
+    'hurs': 0.001,
+    'huss': 0.00001,
+    'clt': 0.001,
+    'rsds': 0.001,
+    'rlds': 0.001,
+    'evspsbl': 0.001,
+    'evspsblpot': 0.001,
+    'psl': 0.001,
+    'ps': 0.001,
+    'mrro': 0.001,
+    'mrso': 0.001,
+}
+if myTargetVar in targetVars:
+    zero_division_th.update({myTargetVar: 0.001})
+
 # Predictands have to be between min/max theoretically
 predictands_range = {
     'tasmax': {'min': None, 'max': None},
@@ -886,8 +910,8 @@ units_and_biasMode_climdex = {
     'vas_Vm': {'units': 'm/s', 'biasMode': 'abs'},
     'vas_Vx': {'units': 'm/s', 'biasMode': 'abs'},
 
-    'sfcWind_SFCWINDm': {'units': 'm/s', 'biasMode': 'abs'},
-    'sfcWind_SFCWINDx': {'units': 'm/s', 'biasMode': 'abs'},
+    'sfcWind_SFCWINDm': {'units': 'm/s', 'biasMode': 'rel'},
+    'sfcWind_SFCWINDx': {'units': 'm/s', 'biasMode': 'rel'},
 
     'hurs_HRm': {'units': '%', 'biasMode': 'abs'},
     'hurs_p99': {'units': '%', 'biasMode': 'abs'},
@@ -1019,12 +1043,12 @@ bc_mode_dict = {
     'pr': 'rel',
     'uas': 'abs',
     'vas': 'abs',
-    'sfcWind': 'abs',
+    'sfcWind': 'rel',
     'hurs': 'abs',
-    'huss': 'abs',
+    'huss': 'rel',
     'clt': 'abs',
-    'rsds': 'abs',
-    'rlds': 'abs',
+    'rsds': 'rel',
+    'rlds': 'rel',
     'evspsbl': 'abs',
     'evspsblpot': 'abs',
     'psl': 'abs',
@@ -1033,7 +1057,10 @@ bc_mode_dict = {
     'mrso': 'abs',
 }
 if myTargetVar in targetVars:
-    bc_mode_dict.update({myTargetVar: 'abs'})
+    if myTargetVarIsAdditive == True:
+        bc_mode_dict.update({myTargetVar: 'abs'})
+    else:
+        bc_mode_dict.update({myTargetVar: 'rel'})
 
 
 # ####################  COLORS AND STYLES    #####################################################
