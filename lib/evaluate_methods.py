@@ -154,13 +154,13 @@ def daily_data(by_season=True):
     each method.
     """
 
-    # # RMSE, correlation and biasVariance boxplots of all methods together
-    # val_lib.daily_boxplots('rmse', by_season)
-    # val_lib.daily_boxplots('correlation', by_season)
-    # val_lib.daily_boxplots('variance', by_season)
-    #
-    # # Spatial correlation of the daily patterns, boxplots of all methods together
-    # val_lib.daily_spatial_correlation_boxplots()
+    # RMSE, correlation and biasVariance boxplots of all methods together
+    val_lib.daily_boxplots('rmse', by_season)
+    val_lib.daily_boxplots('correlation', by_season)
+    val_lib.daily_boxplots('variance', by_season)
+
+    # Spatial correlation of the daily patterns, boxplots of all methods together
+    val_lib.daily_spatial_correlation_boxplots()
 
     # Go through all methods
     for method_dict in methods:
@@ -214,10 +214,10 @@ def daily_data(by_season=True):
 
                         # Validation of daily data
                         val_lib.QQplot(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
-                        # if regType == typeCompleteRegion:
-                        #     val_lib.continuous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
-                        #     if targetVar == 'pr':
-                        #         val_lib.dichotomous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
+                        if regType == typeCompleteRegion:
+                            val_lib.continuous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
+                            if targetVar == 'pr':
+                                val_lib.dichotomous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
 
 
 ########################################################################################################################
@@ -246,126 +246,126 @@ def climdex(by_season=True):
 
     # Bias boxplots of all methods together
     val_lib.climdex_boxplots(by_season)
-    # val_lib.climdex_Taylor_diagrams(by_season)
-    #
-    # # Go through all methods
-    # for method_dict in methods:
-    #     targetVar, methodName = method_dict['var'], method_dict['methodName']
-    #
-    #     # Read regions csv
-    #     df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
-    #
-    #     # Go through all regions
-    #     for index, row in df_reg.iterrows():
-    #         if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
-    #             regType, regName, subDir = row['regType'], row['regName'], row['subDir']
-    #             iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
-    #             npoints = len(iaux)
-    #             print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
-    #
-    #             # Select climdex
-    #             for climdex_name in climdex_names[targetVar]:
-    #                 print(methodName, targetVar, climdex_name)
-    #                 try:
-    #                     units = myTargetVarUnits
-    #                 except:
-    #                     units = ''
-    #                     print('define climdex units')
-    #                     # exit()
-    #
-    #                 # Select season
-    #                 for season in season_dict:
-    #                     if season == annualName or by_season == True:
-    #                         # Read data and select region
-    #                         pathIn = '../results/EVALUATION'+bc_sufix+'/'+ targetVar.upper() + '/' + methodName + '/climdex/'
-    #
-    #                         # Create pathOut
-    #                         if plotAllRegions == False:
-    #                             pathOut = pathFigures
-    #                         else:
-    #                             path = pathFigures + 'biasScatterPlot/' + targetVar.upper() + '/'
-    #                             pathOut = path + subDir
-    #                             if not os.path.exists(pathOut):
-    #                                 os.makedirs(pathOut)
-    #
-    #                         # obs_climdex = np.load(pathIn + '_'.join((climdex_name, 'obs', season)) + '.npy')[:, iaux]
-    #                         # est_climdex = np.load(pathIn + '_'.join((climdex_name, 'est', season)) + '.npy')[:, iaux]
-    #                         obs_climdex = read.netCDF(pathIn, '_'.join((climdex_name, 'obs', season))+'.nc', climdex_name)['data'][:, iaux]
-    #                         est_climdex = read.netCDF(pathIn, '_'.join((climdex_name, 'est', season))+'.nc', climdex_name)['data'][:, iaux]
-    #
-    #                         # Calculate mean for obs  and est (remember that climdex whith no annaul value, such as p10, p95, etc)
-    #                         # have the same value for all years
-    #                         mean_obs = np.nanmean(obs_climdex, axis=0)
-    #                         mean_est = np.nanmean(est_climdex, axis=0)
-    #
-    #
-    #                         biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
-    #                         if biasMode == 'abs':
-    #                             bias = mean_est - mean_obs
-    #                         elif biasMode == 'rel':
-    #                             th = zero_division_th[targetVar]
-    #                             mean_est[mean_est < th] = 0
-    #                             mean_obs[mean_obs < th] = 0
-    #                             bias = 100 * (mean_est - mean_obs) / mean_obs
-    #                             bias[(mean_obs == 0) * (mean_est == 0)] = 0
-    #                             bias[np.isinf(bias)] = np.nan
-    #
-    #
-    #                         #-------------------- Bias maps    -----------------------------------------------------
-    #                         if plotAllRegions == False or index == 0:
-    #
-    #                             palette = targetVar + '_' + climdex_name
-    #
-    #                             if (biasMode == 'abs'):
-    #                                 bias_palette = palette + '_bias'
-    #                             else:
-    #                                 bias_palette = palette + '_rel_bias'
-    #
-    #                             # Plot obs, est and bias maps
-    #                             filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, 'None',
-    #                                                  season))
-    #                             title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
-    #                             plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
-    #
-    #                             filename = '_'.join(('EVALUATION'+bc_sufix, 'estMap', targetVar, climdex_name, methodName,
-    #                                                  season))
-    #                             title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
-    #                             plot.map(targetVar, mean_est, palette, path=pathFigures, filename=filename, title=title)
-    #
-    #                             filename = '_'.join(('EVALUATION'+bc_sufix, 'biasMap', targetVar, climdex_name, methodName,
-    #                                                  season))
-    #                             title = ' '.join((targetVar.upper(), climdex_name, 'bias', methodName, season))
-    #                             plot.map(targetVar, bias, bias_palette, path=pathFigures, filename=filename, title=title)
-    #
-    #                         #-------------------- Scatter plot mean values -----------------------------------------------------
-    #                         m = int(min(np.min(mean_obs), np.min(mean_est)))
-    #                         M = int(max(np.max(mean_obs), np.max(mean_est)))
-    #                         # Plot figure
-    #                         fig = plt.figure()
-    #                         ax = fig.add_subplot(111)
-    #                         ax.set_aspect('equal', adjustable='box')
-    #                         # plt.plot(mean_obs, mean_est, '+', c='g', markersize=2)
-    #                         plt.plot(mean_obs, mean_est, '+', c='g')
-    #                         plt.xlim(m, M)
-    #                         plt.ylim(m, M)
-    #                         plt.xlabel('obs (' + units + ')')
-    #                         plt.ylabel('down (' + units + ')')
-    #                         m -= 5
-    #                         M += 5
-    #                         plt.plot(range(m, M), range(m, M))
-    #                         # if plotAllRegions == False and season == season_dict[annualName]:
-    #
-    #                         filename = '_'.join(('EVALUATION'+bc_sufix, 'scatterPlot', targetVar, climdex_name, methodName,
-    #                                              season))
-    #                         title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
-    #                         plt.title(title)
-    #                         if plotAllRegions == False:
-    #                             # plt.show()
-    #                             # exit()
-    #                             plt.savefig(pathFigures + filename)
-    #                         else:
-    #                             # plt.show()
-    #                             # exit()
-    #                             plt.savefig(pathOut + filename + '.png')
-    #                         plt.close()
-    #
+    val_lib.climdex_Taylor_diagrams(by_season)
+
+    # Go through all methods
+    for method_dict in methods:
+        targetVar, methodName = method_dict['var'], method_dict['methodName']
+
+        # Read regions csv
+        df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
+
+        # Go through all regions
+        for index, row in df_reg.iterrows():
+            if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+                regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+                iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+                npoints = len(iaux)
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+
+                # Select climdex
+                for climdex_name in climdex_names[targetVar]:
+                    print(methodName, targetVar, climdex_name)
+                    try:
+                        units = myTargetVarUnits
+                    except:
+                        units = ''
+                        print('define climdex units')
+                        # exit()
+
+                    # Select season
+                    for season in season_dict:
+                        if season == annualName or by_season == True:
+                            # Read data and select region
+                            pathIn = '../results/EVALUATION'+bc_sufix+'/'+ targetVar.upper() + '/' + methodName + '/climdex/'
+
+                            # Create pathOut
+                            if plotAllRegions == False:
+                                pathOut = pathFigures
+                            else:
+                                path = pathFigures + 'biasScatterPlot/' + targetVar.upper() + '/'
+                                pathOut = path + subDir
+                                if not os.path.exists(pathOut):
+                                    os.makedirs(pathOut)
+
+                            # obs_climdex = np.load(pathIn + '_'.join((climdex_name, 'obs', season)) + '.npy')[:, iaux]
+                            # est_climdex = np.load(pathIn + '_'.join((climdex_name, 'est', season)) + '.npy')[:, iaux]
+                            obs_climdex = read.netCDF(pathIn, '_'.join((climdex_name, 'obs', season))+'.nc', climdex_name)['data'][:, iaux]
+                            est_climdex = read.netCDF(pathIn, '_'.join((climdex_name, 'est', season))+'.nc', climdex_name)['data'][:, iaux]
+
+                            # Calculate mean for obs  and est (remember that climdex whith no annaul value, such as p10, p95, etc)
+                            # have the same value for all years
+                            mean_obs = np.nanmean(obs_climdex, axis=0)
+                            mean_est = np.nanmean(est_climdex, axis=0)
+
+
+                            biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                            if biasMode == 'abs':
+                                bias = mean_est - mean_obs
+                            elif biasMode == 'rel':
+                                th = zero_division_th[targetVar]
+                                mean_est[mean_est < th] = 0
+                                mean_obs[mean_obs < th] = 0
+                                bias = 100 * (mean_est - mean_obs) / mean_obs
+                                bias[(mean_obs == 0) * (mean_est == 0)] = 0
+                                bias[np.isinf(bias)] = np.nan
+
+
+                            #-------------------- Bias maps    -----------------------------------------------------
+                            if plotAllRegions == False or index == 0:
+
+                                palette = targetVar + '_' + climdex_name
+
+                                if (biasMode == 'abs'):
+                                    bias_palette = palette + '_bias'
+                                else:
+                                    bias_palette = palette + '_rel_bias'
+
+                                # Plot obs, est and bias maps
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'obsMap', targetVar, climdex_name, 'None',
+                                                     season))
+                                title = ' '.join((targetVar.upper(), climdex_name, 'obs', season))
+                                plot.map(targetVar, mean_obs, palette, path=pathFigures, filename=filename, title=title)
+
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'estMap', targetVar, climdex_name, methodName,
+                                                     season))
+                                title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
+                                plot.map(targetVar, mean_est, palette, path=pathFigures, filename=filename, title=title)
+
+                                filename = '_'.join(('EVALUATION'+bc_sufix, 'biasMap', targetVar, climdex_name, methodName,
+                                                     season))
+                                title = ' '.join((targetVar.upper(), climdex_name, 'bias', methodName, season))
+                                plot.map(targetVar, bias, bias_palette, path=pathFigures, filename=filename, title=title)
+
+                            #-------------------- Scatter plot mean values -----------------------------------------------------
+                            m = int(min(np.min(mean_obs), np.min(mean_est)))
+                            M = int(max(np.max(mean_obs), np.max(mean_est)))
+                            # Plot figure
+                            fig = plt.figure()
+                            ax = fig.add_subplot(111)
+                            ax.set_aspect('equal', adjustable='box')
+                            # plt.plot(mean_obs, mean_est, '+', c='g', markersize=2)
+                            plt.plot(mean_obs, mean_est, '+', c='g')
+                            plt.xlim(m, M)
+                            plt.ylim(m, M)
+                            plt.xlabel('obs (' + units + ')')
+                            plt.ylabel('down (' + units + ')')
+                            m -= 5
+                            M += 5
+                            plt.plot(range(m, M), range(m, M))
+                            # if plotAllRegions == False and season == season_dict[annualName]:
+
+                            filename = '_'.join(('EVALUATION'+bc_sufix, 'scatterPlot', targetVar, climdex_name, methodName,
+                                                 season))
+                            title = ' '.join((targetVar.upper(), climdex_name, methodName, season))
+                            plt.title(title)
+                            if plotAllRegions == False:
+                                # plt.show()
+                                # exit()
+                                plt.savefig(pathFigures + filename)
+                            else:
+                                # plt.show()
+                                # exit()
+                                plt.savefig(pathOut + filename + '.png')
+                            plt.close()
+

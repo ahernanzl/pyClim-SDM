@@ -649,24 +649,24 @@ def figures_projections(lan='EN'):
                                       ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
                                       xlabel)
 
-                        # # Csv with data for evolution graphs
-                        # # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        # csv_evol(pathOut, subDir, n_sspYears, ssp_dict, ssp_years_local, climdex_name, season)
-                        #
-                        # # Spaghetti plot
-                        # # if climdex_name in ('TXm', 'TNm'):
-                        # spaghetti(pathOut, subDir, ssp_dict, ssp_years_local, ylim_dict[climdex_name], climdex_name,
-                        #                       ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
-                        #
-                        # # Mean and spread ensemble tube plot
-                        # # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        # tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
-                        #      ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
-                        #
-                        # # Change maps
-                        # # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        # if regType == typeCompleteRegion:
-                        #     change_maps(ssp_dict, ssp_years_local, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
+                        # Csv with data for evolution graphs
+                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        csv_evol(pathOut, subDir, n_sspYears, ssp_dict, ssp_years_local, climdex_name, season)
+
+                        # Spaghetti plot
+                        # if climdex_name in ('TXm', 'TNm'):
+                        spaghetti(pathOut, subDir, ssp_dict, ssp_years_local, ylim_dict[climdex_name], climdex_name,
+                                              ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+
+                        # Mean and spread ensemble tube plot
+                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
+                             ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+
+                        # Change maps
+                        # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                        if regType == typeCompleteRegion:
+                            change_maps(ssp_dict, ssp_years_local, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
 
 
 ########################################################################################################################
