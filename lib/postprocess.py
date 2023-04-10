@@ -481,10 +481,10 @@ def plot_results():
         grids.subregions(targetVar)
 
     if experiment == 'EVALUATION':
-        evaluate_methods.annual_cycle()
+        # evaluate_methods.annual_cycle()
         evaluate_methods.daily_data()
-        evaluate_methods.monthly_data()
-        evaluate_methods.climdex()
+        # evaluate_methods.monthly_data()
+        # evaluate_methods.climdex()
 
     if experiment == 'PROJECTIONS':
         postpro_lib.figures_projections()
