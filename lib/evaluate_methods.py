@@ -154,7 +154,7 @@ def daily_data(by_season=True):
     each method.
     """
 
-    # # RMSE, correlation and biasVariance boxplots of all methods together
+    # RMSE, correlation and biasVariance boxplots of all methods together
     val_lib.daily_boxplots('rmse', by_season)
     val_lib.daily_boxplots('correlation', by_season)
     val_lib.daily_boxplots('variance', by_season)
@@ -303,7 +303,7 @@ def climdex(by_season=True):
                             if biasMode == 'abs':
                                 bias = mean_est - mean_obs
                             elif biasMode == 'rel':
-                                th = 0.001
+                                th = zero_division_th[targetVar]
                                 mean_est[mean_est < th] = 0
                                 mean_obs[mean_obs < th] = 0
                                 bias = 100 * (mean_est - mean_obs) / mean_obs

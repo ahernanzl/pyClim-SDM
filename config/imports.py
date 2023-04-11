@@ -1,6 +1,7 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', message='No protocol specified')
+warnings.filterwarnings("ignore")
 import sys
 import os
 import shutil

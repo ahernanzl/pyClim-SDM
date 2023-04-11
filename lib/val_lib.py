@@ -242,7 +242,7 @@ def daily_boxplots(metric, by_season):
                         elif metric == 'variance':
                             obs_var = np.nanvar(obs_season, axis=0)
                             est_var = np.nanvar(est_season, axis=0)
-                            th = 0.001
+                            th = zero_division_th[targetVar]
                             est_var[est_var < th] = 0
                             obs_var[obs_var < th] = np.nan
                             bias = 100 * (est_var - obs_var) / obs_var
@@ -529,7 +529,7 @@ def climdex_boxplots(by_season):
                                 bias = est - obs
                             elif biasMode == 'rel':
                                 units = '%'
-                                th = 0.001
+                                th = zero_division_th[targetVar]
                                 est[est < th] = 0
                                 obs[obs < th] = 0
                                 bias = 100 * (est - obs) / obs
