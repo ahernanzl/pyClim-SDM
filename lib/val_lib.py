@@ -472,7 +472,7 @@ def daily_spatial_correlation_boxplots():
                 # plt.ylines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
                 # plt.show()
                 # exit()
-                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'spatialCorrBoxplot', targetVar, 'all',
+                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'spatialCorrBoxplot', targetVar, 'None', 'all',
                                                 season))+ '.png', bbox_inches='tight')
                 plt.close()
 
