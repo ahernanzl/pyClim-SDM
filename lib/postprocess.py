@@ -554,6 +554,7 @@ def nc2ascii():
                             fileIn = '_'.join((climdex, scene, model, season))
                         fileOut = '_'.join((climdex, scene, model, season))
                         if os.path.isfile(pathIn + fileIn +'.nc'):
+                            print('writing climdex to ASCCI file for', targetVar, climdex, methodName, bc_sufix, scene, model, '...')
                             data = read.netCDF(pathIn, fileIn, climdex)['data']
                             # id = list(read.hres_metadata(targetVar).index.values)
                             id = list(read.hres_metadata(targetVar)['id'].values)
