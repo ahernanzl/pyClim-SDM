@@ -472,7 +472,7 @@ def daily_spatial_correlation_boxplots():
                 # plt.ylines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
                 # plt.show()
                 # exit()
-                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'spatialCorrBoxplot', targetVar, 'all',
+                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'spatialCorrBoxplot', targetVar, 'None', 'all',
                                                 season))+ '.png', bbox_inches='tight')
                 plt.close()
 
@@ -660,6 +660,8 @@ def climdex_Taylor_diagrams(by_season):
 
                                     obs_region = obs[iaux]
                                     est_region = est[iaux]
+                                    iValid = [i for i in range(obs_region.size) if (not np.isnan(obs_region[i]) and not np.isnan(est_region[i]))]
+                                    obs_region, est_region = obs_region[iValid], est_region[iValid]
                                     r_matrix[imethod] = pearsonr(obs_region, est_region)[0]
                                     std_matrix[imethod] = np.std(est_region) / np.std(obs_region)
                                     imethod += 1
