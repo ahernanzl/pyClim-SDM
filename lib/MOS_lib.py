@@ -296,7 +296,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             sce_corrected.T[ipoint][ivalid] = sceCorr_data
 
     # Force preserve trend in the mean values by year
-    if force_preserve_mean_change == True:
+    if bc_mode_dict[targetVar] == 'rel' and force_preserve_mean_change == True:
 
         # Group days by year
         years = np.array([x.year for x in sce_times])
