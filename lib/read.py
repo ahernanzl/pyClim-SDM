@@ -153,12 +153,9 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = data[:, :, ilons]
 
     # Force lats sorted from North to South if data is 2D (plus time dimension)
-    try:
-        if (lats[0] < lats[-1]) and (np.dim(data) > 2):
-            lats = np.flip(lats)
-            data = np.flip(data, axis=1)
-    except:
-        pass
+    if (lats[0] < lats[-1]) and (np.ndim(data) > 2):
+        lats = np.flip(lats)
+        data = np.flip(data, axis=1)
 
     # Get units
     try:
@@ -290,10 +287,10 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     else:
         datesDefined = False
         for pred in preds_dict[targetVar]:
-            if len(pred) > 4 and pred[-4:] in all_levels:
-                level = pred[-4:]
-            elif len(pred) > 3 and pred[-3:] in all_levels:
-                level = pred[-3:]
+            if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
+                level = int(pred[-4:])
+            elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
+                level = int(pred[-3:])
             else:
                 level = None
             try:
@@ -303,11 +300,11 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 break
             except:
                 pass
-            if datesDefined == False:
-                print('ERROR retrieving dates from netCDF models files')
-                print('Make sure your input_data/models directory contains the needed files.')
-                print('At least one direct predictors is needed, not only derived predictors.')
-                exit()
+        if datesDefined == False:
+            print('ERROR retrieving dates from netCDF models files')
+            print('Make sure your input_data/models directory contains the needed files.')
+            print('At least one direct predictors is needed, not only derived predictors.')
+            exit()
 
     ndates = len(dates)
 

@@ -673,9 +673,9 @@ def figures_projections(lan='EN'):
 def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel, season, targetVar, methodName,
               xlabel, add_historical=True):
 
+    print('evolTrendRaw', methodName, targetVar, climdex_name, season)
     for scene in collections.OrderedDict(sorted(ssp_dict.items())).keys():
         if scene != 'historical':
-            print('evolTrendRaw', scene, methodName, targetVar, season)
             ssp_dict_scene = ssp_dict[scene]
             raw_ssp_dict_scene = raw_ssp_dict[scene]
             hist_dict_scene = ssp_dict['historical']
@@ -816,6 +816,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_
 def csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season):
     """Write csv with data for evolution graphs"""
 
+    print('csv_evol', climdex_name, season)
     if not os.path.exists(pathOut + 'csv/' + subDir):
         os.makedirs(pathOut + 'csv/' + subDir)
     data_allScenes = np.zeros((nYears, 0))
@@ -837,6 +838,8 @@ def csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season):
 def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, season, targetVar,
               methodName, regType, regName, xlabel):
     """Plot evolution graphs all models"""
+
+    print('spaghetti', methodName, targetVar, climdex_name, season)
 
     color_dict = {'ssp119': 'Greys', 'ssp126': 'Blues', 'ssp245': 'Greens', 'ssp370': 'Oranges', 'ssp585': 'Reds'}
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
@@ -891,6 +894,8 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
 def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel, season, targetVar,
          methodName, regType, regName, xlabel, add_historical=True):
     """Plot evolution graphs mean and spread"""
+
+    print('tube', methodName, targetVar, climdex_name, season)
 
     color_dict = {'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
@@ -966,6 +971,8 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
 ########################################################################################################################
 def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict):
     """Plot change maps"""
+
+    print('change_maps', methodName, targetVar, climdex_name, season)
 
     # Go through all scenes
     for scene in ssp_dict.keys():

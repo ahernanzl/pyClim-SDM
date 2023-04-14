@@ -2693,6 +2693,7 @@ class tabFigures(tk.Frame):
                                              'one value per grid point.',
             'EVALUATION_varianceBoxplot': 'Bias (relative, %) in the variance of the daily series (downscaled and '
                                           'observed) by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_spatialCorrBoxplot': 'Spatial correlation of the daily maps. Each box contains one value per day.',
             'EVALUATION_qqPlot': 'QQ-plot for one variable by one method vs. observations.',
             'EVALUATION_r2Map': 'R2 score of the daily series (coefficient of determination) by one method.',
             'EVALUATION_rmseMap': 'RMSE of the daily series by one method.',

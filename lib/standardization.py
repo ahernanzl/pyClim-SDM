@@ -106,10 +106,10 @@ def get_mean_and_std_oneModel(targetVar, fields_and_grid, model):
 
     # Read calendar
     for pred in preds_dict[targetVar]:
-        if len(pred) > 4 and pred[-4:] in all_levels:
-            level = pred[-4:]
-        elif len(pred) > 3 and pred[-3:] in all_levels:
-            level = pred[-3:]
+        if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
+            level = int(pred[-4:])
+        elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
+            level = int(pred[-3:])
         else:
             level = None
         try:
