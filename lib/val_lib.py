@@ -236,8 +236,8 @@ def daily_boxplots(metric, by_season):
                                         r = round(pearsonr(X, Y)[0], 3)
                                 except:
                                     r = np.nan
-                                if np.isnan(r) == True:
-                                    r = 0
+                                # if np.isnan(r) == True:
+                                #     r = 0
                                 matrix[ipoint] = r
                         elif metric == 'variance':
                             obs_var = np.nanvar(obs_season, axis=0)
@@ -411,8 +411,8 @@ def daily_spatial_correlation_boxplots():
                                     r = round(pearsonr(X, Y)[0], 3)
                             except:
                                 r = np.nan
-                            if np.isnan(r) == True:
-                                r = 0
+                            # if np.isnan(r) == True:
+                            #     r = 0
                             matrix[iday] = r
                         np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_spatial_corr', matrix)
                 imethod += 1
@@ -772,8 +772,8 @@ def monthly_boxplots(metric):
                             r = round(pearsonr(X, Y)[0], 3)
                         except:
                             r = np.nan
-                        if np.isnan(r) == True:
-                            r = 0
+                        # if np.isnan(r) == True:
+                        #     r = 0
                         matrix[ipoint] = r
                 elif metric == 'R2':
                     matrix = 1 - np.nansum((est_acc - obs_acc) ** 2, axis=0) / np.nansum(obs_acc ** 2, axis=0)
