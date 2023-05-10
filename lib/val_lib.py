@@ -699,7 +699,7 @@ def climdex_Taylor_diagrams(by_season):
                             # plt.title(title, fontsize=16)
                             filename = '_'.join(('EVALUATION' + bc_sufix,
                                                  'TaylorDiagram', targetVar,
-                                                 climdex_name, regName,
+                                                 climdex_name, 'all',
                                                  season))
                             # plt.show()
                             # exit()
