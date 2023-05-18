@@ -1234,7 +1234,7 @@ def format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType,
     if targetVar == 'pr':
         units = 'décimas de mm'
     else:
-        units = degree_sign
+        units = 'décimas de ' + degree_sign
 
     # Go through all models and scenes
     for model in model_list:
@@ -1277,6 +1277,8 @@ def format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType,
                 id = [str(x) for x in id]
                 header = ' '.join((model, scene, period, df_vars['nameForDailyData'].values[0], '(', units, ')',
                                    df_methods['nameForDailyData'].values[0])) + '\n' + ';'.join(id)
-                np.savetxt(pathOut+'ASCII/'+fileOut_noExt+'.csv', data, fmt=['%.i'] + ['%.2f'] * (len(id) - 1), delimiter=';', header=header)
+                # Convert to tenths
+                data = 10*data.astype('int')
+                np.savetxt(pathOut+'ASCII/'+fileOut_noExt+'.csv', data, fmt=['%.i'] * len(id), delimiter=';', header=header)
 
 
