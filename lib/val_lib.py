@@ -446,7 +446,7 @@ def daily_spatial_correlation_boxplots():
                     pathOut = pathFigures
                 else:
                     path = pathFigures + 'daily_spatialCorrBoxplot/' + targetVar.upper() + '/'
-                    pathOut = path + subDir
+                    pathOut = path
                 # pathOut = pathFigures
                 if not os.path.exists(pathOut):
                     os.makedirs(pathOut)
