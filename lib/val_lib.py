@@ -236,8 +236,8 @@ def daily_boxplots(metric, by_season):
                                         r = round(pearsonr(X, Y)[0], 3)
                                 except:
                                     r = np.nan
-                                if np.isnan(r) == True:
-                                    r = 0
+                                # if np.isnan(r) == True:
+                                #     r = 0
                                 matrix[ipoint] = r
                         elif metric == 'variance':
                             obs_var = np.nanvar(obs_season, axis=0)
@@ -411,8 +411,8 @@ def daily_spatial_correlation_boxplots():
                                     r = round(pearsonr(X, Y)[0], 3)
                             except:
                                 r = np.nan
-                            if np.isnan(r) == True:
-                                r = 0
+                            # if np.isnan(r) == True:
+                            #     r = 0
                             matrix[iday] = r
                         np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_spatial_corr', matrix)
                 imethod += 1
@@ -446,7 +446,7 @@ def daily_spatial_correlation_boxplots():
                     pathOut = pathFigures
                 else:
                     path = pathFigures + 'daily_spatialCorrBoxplot/' + targetVar.upper() + '/'
-                    pathOut = path + subDir
+                    pathOut = path
                 # pathOut = pathFigures
                 if not os.path.exists(pathOut):
                     os.makedirs(pathOut)
@@ -699,7 +699,7 @@ def climdex_Taylor_diagrams(by_season):
                             # plt.title(title, fontsize=16)
                             filename = '_'.join(('EVALUATION' + bc_sufix,
                                                  'TaylorDiagram', targetVar,
-                                                 climdex_name, regName,
+                                                 climdex_name, 'all',
                                                  season))
                             # plt.show()
                             # exit()
@@ -772,8 +772,8 @@ def monthly_boxplots(metric):
                             r = round(pearsonr(X, Y)[0], 3)
                         except:
                             r = np.nan
-                        if np.isnan(r) == True:
-                            r = 0
+                        # if np.isnan(r) == True:
+                        #     r = 0
                         matrix[ipoint] = r
                 elif metric == 'R2':
                     matrix = 1 - np.nansum((est_acc - obs_acc) ** 2, axis=0) / np.nansum(obs_acc ** 2, axis=0)
