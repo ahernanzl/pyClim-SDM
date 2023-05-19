@@ -805,7 +805,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_
                 plt.title(title)
 
                 try:
-                    os.makedirs(pathOut)
+                    os.makedirs(pathOut + 'evolution/' + subDir)
                 except:
                     pass
                 plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
