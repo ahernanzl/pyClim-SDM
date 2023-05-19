@@ -647,7 +647,7 @@ def figures_projections(lan='EN'):
                         if (regType == typeCompleteRegion):
                             trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local,
                                       ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
-                                      xlabel)
+                                      regType, regName, xlabel)
 
                         # Csv with data for evolution graphs
                         # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
@@ -670,8 +670,8 @@ def figures_projections(lan='EN'):
 
 
 ########################################################################################################################
-def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel, season, targetVar, methodName,
-              xlabel, add_historical=True):
+def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel,
+              season, targetVar, methodName, regType, regName, xlabel, add_historical=True):
 
     print('evolTrendRaw', methodName, targetVar, climdex_name, season)
     for scene in collections.OrderedDict(sorted(ssp_dict.items())).keys():
