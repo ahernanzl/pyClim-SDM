@@ -897,7 +897,8 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
 
     print('tube', methodName, targetVar, climdex_name, season)
 
-    color_dict = {'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
+    color_dict = {'historical': 'g', 'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
+    aux_counter = 0
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
         if scene != 'historical':
 
@@ -921,7 +922,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
             plt.plot(ssp_years_local, median, label=scene_legend + '   (' + str(nModels) + ')', color=plot.lighten_color(color_dict[scene], 1.2))
             plt.fill_between(ssp_years_local, bottom, top, color=color_dict[scene], alpha=0.3)
 
-            if add_historical == True:
+            if add_historical == True and aux_counter == 0:
                 # --- historical
                 models = ssp_dict['historical']['models']
                 nModels = len(models)
@@ -939,10 +940,14 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
                 top = np.nanpercentile(data, 75, axis=0)
                 bottom = np.nanpercentile(data, 25, axis=0)
                 scene_legend = scene_names_dict[scene]
-                plt.plot(hist_years_local, median, label='historical  (' + str(nModels) + ')', color=plot.lighten_color(color_dict[scene], 1.2))
-                plt.fill_between(hist_years_local, bottom, top, color=color_dict[scene], alpha=0.3)
+                plt.plot(hist_years_local, median, label='historical  (' + str(nModels) + ')', color=plot.lighten_color(color_dict['historical'], 1.2))
+                plt.fill_between(hist_years_local, bottom, top, color=color_dict['historical'], alpha=0.3)
+                aux_counter = aux_counter + 1
 
     plt.legend(loc='upper left')
+    handles, labels = plt.gca().get_legend_handles_labels()
+    handles_sorted, labels_sorted = zip(*sorted(zip(handles, labels), key=lambda x: x[1]))
+    plt.legend(handles_sorted, labels_sorted)
     try:
         plt.ylim(ylim)
         plt.ylabel(ylabel)
