@@ -159,6 +159,9 @@ def daily_data(by_season=True):
     val_lib.daily_boxplots('correlation', by_season)
     val_lib.daily_boxplots('variance', by_season)
 
+    # # Wasserstein distance (similarity between distributions)
+    # val_lib.daily_boxplots('wasserstein-distance', by_season)
+
     # Spatial correlation of the daily patterns, boxplots of all methods together
     val_lib.daily_spatial_correlation_boxplots()
 

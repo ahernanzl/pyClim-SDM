@@ -251,6 +251,17 @@ def daily_boxplots(metric, by_season):
                             matrix[:] = bias
                         elif metric == 'rmse':
                             matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
+                        elif metric == 'wasserstein-distance':
+                            for ipoint in range(hres_npoints[targetVar]):
+                                X = obs_season[:, ipoint]
+                                Y = est_season[:, ipoint]
+                                try:
+                                    w = wasserstein_distance(X, Y)
+                                except:
+                                    w = np.inf
+                                if ipoint % 100 == 0:
+                                    print(ipoint, w)
+                                matrix[ipoint] = w
                         np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_' +metric, matrix)
                 imethod += 1
 
@@ -319,6 +330,10 @@ def daily_boxplots(metric, by_season):
                             title = targetVar
                         elif metric == 'rmse':
                             units = predictands_units[targetVar]
+                            # title = ' '.join((targetVar, metric, season))
+                            title = targetVar
+                        elif metric == 'wasserstein-distance':
+                            units = ''
                             # title = ' '.join((targetVar, metric, season))
                             title = targetVar
                         plt.title(title, fontsize=20)
