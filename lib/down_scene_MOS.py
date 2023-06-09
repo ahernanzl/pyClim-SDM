@@ -159,7 +159,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if methodName == 'DQM':
             est[:, ipoint_local_index] = MOS_lib.detrended_quantile_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
         if methodName == 'QDM':
-            est[:, ipoint_local_index] = MOS_lib.quantile_delta_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
+            est[:, ipoint_local_index] = MOS_lib.quantile_delta_mapping(Y_train, X_train, X_test, targetVar, scene_dates)[:, 0]
         elif methodName == 'PSDM':
             est[:, ipoint_local_index] = MOS_lib.scaled_distribution_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
 
