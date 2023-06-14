@@ -906,7 +906,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
             models = ssp_dict[scene]['models']
             nModels = len(models)
             data = ssp_dict[scene]['data'].mean(axis=2)
-            if climdex_name in ('PRCPTOT', 'Pm', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+            if targetVar not in ['tas', 'tasmax', 'tasmin']:
                 data = gaussian_filter1d(data, 2)
             if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
                 data = gaussian_filter1d(data, 8)
@@ -927,7 +927,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
                 models = ssp_dict['historical']['models']
                 nModels = len(models)
                 data = ssp_dict['historical']['data'].mean(axis=2)
-                if climdex_name in ('PRCPTOT', 'Pm', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+                if targetVar not in ['tas', 'tasmax', 'tasmin']:
                     data = gaussian_filter1d(data, 2)
                 if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
                     data = gaussian_filter1d(data, 8)
