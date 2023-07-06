@@ -911,13 +911,11 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             else:
                 map.scatter(X, Y, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax, marker=marker)
         elif grid is not None:
-            x = np.linspace(0, map.urcrnrx, lons.shape[0])
-            y = np.linspace(0, map.urcrnry, lats.shape[0])
-            X, Y = np.meshgrid(x, y)
+            lons, lats = np.meshgrid(lons, lats)
             if irregular_bins == True:
-                map.pcolormesh(X, Y, data, norm=norm, cmap=cmap)
+                map.pcolormesh(lons, lats, data, norm=norm, cmap=cmap, latlon=True)
             else:
-                map.pcolormesh(X, Y, data, cmap=cmap, vmin=vmin, vmax=vmax)
+                map.pcolormesh(lons, lats, data, cmap=cmap, vmin=vmin, vmax=vmax, latlon=True)
 
 
     # elif plot_library == 'Cartopy':
