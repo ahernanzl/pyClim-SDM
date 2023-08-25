@@ -893,10 +893,10 @@ class framePredictorsClass(tk.Frame):
             chk_list.update({pred: checked})
             irow += 1
             nrows += 1
-            if nrows == 2:
+            if nrows == 3:
                 nrows = 0
                 icol += 2
-                irow -= 2
+                irow -= 3
             return irow, icol, nrows
 
         irow = 0
@@ -956,11 +956,18 @@ class framePredictorsClass(tk.Frame):
         icol -= 11
 
         singleLevelVars = {
+                        'ps': 'Surface pressure',
                         'psl': 'Mean sea level pressure',
+                        'pr': 'Precipitation',
+                        'tas': 'Surface mean temperature',
+                        'tasmax': 'Surface maximum temperature',
+                        'tasmin': 'Surface minimum temperature',
                         'clt': 'Cloud cover',
+                        'rsds': 'Surface Downwelling Shortwave Radiation',
+                        'rlds': 'Surface Downwelling Longwave Radiation',
                         'uas': 'Surface eastward wind component',
                         'vas': 'Surface northward wind component',
-                        'tas': 'Surface mean temperature',
+                        'sfcWind': 'Surface wind speed',
                         'hurs': 'Surface relative humidity',
                         'K': 'K instability index',
                         'TT': 'Total Totals instability index',
@@ -973,7 +980,7 @@ class framePredictorsClass(tk.Frame):
         nrows = 0
         for pred in singleLevelVars:
             irow, icol, nrows = add_chk_bt_singleLevels(self.preds, pred, irow, icol, nrows)
-        irow += 2
+        irow += 3
         tk.Label(root, text='').grid(column=icol, row=irow, pady=5)
 
     def get(self):
