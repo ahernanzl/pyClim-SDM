@@ -308,43 +308,35 @@ else:
     if apply_bc_bySeason == True:
         bc_sufix += '-s'
 
+
+#############################################  GRIDS  ##################################################################
+
+target_type = 'gridded_data'
+# target_type = 'stations'
+
+hres_npoints, hres_lats, hres_lons = {}, {}, {}
+
+aux = []
+hresPeriodFilename = {}
+for targetVar in targetVars:
+    if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
+        files_with_data = []
+        for file in os.listdir(pathHres):
+            if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
+                newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
+                hresPeriodFilename.update({targetVar: newHresPeriodFilename})
+                files_with_data.append(file)
+        if len(files_with_data) > 1:
+            print('------------------------------------------------------------------------------------------------')
+            print('ERROR:', len(files_with_data),'files have been found at input_data/hres/ containing data for:', targetVar)
+            print('Please, remove all files except one from the following list:', files_with_data)
+            print('------------------------------------------------------------------------------------------------')
+            exit()
+        if targetVar not in aux:
+            aux.append(targetVar)
+targetVars = aux
+
 ########################################       DATES      ##############################################################
-# Definition of testing_years and historical_years depending on the experiment (do not change)
-nyears = calibration_years[1]-calibration_years[0]+1
-block = nyears//5
-rest = nyears%5
-blocks = [block, block, block, block, block, ]
-for i in range(rest):
-    blocks[i] += 1
-first_years = [calibration_years[0],]
-for i in range(4):
-    first_years.append(first_years[i]+blocks[i])
-
-fold1_testing_years = (first_years[0], first_years[0]+blocks[0]-1)
-fold2_testing_years = (first_years[1], first_years[1]+blocks[1]-1)
-fold3_testing_years = (first_years[2], first_years[2]+blocks[2]-1)
-fold4_testing_years = (first_years[3], first_years[3]+blocks[3]-1)
-fold5_testing_years = (first_years[4], first_years[4]+blocks[4]-1)
-
-if split_mode == 'all_training':
-    testing_years = (calibration_years[1] + 1, calibration_years[1] + 2)
-elif split_mode == 'all_testing':
-    testing_years = calibration_years
-elif split_mode == 'single_split':
-    testing_years = single_split_testing_years
-elif split_mode == 'fold1':
-    testing_years = fold1_testing_years
-elif split_mode == 'fold2':
-    testing_years = fold2_testing_years
-elif split_mode == 'fold3':
-    testing_years = fold3_testing_years
-elif split_mode == 'fold4':
-    testing_years = fold4_testing_years
-elif split_mode == 'fold5':
-    testing_years = fold5_testing_years
-
-biasCorr_years = reference_years
-
 # Detect reanalysisPeriodFilename
 reanalysisPeriodFilenames = []
 for file in os.listdir('../input_data/reanalysis/'):
@@ -412,6 +404,72 @@ if experiment == 'PSEUDOREALITY':
     ssp_years = (2081, 2100)
 shortTerm_years = (2041, 2070)
 longTerm_years = (2071, 2100)
+
+aux_hres_years = (max([int(hresPeriodFilename[x][:4]) for x in targetVars]), min([int(hresPeriodFilename[x][-8:-4]) for x in targetVars]))
+aux_reanalysis_years = (int(reanalysisPeriodFilename[:4]), int(reanalysisPeriodFilename[-8:-4]))
+aux_historical_years = (int(historicalPeriodFilename[:4]), int(historicalPeriodFilename[-8:-4]))
+allowedCalibrationYears = (max(aux_hres_years[0], aux_reanalysis_years[0]), min(aux_hres_years[1], aux_reanalysis_years[1]))
+if calibration_years[0] < allowedCalibrationYears[0] or calibration_years[1] > allowedCalibrationYears[1]:
+    print('---------------------------------------------------------------------------')
+    print('WARNING: Your current selection for \'Calibration years\' is ' + str(calibration_years)+' but your input data do not cover that period:')
+    print('- reanalysis: ' + str(aux_reanalysis_years[0])+'-'+str(aux_reanalysis_years[1]))
+    for targetVar in targetVars:
+        print('- hres ' + targetVar + ': ' + str(hresPeriodFilename[targetVar][:4])+'-'+str(hresPeriodFilename[targetVar][-8:-4]))
+    calibration_years = (max(calibration_years[0], allowedCalibrationYears[0]), min(calibration_years[1], allowedCalibrationYears[1]))
+    print('The maximum allowed period for \'Calibration years\' for the current predictands selection is: '+str(allowedCalibrationYears))
+    print('Based on this limiation and your selection, \'Calibration years\' have been forzed to ' + str(calibration_years))
+    print('---------------------------------------------------------------------------')
+
+
+allowedReferenceYears = (max(aux_hres_years[0], aux_reanalysis_years[0], aux_historical_years[0]), min(aux_hres_years[1], aux_reanalysis_years[1], aux_historical_years[1]))
+if reference_years[0] < allowedReferenceYears[0] or reference_years[1] > allowedReferenceYears[1]:
+    print('---------------------------------------------------------------------------')
+    print('WARNING: Your current selection for \'Reference years\' is ' + str(reference_years)+' but your input data do not cover that period:')
+    print('- reanalysis: ' + str(aux_reanalysis_years[0])+'-'+str(aux_reanalysis_years[1]))
+    print('- models: ' + str(aux_historical_years[0])+'-'+str(aux_historical_years[1]))
+    for targetVar in targetVars:
+        print('- hres ' + targetVar + ': ' + str(hresPeriodFilename[targetVar][:4])+'-'+str(hresPeriodFilename[targetVar][-8:-4]))
+    reference_years = (max(reference_years[0], allowedReferenceYears[0]), min(reference_years[1], allowedReferenceYears[1]))
+    print('The maximum allowed period for \'Reference years\' for the current predictands selection is: '+str(allowedReferenceYears))
+    print('Based on this limiation and your selection, \'Reference years\' have been forzed to ' + str(reference_years))
+    print('---------------------------------------------------------------------------')
+
+
+# Definition of testing_years and historical_years depending on the experiment (do not change)
+nyears = calibration_years[1]-calibration_years[0]+1
+block = nyears//5
+rest = nyears%5
+blocks = [block, block, block, block, block, ]
+for i in range(rest):
+    blocks[i] += 1
+first_years = [calibration_years[0],]
+for i in range(4):
+    first_years.append(first_years[i]+blocks[i])
+
+fold1_testing_years = (first_years[0], first_years[0]+blocks[0]-1)
+fold2_testing_years = (first_years[1], first_years[1]+blocks[1]-1)
+fold3_testing_years = (first_years[2], first_years[2]+blocks[2]-1)
+fold4_testing_years = (first_years[3], first_years[3]+blocks[3]-1)
+fold5_testing_years = (first_years[4], first_years[4]+blocks[4]-1)
+
+if split_mode == 'all_training':
+    testing_years = (calibration_years[1] + 1, calibration_years[1] + 2)
+elif split_mode == 'all_testing':
+    testing_years = calibration_years
+elif split_mode == 'single_split':
+    testing_years = single_split_testing_years
+elif split_mode == 'fold1':
+    testing_years = fold1_testing_years
+elif split_mode == 'fold2':
+    testing_years = fold2_testing_years
+elif split_mode == 'fold3':
+    testing_years = fold3_testing_years
+elif split_mode == 'fold4':
+    testing_years = fold4_testing_years
+elif split_mode == 'fold5':
+    testing_years = fold5_testing_years
+
+biasCorr_years = reference_years
 
 # Hereafter different dates will be defined (do not change)
 # Calibration (this will be separated later into training and testing)
@@ -635,33 +693,6 @@ for targetVar in targetVars:
         print('At least one predictor must be selected for', targetVar)
         print('-----------------------------------------------')
         exit()
-
-#############################################  GRIDS  ##################################################################
-
-target_type = 'gridded_data'
-# target_type = 'stations'
-
-hres_npoints, hres_lats, hres_lons = {}, {}, {}
-
-aux = []
-hresPeriodFilename = {}
-for targetVar in targetVars:
-    if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
-        files_with_data = []
-        for file in os.listdir(pathHres):
-            if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
-                newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
-                hresPeriodFilename.update({targetVar: newHresPeriodFilename})
-                files_with_data.append(file)
-        if len(files_with_data) > 1:
-            print('------------------------------------------------------------------------------------------------')
-            print('ERROR:', len(files_with_data),'files have been found at input_data/hres/ containing data for:', targetVar)
-            print('Please, remove all files except one from the following list:', files_with_data)
-            print('------------------------------------------------------------------------------------------------')
-            exit()
-        if targetVar not in aux:
-            aux.append(targetVar)
-targetVars = aux
 
 for targetVar in targetVars:
     aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt', dtype='str')
