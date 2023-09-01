@@ -663,7 +663,7 @@ def figures_projections(lan='EN'):
                         # Mean and spread ensemble tube plot
                         if activate_plot_evolTube == True:
                             # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                            spaghetti(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
+                            tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
                                  ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
 
                         # Change maps
