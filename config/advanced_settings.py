@@ -91,6 +91,23 @@ else:
     myTargetVar = 'None'
 
 
+# ------------------------ PLOT FIGURES ------------------------------------------------------------------------
+activate_plot_annualCycle = True
+activate_plot_dailyBoxplots = True
+activate_plot_spatialCorrelation = False
+activate_plot_QQ_continuous_dichotomous = False
+activate_plot_monthlyBoxplots = False
+activate_plot_monthlyMpas = False
+activate_plot_climdexBoxplots = True
+activate_plot_climdexTaylor = False
+activate_plot_climdexScatterPlot = False
+activate_plot_climdexMaps = True
+activate_plot_evolTrendRaw = True
+activate_plot_spaghetti = False
+activate_plot_evolTube = True
+activate_plot_changeMaps = True
+
+
 # Predictands have to be between min/max as inputs. Use uint16/uint32 for precipitation depending on your data
 predictands_codification = {
     'tasmax': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},

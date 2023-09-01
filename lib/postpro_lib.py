@@ -644,29 +644,33 @@ def figures_projections(lan='EN'):
                         raw_ssp_dict = get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
 
                         # Evolution figures of mean trend in the whole region vs RAW
-                        if (regType == typeCompleteRegion):
-                            trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local,
-                                      ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
-                                      regType, regName, xlabel)
+                        if activate_plot_evolTrendRaw == True:
+                            if (regType == typeCompleteRegion):
+                                trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local,
+                                          ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
+                                          regType, regName, xlabel)
 
                         # Csv with data for evolution graphs
                         # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
                         csv_evol(pathOut, subDir, n_sspYears, ssp_dict, ssp_years_local, climdex_name, season)
 
                         # Spaghetti plot
-                        # if climdex_name in ('TXm', 'TNm'):
-                        spaghetti(pathOut, subDir, ssp_dict, ssp_years_local, ylim_dict[climdex_name], climdex_name,
-                                              ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+                        if activate_plot_spaghetti == True:
+                            # if climdex_name in ('TXm', 'TNm'):
+                            spaghetti(pathOut, subDir, ssp_dict, ssp_years_local, ylim_dict[climdex_name], climdex_name,
+                                                  ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
 
                         # Mean and spread ensemble tube plot
-                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
-                             ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+                        if activate_plot_evolTube == True:
+                            # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                            spaghetti(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
+                                 ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
 
                         # Change maps
-                        # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        if regType == typeCompleteRegion:
-                            change_maps(ssp_dict, ssp_years_local, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
+                        if activate_plot_changeMaps == True:
+                            # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                            if regType == typeCompleteRegion:
+                                change_maps(ssp_dict, ssp_years_local, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
 
 
 ########################################################################################################################
@@ -897,7 +901,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
 
     print('tube', methodName, targetVar, climdex_name, season)
 
-    color_dict = {'historical': 'g', 'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
+    color_dict = {'historical': 'grey', 'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
     aux_counter = 0
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
         if scene != 'historical':
