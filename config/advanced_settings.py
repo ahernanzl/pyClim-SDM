@@ -622,7 +622,7 @@ for targetVar in targetVars:
 targetVars = aux
 
 for targetVar in targetVars:
-    aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt')
+    aux_hres_metadata = np.genfromtxt(pathHres + targetVar + '_hres_metadata.txt')
     hres_npoints.update({targetVar: aux_hres_metadata.shape[0]})
     hres_lats.update({targetVar: aux_hres_metadata[:, 2]})
     hres_lons.update({targetVar: aux_hres_metadata[:, 1]})

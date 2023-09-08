@@ -667,13 +667,25 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     # ------------------------
     # read master file
     # ------------------------
-    npMaster = np.loadtxt(masterFile)
+    npMaster = np.genfromtxt(masterFile, dtype=None)
+    # print(npMaster, type(npMaster), npMaster.shape)
+    id = [x[0] for x in npMaster]
+    new_id = []
+    for x in id:
+        x = str(x)
+        if x.startswith('b\'') and x.endswith('\''):
+            x = x[2:-1]
+        new_id.append(x)
+    id = new_id
+    lons = [x[1] for x in npMaster]
+    lats = [x[2] for x in npMaster]
     try:
-        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1], 'lats': npMaster[:, 2], 'h': npMaster[:, 3]})
+        h = [x[3] for x in npMaster]
+        df = pd.DataFrame({'id': id, 'lons': lons, 'lats': lats, 'h': h})
     except:
-        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1], 'lats': npMaster[:, 2]})
-    df['id'] = df['id'].astype(int)
-    df.set_index("id", inplace=True)
+        df = pd.DataFrame({'id': id, 'lons': lons, 'lats': lats})
+    # df['id'] = df['id'].astype(int)
+    # df.set_index("id", inplace=True)
 
     return df
 
