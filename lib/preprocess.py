@@ -49,8 +49,7 @@ def preprocess():
 def common():
     """
     Association between high and low resolution grids
-    Calculate derived predictors
-    Calculate mean and std of all models
+    Standardize reanalysis
     """
 
     # Association between high resolution and low resolution grids, and regions labels.
@@ -58,24 +57,26 @@ def common():
         for interp_mode in ('nearest', 'bilinear', ):
             grids.association(interp_mode, targetVar)
 
-    # Calculates mean and std for all predictors both at reanalysis and models (standardization period)
-    for grid in (
+    # Standardize reanalysis (pred and saf, standardization period)
+    for fields_and_grid in (
             'pred',
+            'spred',
             'saf',
         ):
         for targetVar in targetVars:
-            print(grid, targetVar, 'get_mean_and_std_reanalysis')
-            standardization.get_mean_and_std_reanalysis(targetVar, grid)
+            print(fields_and_grid, targetVar, 'get_mean_and_std_reanalysis')
+            standardization.get_mean_and_std_reanalysis(targetVar, fields_and_grid)
 
 
 
 ########################################################################################################################
 def common_fold_dependent():
     """
-    Standardize and split training/testing
+    Split training/testing
     Weather types clustering
     """
 
+    # Define and create output path
     pathOut = pathAux + 'STANDARDIZATION/VAR/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
@@ -97,6 +98,7 @@ def common_fold_dependent():
             time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
             data_calib = data[time_first:time_last]
 
+        # Get days for training and testing and saves split data to files
         years = np.array([x.year for x in calibration_dates])
         idates_test = np.array(
             [i for i in range(years.size) if ((years[i] >= testing_years[0]) * (years[i] <= testing_years[1]))])
@@ -115,15 +117,16 @@ def common_fold_dependent():
 
     # Standarizes reanalysis predictors and saves them to files divided by training and testing
     # This is done for the two grids: pred and saf
-    for grid in (
+    for fields_and_grid in (
             'pred',
+            'spred',
             'saf',
         ):
         for targetVar in targetVars:
-            print(grid, targetVar, 'standardize and split train/test')
+            print(fields_and_grid, targetVar, 'standardize and split train/test')
 
             # Load standardized data and splits in training/testing
-            data_calib = np.load(pathAux+'STANDARDIZATION/'+grid.upper()+'/'+targetVar+'_reanalysis_standardized.npy')
+            data_calib = np.load(pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/'+targetVar+'_reanalysis_standardized.npy')
             if np.where(np.isnan(data_calib))[0].size != 0:
                 exit('Predictors for calibration contain no-data and that is not allowed by the program')
             years = np.array([x.year for x in calibration_dates])
@@ -131,12 +134,12 @@ def common_fold_dependent():
             idates_train = np.array([i for i in range(years.size) if ((years[i]<testing_years[0])|(years[i]>testing_years[1]))])
             if idates_test.size > 0:
                 testing = data_calib[idates_test]
-                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_testing', testing)
+                np.save(pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/' + targetVar + '_testing', testing)
             else:
                 print('testing period is null, testing.npy will not be generated')
             if idates_train.size > 0:
                 training = data_calib[idates_train]
-                np.save(pathAux+'STANDARDIZATION/'+grid.upper()+'/' + targetVar + '_training', training)
+                np.save(pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/' + targetVar + '_training', training)
             else:
                 print('training period is null, testing.npy will not be generated')
 
@@ -155,6 +158,8 @@ def train_methods():
     """
     Each family of methods needs a different preprocess (training)
     """
+    
+    iterable_TF = []
 
     # Go through all methods
     for method_dict in methods:
@@ -191,7 +196,11 @@ def train_methods():
         if family == 'TF':
             # Serial processing
             if running_at_HPC == False:
-                TF_lib.train_chunk(targetVar, methodName, family, mode, fields)
+                if runInParallel_multiprocessing == False:
+                    TF_lib.train_chunk(targetVar, methodName, family, mode, fields)
+                else:
+                    iterable_TF.append([targetVar, methodName, family, mode, fields])
+
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(targetVar, methodName, family, mode, fields)
@@ -204,3 +213,12 @@ def train_methods():
             # Parallel processing
             elif running_at_HPC == True:
                 launch_jobs.training(targetVar, methodName, family, mode, fields)
+
+    # Parallel processing of TF
+    if runInParallel_multiprocessing == True:
+        for x in iterable_TF:
+            iterable = []
+            for iproc in range(nCPUs_multiprocessing):
+                iterable.append([x[0], x[1], x[2], x[3], x[4], iproc, nCPUs_multiprocessing])
+            with Pool(processes=nCPUs_multiprocessing) as pool:
+                pool.starmap(TF_lib.train_chunk, iterable)

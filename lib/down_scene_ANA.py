@@ -333,7 +333,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Set units
     units = predictands_units[targetVar]
-    if units == None:
+    if units is None:
         units = ''
 
     if split_mode[:4] == 'fold':
@@ -347,13 +347,16 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     print('-------------------------------------------------------------------------')
     print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        est /= 1000
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        est[est < 100*minAllowed] == 100*minAllowed
-    if  maxAllowed != None:
-        est[est > 100*maxAllowed] == 100*maxAllowed
+    if  minAllowed is not None:
+        est[est < minAllowed] = minAllowed
+    if  maxAllowed is not None:
+        est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

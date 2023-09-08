@@ -47,6 +47,8 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     start = datetime.datetime.now()
     if filename[-3:] != '.nc':
         filename += '.nc'
+    if dataPath[-1] != '/':
+        dataPath += '/'
     nc = Dataset(dataPath + filename)
 
     # # print(nc)
@@ -67,7 +69,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     else:
         print('lat_name not recognized')
         exit()
-    if level != None:
+    if level is not None:
         if 'level' in nc.variables:
             level_name = 'level'
         elif 'plev' in nc.variables:
@@ -90,7 +92,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     lons[lons > 180] -= 360
     nlats, nlons = len(lats), len(lons)
 
-    if level == None:
+    if level is None:
         data = nc.variables[nc_variable][:]
     else:
         try:
@@ -102,11 +104,18 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         except:
             ilevel = 0
         dim = nc.variables[nc_variable][:].shape
-        data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
+        if len(list(dim)) == 4:
+            data = nc.variables[nc_variable][:, ilevel, :, :].reshape(dim[0], dim[2], dim[3])
+        elif len(list(dim)) == 3:
+            data = nc.variables[nc_variable][:].reshape(dim[0], dim[1], dim[2])
 
     # Set invalid data to Nan
     if hasattr(nc.variables[nc_variable], '_FillValue'):
-        data[data == nc.variables[nc_variable]._FillValue] = np.nan
+        try:
+            data[data == nc.variables[nc_variable]._FillValue] = np.nan
+        except:
+            data = data.astype('float64')
+            data[data == nc.variables[nc_variable]._FillValue] = np.nan
     if np.ma.is_masked(data):
         data = np.ma.MaskedArray.filled(data, fill_value=np.nan)
 
@@ -130,7 +139,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     # data = np.frombuffer(data.getdata).reshape(data.shape)
 
     # Selects a specific gr defined at settings
-    if grid != None:
+    if grid is not None:
         if grid == 'ext':
             grid_lats, grid_lons = ext_lats, ext_lons
         elif grid == 'saf':
@@ -143,8 +152,8 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         data = data[:, ilats]
         data = data[:, :, ilons]
 
-    # Force lats sorted from North to South
-    if lats[0] < lats[-1]:
+    # Force lats sorted from North to South if data is 2D (plus time dimension)
+    if (lats[0] < lats[-1]) and (np.ndim(data) > 2):
         lats = np.flip(lats)
         data = np.flip(data, axis=1)
 
@@ -175,7 +184,7 @@ def one_direct_predictor(predName, level=None, grid=None, model='reanalysis', sc
     :return: dictionary with data, times, lats, lons and calendar
     """
 
-    if level != None:
+    if level is not None:
         predName += str(level)
 
     if model == 'reanalysis':
@@ -258,7 +267,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     elif field == 'pred':
         preds = preds_dict[targetVar]
         nvar = len(preds)
-        if predName != None:
+        if predName is not None:
             nvar = 1
             try:
                 if predName == myTargetVar:
@@ -276,19 +285,26 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     if model == 'reanalysis':
         dates = calibration_dates
     else:
+        datesDefined = False
         for pred in preds_dict[targetVar]:
-            if len(pred) > 4 and pred[-4:] in all_levels:
-                level = pred[-4:]
-            elif len(pred) > 3 and pred[-3:] in all_levels:
-                level = pred[-3:]
+            if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
+                level = int(pred[-4:])
+            elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
+                level = int(pred[-3:])
             else:
                 level = None
             try:
                 dates = np.ndarray.tolist(
-                    read.one_direct_predictor(targetVar, level=level, grid='ext', model=model, scene=scene)['times'])
+                    read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)['times'])
+                datesDefined = True
                 break
             except:
                 pass
+        if datesDefined == False:
+            print('ERROR retrieving dates from netCDF models files')
+            print('Make sure your input_data/models directory contains the needed files.')
+            print('At least one direct predictors is needed, not only derived predictors.')
+            exit()
 
     ndates = len(dates)
 
@@ -297,6 +313,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     # Read all data in ext_grid
     if model == 'reanalysis':
         # Calibration dates are extracted from files
+        datesDefined = False
         for var in targetVars:
             try:
                 if var == 'hurs':
@@ -305,9 +322,25 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                     aux_times = derived_predictors.wind_speed('sfc', model=model, scene=scene)['times']
                 else:
                     aux_times = one_direct_predictor(var, grid='ext', model=model, scene=scene)['times']
+                datesDefined = True
                 break
             except:
                 pass
+        if datesDefined == False:
+            for ipred in range(len(all_preds.keys())):
+                try:
+                    ncName = list(all_preds.keys())[ipred]
+                    aux_times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)[
+                        'times']
+                    datesDefined = True
+                    break
+                except:
+                    pass
+        if datesDefined == False:
+            print('ERROR retrieving dates from netCDF reanalysis files')
+            print('At least one direct predictors is needed, not only derived predictors.')
+            exit()
+
         idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
 
         # var
@@ -449,16 +482,16 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                         idates];
                     i += 1
             # Instability indexes
-            if 'K_index' in preds:
+            if 'K' in preds:
                 data[i] = derived_predictors.K_index(model=model, scene=scene)['data'][idates];
                 i += 1
-            if 'TT_index' in preds:
+            if 'TT' in preds:
                 data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'][idates];
                 i += 1
-            if 'SSI_index' in preds:
+            if 'SSI' in preds:
                 data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'][idates];
                 i += 1
-            if 'LI_index' in preds:
+            if 'LI' in preds:
                 data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'][idates];
                 i += 1
             if myTargetVar in preds:
@@ -596,23 +629,23 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                         var];
                     i += 1
             # Instability indexes
-            if 'K_index' in preds:
+            if 'K' in preds:
                 data[i] = derived_predictors.K_index(model=model, scene=scene)['data'];
                 i += 1
-            if 'TT_index' in preds:
+            if 'TT' in preds:
                 data[i] = derived_predictors.TT_index(model=model, scene=scene)['data'];
                 i += 1
-            if 'SSI_index' in preds:
+            if 'SSI' in preds:
                 data[i] = derived_predictors.SSI_index(model=model, scene=scene)['data'];
                 i += 1
-            if 'LI_index' in preds:
+            if 'LI' in preds:
                 data[i] = derived_predictors.LI_index(model=model, scene=scene)['data'];
                 i += 1
             if myTargetVar in preds:
                 data[i] = one_direct_predictor(myTargetVar, grid='ext', model=model, scene=scene)['data']
 
     # Select grid
-    if grid == None:
+    if grid is None:
         grid = field
     if grid in ('var', 'pred'):
         ilats, ilons = pred_ilats, pred_ilons
@@ -625,7 +658,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
     data = np.swapaxes(data, 0, 1)
 
     # If a selection of dates is desired
-    if period != None:
+    if period is not None:
         if model == 'reanalysis':
             if period == 'calibration':
                 years = calibration_years
@@ -655,35 +688,21 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     :return:
     """
 
-    if pathIn != None:
+    if pathIn is not None:
         dataPath = pathIn
-    elif GCM_local != None:
+    elif GCM_local is not None:
         dataPath = '../input_data/OBS_PSEUDO/hres_' + GCM_local + '_' + RCM_local + '/'
     else:
         dataPath = pathHres
 
-    masterFile = dataPath + targetVar + '_hres_metadata.txt'
-
     # ------------------------
     # read master file
     # ------------------------
-    npMaster = np.genfromtxt(masterFile, dtype=None)
-    # print(npMaster, type(npMaster), npMaster.shape)
-    id = [x[0] for x in npMaster]
-    new_id = []
-    for x in id:
-        x = str(x)
-        if x.startswith('b\'') and x.endswith('\''):
-            x = x[2:-1]
-        new_id.append(x)
-    id = new_id
-    lons = [x[1] for x in npMaster]
-    lats = [x[2] for x in npMaster]
+    npMaster = np.loadtxt(dataPath + targetVar + '_hres_metadata.txt', dtype='str')
     try:
-        h = [x[3] for x in npMaster]
-        df = pd.DataFrame({'id': id, 'lons': lons, 'lats': lats, 'h': h})
+        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(np.float), 'lats': npMaster[:, 2].astype(np.float), 'h': npMaster[:, 3].astype(np.float)})
     except:
-        df = pd.DataFrame({'id': id, 'lons': lons, 'lats': lats})
+        df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(np.float), 'lats': npMaster[:, 2].astype(np.float)})
     # df['id'] = df['id'].astype(int)
     # df.set_index("id", inplace=True)
 
@@ -727,7 +746,7 @@ def hres_data(targetVar, period=None):
     data = data[:, 1:]
 
     # Set period
-    if period == None:
+    if period is None:
         first_date = datetime.datetime(minYear, 1, 1, 12, 0)
         last_date = datetime.datetime(maxYear, 12, 31, 12, 0)
         dates = [first_date + datetime.timedelta(days=i) for i in range((last_date - first_date).days + 1)]
@@ -747,6 +766,10 @@ def hres_data(targetVar, period=None):
     idates = [times.index(time) for time in times if time in dates]
     data = data[idates]
     times = [times[i] for i in range(len(times)) if i in idates]
+
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        data *= 1000
 
     # Checks for values out of range and counts percentage of missing data
     out_of_range = np.where((data < predictands_codification[targetVar]['min_valid']) |

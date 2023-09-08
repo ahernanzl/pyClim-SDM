@@ -40,8 +40,10 @@ def train_PCA():
 
 	# Define pathOut
 	pathOut = pathAux + 'PCA/'
-	if not os.path.exists(pathOut):
+	try:
 		os.makedirs(pathOut)
+	except:
+		pass
 
 	# Get synoptic fields and weights
 	for targetVar in targetVars:
@@ -138,8 +140,10 @@ def set_number_of_weather_types():
 
 	# Saves elbow_curve figure
 	pathOut=pathAux+'WEATHER_TYPES/'
-	if not os.path.exists(pathOut):
+	try:
 		os.makedirs(pathOut)
+	except:
+		pass
 	plt.plot(Nc, score)
 	plt.xlabel('Number of Clusters: k')
 	plt.ylabel('Score')
@@ -221,8 +225,10 @@ def get_weather_types_centroids():
 
 	# Plot number of elements in each cluster
 	pathOut = pathAux+'WEATHER_TYPES/'
-	if not os.path.exists(pathOut):
+	try:
 		os.makedirs(pathOut)
+	except:
+		pass
 	plt.hist(labels, bins=k)
 	plt.xlabel('Cluster id')
 	plt.ylabel('Elements of the cluster')
@@ -354,7 +360,7 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 
 	if nproc > 1:
 		obs = MPI.COMM_WORLD.bcast(obs, root=0)
-	special_value = 100*predictands_codification[targetVar]['special_value']
+	special_value = int(100 * predictands_codification[targetVar]['special_value'])
 
 	# Create chunks
 	n_chunks = nproc
@@ -419,8 +425,11 @@ def coefficients_collect_chunks(targetVar, methodName, mode, nproc=1):
 
 	# Define pathOut
 	pathOut=pathAux+'COEFFICIENTS/'
-	if not os.path.exists(pathOut):
+
+	try:
 		os.makedirs(pathOut)
+	except:
+		pass
 
 	n_chunks = nproc
 
@@ -507,7 +516,7 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 	if nproc > 1:
 		obs = MPI.COMM_WORLD.bcast(obs, root=0)
 
-	special_value = 100*predictands_codification[targetVar]['special_value']
+	special_value = int(100 * predictands_codification[targetVar]['special_value'])
 
 
 	# Create chunks
@@ -583,8 +592,11 @@ def correlations_collect_chunks(targetVar, methodName, mode, nproc=1):
 
 	# Define pathOut
 	pathOut=pathAux+'COEFFICIENTS/'
-	if not os.path.exists(pathOut):
+
+	try:
 		os.makedirs(pathOut)
+	except:
+		pass
 
 	n_chunks = nproc
 
