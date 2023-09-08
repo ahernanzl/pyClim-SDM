@@ -8,7 +8,6 @@ from settings import *
 from advanced_settings import *
 
 
-
 def main():
 
     #---------------------- INITIAL CHECKS ---------------------------------------------------------------------------------
