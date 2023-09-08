@@ -42,8 +42,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	"""
 	This function writes data to netCDF file.
 	"""
-	if not os.path.exists(path):
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	if filename[-3:] != '.nc':
 		filename += '.nc'
@@ -59,7 +61,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	else:
 		nc.createDimension('point', len(lats))
 
-	if level != None:
+	if level is not None:
 		nc.createDimension(level_name, 1)
 		# levelVar = nc.createVariable(level_name, 'f4', (level_name))
 		# levelVar.units='degrees north'
@@ -78,7 +80,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	if regular_grid == True:
 		latitude = nc.createVariable(lat_name, 'f4', (lat_name))
 		longitude = nc.createVariable(lon_name, 'f4', (lon_name))
-		if level == None:
+		if level is None:
 			var = nc.createVariable(varName, 'f4', (time_name, lat_name, lon_name,))
 		else:
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
@@ -99,11 +101,11 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	var.long_name = varName
 	var[:] = data
 
-	# print nc
+	# # print(nc)
 	# for var in nc.variables:
-	# 	print var
-	# 	print nc.variables[var]
-	# 	print nc.variables[var][:].shape
+	# 	print(var)
+	# 	print(nc.variables[var])
+	# 	print(nc.variables[var][:].shape)
 
 	# Write to file
 	nc.close()
@@ -113,8 +115,11 @@ def netCDF_rotated(path, filename, varName, data, dates):
 	"""
 	This function writes data to netCDF file.
 	"""
-	if not os.path.exists(path):
+
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	df = pd.read_csv('../input_data/hres/rotated_coordinates.csv')
 	# print(df)
@@ -282,8 +287,10 @@ def netCDF_rotated_seasonal_forecast(path, filename, varName, data, year):
 	This function writes data to netCDF with the format required for S-ClimWare.
 	"""
 
-	if not os.path.exists(path):
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	df = pd.read_csv('../input_data/hres/rotated_coordinates.csv')
 	# print(df)

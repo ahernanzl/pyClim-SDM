@@ -62,16 +62,20 @@ def feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Plot feature importances
-    importances = estimator.best_estimator_.feature_importances_
-    std = np.std([tree.feature_importances_ for tree in estimator.best_estimator_.estimators_], axis=0)
-    if targetVar == 'pr':
-        feature_names = [x for x in preds_p_list]
-    else:
-        feature_names = [x for x in preds_t_list]
+    try:
+        importances = estimator.best_estimator_.feature_importances_
+        std = np.std([tree.feature_importances_ for tree in estimator.best_estimator_.estimators_], axis=0)
+    except:
+        importances = estimator.feature_importances_
+        std = np.std(estimator.feature_importances_, axis=0)
+    feature_names = [x for x in preds_dict[targetVar]]
     feature_names.append(targetVar)
     forest_importances = pd.Series(importances, index=feature_names)
 
@@ -92,8 +96,11 @@ def hyperparameters(estimator, targetVar, methodName, ipoint, estimatorType):
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Read parameters from gridSearchCV
     params = estimator.cv_results_['params']
@@ -142,8 +149,11 @@ def epochs(estimator, targetVar, methodName, ipoint, estimatorType, history):
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # summarize history for loss
     if estimatorType == 'classifier':
@@ -188,8 +198,11 @@ def nEstimators(estimator, targetVar, methodName, ipoint, estimatorType, history
     '''
 
     pathOut = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/hyperparameters/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # summarize history for loss
     if estimatorType == 'classifier':
@@ -312,8 +325,11 @@ def area_of_study():
     # Save image
     pathOut = '../results/Figures/'
     filename = 'area_of_study.png'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     plt.savefig(pathOut + filename)
 
 
@@ -407,8 +423,11 @@ def spatial_domains():
     # Save image
     pathOut = '../results/Figures/'
     filename = 'spatial_domains.png'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     plt.savefig(pathOut + filename)
 
 
@@ -458,8 +477,11 @@ def weights_regions():
     pathOut = pathAux + 'WEATHER_TYPES/'
     filename = 'weights_regions.png'
     print('See ' + pathOut + filename + ' to decide about the weighting regions.')
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     plt.savefig(pathOut + filename)
 
 
@@ -479,9 +501,22 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
     data as colormesh.
 
-    :param targetVar: 'p' for precipitation or 't' for temperature. It controls the hres_metadata to use.
+
+    :param targetVar: It controls the hres_metadata to use.
     :param data:
-    :param palette: differente palettes are defined in the function
+    :param palette: differente palettes are defined in the function. Palettes can be defined by the user following these
+    examples. For regular bins, define vmin,vmax,n_bin and leave bounds as None. For irregular bins, define bounds and
+    leave vmin,vmax,n_bin as None. For python cmap colors, use cmap and leave colors as None. For a user defined color
+    consisting on a sequence of colors, define colors and leave cmap as None. Finally, define ext as max,min,neither,both
+    for a colorbar extended (open interval) or limited (not values out of range allowed).
+    # Example for regular intervals with temperatura colors
+    # dict.update({'tasmax_TXm_bias': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -5, 'vmax': 5, 'n_bin': 11,
+    #                               'colors': ['b', 'white', 'r'], 'ext': 'both'}})
+    # Example for irregular intervals with precipitation colors
+    # dict.update({'pr_PRCPTOT_rel_bias': {'units': '%',
+    #                                       'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+    #                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+    #                                       'ext': 'max'}})
     :param lats: if none provided, hres_lats will be used
     :param lons: if none provided, hres_lons will be used
     :param path: pathOut
@@ -497,13 +532,16 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     :return: void
     """
 
-    if (filename != None) and (not os.path.exists(path)):
+    if (filename is not None) and (not os.path.exists(path)):
         os.makedirs(path)
 
     abs_limit = max(abs(data.min()), abs(data.max()))
 
     # Create dictionary of all possible palettes
     dict = {}
+
+
+
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
@@ -765,9 +803,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     else:
         irregular_bins = True
 
-    if grid == None:
+    if grid is None:
         # Read lats lons
-        if lats[0] == None:
+        if lats[0] is None:
             lats = hres_lats[targetVar]
             lons = hres_lons[targetVar]
 
@@ -777,7 +815,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             lonmin = np.min(hres_lons_all) - 2
             lonMax = np.max(hres_lons_all) + 2
 
-        if regType != None:
+        if regType is not None:
             regNames = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() + '/association.csv')[regType].values
             iaux = [i for i in range(len(regNames)) if regNames[i] == regName]
             lats, lons = lats[iaux], lons[iaux]
@@ -795,7 +833,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             lonmin = np.min(lons) - 10
             lonMax = np.max(lons) + 20
 
-    elif grid != None:
+    elif grid is not None:
         # Read lats lons
         if grid == 'ext':
             lats, lons, grid_res_local = ext_lats, ext_lons, ext_grid_res
@@ -824,14 +862,26 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
         cmap = plt.get_cmap(cmap)
     else:
         cmap = LinearSegmentedColormap.from_list('my_list', c, N=n_bin)
-    if palette in ('pcp_PRCPTOT', 'pcp_SDII', 'pcp_p95', 'pcp_R95p', 'pcp_R01'):
+    if palette in ('pr_Pm', 'pr_PRCPTOT', 'pr_SDII', 'pr_p95', 'pr_R95p', 'pr_R01'):
         cmap = truncate_colormap(cmap, .3)
 
     # Define map
     # fig = plt.figure(dpi=300)
     if plot_library == 'Basemap':
-
-        map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
+        try:
+            # Projection used for the European Domain
+            # map = Basemap(width=3600000, height=3700000,
+            #               rsphere=(6378137.00, 6356752.3142), \
+            #               resolution='l', area_thresh=1000., projection='lcc', \
+            #               lat_1=46., lat_2=56, lat_0=51, lon_0=9.5)
+            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
+                      resolution='l')
+        except:
+            latmin = np.min(lats) - 1
+            latMax = np.max(lats) + 1
+            lonmin = np.min(lons) - 1
+            lonMax = np.max(lons) + 1
+            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
                       resolution='l')
         map.drawcoastlines(linewidth=0.5)
         if plot_lat_lon == True:
@@ -844,8 +894,8 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                 except:
                     pass
 
-        if grid == None:
-            if pointSize != None:
+        if grid is None:
+            if pointSize is not None:
                 s = pointSize
             elif pseudoreality == False:
                 # s = 1
@@ -860,14 +910,12 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                 map.scatter(X, Y, c=data, s=s, norm=norm, cmap=cmap, marker=marker)
             else:
                 map.scatter(X, Y, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax, marker=marker)
-        elif grid != None:
-            x = np.linspace(0, map.urcrnrx, lons.shape[0])
-            y = np.linspace(0, map.urcrnry, lats.shape[0])
-            X, Y = np.meshgrid(x, y)
+        elif grid is not None:
+            lons, lats = np.meshgrid(lons, lats)
             if irregular_bins == True:
-                map.pcolormesh(X, Y, data, norm=norm, cmap=cmap)
+                map.pcolormesh(lons, lats, data, norm=norm, cmap=cmap, latlon=True)
             else:
-                map.pcolormesh(X, Y, data, cmap=cmap, vmin=vmin, vmax=vmax)
+                map.pcolormesh(lons, lats, data, cmap=cmap, vmin=vmin, vmax=vmax, latlon=True)
 
 
     # elif plot_library == 'Cartopy':
@@ -887,7 +935,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     #     # ax.add_feature(country_borders, edgecolor='gray')
     #     # ax.add_feature(Cartopy.feature.OCEAN, zorder=100, color='w')
     #
-    #     if pointSize != None:
+    #     if pointSize is not None:
     #         s = pointSize
     #     elif pseudoreality == False:
     #         s = 1
@@ -941,9 +989,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # plt.show()
     # exit()
 
-    if title != None:
+    if title is not None:
         plt.title(title)
-    if filename == None:
+    if filename is None:
         plt.show()
         # exit()
     else:

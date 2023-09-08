@@ -174,8 +174,11 @@ def association(interp, targetVar):
 
     # Save results
     pathOut=pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp+'/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     df_association.to_csv(pathOut+'association.csv')
 
     # Create arrays for speed
@@ -238,11 +241,15 @@ def subregions(targetVar):
 
     # If a division by regions will be used
     if divideByRegions == True:
-        if nameCompleteRegion == 'EspañaPB':
+        if nameCompleteRegion in ['EspañaPB', 'Canarias']:
 
             # Read shapefiles
-            prov_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_provinciales_inspire_peninbal_etrs89/recintos_provinciales_inspire_peninbal_etrs89.shp')
-            ccaa_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_autonomicas_inspire_peninbal_etrs89/recintos_autonomicas_inspire_peninbal_etrs89.shp')
+            if nameCompleteRegion == 'EspañaPB':
+                prov_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_provinciales_inspire_peninbal_etrs89/recintos_provinciales_inspire_peninbal_etrs89.shp')
+                ccaa_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_autonomicas_inspire_peninbal_etrs89/recintos_autonomicas_inspire_peninbal_etrs89.shp')
+            elif nameCompleteRegion == 'Canarias':
+                prov_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_provinciales_inspire_canarias_wgs84/recintos_provinciales_inspire_canarias_wgs84.shp')
+                ccaa_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_autonomicas_inspire_canarias_wgs84/recintos_autonomicas_inspire_canarias_wgs84.shp')
             cuencas_shp = gpd.read_file('../input_data/shapefiles/CUENCAS/DemarcacionesHidrograficasPHC2015_2021.shp')
 
             # Define field names for each divission

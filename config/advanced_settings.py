@@ -10,7 +10,7 @@ from settings import *
 # ####################  HIGH PERFORMANCE COMPUTER (HPC) OPTIONS    #####################################################
 # Ir running in a HPC, define partition to lauch jobs here or in a private_settings.py file
 user = os.popen('whoami').read().split('\n')[0]
-max_nJobs = 5  # Max number of jobs
+max_nJobs = 10  # Max number of jobs
 if os.path.isfile('../private/private_settings.py'):
     sys.path.append(('../private/'))
     from private_settings import *
@@ -20,6 +20,14 @@ if running_at_HPC == True:
     from mpi4py import MPI
 if running_at_HPC == False:
     from mpl_toolkits.basemap import Basemap
+
+# ########################################  MULTIPROCESSING   ##########################################################
+nCPUs_multiprocessing = 1
+if running_at_HPC == True or nCPUs_multiprocessing == 1:
+    runInParallel_multiprocessing = False
+else:
+    runInParallel_multiprocessing = True
+
 
 # ########################################  RUNNING OPTIONS   ##########################################################
 # Predictands preprarataion. When working with stations, files with all stations have to be previously prepared.
@@ -83,6 +91,23 @@ else:
     myTargetVar = 'None'
 
 
+# ------------------------ PLOT FIGURES ------------------------------------------------------------------------
+activate_plot_annualCycle = True
+activate_plot_dailyBoxplots = True
+activate_plot_spatialCorrelation = False
+activate_plot_QQ_continuous_dichotomous = False
+activate_plot_monthlyBoxplots = False
+activate_plot_monthlyMpas = False
+activate_plot_climdexBoxplots = True
+activate_plot_climdexTaylor = False
+activate_plot_climdexScatterPlot = False
+activate_plot_climdexMaps = True
+activate_plot_evolTrendRaw = True
+activate_plot_spaghetti = False
+activate_plot_evolTube = True
+activate_plot_changeMaps = True
+
+
 # Predictands have to be between min/max as inputs. Use uint16/uint32 for precipitation depending on your data
 predictands_codification = {
     'tasmax': {'type': 'int16', 'min_valid': -327.68, 'max_valid': 327.66, 'special_value': 327.67},
@@ -111,6 +136,30 @@ if myTargetVar in targetVars:
              {'type': 'int32', 'min_valid': -21474836.48, 'max_valid': 21474836.46, 'special_value': 21474836.47}}
     )
 
+
+# Threshold used to treat zeros for relative bias/changes denominator
+zero_division_th = {
+    'tasmax': 0.001,
+    'tasmin': 0.001,
+    'tas': 0.001,
+    'pr': 0.001,
+    'uas': 0.001,
+    'vas': 0.001,
+    'sfcWind': 0.001,
+    'hurs': 0.001,
+    'huss': 0.00001,
+    'clt': 0.001,
+    'rsds': 0.001,
+    'rlds': 0.001,
+    'evspsbl': 0.001,
+    'evspsblpot': 0.001,
+    'psl': 0.001,
+    'ps': 0.001,
+    'mrro': 0.001,
+    'mrso': 0.001,
+}
+if myTargetVar in targetVars:
+    zero_division_th.update({myTargetVar: 0.001})
 
 # Predictands have to be between min/max theoretically
 predictands_range = {
@@ -195,6 +244,7 @@ mean_and_std_from_GCM = True
 # Force calculations even if files already exist
 force_downscaling = False
 force_climdex_calculation = False
+force_bias_correction = False
 
 exp_var_ratio_th = .95  # threshold for PCA of SAFs
 k_clusters = 250  # set to None first time, and when weather_types.set_number_of_clusters ends see elbow curve and
@@ -203,7 +253,7 @@ anal_corr_th_dict = {
     'tasmax': 0.7,
     'tasmin': 0.7,
     'tas': 0.7,
-    'precipitation': 0.2,
+    'pr': 0.2,
     'uas': 0.7,
     'vas': 0.7,
     'sfcWind': 0.7,
@@ -239,20 +289,20 @@ elif experiment in ('PROJECTIONS', 'PSEUDOREALITY'):
 
 # When a point and day has missing predictors, all days (for that point) will be recalibrated if True.
 # If False, all days (for that point) will be calculated normally, and that particular day and point will be set to Nan
-recalibrating_when_missing_preds = False
+recalibrating_when_missing_preds = True
 
 # Transfer function methods can use local predictors (nearest neightbour / bilinear) or predictors from the whole grid
 # When using the whole grid, they have more information as inputs, but that consumes more memory
 # Furthermore, when using the whole grid, a missing value affects all points, so more problems related to missing data
 # will arise.
-methods_using_preds_from_whole_grid = ['CNN', ]
+convolutional_methods = ['CNN', ]
 
 # The following Transfer Function methods will be replaced by a MLR where predictos lie out of the training range
 # This is done for all targetVars except for precipitation
 methods_to_extrapolate_with_MLR = ['RF', 'XGB', ]
-for methodName in methods_using_preds_from_whole_grid:
+for methodName in convolutional_methods:
     if methodName in methods_to_extrapolate_with_MLR:
-        print('Remove', methodName, 'from methods_using_preds_from_whole_grid or from'
+        print('Remove', methodName, 'from convolutional_methods or from'
             'methods_to_extrapolate_with_MLR at advanced_settings.\nBoth options are not compatible.')
         exit()
 
@@ -275,43 +325,35 @@ else:
     if apply_bc_bySeason == True:
         bc_sufix += '-s'
 
+
+#############################################  GRIDS  ##################################################################
+
+target_type = 'gridded_data'
+# target_type = 'stations'
+
+hres_npoints, hres_lats, hres_lons = {}, {}, {}
+
+aux = []
+hresPeriodFilename = {}
+for targetVar in targetVars:
+    if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
+        files_with_data = []
+        for file in os.listdir(pathHres):
+            if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
+                newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
+                hresPeriodFilename.update({targetVar: newHresPeriodFilename})
+                files_with_data.append(file)
+        if len(files_with_data) > 1:
+            print('------------------------------------------------------------------------------------------------')
+            print('ERROR:', len(files_with_data),'files have been found at input_data/hres/ containing data for:', targetVar)
+            print('Please, remove all files except one from the following list:', files_with_data)
+            print('------------------------------------------------------------------------------------------------')
+            exit()
+        if targetVar not in aux:
+            aux.append(targetVar)
+targetVars = aux
+
 ########################################       DATES      ##############################################################
-# Definition of testing_years and historical_years depending on the experiment (do not change)
-nyears = calibration_years[1]-calibration_years[0]+1
-block = nyears//5
-rest = nyears%5
-blocks = [block, block, block, block, block, ]
-for i in range(rest):
-    blocks[i] += 1
-first_years = [calibration_years[0],]
-for i in range(4):
-    first_years.append(first_years[i]+blocks[i])
-
-fold1_testing_years = (first_years[0], first_years[0]+blocks[0]-1)
-fold2_testing_years = (first_years[1], first_years[1]+blocks[1]-1)
-fold3_testing_years = (first_years[2], first_years[2]+blocks[2]-1)
-fold4_testing_years = (first_years[3], first_years[3]+blocks[3]-1)
-fold5_testing_years = (first_years[4], first_years[4]+blocks[4]-1)
-
-if split_mode == 'all_training':
-    testing_years = (calibration_years[1] + 1, calibration_years[1] + 2)
-elif split_mode == 'all_testing':
-    testing_years = calibration_years
-elif split_mode == 'single_split':
-    testing_years = single_split_testing_years
-elif split_mode == 'fold1':
-    testing_years = fold1_testing_years
-elif split_mode == 'fold2':
-    testing_years = fold2_testing_years
-elif split_mode == 'fold3':
-    testing_years = fold3_testing_years
-elif split_mode == 'fold4':
-    testing_years = fold4_testing_years
-elif split_mode == 'fold5':
-    testing_years = fold5_testing_years
-
-biasCorr_years = reference_years
-
 # Detect reanalysisPeriodFilename
 reanalysisPeriodFilenames = []
 for file in os.listdir('../input_data/reanalysis/'):
@@ -359,7 +401,7 @@ elif len(historicalPeriodFilenames) == 1:
     historical_years = (int(historicalPeriodFilenames[0][:4]), int(historicalPeriodFilenames[0][9:13]))
 elif len(historicalPeriodFilenames) == 0:
     historicalPeriodFilename = ''
-    historical_years = ('', '')
+    historical_years = (1950, 2014)
 
 if len(sspPeriodFilenames) > 1:
     print('Different periods detected at input_data/models/: ' + sspPeriodFilenames)
@@ -370,7 +412,7 @@ elif len(sspPeriodFilenames) == 1:
     ssp_years = (int(sspPeriodFilenames[0][:4]), int(sspPeriodFilenames[0][9:13]))
 elif len(sspPeriodFilenames) == 0:
     sspPeriodFilename = ''
-    ssp_years = ('', '')
+    ssp_years = (2015, 2100)
 
 if experiment == 'PSEUDOREALITY':
     calibration_years = (1961, 2005)
@@ -379,6 +421,72 @@ if experiment == 'PSEUDOREALITY':
     ssp_years = (2081, 2100)
 shortTerm_years = (2041, 2070)
 longTerm_years = (2071, 2100)
+
+aux_hres_years = (max([int(hresPeriodFilename[x][:4]) for x in targetVars]), min([int(hresPeriodFilename[x][-8:-4]) for x in targetVars]))
+aux_reanalysis_years = (int(reanalysisPeriodFilename[:4]), int(reanalysisPeriodFilename[-8:-4]))
+aux_historical_years = (int(historicalPeriodFilename[:4]), int(historicalPeriodFilename[-8:-4]))
+allowedCalibrationYears = (max(aux_hres_years[0], aux_reanalysis_years[0]), min(aux_hres_years[1], aux_reanalysis_years[1]))
+if calibration_years[0] < allowedCalibrationYears[0] or calibration_years[1] > allowedCalibrationYears[1]:
+    print('---------------------------------------------------------------------------')
+    print('WARNING: Your current selection for \'Calibration years\' is ' + str(calibration_years)+' but your input data do not cover that period:')
+    print('- reanalysis: ' + str(aux_reanalysis_years[0])+'-'+str(aux_reanalysis_years[1]))
+    for targetVar in targetVars:
+        print('- hres ' + targetVar + ': ' + str(hresPeriodFilename[targetVar][:4])+'-'+str(hresPeriodFilename[targetVar][-8:-4]))
+    calibration_years = (max(calibration_years[0], allowedCalibrationYears[0]), min(calibration_years[1], allowedCalibrationYears[1]))
+    print('The maximum allowed period for \'Calibration years\' for the current predictands selection is: '+str(allowedCalibrationYears))
+    print('Based on this limiation and your selection, \'Calibration years\' have been forzed to ' + str(calibration_years))
+    print('---------------------------------------------------------------------------')
+
+
+allowedReferenceYears = (max(aux_hres_years[0], aux_reanalysis_years[0], aux_historical_years[0]), min(aux_hres_years[1], aux_reanalysis_years[1], aux_historical_years[1]))
+if reference_years[0] < allowedReferenceYears[0] or reference_years[1] > allowedReferenceYears[1]:
+    print('---------------------------------------------------------------------------')
+    print('WARNING: Your current selection for \'Reference years\' is ' + str(reference_years)+' but your input data do not cover that period:')
+    print('- reanalysis: ' + str(aux_reanalysis_years[0])+'-'+str(aux_reanalysis_years[1]))
+    print('- models: ' + str(aux_historical_years[0])+'-'+str(aux_historical_years[1]))
+    for targetVar in targetVars:
+        print('- hres ' + targetVar + ': ' + str(hresPeriodFilename[targetVar][:4])+'-'+str(hresPeriodFilename[targetVar][-8:-4]))
+    reference_years = (max(reference_years[0], allowedReferenceYears[0]), min(reference_years[1], allowedReferenceYears[1]))
+    print('The maximum allowed period for \'Reference years\' for the current predictands selection is: '+str(allowedReferenceYears))
+    print('Based on this limiation and your selection, \'Reference years\' have been forzed to ' + str(reference_years))
+    print('---------------------------------------------------------------------------')
+
+
+# Definition of testing_years and historical_years depending on the experiment (do not change)
+nyears = calibration_years[1]-calibration_years[0]+1
+block = nyears//5
+rest = nyears%5
+blocks = [block, block, block, block, block, ]
+for i in range(rest):
+    blocks[i] += 1
+first_years = [calibration_years[0],]
+for i in range(4):
+    first_years.append(first_years[i]+blocks[i])
+
+fold1_testing_years = (first_years[0], first_years[0]+blocks[0]-1)
+fold2_testing_years = (first_years[1], first_years[1]+blocks[1]-1)
+fold3_testing_years = (first_years[2], first_years[2]+blocks[2]-1)
+fold4_testing_years = (first_years[3], first_years[3]+blocks[3]-1)
+fold5_testing_years = (first_years[4], first_years[4]+blocks[4]-1)
+
+if split_mode == 'all_training':
+    testing_years = (calibration_years[1] + 1, calibration_years[1] + 2)
+elif split_mode == 'all_testing':
+    testing_years = calibration_years
+elif split_mode == 'single_split':
+    testing_years = single_split_testing_years
+elif split_mode == 'fold1':
+    testing_years = fold1_testing_years
+elif split_mode == 'fold2':
+    testing_years = fold2_testing_years
+elif split_mode == 'fold3':
+    testing_years = fold3_testing_years
+elif split_mode == 'fold4':
+    testing_years = fold4_testing_years
+elif split_mode == 'fold5':
+    testing_years = fold5_testing_years
+
+biasCorr_years = reference_years
 
 # Hereafter different dates will be defined (do not change)
 # Calibration (this will be separated later into training and testing)
@@ -438,8 +546,9 @@ longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
 
 # ####################  METHODS    #####################################################
 # Family, mode and fields for each method is defined here. Field var stands for the target variable it self (at low res).
-# Field pred stands for predictors (the ones selected for each target variable). And field saf stands for synoptic
-# analogy fields
+# Field pred stands for local predictors (the ones selected for each target variable).
+# Field spred stands for synoptic predictos (the same variables but on a synoptic domain, for convolutional methods)
+# And field saf stands for synoptic analogy fields
 families_modes_and_fields = {
     'RAW': ['RAW', 'RAW', 'var'],
     'RAW-BIL': ['RAW', 'RAW', 'var'],
@@ -467,7 +576,7 @@ families_modes_and_fields = {
     'RF': ['TF', 'PP', 'pred+var'],
     'XGB': ['TF', 'PP', 'pred+var'],
     'ANN': ['TF', 'PP', 'pred'],
-    'CNN': ['TF', 'PP', 'pred'],
+    'CNN': ['TF', 'PP', 'spred'],
     'WG-PDF': ['WG', 'PP', 'var'],
     'WG-NMM': ['WG', 'PP', 'var'],
 }
@@ -518,7 +627,7 @@ season_dict.update({inverse_seasonNames[0]: range(1, 13)})
 annualName = inverse_seasonNames[0]
 
 ###############################  SYNOPTIC ANALOGY FIELDS  ##############################################################
-all_levels = [1000, 850, 700, 500, 250]
+all_levels = [1000, 925, 850, 700, 500, 250]
 
 # Force to define at least one synoptic analogy field
 if len(saf_list) == 0:
@@ -530,7 +639,7 @@ if len(saf_list) == 0:
 # Build saf_dict
 saf_dict = {}
 for pred in saf_list:
-    key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+    key = pred.replace('1000', '').replace('925', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
     if key in reaNames:
         reaName = reaNames[key]
         modName = modNames[key]
@@ -547,7 +656,7 @@ preds_dict = {}
 for targetVar in targetVars:
     preds_dict.update({targetVar: {}})
     for pred in preds_targetVars_dict[targetVar]:
-        key = pred.replace('1000', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
+        key = pred.replace('1000', '').replace('925', '').replace('850', '').replace('700', '').replace('500', '').replace('250', '')
         if key in reaNames:
             reaName = reaNames[key]
             modName = modNames[key]
@@ -602,40 +711,22 @@ for targetVar in targetVars:
         print('-----------------------------------------------')
         exit()
 
-#############################################  GRIDS  ##################################################################
-
-target_type = 'gridded_data'
-# target_type = 'stations'
-
-hres_npoints, hres_lats, hres_lons = {}, {}, {}
-
-aux = []
-hresPeriodFilename = {}
 for targetVar in targetVars:
-    if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
-        for file in os.listdir(pathHres):
-            if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
-                newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
-                hresPeriodFilename.update({targetVar: newHresPeriodFilename})
-        if targetVar not in aux:
-            aux.append(targetVar)
-targetVars = aux
-
-for targetVar in targetVars:
-    aux_hres_metadata = np.genfromtxt(pathHres + targetVar + '_hres_metadata.txt')
+    aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt', dtype='str')
     hres_npoints.update({targetVar: aux_hres_metadata.shape[0]})
-    hres_lats.update({targetVar: aux_hres_metadata[:, 2]})
-    hres_lons.update({targetVar: aux_hres_metadata[:, 1]})
+    hres_lats.update({targetVar: aux_hres_metadata[:, 2].astype(np.float)})
+    hres_lons.update({targetVar: aux_hres_metadata[:, 1].astype(np.float)})
 
-hres_lats_all = []
-for targetVar in targetVars:
-    for i in list(hres_lats[targetVar]):
-        hres_lats_all.append(i)
+hres_lats_all, hres_lons_all = [], []
+for targetVar in all_possible_targetVars:
+    try:
+        aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt', dtype='str')
+        for i in range(len(aux_hres_metadata[:, 2])):
+            hres_lats_all.append(aux_hres_metadata[i, 2].astype(np.float))
+            hres_lons_all.append(aux_hres_metadata[i, 1].astype(np.float))
+    except:
+        pass
 hres_lats_all = np.asarray(hres_lats_all)
-hres_lons_all = []
-for targetVar in targetVars:
-    for i in list(hres_lons[targetVar]):
-        hres_lons_all.append(i)
 hres_lons_all = np.asarray(hres_lons_all)
 
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
@@ -659,72 +750,47 @@ lats = nc.variables[lat_name][:]
 grid_res = abs(lats[0]-lats[1])
 lons = nc.variables[lon_name][:]
 lons[lons > 180] -= 360
+if len(hres_lats_all) == 0:
+    print('Make sure there are files at input_data/hres/')
+    exit()
+hres_max_lat, hres_min_lat, hres_max_lon, hres_min_lon = np.max(hres_lats_all), np.min(hres_lats_all), np.max(hres_lons_all), np.min(hres_lons_all)
+lres_max_lat, lres_min_lat, lres_max_lon, lres_min_lon = np.max(lats), np.min(lats), np.max(lons), np.min(lons)
 
-# force saf_lat_down
-try:
-    old = saf_lat_down
-    saf_lat_down = np.min(lats[lats >= saf_lat_down])
-    if old != saf_lat_down:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
-except:
-    try:
-        old = saf_lat_down
-        saf_lat_down = np.max(lats[lats <= np.min(hres_lats_all)])
-        if old != saf_lat_down:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
-# force saf_lat_up
-try:
-    old = saf_lat_up
-    saf_lat_up = np.max(lats[lats <= saf_lat_up])
-    if old != saf_lat_up:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
-except:
-    try:
+# Check if hres domain is fully contained by the low resolution grid from the netCDFs
+if lres_max_lat < hres_max_lat or lres_min_lat > hres_min_lat or lres_max_lon < hres_max_lon or lres_min_lon > hres_min_lon:
+    print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
+    exit()
+# Check if hres domain is fully contained by the low resolution grid from the netCDFs, after saving a one gridbox border
+elif lres_max_lat-grid_res < hres_max_lat or lres_min_lat+grid_res > hres_min_lat or lres_max_lon-grid_res < hres_max_lon or lres_min_lon+grid_res > hres_min_lon:
+    print('Domain at netCDF files not large enough. At least one-gridbox border is needed around the domain at hres files.')
+    print('Prepare yout netCDF files covering a larger spatial domain')
+    exit()
+# Force synoptic domain to be compatible with spatial domains at hres and netCDF files
+else:
+    possible_saf_lat_up_list = [x for x in lats[1:] if x >= hres_max_lat]
+    possible_saf_lat_down_list = [x for x in lats[:-1] if x <= hres_min_lat]
+    possible_saf_lon_left_list = [x for x in lons[1:] if x <= hres_min_lon]
+    possible_saf_lon_right_list = [x for x in lons[:-1] if x >= hres_max_lon]
+    if saf_lat_up not in possible_saf_lat_up_list:
         old = saf_lat_up
-        saf_lat_up = np.min(lats[lats >= np.max(hres_lats_all)])
-        if old != saf_lat_up:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
-
-# force saf_lon_left
-try:
-    old = saf_lon_left
-    saf_lon_left = np.min(lons[lons >= saf_lon_left])
-    if old != saf_lon_left:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
-except:
-    try:
+        saf_lat_up = min(possible_saf_lat_up_list, key=lambda x:abs(x-saf_lat_up))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
+        time.sleep(1)
+    if saf_lat_down not in possible_saf_lat_down_list:
+        old = saf_lat_down
+        saf_lat_down = min(possible_saf_lat_down_list, key=lambda x:abs(x-saf_lat_down))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
+        time.sleep(1)
+    if saf_lon_left not in possible_saf_lon_left_list:
         old = saf_lon_left
-        saf_lon_left = np.max(lons[lons <= np.min(hres_lons_all)])
-        if old != saf_lon_left:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
-# force saf_lon_right
-try:
-    old = saf_lon_right
-    saf_lon_right = np.max(lons[lons <= saf_lon_right])
-    if old != saf_lon_right:
-        print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
-except:
-    try:
+        saf_lon_left = min(possible_saf_lon_left_list, key=lambda x:abs(x-saf_lon_left))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
+        time.sleep(1)
+    if saf_lon_right not in possible_saf_lon_right_list:
         old = saf_lon_right
-        saf_lon_right = np.min(lons[lons >= np.max(hres_lons_all)])
-        if old != saf_lon_right:
-            print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
-    except:
-        print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-        exit()
-
+        saf_lon_right = min(possible_saf_lon_right_list, key=lambda x:abs(x-saf_lon_right))
+        print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
+        time.sleep(1)
 
 # ext
 ext_lat_up, ext_lat_down = saf_lat_up + grid_res, saf_lat_down - grid_res
@@ -743,12 +809,6 @@ saf_lats = np.linspace(saf_lat_up, saf_lat_down, saf_nlats)
 saf_lons = np.linspace(saf_lon_left, saf_lon_right, saf_nlons)
 saf_ilats = [i for i in range(ext_nlats) if ext_lats[i] in saf_lats]
 saf_ilons = [i for i in range(ext_nlons) if ext_lons[i] in saf_lons]
-
-# Check that hres_points are fully contained in the defined domain
-if saf_lats[saf_lats >= np.max(hres_lats_all)].size == 0 or saf_lats[saf_lats <= np.min(hres_lats_all)].size == 0 or \
-        saf_lons[saf_lons >= np.max(hres_lons_all)].size == 0 or saf_lons[saf_lons <= np.min(hres_lons_all)].size == 0:
-    print('Domain at netCDF files do not fully contain domain at hres files. Please check your input files.')
-    exit()
 
 # pred grid (for predictors). Smaller area which covers, at least, the target region.
 pred_lat_up = np.min(saf_lats[saf_lats >= np.max(hres_lats_all)])
@@ -898,8 +958,8 @@ units_and_biasMode_climdex = {
     'vas_Vm': {'units': 'm/s', 'biasMode': 'abs'},
     'vas_Vx': {'units': 'm/s', 'biasMode': 'abs'},
 
-    'sfcWind_SFCWINDm': {'units': 'm/s', 'biasMode': 'abs'},
-    'sfcWind_SFCWINDx': {'units': 'm/s', 'biasMode': 'abs'},
+    'sfcWind_SFCWINDm': {'units': 'm/s', 'biasMode': 'rel'},
+    'sfcWind_SFCWINDx': {'units': 'm/s', 'biasMode': 'rel'},
 
     'hurs_HRm': {'units': '%', 'biasMode': 'abs'},
     'hurs_p99': {'units': '%', 'biasMode': 'abs'},
@@ -1021,8 +1081,37 @@ if myTargetVar in targetVars:
             newUnits = units
         units_and_biasMode_climdex.update({myTargetVar + '_' + climdex: {'units': newUnits, 'biasMode': biasMode}})
 
-# ####################  COLORS AND STYLES    #####################################################
+######################################## BIAS CORRECTION MODE ##########################################################
+# Two bias correction / MOS methods, DQM and QDM, can be applied as an additive or multiplicative correction
+# The following parameter controls how to apply them for each targetVar ('abs' / 'rel')
+bc_mode_dict = {
+    'tasmax': 'abs',
+    'tasmin': 'abs',
+    'tas': 'abs',
+    'pr': 'rel',
+    'uas': 'abs',
+    'vas': 'abs',
+    'sfcWind': 'rel',
+    'hurs': 'abs',
+    'huss': 'rel',
+    'clt': 'abs',
+    'rsds': 'rel',
+    'rlds': 'rel',
+    'evspsbl': 'abs',
+    'evspsblpot': 'abs',
+    'psl': 'abs',
+    'ps': 'abs',
+    'mrro': 'abs',
+    'mrso': 'abs',
+}
+if myTargetVar in targetVars:
+    if myTargetVarIsAdditive == True:
+        bc_mode_dict.update({myTargetVar: 'abs'})
+    else:
+        bc_mode_dict.update({myTargetVar: 'rel'})
 
+
+# ####################  COLORS AND STYLES    #####################################################
 methods_colors = {
     'RAW': 'lightgray',
     'RAW-BIL': 'lightgray',

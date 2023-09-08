@@ -40,8 +40,11 @@ def bias_correction():
     Bias correction of projections and get climdex from bias corrected daily data.
     """
 
+    # Define list for multiprocessing
+    iterable = []
+
     if apply_bc == True:
-        if bc_method == None:
+        if bc_method is None:
             print('Select a bc_method at advanced_settings.')
             exit()
         else:
@@ -58,8 +61,16 @@ def bias_correction():
                         launch_jobs.biasCorrection('reanalysis', targetVar, methodName)
 
                 elif experiment == 'PROJECTIONS':
-                    bias_correction_allModels(targetVar, methodName)
+                    aux = bias_correction_allModels(targetVar, methodName)
+                    for x in aux:
+                        iterable.append(x)
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True and experiment == 'PROJECTIONS':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(bias_correction_oneModel, iterable)
+
+    return  iterable
 
 ########################################################################################################################
 def bias_correction_renalysis(targetVar, methodName):
@@ -72,8 +83,11 @@ def bias_correction_renalysis(targetVar, methodName):
     # Define and create paths
     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     pathTmp = '../tmp/'+'_'.join((targetVar, methodName, bc_sufix)) + '/'
     if not os.path.exists(pathTmp):
         os.makedirs(pathTmp)
@@ -145,8 +159,14 @@ def bias_correction_allModels(targetVar, methodName):
     # Define and create paths
     pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
     pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
+
+    # Define list for multiprocessing
+    iterable = []
 
     # Go through all models
     for model in model_list:
@@ -161,30 +181,21 @@ def bias_correction_allModels(targetVar, methodName):
                         not os.path.isfile(pathOut + model + '_' + scene + '.nc'):
                     to_be_corrected = True
 
-            if to_be_corrected == True:
+            if to_be_corrected == True or force_bias_correction == True:
 
                 print(targetVar, methodName, model, bc_sufix, 'bias_correction')
 
-                # Serial processing
                 if running_at_HPC == False:
-                    bias_correction_oneModel(targetVar, methodName, model)
+                    if runInParallel_multiprocessing == False:
+                        # Serial processing
+                        bias_correction_oneModel(targetVar, methodName, model)
+                    else:
+                        # Append combination for multiprocessing
+                        iterable.append([targetVar, methodName, model])
 
-                # Parallel processing
+                # Parallel processing at HPC
                 elif running_at_HPC == True:
                     while 1:
-                        # Check for error files, save them and kill erroneous jobs
-                        # for file in os.listdir('../job/'):
-                        #     if file.endswith(".err"):
-                        #         filename = os.path.join('../job/', file)
-                        #         filesize = os.path.getsize(filename)
-                        #         if filesize != 0:
-                        #             jobid = filename.split('/')[-1].split('.')[0]
-                        #             print('-----------------------')
-                        #             print(filename, filesize)
-                        #             os.system('mv ' + filename + ' ../job/err/')
-                        #             os.system('mv ' + filename[:-3] + 'out ../job/err/')
-                        #             os.system('scancel ' + str(jobid))
-
                         # Check for correctly finished jobs
                         for file in os.listdir('../job/'):
                             if file.endswith(".out"):
@@ -208,7 +219,7 @@ def bias_correction_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.biasCorrection(model, targetVar, methodName)
 
-
+    return iterable
 
 ########################################################################################################################
 def bias_correction_oneModel(targetVar, methodName, model):
@@ -224,8 +235,11 @@ def bias_correction_oneModel(targetVar, methodName, model):
         # Define and create paths
         pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
         pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
 
         # Read obs and mod in bias correction period
         obs_data = read.hres_data(targetVar, period='biasCorr')['data']
@@ -267,6 +281,8 @@ def get_climdex():
     Calls to get_climdex_for_evaluation (reanalysis) or get_climdex_allModels (models)
     """
 
+    # Define list for multiprocessing
+    iterable = []
 
     # Go through all methods
     for method_dict in methods:
@@ -279,8 +295,14 @@ def get_climdex():
         if experiment == 'EVALUATION':
             get_climdex_for_evaluation(targetVar, methodName)
         else:
-            get_climdex_allModels(targetVar, methodName)
+            aux = get_climdex_allModels(targetVar, methodName)
+            for x in aux:
+                iterable.append(x)
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True and experiment != 'EVALUATION':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(get_climdex_oneModel, iterable)
 
 ########################################################################################################################
 def get_climdex_for_evaluation(targetVar, methodName):
@@ -327,6 +349,9 @@ def get_climdex_allModels(targetVar, methodName):
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
 
+    # Define list for multiprocessing
+    iterable = []
+
     # Go through all models
     for model in model_list:
 
@@ -348,26 +373,18 @@ def get_climdex_allModels(targetVar, methodName):
 
             # Check if model historical exists
             if os.path.isfile(pathIn + model + '_historical.nc'):
-                # Serial processing
                 if running_at_HPC == False:
-                    print(targetVar, methodName, model, 'calculating climdex')
-                    get_climdex_oneModel(targetVar, methodName, model)
+                    if runInParallel_multiprocessing == False:
+                        print(targetVar, methodName, model, 'calculating climdex')
+                        # Serial processing
+                        get_climdex_oneModel(targetVar, methodName, model)
+                    else:
+                        # Append combination for multiprocessing
+                        iterable.append([targetVar, methodName, model])
 
-                # Parallel processing
+                # Parallel processing at HPC
                 elif running_at_HPC == True:
                     while 1:
-                        # Check for error files, save them and kill erroneous jobs
-                        # for file in os.listdir('../job/'):
-                        #     if file.endswith(".err"):
-                        #         filename = os.path.join('../job/', file)
-                        #         filesize = os.path.getsize(filename)
-                        #         if filesize != 0:
-                        #             jobid = filename.split('/')[-1].split('.')[0]
-                        #             print('-----------------------')
-                        #             print(filename, filesize)
-                        #             os.system('mv ' + filename + ' ../job/err/')
-                        #             os.system('mv ' + filename[:-3] + 'out ../job/err/')
-                        #             os.system('scancel ' + str(jobid))
 
                         # Check for correctly finished jobs
                         for file in os.listdir('../job/'):
@@ -393,6 +410,7 @@ def get_climdex_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.climdex(model, targetVar, methodName)
 
+    return iterable
 
 ########################################################################################################################
 def get_climdex_oneModel(targetVar, methodName, model):
@@ -411,8 +429,10 @@ def get_climdex_oneModel(targetVar, methodName, model):
             path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
-    if not os.path.exists(pathOut):
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Read reference data (as a scene)
     aux = read.netCDF(pathIn, model + '_historical.nc', targetVar)
@@ -461,7 +481,8 @@ def plot_results():
         grids.subregions(targetVar)
 
     if experiment == 'EVALUATION':
-        evaluate_methods.annual_cycle()
+        if activate_plot_annualCycle == True:
+            evaluate_methods.annual_cycle()
         evaluate_methods.daily_data()
         evaluate_methods.monthly_data()
         evaluate_methods.climdex()
@@ -507,7 +528,8 @@ def nc2ascii():
                     data[np.isnan(data)] = -999
                     del nc
                     print('writing daily data to ASCCI file for', targetVar, methodName, bc_sufix, scene, model, '...')
-                    id = list(read.hres_metadata(targetVar).index.values)
+                    # id = list(read.hres_metadata(targetVar).index.values)
+                    id = list(read.hres_metadata(targetVar)['id'].values)
                     times = np.array([10000 * x.year + 100 * x.month + x.day for x in times])
                     data = np.append(times[:, np.newaxis], data, axis=1)
                     id.insert(0, 'YYYYMMDD')
@@ -515,8 +537,11 @@ def nc2ascii():
                     header = ' '.join((model, scene, period, targetVar, '('+units+')',
                                        methodName)) + '\n' + ';'.join(id)
                     pathOut = pathOutBase + targetVar.upper()+'/'+methodName+'/daily_data/'
-                    if not os.path.exists(pathOut):
+
+                    try:
                         os.makedirs(pathOut)
+                    except:
+                        pass
                     np.savetxt(pathOut+fileName+'.dat', data, fmt=['%.i'] + ['%.2f'] * (len(id) - 1), delimiter=';', header=header)
 
 
@@ -530,8 +555,10 @@ def nc2ascii():
                             fileIn = '_'.join((climdex, scene, model, season))
                         fileOut = '_'.join((climdex, scene, model, season))
                         if os.path.isfile(pathIn + fileIn +'.nc'):
+                            print('writing climdex to ASCCI file for', targetVar, climdex, methodName, bc_sufix, scene, model, '...')
                             data = read.netCDF(pathIn, fileIn, climdex)['data']
-                            id = list(read.hres_metadata(targetVar).index.values)
+                            # id = list(read.hres_metadata(targetVar).index.values)
+                            id = list(read.hres_metadata(targetVar)['id'].values)
                             times = np.array(years)
                             data = np.append(times[:, np.newaxis], data, axis=1)
                             id.insert(0, 'YYYY')

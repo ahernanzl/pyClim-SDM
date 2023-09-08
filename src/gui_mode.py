@@ -1,5 +1,32 @@
 import sys
 import os
+import time
+
+# Save version
+version_last_execution_file = '../config/.version_last_execution.txt'
+version = ''
+for file in os.listdir('../doc/'):
+    if file.startswith('User_Manual_'):
+        version = str(file.split('.')[0].split('_')[-1])
+if os.path.isfile(version_last_execution_file):
+    text_file = open(version_last_execution_file, "r")
+    version_last_execution = text_file.read()
+    text_file.close()
+else:
+    version_last_execution = 'previous to v3.5'
+if version != version_last_execution:
+    print('--------------------------------------------------------------')
+    print('This is the first time version', version, 'is executed.')
+    print('Last execution was made with a different version of pyClim-SDM.')
+    print('Default settings have been restored. Please make your selection again.')
+    print('--------------------------------------------------------------')
+    time.sleep(1)
+    if os.path.isfile('../config/settings.py'):
+        os.remove('../config/settings.py')
+    text_file = open(version_last_execution_file, "w")
+    text_file.write(version)
+    text_file.close()
+
 import shutil
 sys.path.append('../config/')
 from manual_settings import *
@@ -9,6 +36,7 @@ if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py
 from imports import *
 from settings import *
 from advanced_settings import *
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
@@ -363,7 +391,7 @@ class tabModelsAndScenes(tk.Frame):
             checked = tk.BooleanVar(value=False)
             if name in list:
                 checked = tk.BooleanVar(value=True)
-            if obj == None:
+            if obj is None:
                 c = Checkbutton(frame, text=name.split('_')[0], variable=checked, takefocus=False)
             else:
                 c = Checkbutton(frame, text=name.split('_')[0], variable=checked, command=lambda: switch(obj), takefocus=False)
@@ -523,7 +551,7 @@ class tabDomain(tk.Frame):
         # safGrid
         tk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
         padx, pady, width = 2, 2, 5
-        lab = Label(frameDomain, text='Domain for synoptic analogy fields \n'
+        lab = Label(frameDomain, text='Synoptic domain \n'
                                      '(lat up, lat down, lon left and long right):', justify=LEFT)
         lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
 
@@ -773,8 +801,8 @@ class tabDates(tk.Frame):
                 self.testing_years_dict.update({split_modeName: (firstYear_var, lastYear_var)})
                 self.dict_buttons.update({split_modeName: [c, firstYearTesting_Entry, lastYearTesting_Entry]})
                 icol -= 4
-            else:
-                self.dict_buttons.update({split_modeName: [c, None, None]})
+            # else:
+            #     self.dict_buttons.update({split_modeName: [c, None, None]})
 
 
         self.testing_years_dict = {}
@@ -865,10 +893,10 @@ class framePredictorsClass(tk.Frame):
             chk_list.update({pred: checked})
             irow += 1
             nrows += 1
-            if nrows == 2:
+            if nrows == 3:
                 nrows = 0
                 icol += 2
-                irow -= 2
+                irow -= 3
             return irow, icol, nrows
 
         irow = 0
@@ -881,10 +909,10 @@ class framePredictorsClass(tk.Frame):
         # Levels
         tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
         tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=0, padx=30); irow+=1
-        self.levels = [1000, 850, 700, 500, 250]
+        self.levels = [1000, 925, 850, 700, 500, 250]
         for level in self.levels:
             Label(root,  text=str(level) + " hPa").grid(sticky="E", padx=10,  row=irow, column=icol); irow+=1
-        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=6; icol+=1
+        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=(len(self.levels)+1); icol+=1
 
         self.preds = {}
 
@@ -920,19 +948,26 @@ class framePredictorsClass(tk.Frame):
             padx = 2
             for level in self.levels:
                 irow, icol = add_chk_bt_upperAir(self.preds, str(var) + str(level), irow, icol)
-            irow -= 6; icol += 1
+            irow -= (len(self.levels)+1); icol += 1
 
         Label(root, text="").grid(sticky="W", padx=20, row=irow, column=icol); icol += 1
 
-        irow += 5
+        irow += len(self.levels)
         icol -= 11
 
         singleLevelVars = {
+                        'ps': 'Surface pressure',
                         'psl': 'Mean sea level pressure',
+                        'pr': 'Precipitation',
+                        'tas': 'Surface mean temperature',
+                        'tasmax': 'Surface maximum temperature',
+                        'tasmin': 'Surface minimum temperature',
                         'clt': 'Cloud cover',
+                        'rsds': 'Surface Downwelling Shortwave Radiation',
+                        'rlds': 'Surface Downwelling Longwave Radiation',
                         'uas': 'Surface eastward wind component',
                         'vas': 'Surface northward wind component',
-                        'tas': 'Surface mean temperature',
+                        'sfcWind': 'Surface wind speed',
                         'hurs': 'Surface relative humidity',
                         'K': 'K instability index',
                         'TT': 'Total Totals instability index',
@@ -945,7 +980,7 @@ class framePredictorsClass(tk.Frame):
         nrows = 0
         for pred in singleLevelVars:
             irow, icol, nrows = add_chk_bt_singleLevels(self.preds, pred, irow, icol, nrows)
-        irow += 2
+        irow += 3
         tk.Label(root, text='').grid(column=icol, row=irow, pady=5)
 
     def get(self):
@@ -976,7 +1011,6 @@ class frameTargetVarInfoClass(tk.Frame):
                     'myTargetVarMaxAllowed': tk.StringVar(),
                     'myTargetVarUnits': tk.StringVar(),
                     # 'myTargetVarIsGaussian': tk.StringVar(),
-                    # 'treatAsAdditiveBy_DQM_and_QDM': tk.StringVar(),
                     'myTargetVarIsAdditive': tk.StringVar(),
                     })
 
@@ -1064,20 +1098,6 @@ class frameTargetVarInfoClass(tk.Frame):
             # except:
             #     myTargetVarIsGaussian_Entry.insert(END, '')
             # myTargetVarIsGaussian_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
-            # # treatAsAdditiveBy_DQM_and_QDM
-            # l = Label(root, text='Additive DQM/QDM:')
-            # l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            # CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise\n'
-            #                  'True is recommended in general, unless your variable is similar to precipitation, with a nongaussian\n'
-            #                  'distribution and many zeros.')
-            # treatAsAdditiveBy_DQM_and_QDM_Entry = ttk.Entry(root, textvariable=self.chk['treatAsAdditiveBy_DQM_and_QDM'], width=entriesW, justify='right', takefocus=False)
-            # try:
-            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, str(treatAsAdditiveBy_DQM_and_QDM))
-            # except:
-            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, '')
-            # treatAsAdditiveBy_DQM_and_QDM_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
 
     def get(self):
         return self.chk
@@ -2680,6 +2700,7 @@ class tabFigures(tk.Frame):
                                              'one value per grid point.',
             'EVALUATION_varianceBoxplot': 'Bias (relative, %) in the variance of the daily series (downscaled and '
                                           'observed) by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_spatialCorrBoxplot': 'Spatial correlation of the daily maps. Each box contains one value per day.',
             'EVALUATION_qqPlot': 'QQ-plot for one variable by one method vs. observations.',
             'EVALUATION_r2Map': 'R2 score of the daily series (coefficient of determination) by one method.',
             'EVALUATION_rmseMap': 'RMSE of the daily series by one method.',
@@ -2690,8 +2711,14 @@ class tabFigures(tk.Frame):
                                                 'tmax/tmin and Spearman for pcp.',
             'EVALUATION_r2MapMonthly': 'R2 score (coefficient of determination)  for the monthly (mean for tmax/tmin '
                                        'and accumulated for pcp) series by one method with observations. ',
+            'EVALUATION_correlationBoxplotMonthly': 'Correlation for the monthly (mean for tmax/tmin and accumulated for '
+                                                'pcp) series by one method with observations.',
+            'EVALUATION_R2BoxplotMonthly': 'R2 score (coefficient of determination) for the monthly (mean for tmax/tmin '
+                                       'and accumulated for pcp) series by one method with observations.',
             'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole testing period '
                                              'by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_TaylorDiagram': 'Taylor Diagram of the spatial distribution for the mean climdex in the whole '
+                                        'testing period by all methods.',
             'EVALUATION_obsMap': 'Mean observed values in the whole period.',
             'EVALUATION_estMap': 'Mean estimated (downscaled) values in the whole period by one method.',
             'EVALUATION_biasMap': 'Bias (absolute/relative) in the whole period by one method.',
@@ -2761,12 +2788,13 @@ class tabFigures(tk.Frame):
                                     seasons.append(file.split('_')[5].replace('.png', ''))
 
                             # sort seasons
-                            ordered_seasons = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
-                            aux = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
-                            for sea in ordered_seasons:
-                                if sea not in seasons:
-                                    aux.remove(sea)
-                            seasons = aux
+                            for sorted_seasons in (
+                                    ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON'],
+                                   ['ANNUAL', 'DJFM', 'A', 'MJJ', 'ASO', 'N'],
+                                   ):
+                                if set(seasons) == set(sorted_seasons):
+                                    seasons = sorted_seasons
+                                    break
                             self.seasonVar = tk.StringVar()
                             combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
                             combobox['values'] = seasons
@@ -2892,7 +2920,10 @@ class selectionWindow():
 
         # Root menu
         root = tk.Tk()
-        root.title("pyClim-SDM")
+        for file in os.listdir('../doc/'):
+            if file.startswith('User_Manual_'):
+                version = file.split('.')[0].split('_')[-1]
+        root.title("pyClim-SDM " + version)
         rootW, rootH = 1280, 620
         root.minsize(rootW, rootH )
         root.maxsize(rootW, rootH )
@@ -3202,7 +3233,6 @@ class selectionWindow():
                         self.myTargetVarIsAdditive = True
                     else:
                         self.myTargetVarIsAdditive = False
-                    # self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
                     self.reaNames.update({'myTargetVar': self.myTargetReaName})
                     self.modNames.update({'myTargetVar': self.myTargetModName})
                 else:
@@ -3214,7 +3244,6 @@ class selectionWindow():
                     self.myTargetVarUnits = ''
                     # self.myTargetVarIsGaussian = False
                     self.myTargetVarIsAdditive = False
-                    # self.treatAsAdditiveBy_DQM_and_QDM = False
                 if self.myTargetVarMinAllowed == '':
                     self.myTargetVarMinAllowed = None
                 if self.myTargetVarMaxAllowed == '':
@@ -3249,7 +3278,6 @@ class selectionWindow():
                 # print(self.myTargetVarUnits)
                 # print(self.myTargetVarIsGaussian)
                 # print(self.myTargetVarIsAdditive)
-                # print(self.treatAsAdditiveBy_DQM_and_QDM)
                 # exit()
 
                 # Write settings file
@@ -3259,10 +3287,10 @@ class selectionWindow():
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
                                     self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
-                                    self.apply_bc, self.apply_bc_bySeason, self.bc_method,
+                                    self.apply_bc, self.apply_bc_bySeason, self.inverse_seasonNames, self.bc_method,
                                     self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
                                     self.myTargetVarUnits, self.myTargetVarIsAdditive,
-                                    # self.myTargetVarIsGaussian,self.treatAsAdditiveBy_DQM_and_QDM
+                                    # self.myTargetVarIsGaussian
                                     )
 
                 # Write tmp_main file
@@ -3293,10 +3321,10 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
                                 reaNames, modNames, preds_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
-                                apply_bc, apply_bc_bySeason, bc_method,
+                                apply_bc, apply_bc_bySeason, inverse_seasonNames, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
                                 myTargetVarUnits, myTargetVarIsAdditive,
-                                # myTargetVarIsGaussian, treatAsAdditiveBy_DQM_and_QDM
+                                # myTargetVarIsGaussian
                         ):
 
     """This function prepares a new settings file with the user selected options"""
@@ -3337,8 +3365,6 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("myTargetVarUnits = '" + str(myTargetVarUnits) + "'\n")
     # f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
     f.write("myTargetVarIsAdditive = " + str(myTargetVarIsAdditive) + "\n")
-    # f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
-
 
     # Close f
     f.close()
