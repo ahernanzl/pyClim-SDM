@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -68,19 +68,19 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Read X_train
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
+            pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'spred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/SPRED/'+targetVar+'_training.npy')
+            pred_calib = np.load(pathAux+'TRANSFORMATION/SPRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
+            saf_calib = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             X_train = saf_calib
         if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+            var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
             if 'pred' not in fields:
                 X_train = var_calib
             else:
@@ -91,19 +91,19 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if scene == 'TESTING':
             scene_dates = testing_dates
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_testing.npy')
+                pred_scene = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'spred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/SPRED/'+targetVar+'_testing.npy')
+                pred_scene = np.load(pathAux+'TRANSFORMATION/SPRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
-                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_testing.npy')
+                saf_scene = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:
-                var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+                var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
                 if 'pred' not in fields:
                     X_test = var_scene
                 else:
@@ -126,17 +126,17 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'pred')
+                pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'spred' in fields:
                 pred_scene = read.lres_data(targetVar, fields='pred', grid='saf', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'spred')
+                pred_scene = transform.transform(targetVar, pred_scene, model, 'spred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
                 saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = standardization.standardize(targetVar, saf_scene, model, 'saf')
+                saf_scene = transform.transform(targetVar, saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:
@@ -208,7 +208,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if methodName in convolutional_methods:
             X_test_ipoint = X_test
         else:
-            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
 
         # Check missing predictors, remove them and recalibrate
         missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
@@ -222,7 +222,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                 X_train_ipoint = X_train[:, valid_preds, :, :]
             else:
                 X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
-                                                              j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+                                                              j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
 
             # Check for missing predictands and remove them (if no missing predictors there is no need to check on
             # predictands, because classifier/regressor are already trained
@@ -242,7 +242,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         # Check for days with missing predictors to set them to np.nan later
         else:
             X_train_ipoint = grids.interpolate_predictors(X_train, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint],
-                                                          interp_mode)
+                                                          interp_mode, targetVar)
             y_train_ipoint = y_train[:, ipoint]
             idays_with_missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[0])
             if len(idays_with_missing_preds) != 0:

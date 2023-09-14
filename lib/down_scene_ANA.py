@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -69,21 +69,13 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         corr = None
 
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
+            pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
+            saf_calib = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
-            saf_calib = saf_calib.reshape(saf_calib.shape[0], -1)
-            W = W_saf[np.newaxis, :]
-            W = np.repeat(W, saf_calib.shape[0], axis=0)
-            saf_calib *= W
-            infile = open(pathAux + 'PCA/pca', 'rb')
-            pca = pickle.load(infile)
-            infile.close()
-            saf_calib = pca.transform(saf_calib)
         if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+            var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
 
         if methodName == 'MLR-WT':
             centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
@@ -101,21 +93,13 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = testing_dates
 
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_testing.npy')
+                pred_scene = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
             if 'saf' in fields:
-                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_testing.npy')
+                saf_scene = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
-                saf_scene = saf_scene.reshape(saf_scene.shape[0], -1)
-                W = W_saf[np.newaxis, :]
-                W = np.repeat(W, saf_scene.shape[0], axis=0)
-                saf_scene *= W
-                infile = open(pathAux + 'PCA/pca', 'rb')
-                pca = pickle.load(infile)
-                infile.close()
-                saf_scene = pca.transform(saf_scene)
             if 'var' in fields:
-                var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+                var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -129,25 +113,13 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'pred')
+                pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 del aux
             if 'saf' in fields:
                 saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = standardization.standardize(targetVar, saf_scene, model, 'saf')
+                saf_scene = transform.transform(targetVar, saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
-                saf_scene = saf_scene.reshape(saf_scene.shape[0], -1)
-                W = W_saf[np.newaxis, :]
-                W = np.repeat(W, saf_scene.shape[0], axis=0)
-                saf_scene *= W
-                infile = open(pathAux + 'PCA/pca', 'rb')
-                pca = pickle.load(infile)
-                infile.close()
-                global_days_with_nan = np.where(np.isnan(saf_scene))[0]
-                global_days_with_nan = list(dict.fromkeys(global_days_with_nan))
-                saf_scene[global_days_with_nan] = predictands_codification[targetVar]['special_value']
-                saf_scene = pca.transform(saf_scene)
-                saf_scene[global_days_with_nan] = predictands_codification[targetVar]['special_value']
             if 'var' in fields:
                 var_scene = read.lres_data(targetVar, 'var', model=model, scene=scene)['data'][idates]
 

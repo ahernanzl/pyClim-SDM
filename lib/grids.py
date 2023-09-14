@@ -26,14 +26,14 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
 import write
 
 ########################################################################################################################
-def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp):
+def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp, targetVar, forceNormalInterpolation=False):
     '''
     :param pred: (ndays, npreds, nlats, nlons)
     :param interpolation_method:
@@ -42,6 +42,13 @@ def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp):
         - inverse_distances: using coords UTM. The 4 nearest neighbours do not always form a square.
     :return: predOut(ndays, npreds)
     '''
+
+    # For variables with PCA transformation, no interpolation is needed, so low resolution coordinates and weight are tricked
+    if predsType_targetVars_dict[targetVar]=='pca' and forceNormalInterpolation==False:
+        i_4nn[:] = 0
+        j_4nn[:] = 0
+        w_4nn[:] = 0
+        w_4nn[0] = 1
 
     warnings.filterwarnings("ignore")
 

@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -179,7 +179,7 @@ def predictors_correlation():
                 for ipoint in range(hres_npoints[targetVar]):
 
                     # Interpolate to one point
-                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
                     y = obs_season[:, ipoint]
 
                     # Remove missing data

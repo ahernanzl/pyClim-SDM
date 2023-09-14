@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -70,7 +70,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -120,7 +120,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp)
+        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp, targetVar, forceNormalInterpolation=True)
 
         # Apply downscaling
         est[:, ipoint_local_index] = 100 * X_test[:, 0] # Factor 100 is for coherency with other methods
