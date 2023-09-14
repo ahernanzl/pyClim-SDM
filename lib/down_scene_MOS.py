@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -64,9 +64,9 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Set scene dates and predictors
         if scene == 'TESTING':
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+            var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -147,8 +147,8 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        X_train = grids.interpolate_predictors(var_calib, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)
+        X_train = grids.interpolate_predictors(var_calib, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)
         Y_train = obs[:, ipoint]
         Y_train = Y_train[:, np.newaxis]
 

@@ -29,7 +29,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -54,19 +54,19 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
 
         # Load data (X_train)
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
+            pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'spred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/SPRED/'+targetVar+'_training.npy')
+            pred_calib = np.load(pathAux+'TRANSFORMATION/SPRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
+            saf_calib = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             X_train = saf_calib
         if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+            var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
             if 'pred' not in fields:
                 X_train = var_calib
             else:
@@ -131,7 +131,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
 
         # Prepare X_train shape
         if methodName not in convolutional_methods:
-            X_train_ipoint = grids.interpolate_predictors(X_train_ipoint, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+            X_train_ipoint = grids.interpolate_predictors(X_train_ipoint, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
 
         # Train TF (clf and reg)
         reg, clf = train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)

@@ -74,6 +74,10 @@ if 'myTargetVar' in targetVars:
     except:
         pass
     try:
+        predsType_targetVars_dict[myTargetVar] = predsType_targetVars_dict.pop('myTargetVar')
+    except:
+        pass
+    try:
         preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
     except:
         pass

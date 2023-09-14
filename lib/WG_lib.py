@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -67,13 +67,13 @@ def train_chunk_WG_PDF(targetVar, methodName, family, mode, fields, iproc=0, npr
         j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
         w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
         obs = read.hres_data(targetVar, period='training')['data']
-        var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+        var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
         var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[targetVar]))
         for ipoint in range(hres_npoints[targetVar]):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
-                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
         del var_calib
 
         # Save X, Y (chunks)
@@ -251,13 +251,13 @@ def train_chunk_WG_NMM(targetVar, methodName, family, mode, fields, iproc=0, npr
         j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
         w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
         obs = read.hres_data(targetVar, period='training')['data']
-        var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+        var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
         var_calib_interp = np.zeros((var_calib.shape[0], hres_npoints[targetVar]))
         for ipoint in range(hres_npoints[targetVar]):
             if ipoint % 1000 == 0:
                 print('interpolating', ipoint)
             var_calib_interp[:, ipoint] = grids.interpolate_predictors(var_calib,
-                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                                      i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
         del var_calib
 
         # Save X, Y (chunks)

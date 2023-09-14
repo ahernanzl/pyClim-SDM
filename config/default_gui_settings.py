@@ -579,6 +579,27 @@ modNames = {'ua': 'ua', 'va': 'va', 'ta': 'ta', 'zg': 'zg', 'hus': 'hus', 'hur':
             'myTargetVar': 'fwi'}
 
 
+predsType_targetVars_dict = {
+    'tasmax': 'local',
+    'tasmin': 'local',
+    'tas': 'local',
+    'pr': 'local',
+    'uas': 'local',
+    'vas': 'local',
+    'sfcWind': 'local',
+    'hurs': 'local',
+    'huss': 'local',
+    'clt': 'local',
+    'rsds': 'local',
+    'rlds': 'local',
+    'evspsbl': 'local',
+    'evspsblpot': 'local',
+    'psl': 'local',
+    'ps': 'local',
+    'mrro': 'local',
+    'mrso': 'local',
+}
+
 preds_targetVars_dict = {
     'tasmax': [
         # 'tasmax',             # maximum daily temperature

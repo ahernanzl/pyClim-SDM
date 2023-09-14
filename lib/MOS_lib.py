@@ -29,7 +29,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -56,8 +56,8 @@ def quantile_mapping(obs, hist, sce, targetVar):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -114,8 +114,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -225,8 +225,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -358,8 +358,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
