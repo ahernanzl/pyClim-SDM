@@ -105,14 +105,13 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
 
         # Fit PCA
         if np.sum(np.isnan(ref_data)) != 0:
-            if fields_and_grid == 'saf':
-                print('Your reanalysis data contains NaNs.')
-                print('Use a different set of variables as Synoptic Analogy Fields or prepare new input data without NaNs')
-                exit()
-            else:
-                print('Your reanalysis data contains NaNs.')
-                print('Use a different set of variables as predictors for '+targetVar+', select \'local\' predictors instead of \'pca\', or prepare new input data without NaNs')
-                exit()
+            aux = aux_lib.fillNans(ref_data)
+            ref_data, filled = aux[0], aux[1]
+            if filled == False:
+                if fields_and_grid == 'saf':
+                    exit('Your reanalysis data contains NaNs that cannot be filled.\nUse a different set of variables as Synoptic Analogy Fields or prepare new input data without NaNs')
+                else:
+                    exit('Your reanalysis data contains NaNs that cannot be filled.\nUse a different set of variables as predictors for '+targetVar+', select \'local\' predictors instead of \'pca\', or prepare new input data without NaNs')
         pca = PCA(exp_var_ratio_th).fit(ref_data.reshape(ref_data.shape[0], -1))
 
         # Save trained pca object
@@ -191,13 +190,13 @@ def transform(targetVar, data, model, fields_and_grid):
 
     if perform_pca == True:
         if np.sum(np.isnan(data)) != 0:
-            print('Your input data for '+model+' contains NaNs.')
-            if fields_and_grid == 'saf':
-                print('Use a different set of variables as Synoptic Analogy Fields or prepare new input data without NaNs')
-                exit()
-            else:
-                print('Use a different set of variables as predictors for '+targetVar+', select \'local\' predictors instead of \'pca\', or prepare new input data without NaNs')
-                exit()
+            aux = aux_lib.fillNans(data)
+            data, filled = aux[0], aux[1]
+            if filled == False:
+                if fields_and_grid == 'saf':
+                    exit('Your input data for '+model+' contains NaNs that cannot be filled.\nUse a different set of variables as Synoptic Analogy Fields or prepare new input data without NaNs')
+                else:
+                    exit('Your input data for '+model+' contains NaNs that cannot be filled.\nUse a different set of variables as predictors for '+targetVar+', select \'local\' predictors instead of \'pca\', or prepare new input data without NaNs')
 
     # Get mean and std
     if mean_and_std_from_GCM == True and model != 'reanalysis':
