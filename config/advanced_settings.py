@@ -291,9 +291,14 @@ elif experiment in ('PROJECTIONS', 'PSEUDOREALITY'):
     classifier_mode = 'probabilistic'  # clf.predict_proba. Recommended for out of range (extrapolation) classifications.
     # It slows down training.
 
+# If predictors contain Nans, they can be filled with interpolation
+force_fillNans_for_local_predictors = True
+
+# If they are not filled:
 # When a point and day has missing predictors, all days (for that point) will be recalibrated if True.
 # If False, all days (for that point) will be calculated normally, and that particular day and point will be set to Nan
 recalibrating_when_missing_preds = True
+
 
 # Transfer function methods can use local predictors (nearest neightbour / bilinear) or predictors from the whole grid
 # When using the whole grid, they have more information as inputs, but that consumes more memory
