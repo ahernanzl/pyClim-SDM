@@ -78,6 +78,11 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
     time_first, time_last=dates.index(reference_first_date),dates.index(reference_last_date)+1
     ref_data = ref_data[time_first:time_last]
 
+    # Fill Nans with interpolation
+    if force_fillNans_for_local_predictors == True and np.sum(np.where(np.isnan(ref_data)) != 0):
+        aux = aux_lib.fillNans(ref_data)
+        ref_data, filled = aux[0], aux[1]
+
     # Calculates mean and standard deviation and saves them to files.
     mean = np.nanmean(ref_data, axis=0)
     std = np.nanstd(ref_data, axis=0)
@@ -166,6 +171,11 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
     data = aux['data']
     data = data[time_first:time_last]
 
+    # Fill Nans with interpolation
+    if force_fillNans_for_local_predictors == True and np.sum(np.where(np.isnan(data)) != 0):
+        aux = aux_lib.fillNans(data)
+        data, filled = aux[0], aux[1]
+
     # Calculates mean and standard deviation and saves them to files
     mean = np.nanmean(data, axis=0)
     std = np.nanstd(data, axis=0)
@@ -182,6 +192,11 @@ def transform(targetVar, data, model, fields_and_grid):
 
     pathIn=pathAux+'TRANSFORMATION/'+fields_and_grid.upper()+'/'+targetVar.upper()+'/'
     warnings.filterwarnings("ignore")
+
+    # Fill Nans with interpolation
+    if force_fillNans_for_local_predictors == True and np.sum(np.where(np.isnan(data)) != 0):
+        aux = aux_lib.fillNans(data)
+        data, filled = aux[0], aux[1]
 
     if (fields_and_grid=='pred' and predsType_targetVars_dict[targetVar]=='pca') or fields_and_grid == 'saf':
         perform_pca = True
