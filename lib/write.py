@@ -93,6 +93,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 			if len(x) > maxLenght:
 				maxLenght = len(x)
 		point = nc.createVariable('point', 'S' + str(maxLenght), 'point')
+		point.units = ' '
 		point.long_name = ""
 		for i in range(len(ids)):
 			point[i] = ids[i]
