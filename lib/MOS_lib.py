@@ -315,8 +315,9 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             mean_sce_corrected = np.nanmean(sce_corrected[idatesYear], axis=0)
             factor_trend[idatesYear] = (mean_sce * mean_obs) / (mean_sce_corrected * mean_hist)
             iNotValid = np.where((mean_sce_corrected * mean_hist) == 0)[0]
-            factor_trend[idatesYear][:, iNotValid] = 1
-        factor_trend[np.isinf(factor_trend)] = 1
+            aux = factor_trend[idatesYear]
+            aux[:, iNotValid] = 1
+            factor_trend[idatesYear] = aux
         sce_corrected *= factor_trend
 
     return sce_corrected
