@@ -86,17 +86,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
 		# point[:] = range(len(lats))
-		climdex_tasmax = ['TXm', 'TXx', 'TXn', 'p99', 'p95', 'p90', 'p10', 'p5', 'p1', 'TX99p', 'TX95p', 'TX90p', 'TX10p', 'TX5p', 'TX1p', 'SU', 'ID', 'WSDI']
-		climdex_tasmin = ['TNm', 'TNx', 'TNn', 'p99', 'p95', 'p90', 'p10', 'p5', 'p1', 'TN99p', 'TN95p', 'TN90p','TN10p', 'TN5p', 'TN1p', 'FD', 'TR', 'CSDI']
-		climdex_pr = ['Pm','PRCPTOT','R01','SDII','Rx1day','Rx5day','R10mm','R20mm','CDD','p95','R95p','R95pFRAC','p99','R99p','R99pFRAC','CWD']
-		if varName in climdex_tasmax:
-			ids = list(read.hres_metadata('tasmax')['id'].values)
-		elif varName in climdex_tasmin:
-			ids = list(read.hres_metadata('tasmin')['id'].values)
-		elif varName in climdex_pr:
-			ids = list(read.hres_metadata('pr')['id'].values)
-		else:
-			ids = list(read.hres_metadata(varName)['id'].values)
+		ids = list(read.hres_metadata(varName)['id'].values)
 		ids = [str(i) for i in ids]
 		maxLenght = 0
 		for x in ids:
