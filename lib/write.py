@@ -42,8 +42,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	"""
 	This function writes data to netCDF file.
 	"""
-	if not os.path.exists(path):
+	try:
 		os.makedirs(path)
+	except:
+		pass
 
 	if filename[-3:] != '.nc':
 		filename += '.nc'
@@ -59,7 +61,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	else:
 		nc.createDimension('point', len(lats))
 
-	if level != None:
+	if level is not None:
 		nc.createDimension(level_name, 1)
 		# levelVar = nc.createVariable(level_name, 'f4', (level_name))
 		# levelVar.units='degrees north'
@@ -75,17 +77,29 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	timeVar[:] = date2num(times, units=timeVar.units, calendar=timeVar.calendar)
 
 	# Create lat/lon and data variable
+	varName_hres_metadata = varName.split('_')[0]
+	varName = '_'.join(varName.split('_')[1:])
+	
 	if regular_grid == True:
 		latitude = nc.createVariable(lat_name, 'f4', (lat_name))
 		longitude = nc.createVariable(lon_name, 'f4', (lon_name))
-		if level == None:
+		if level is None:
 			var = nc.createVariable(varName, 'f4', (time_name, lat_name, lon_name,))
 		else:
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
-		point = nc.createVariable('point', 'f4', 'point')
+		# point[:] = range(len(lats))
+		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
+		ids = [str(i) for i in ids]
+		maxLenght = 0
+		for x in ids:
+			if len(x) > maxLenght:
+				maxLenght = len(x)
+		point = nc.createVariable('point', 'S' + str(maxLenght), 'point')
+		point.units = ' '
 		point.long_name = ""
-		point[:] = range(len(lats))
+		for i in range(len(ids)):
+			point[i] = ids[i]
 		latitude = nc.createVariable(lat_name, 'f4', 'point')
 		longitude = nc.createVariable(lon_name, 'f4', 'point')
 		var = nc.createVariable(varName, 'f4', (time_name, 'point'))
@@ -96,17 +110,18 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	longitude.long_name = "longitude"
 	longitude[:] = lons
 	var.units = units
-	var.long_name = varName
+	var.long_name = varName_hres_metadata+'_'+varName
 	var[:] = data
 
-	# print nc
+	# # print(nc)
 	# for var in nc.variables:
-	# 	print var
-	# 	print nc.variables[var]
-	# 	print nc.variables[var][:].shape
+	# 	print(var)
+	# 	print(nc.variables[var])
+	# 	print(nc.variables[var][:].shape)
 
 	# Write to file
 	nc.close()
+
 
 ########################################################################################################################
 def netCDF_rotated(path, filename, varName, data, dates):
