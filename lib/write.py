@@ -89,11 +89,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
 		# point[:] = range(len(lats))
-<<<<<<< HEAD
 		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
-=======
-		ids = list(read.hres_metadata(varName)['id'].values)
->>>>>>> d0dad76af9f26851142c23e0a803d471d0b53508
 		ids = [str(i) for i in ids]
 		maxLenght = 0
 		for x in ids:
