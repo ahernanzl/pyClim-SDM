@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -45,7 +45,7 @@ def down_day(targetVar, pred_scene, saf_scene, var_scene, pred_calib, saf_calib,
         analogy_mode = methodName.split('-')[1]
         estimation_mode = methodName.split('-')[2]
 
-    special_value = 100*predictands_codification[targetVar]['special_value']
+    special_value = int(100 * predictands_codification[targetVar]['special_value'])
 
     # Adds axis so scene and calib have the same dimensions
     saf_scene = saf_scene[np.newaxis,:]
@@ -107,7 +107,7 @@ def down_day(targetVar, pred_scene, saf_scene, var_scene, pred_calib, saf_calib,
 
         # Downscale at point level
         else:
-            if pred_scene != None:
+            if pred_scene is not None:
                 # Adds axis so scene and calib have the same dimensions
                 pred_scene = pred_scene[np.newaxis, :, :, :]
 

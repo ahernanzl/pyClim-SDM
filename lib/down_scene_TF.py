@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -53,8 +53,11 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
     # Parent process reads all data, broadcasts to the other processes and creates paths for results
     if iproc == 0:
         print(targetVar, methodName, scene, model)
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
 
         # Read data and converts obs to uint16 or int16 to save memory
         y_train = read.hres_data(targetVar, period='training')['data']
@@ -65,15 +68,19 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Read X_train
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
+            pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
+            pred_calib = pred_calib.astype('float32')
+            X_train = pred_calib
+        if 'spred' in fields:
+            pred_calib = np.load(pathAux+'TRANSFORMATION/SPRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'saf' in fields:
-            saf_calib = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
+            saf_calib = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_training.npy')
             saf_calib = saf_calib.astype('float32')
             X_train = saf_calib
         if 'var' in fields:
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+            var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
             if 'pred' not in fields:
                 X_train = var_calib
             else:
@@ -84,15 +91,19 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if scene == 'TESTING':
             scene_dates = testing_dates
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_testing.npy')
+                pred_scene = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_testing.npy')
+                pred_scene = pred_scene.astype('float32')
+                X_test = pred_scene
+            if 'spred' in fields:
+                pred_scene = np.load(pathAux+'TRANSFORMATION/SPRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
-                saf_scene = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_testing.npy')
+                saf_scene = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_testing.npy')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:
-                var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+                var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
                 if 'pred' not in fields:
                     X_test = var_scene
                 else:
@@ -115,12 +126,17 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = standardization.standardize(targetVar, pred_scene, model, 'pred')
+                pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
+                pred_scene = pred_scene.astype('float32')
+                X_test = pred_scene
+            if 'spred' in fields:
+                pred_scene = read.lres_data(targetVar, fields='pred', grid='saf', model=model, scene=scene)['data'][idates]
+                pred_scene = transform.transform(targetVar, pred_scene, model, 'spred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
                 saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = standardization.standardize(targetVar, saf_scene, model, 'saf')
+                saf_scene = transform.transform(targetVar, saf_scene, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:
@@ -188,67 +204,101 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             print('ichunk:	', ichunk, '/', n_chunks)
             print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
-
         # Prepare X_test shape
-        if methodName not in methods_using_preds_from_whole_grid:
-            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        elif methodName not in ['CNN',]:
-            X_test_ipoint = X_test.reshape(X_test.shape[0], X_test.shape[1], -1)
-        else:
+        if methodName in convolutional_methods:
             X_test_ipoint = X_test
+        else:
+            X_test_ipoint = grids.interpolate_predictors(X_test, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
 
         # Check missing predictors, remove them and recalibrate
-        if recalibrating_when_missing_preds == True:
-            missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
-            if len(missing_preds) != 0:
-                print('Recalibrating because of missing predictors:', missing_preds%npreds)
-                y_train_ipoint = y_train[:, ipoint]
+        missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[1])
+        if recalibrating_when_missing_preds == True and len(missing_preds) != 0:
+            print('Recalibrating because of missing predictors:', missing_preds%npreds)
+            y_train_ipoint = y_train[:, ipoint]
 
-                # Interpolate valid_preds
-                valid_preds = [x for x in range(X_test_ipoint.shape[1]) if x not in missing_preds]
-                if methodName not in methods_using_preds_from_whole_grid:
-                    X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
-                                                                  j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-                elif methodName not in ['CNN', ]:
-                    X_train_ipoint = X_train[:, valid_preds, :, :].reshape(X_train.shape[0], len(valid_preds), -1)
-                else:
-                    X_train_ipoint = X_train[:, valid_preds, :, :]
+            # Interpolate valid_preds
+            valid_preds = [x for x in range(X_test_ipoint.shape[1]) if x not in missing_preds]
+            if methodName in convolutional_methods:
+                X_train_ipoint = X_train[:, valid_preds, :, :]
+            else:
+                X_train_ipoint = grids.interpolate_predictors(X_train[:, valid_preds, :, :], i_4nn[ipoint],
+                                                              j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
 
-                # Check for missing predictands and remove them (if no missing predictors there is no need to check on
-                # predictands, because classifier/regressor are already trained
-                valid = np.where(y_train_ipoint < special_value)[0]
-                if valid.size < 30:
-                    exit('Not enough valid predictands to train')
-                if valid.size != y_train_ipoint.size:
-                    X_train_ipoint = X_train_ipoint[valid]
-                    y_train_ipoint = y_train_ipoint[valid]
+            # Check for missing predictands and remove them (if no missing predictors there is no need to check on
+            # predictands, because classifier/regressor are already trained
+            valid = np.where(y_train_ipoint < special_value)[0]
+            if valid.size < 30:
+                exit('Not enough valid predictands to train')
+            if valid.size != y_train_ipoint.size:
+                X_train_ipoint = X_train_ipoint[valid]
+                y_train_ipoint = y_train_ipoint[valid]
 
-                # Train regressors and classifiers without missing predictors or predictands
-                reg, clf = TF_lib.train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)
+            # Train regressors and classifiers without missing predictors or predictands
+            reg, clf = TF_lib.train_point(targetVar, methodName, X_train_ipoint, y_train_ipoint, ipoint)
 
-                # Remove missing predictors from X_test
-                X_test_ipoint = X_test_ipoint[:, valid_preds]
+            # Remove missing predictors from X_test
+            X_test_ipoint = X_test_ipoint[:, valid_preds]
 
         # Check for days with missing predictors to set them to np.nan later
-        elif recalibrating_when_missing_preds == False:
+        else:
+            X_train_ipoint = grids.interpolate_predictors(X_train, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint],
+                                                          interp_mode, targetVar)
+            y_train_ipoint = y_train[:, ipoint]
             idays_with_missing_preds = np.unique(np.where(np.isnan(X_test_ipoint))[0])
             if len(idays_with_missing_preds) != 0:
-                X_test_ipoint[np.isnan(X_test_ipoint)] = special_value
+                # X_test_ipoint[np.isnan(X_test_ipoint)] = special_value
+                X_test_ipoint[np.isnan(X_test_ipoint)] = 0
                 # if idays_with_missing_preds.shape == est[:, ipoint_local_index].shape:
                 #     exit('there is at least one predictor which is missing in all days. You should set '
                 #           'recalibrating_when_missing_preds to True at settings')
 
         # Apply downscaling
-        if methodName in ['CNN', ]:
+        if methodName in convolutional_methods:
             X_test_ipoint = np.swapaxes(np.swapaxes(X_test_ipoint, 1, 2), 2, 3)
         if targetVar == 'pr':
             est[:, ipoint_local_index] = down_point.TF_pr(methodName, X_test_ipoint, clf, reg)
         else:
-            est[:, ipoint_local_index] = down_point.TF_others(X_test_ipoint, reg)
+            est[:, ipoint_local_index] = down_point.TF_others(X_test_ipoint, reg, targetVar)
+
+            # For some methods (with bad or no extrapolation at all), extapolation is done with a MLR instead
+            if methodName in methods_to_extrapolate_with_MLR:
+
+                # Select days with predictors lying out of the observed range
+                iDaysOutOfRange = list(dict.fromkeys(np.where((X_test_ipoint < np.nanmin(X_train_ipoint, axis=0)) |
+                                       (X_test_ipoint > np.nanmax(X_train_ipoint, axis=0)))[0]))
+                if len(iDaysOutOfRange) != 0:
+                    print('ipoint:', ipoint_local_index, '/ nDaysOutOfRange:', len(iDaysOutOfRange),
+                          '/ percDaysOutOfRange:', round(100*len(iDaysOutOfRange)/X_test_ipoint.shape[0], 2), '%')
+
+                    # Remove var from preds before applying MLR (because it is not standardized)
+                    if 'var' in fields:
+                        if recalibrating_when_missing_preds == True:
+                            if (npreds-1) not in missing_preds:
+                                X_train_ipoint = X_train_ipoint[:, :-1]
+                                X_test_ipoint = X_test_ipoint[:, :-1]
+                        else:
+                            X_train_ipoint = X_train_ipoint[:, :-1]
+                            X_test_ipoint = X_test_ipoint[:, :-1]
+
+                    # Train MLR
+                    valid = np.where(y_train_ipoint < special_value)[0]
+                    if valid.size < 30:
+                        exit('Not enough valid predictands to train')
+                    if valid.size != y_train_ipoint.size:
+                        X_train_ipoint = X_train_ipoint[valid]
+                        y_train_ipoint = y_train_ipoint[valid]
+                    reg_MLR, clf_MLR = TF_lib.train_point(targetVar, 'MLR', X_train_ipoint, y_train_ipoint, ipoint)
+
+                    # Downscale MLR
+                    est_MLR = down_point.TF_others(X_test_ipoint, reg_MLR, targetVar)
+
+                    # Replace days with predictors out of the observed range with results from MLR
+                    est[iDaysOutOfRange, ipoint_local_index] = est_MLR[iDaysOutOfRange]
 
         # Set to np.nan days with missing predictors for TF methods
         if (recalibrating_when_missing_preds == False) and (len(idays_with_missing_preds) != 0):
             est[idays_with_missing_preds, ipoint_local_index] = special_value
+
 
     # Undo converssion
     est = est.astype('float64') / 100.
@@ -292,6 +342,10 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est = np.append(est, np.load(filename), axis=1)
     shutil.rmtree(path)
 
+    # Points with a constant value (due to problems in the machine learning tuning) are set to nan
+    iconstant = np.where(np.nanmin(est, axis=0) == np.nanmax(est, axis=0))
+    est[:, iconstant] = np.nan
+
     # Save to file
     if experiment == 'EVALUATION':
         pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
@@ -318,7 +372,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Set units
     units = predictands_units[targetVar]
-    if units == None:
+    if units is None:
         units = ''
 
     if split_mode[:4] == 'fold':
@@ -332,13 +386,16 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     print('-------------------------------------------------------------------------')
     print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        est /= 1000
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        est[est < 100*minAllowed] == 100*minAllowed
-    if  maxAllowed != None:
-        est[est > 100*maxAllowed] == 100*maxAllowed
+    if  minAllowed is not None:
+        est[est < minAllowed] = minAllowed
+    if  maxAllowed is not None:
+        est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

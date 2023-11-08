@@ -1,5 +1,32 @@
 import sys
 import os
+import time
+
+# Save version
+version_last_execution_file = '../config/.version_last_execution.txt'
+version = ''
+for file in os.listdir('../doc/'):
+    if file.startswith('User_Manual_'):
+        version = str(file.split('.')[0].split('_')[-1])
+if os.path.isfile(version_last_execution_file):
+    text_file = open(version_last_execution_file, "r")
+    version_last_execution = text_file.read()
+    text_file.close()
+else:
+    version_last_execution = 'previous to v3.5'
+if version != version_last_execution:
+    print('--------------------------------------------------------------')
+    print('This is the first time version', version, 'is executed.')
+    print('Last execution was made with a different version of pyClim-SDM.')
+    print('Default settings have been restored. Please make your selection again.')
+    print('--------------------------------------------------------------')
+    time.sleep(1)
+    if os.path.isfile('../config/settings.py'):
+        os.remove('../config/settings.py')
+    text_file = open(version_last_execution_file, "w")
+    text_file.write(version)
+    text_file.close()
+
 import shutil
 sys.path.append('../config/')
 from manual_settings import *
@@ -9,6 +36,7 @@ if not os.path.isfile('../config/settings.py') or os.stat('../config/settings.py
 from imports import *
 from settings import *
 from advanced_settings import *
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
@@ -73,7 +101,7 @@ def switch_bc_method(bc_opt, bc_mehods_bt):
         else:
             object["state"] = "normal"
 
-    
+
 
 ########################################################################################################################
 def enable(targetVar_active_var, frames):
@@ -81,12 +109,12 @@ def enable(targetVar_active_var, frames):
 
     for frame in frames:
         for child in frame.winfo_children():
-            if child.winfo_class() == 'TFrame':
+            if child.winfo_class() in ('TFrame', 'Frame'):
                 frames.append(child)
 
     for frame in frames:
         for child in frame.winfo_children():
-            if child.winfo_class() != 'TFrame':
+            if child.winfo_class() not in ('TFrame', 'Frame'):
                 try:
                     if targetVar_active_var == True:
                         child.configure(state='normal')
@@ -139,7 +167,7 @@ def CreateToolTip(widget, text):
 
 
 ########################################################################################################################
-class welcomeMessage(ttk.Frame):
+class welcomeMessage(tk.Frame):
     """This function displays a welcome message which can be enabled for next runs"""
 
     def __init__(self):
@@ -212,11 +240,11 @@ class welcomeMessage(ttk.Frame):
 
 
 ########################################################################################################################
-class tabSteps(ttk.Frame):
+class tabSteps(tk.Frame):
 
     def __init__(self, notebook, root):
 
-        tabSteps = ttk.Frame(notebook)
+        tabSteps = tk.Frame(notebook)
         notebook.add(tabSteps, text='Experiment and Steps')
         self.chk_dict = {}
         self.rdbuts = []
@@ -225,8 +253,8 @@ class tabSteps(ttk.Frame):
         self.exp_ordered = []
 
         irow = 0
-        ttk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
-        ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=1
+        tk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
+        tk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=1
 
         # frameExplanation
         frameExplanation = Frame(tabSteps)
@@ -235,13 +263,13 @@ class tabSteps(ttk.Frame):
         explanation = 'Before running the different steps, select the methods and predictors to be used. For the GCMs evaluation, the selected predictors will be analyzed.\n' \
                       'Do not run a step before the previous steps have finished succesfully. When working at an HPC, wait for previous jobs to finish. Steps "Train methods", \n' \
                       '"Downscale", "Bias correcion" and "Calculate climdex" are prepared to be done as jobs, in parallel.\n'
-        ttk.Label(frameExplanation, text=explanation).grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4)
+        tk.Label(frameExplanation, text=explanation).grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4)
 
-        ttk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=5
+        tk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=5
 
         # Experiment
         icol = 1
-        ttk.Label(tabSteps, text="Select experiment:").grid(sticky="E", column=icol, row=irow, padx=10, pady=15); icol+=1
+        tk.Label(tabSteps, text="Select experiment:").grid(sticky="E", column=icol, row=irow, padx=10, pady=15); icol+=1
         self.experiment = StringVar()
         experiments = {'PRECONTROL': 'Evaluation of predictors and GCMs previous to dowscaling',
                        'EVALUATION': 'Evaluate methods using a reanalysis over a historical period',
@@ -258,7 +286,7 @@ class tabSteps(ttk.Frame):
         icol = 1
 
         # Steps definition
-        ttk.Label(tabSteps, text="Select steps:").grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
+        tk.Label(tabSteps, text="Select steps:").grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
 
         steps = {'PRECONTROL': {
                  'check_var_units': {'text': 'Check units', 'info':  'Check units for all variables from reanalysis and GCMs.',},
@@ -350,10 +378,10 @@ class tabSteps(ttk.Frame):
 
 
 ########################################################################################################################
-class tabModelsAndScenes(ttk.Frame):
+class tabModelsAndScenes(tk.Frame):
 
     def __init__(self, notebook):
-        tabModelsAndScenes = ttk.Frame(notebook)
+        tabModelsAndScenes = tk.Frame(notebook)
         notebook.add(tabModelsAndScenes, text='Models and Scenarios')
 
         self.chk_dict_models = {}
@@ -363,7 +391,7 @@ class tabModelsAndScenes(ttk.Frame):
             checked = tk.BooleanVar(value=False)
             if name in list:
                 checked = tk.BooleanVar(value=True)
-            if obj == None:
+            if obj is None:
                 c = Checkbutton(frame, text=name.split('_')[0], variable=checked, takefocus=False)
             else:
                 c = Checkbutton(frame, text=name.split('_')[0], variable=checked, command=lambda: switch(obj), takefocus=False)
@@ -385,15 +413,15 @@ class tabModelsAndScenes(ttk.Frame):
         irow, icol = 0, 0
 
         # frameModels
-        frameModels = ttk.Frame(tabModelsAndScenes)
+        frameModels = tk.Frame(tabModelsAndScenes)
         frameModels.grid(row=0, column=0, sticky='n', padx=(40, 0), rowspan=2)
 
         # frameReanalysisName
-        frameReanalysisName = ttk.Frame(tabModelsAndScenes)
+        frameReanalysisName = tk.Frame(tabModelsAndScenes)
         frameReanalysisName.grid(row=0, column=1, sticky='n', padx=(40, 0))
 
         # frameScenes
-        frameScenes = ttk.Frame(tabModelsAndScenes)
+        frameScenes = tk.Frame(tabModelsAndScenes)
         frameScenes.grid(row=1, column=1, sticky='n', padx=(40, 0))
 
         Label(frameModels, text="").grid(sticky="W", column=icol, row=irow, padx=20, pady=0); icol+=1; irow+=1
@@ -449,7 +477,7 @@ class tabModelsAndScenes(ttk.Frame):
 
         icol += 1
         self.otherModels_var = tk.StringVar()
-        self.otherModels_Entry = tk.Entry(frameModels, textvariable=self.otherModels_var, width=45,
+        self.otherModels_Entry = ttk.Entry(frameModels, textvariable=self.otherModels_var, width=45,
                                           justify='left', state='normal', takefocus=False)
         self.otherModels_Entry.insert(END, otherModels_list)
         self.otherModels_Entry.grid(sticky="E", column=icol, row=irow, columnspan=3)
@@ -460,7 +488,7 @@ class tabModelsAndScenes(ttk.Frame):
         Label(frameReanalysisName, text="").grid(sticky="W", column=icol, row=irow, pady=(40, 0)); icol+=1; irow+=1
         self.reanalysisName_var = tk.StringVar()
         Label(frameReanalysisName, text='Reanalysis name:').grid(sticky="W", column=icol, row=irow, padx=10); icol += 1
-        reanalysisName_Entry = tk.Entry(frameReanalysisName, textvariable=self.reanalysisName_var, width=15, justify='right', takefocus=False)
+        reanalysisName_Entry = ttk.Entry(frameReanalysisName, textvariable=self.reanalysisName_var, width=15, justify='right', takefocus=False)
         reanalysisName_Entry.insert(END, reanalysisName)
         reanalysisName_Entry.grid(sticky="W", column=icol, row=irow)
 
@@ -476,7 +504,7 @@ class tabModelsAndScenes(ttk.Frame):
         # Other scenes
         Label(frameScenes, text="").grid(sticky="W", column=icol, row=irow)
         self.otherScenes_var = tk.StringVar()
-        self.otherScenes_Entry = tk.Entry(frameScenes, textvariable=self.otherScenes_var, width=15, justify='right', state='disabled')
+        self.otherScenes_Entry = ttk.Entry(frameScenes, textvariable=self.otherScenes_var, width=15, justify='right', state='disabled')
         self.otherScenes_Entry.grid(sticky="E", column=icol, row=irow, padx=100)
         CreateToolTip(self.otherScenes_Entry, "Enter scenario names separated by ';'")
         self.chk_dict_scenes.update(add_to_chk_list(frameScenes, 'Others:', scene_names_list, icol, irow, obj=self.otherScenes_Entry)); irow += 1
@@ -486,15 +514,15 @@ class tabModelsAndScenes(ttk.Frame):
 
 
 ########################################################################################################################
-class tabDomain(ttk.Frame):
+class tabDomain(tk.Frame):
 
     def __init__(self, notebook):
 
-        tabDomain = ttk.Frame(notebook)
+        tabDomain = tk.Frame(notebook)
         notebook.add(tabDomain, text='Domain')
 
         icol, irow = 0, 0
-        # ttk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
+        # tk.Label(frameDomain, text="Define the following spatial information:").grid(sticky="W", column=icol, row=irow, padx=10, pady=30, columnspan=100); irow+=1
         padx = 100
         # frameDomain
         frameDomain = Frame(tabDomain)
@@ -513,39 +541,40 @@ class tabDomain(ttk.Frame):
         self.grid_res_var = tk.StringVar()
         lab = Label(frameDomain, text="Grid resolution:")
         lab.grid(sticky="W", column=icol, row=irow, padx=10, columnspan=5); icol+=2
-        grid_resTesting_Entry = tk.Entry(frameDomain, textvariable=self.grid_res_var, width=4, justify='right', takefocus=False)
+        grid_resTesting_Entry = ttk.Entry(frameDomain, textvariable=self.grid_res_var, width=4, justify='right', takefocus=False)
         grid_resTesting_Entry.insert(END, grid_res)
-        CreateToolTip(lab, 'Grid resolution')
+        CreateToolTip(lab, 'Grid resolution from reanalysis and models (automatically detected)')
+        grid_resTesting_Entry.config(state='disabled')
         grid_resTesting_Entry.grid(sticky="W", column=icol+1, row=irow)
         irow+=1; icol-=2
 
         # safGrid
-        ttk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
+        tk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
         padx, pady, width = 2, 2, 5
-        lab = Label(frameDomain, text='Domain for synoptic analogy fields \n'
+        lab = Label(frameDomain, text='Synoptic domain \n'
                                      '(lat up, lat down, lon left and long right):', justify=LEFT)
         lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
 
-        ttk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=100); icol+=1
+        tk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=10, columnspan=100); icol+=1
 
 
         self.saf_lat_up_var = tk.StringVar()
-        saf_lat_upTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lat_up_var, width=width, justify='right', takefocus=False)
+        saf_lat_upTesting_Entry = ttk.Entry(frameDomain, textvariable=self.saf_lat_up_var, width=width, justify='right', takefocus=False)
         saf_lat_upTesting_Entry.insert(END, saf_lat_up)
         CreateToolTip(saf_lat_upTesting_Entry, 'lat up')
         saf_lat_upTesting_Entry.grid(sticky="W", column=icol+1, row=irow, padx=padx, pady=pady)
         self.saf_lon_left_var = tk.StringVar()
-        saf_lon_leftTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lon_left_var, width=width, justify='right', takefocus=False)
+        saf_lon_leftTesting_Entry = ttk.Entry(frameDomain, textvariable=self.saf_lon_left_var, width=width, justify='right', takefocus=False)
         saf_lon_leftTesting_Entry.insert(END, saf_lon_left)
         CreateToolTip(saf_lon_leftTesting_Entry, 'lon left')
         saf_lon_leftTesting_Entry.grid(sticky="W", column=icol, row=irow+1, padx=padx, pady=pady)
         self.saf_lon_right_var = tk.StringVar()
-        saf_lon_rightTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lon_right_var, width=width, justify='right', takefocus=False)
+        saf_lon_rightTesting_Entry = ttk.Entry(frameDomain, textvariable=self.saf_lon_right_var, width=width, justify='right', takefocus=False)
         saf_lon_rightTesting_Entry.insert(END, saf_lon_right)
         CreateToolTip(saf_lon_rightTesting_Entry, 'lon right')
         saf_lon_rightTesting_Entry.grid(sticky="W", column=icol+2, row=irow+1, padx=padx, pady=pady)
         self.saf_lat_down_var = tk.StringVar()
-        saf_lat_downTesting_Entry = tk.Entry(frameDomain, textvariable=self.saf_lat_down_var, width=width, justify='right', takefocus=False)
+        saf_lat_downTesting_Entry = ttk.Entry(frameDomain, textvariable=self.saf_lat_down_var, width=width, justify='right', takefocus=False)
         saf_lat_downTesting_Entry.insert(END, saf_lat_down)
         CreateToolTip(saf_lat_downTesting_Entry, 'lat down')
         saf_lat_downTesting_Entry.grid(sticky="W", column=icol+1, row=irow+2, padx=padx, pady=pady); irow+=3
@@ -555,14 +584,14 @@ class tabDomain(ttk.Frame):
 
         # reaNames and modNames
         irow, icol = 0, 0
-        ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=0, ); irow+=1
-        ttk.Label(frameVarNames, text='Define variable names in netCDF files:')\
+        tk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=0, ); irow+=1
+        tk.Label(frameVarNames, text='Define variable names in netCDF files:')\
             .grid(column=icol, row=irow, pady=10, columnspan=13); irow += 1
 
         # reaNames and modNames
         self.reaNames = {}
         self.modNames = {}
-        ncols = 13
+        ncols = 14
         all_vars = {
                 'tasmax': 'Surface maximum temperature',
                 'tasmin': 'Surface minimum temperature',
@@ -584,29 +613,35 @@ class tabDomain(ttk.Frame):
                 'hur': 'Relative humidity',
                 'td': 'Dew point',
                 'psl': 'Mean sea level pressure',
+                'rsds': 'Surface Downwelling Shortwave Radiation',
+                'rlds': 'Surface Downwelling Longwave Radiation',
+                'evspsbl': 'Evaporation',
+                'evspsblpot': 'Potential evaporation',
+                'mrro': 'Total runoff',
+                'mrso': 'Soil water content',
         }
         for var in all_vars:
 
             if icol == 0:
-                ttk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow += 1
-                ttk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
-                ttk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
+                tk.Label(frameVarNames, text='').grid(column=icol, row=irow, pady=3, padx=60); irow += 1
+                tk.Label(frameVarNames, text='Reanalysis:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
+                tk.Label(frameVarNames, text='Models:').grid(sticky="E", column=icol, row=irow, padx=10, ); irow += 1
                 icol += 1; irow -= 3
 
-            lab = ttk.Label(frameVarNames, text=var)
+            lab = tk.Label(frameVarNames, text=var)
             CreateToolTip(lab, all_vars[var])
             lab.grid(sticky="E", column=icol, row=irow, pady=(10, 0)); irow+=1
 
             reaName = reaNames[var]
             self.reaName_var = tk.StringVar()
-            reaName_Entry = tk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
+            reaName_Entry = ttk.Entry(frameVarNames, textvariable=self.reaName_var, width=8, justify='right', takefocus=False)
             reaName_Entry.insert(END, reaName)
             reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1
             self.reaNames.update({var: self.reaName_var})
 
             modName = modNames[var]
             self.modName_var = tk.StringVar()
-            modName_Entry = tk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
+            modName_Entry = ttk.Entry(frameVarNames, textvariable=self.modName_var, width=8, justify='right', takefocus=False)
             modName_Entry.insert(END, modName)
             modName_Entry.grid(sticky="W", column=icol, row=irow); irow-=2
             self.modNames.update({var: self.modName_var})
@@ -627,10 +662,10 @@ class tabDomain(ttk.Frame):
 
 
 ########################################################################################################################
-class tabDates(ttk.Frame):
+class tabDates(tk.Frame):
 
     def __init__(self, notebook):
-        tabDates = ttk.Frame(notebook)
+        tabDates = tk.Frame(notebook)
         notebook.add(tabDates, text='Dates')
         padx = 100
 
@@ -652,8 +687,8 @@ class tabDates(ttk.Frame):
 
 
         icol, irow = 0, 0
-        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10, columnspan=100); irow+=1
-        ttk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol += 1
+        tk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10, columnspan=100); irow+=1
+        tk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol += 1
 
         # Years
         for (text, var, info) in [
@@ -662,22 +697,20 @@ class tabDates(ttk.Frame):
             ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
                                             'The choice of the reference period is constrained by availability of \n'
                                             'reanalysis, historical GCMs and hres data.'),
-            ('Historical years:', historical_years, 'For historical projections'),
-            ('SSPs years:', ssp_years, 'For future projections'),
             ]:
 
-            lab = ttk.Label(frameDates, text=text)
+            lab = tk.Label(frameDates, text=text)
             CreateToolTip(lab, info)
             lab.grid(sticky="E", column=icol, row=irow, padx=8); icol+=1
 
             firstYear, lastYear = var[0], var[1]
             firstYear_var = tk.StringVar()
-            firstYear_Entry = tk.Entry(frameDates, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
+            firstYear_Entry = ttk.Entry(frameDates, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
             firstYear_Entry.insert(END, firstYear)
             firstYear_Entry.grid(sticky="W", column=icol, row=irow); icol+=1
             Label(frameDates, text='-').grid(sticky="E", column=icol, row=irow, padx=3); icol+=1
             lastYear_var = tk.StringVar()
-            lastYear_Entry = tk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
+            lastYear_Entry = ttk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
             lastYear_Entry.insert(END, lastYear)
             lastYear_Entry.grid(sticky="W", column=icol, row=irow)
             irow+=1; icol-=1
@@ -686,37 +719,11 @@ class tabDates(ttk.Frame):
                 self.calibration_years = (firstYear_var, lastYear_var)
             elif text == 'Reference years:':
                 self.reference_years = (firstYear_var, lastYear_var)
-            elif text == 'Historical years:':
-                self.historical_years = (firstYear_var, lastYear_var)
-            elif text == 'SSPs years:':
-                self.ssp_years = (firstYear_var, lastYear_var)
             icol -= 2
 
 
 
         entriesW = 17
-
-        # reanalysisPeriodFilename
-        self.reanalysisPeriodFilename_var = tk.StringVar()
-        Label(frameDates, text='Reanalysis period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        reanalysisPeriodFilename_Entry = tk.Entry(frameDates, textvariable=self.reanalysisPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        reanalysisPeriodFilename_Entry.insert(END, reanalysisPeriodFilename)
-        reanalysisPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
-
-        # historicalPeriodFilename
-        self.historicalPeriodFilename_var = tk.StringVar()
-        Label(frameDates, text='Historical period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        historicalPeriodFilename_Entry = tk.Entry(frameDates, textvariable=self.historicalPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        historicalPeriodFilename_Entry.insert(END, historicalPeriodFilename)
-        historicalPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
-
-        # sspPeriodFilename
-        self.sspPeriodFilename_var = tk.StringVar()
-        Label(frameDates, text='SSP period filename:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-        sspPeriodFilename_Entry = tk.Entry(frameDates, textvariable=self.sspPeriodFilename_var, width=entriesW, justify='right', takefocus=False)
-        sspPeriodFilename_Entry.insert(END, sspPeriodFilename)
-        sspPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow, columnspan=8); icol-=1; irow+=1
-
 
         # Bias correction
         irow, icol = 0, 0
@@ -726,7 +733,7 @@ class tabDates(ttk.Frame):
             'Yes': 'Apply bias correction after downscaling.',
             'By season': 'Apply a customized bias correction after downscaling for each season.',
         }
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=30, columnspan=3); irow+=1
         Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
         if apply_bc == False:
             last_bc_opt = 'No'
@@ -763,13 +770,8 @@ class tabDates(ttk.Frame):
         irow, icol = 0, 0
         Label(frameSplitMode, text='Define how to split the calibration period for training/testing:')\
             .grid(sticky="W", column=icol, row=irow, columnspan=10, padx=30, pady=10); irow += 1; icol+=2
-        Label(frameSplitMode, text='Testing years:')\
-            .grid(column=icol, row=irow, columnspan=4);
-        irow += 1; icol-=1
-
 
         def add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol):
-
 
             c = Radiobutton(frameSplitMode, text=str(text), variable=self.split_mode, value=split_modeName,
                             command=lambda: switch_splitMode(split_modeName, self.dict_buttons), takefocus=False)
@@ -778,11 +780,11 @@ class tabDates(ttk.Frame):
             CreateToolTip(c, info)
             self.split_mode.set(split_mode)
 
-            if split_modeName in ('single_split', 'fold1', 'fold2', 'fold3', 'fold4', 'fold5'):
+            if split_modeName in ('single_split', ):
                 icol+=2
                 firstYear, lastYear = years[0], years[1]
                 firstYear_var = tk.StringVar()
-                firstYearTesting_Entry = tk.Entry(frameSplitMode, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
+                firstYearTesting_Entry = ttk.Entry(frameSplitMode, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
                 firstYearTesting_Entry.insert(END, firstYear)
                 if split_modeName != split_mode:
                     firstYearTesting_Entry.config(state='disabled')
@@ -791,7 +793,7 @@ class tabDates(ttk.Frame):
                 Label(frameSplitMode, text='-').grid(column=icol, row=irow);
                 icol += 1
                 lastYear_var = tk.StringVar()
-                lastYearTesting_Entry = tk.Entry(frameSplitMode, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
+                lastYearTesting_Entry = ttk.Entry(frameSplitMode, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
                 lastYearTesting_Entry.insert(END, lastYear)
                 if split_modeName != split_mode:
                     lastYearTesting_Entry.config(state='disabled')
@@ -799,8 +801,8 @@ class tabDates(ttk.Frame):
                 self.testing_years_dict.update({split_modeName: (firstYear_var, lastYear_var)})
                 self.dict_buttons.update({split_modeName: [c, firstYearTesting_Entry, lastYearTesting_Entry]})
                 icol -= 4
-            else:
-                self.dict_buttons.update({split_modeName: [c, None, None]})
+            # else:
+            #     self.dict_buttons.update({split_modeName: [c, None, None]})
 
 
         self.testing_years_dict = {}
@@ -810,12 +812,12 @@ class tabDates(ttk.Frame):
         for (text, split_modeName, years, info) in [
             ('All training', 'all_training', None, 'The whole calibration period is used for training'),
             ('All testing', 'all_testing', None, 'The whole calibration period is used for testing'),
-            ('Single train/test split', 'single_split', single_split_testing_years, 'Single train/test split'),
-            ('k-fold 1/5', 'fold1', fold1_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 2/5', 'fold2', fold2_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 3/5', 'fold3', fold3_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 4/5', 'fold4', fold4_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 5/5', 'fold5', fold5_testing_years, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('Testing years', 'single_split', single_split_testing_years, 'Single train/test split'),
+            ('k-fold 1/5', 'fold1', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 2/5', 'fold2', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 3/5', 'fold3', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 4/5', 'fold4', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
+            ('k-fold 5/5', 'fold5', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
             ]:
 
             add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol)
@@ -828,7 +830,7 @@ class tabDates(ttk.Frame):
         def add_season(xMonth, text, seasonName, irow, icol):
             monthsVar = tk.StringVar()
             Label(frameSeasons, text=text).grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            seasonName_Entry = tk.Entry(frameSeasons, textvariable=monthsVar, width=10, justify='right',
+            seasonName_Entry = ttk.Entry(frameSeasons, textvariable=monthsVar, width=10, justify='right',
                                         takefocus=False)
             seasonName_Entry.insert(END, seasonName)
             seasonName_Entry.grid(sticky="E", column=icol, row=irow)
@@ -836,7 +838,7 @@ class tabDates(ttk.Frame):
             icol -= 1
 
         icol, irow = 0, 0
-        Label(frameSeasons, text='Defina season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=5, columnspan=5); irow+=1
+        Label(frameSeasons, text='Define season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=(35, 15), columnspan=5); irow+=1
         for (xMonth, text, seasonName) in [
             (0, 'All year:', inverse_seasonNames[0]),
             (1, 'Jan:', inverse_seasonNames[1]),
@@ -858,17 +860,15 @@ class tabDates(ttk.Frame):
 
 
     def get(self):
-        return self.calibration_years, self.reference_years, self.historical_years, self.ssp_years, self.bc_option, \
-               self.bc_method, self.testing_years_dict, self.reanalysisPeriodFilename_var, self.historicalPeriodFilename_var, \
-               self.sspPeriodFilename_var, self.split_mode, self.seasons
+        return self.calibration_years, self.reference_years, self.bc_option, \
+               self.bc_method, self.testing_years_dict, self.split_mode, self.seasons
 
 
 
 ########################################################################################################################
-class framePredictorsClass(ttk.Frame):
+class framePredictorsClass(tk.Frame):
 
     def __init__(self, notebook, root, targetVar):
-
 
         def add_chk_bt_upperAir(chk_list, pred, irow, icol):
             """Check buttons for upper air predictors"""
@@ -892,10 +892,10 @@ class framePredictorsClass(ttk.Frame):
             chk_list.update({pred: checked})
             irow += 1
             nrows += 1
-            if nrows == 2:
+            if nrows == 3:
                 nrows = 0
                 icol += 2
-                irow -= 2
+                irow -= 3
             return irow, icol, nrows
 
         irow = 0
@@ -903,15 +903,15 @@ class framePredictorsClass(ttk.Frame):
 
 
         Label(root, text="").grid(sticky="W", padx=10, row=irow, column=icol); icol += 1
-        ttk.Label(root, text="").grid(sticky="W", column=icol, columnspan=100, row=irow, padx=20, pady=0); irow+=2
+        tk.Label(root, text="").grid(sticky="W", column=icol, columnspan=100, row=irow, padx=20, pady=0); irow+=2
 
         # Levels
-        ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
-        ttk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=0, padx=30); irow+=1
-        self.levels = [1000, 850, 700, 500, 250]
+        tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=30); irow+=1
+        tk.Label(root, text="").grid(sticky="E", column=icol, row=irow, pady=0, padx=30); irow+=1
+        self.levels = [1000, 925, 850, 700, 500, 250]
         for level in self.levels:
             Label(root,  text=str(level) + " hPa").grid(sticky="E", padx=10,  row=irow, column=icol); irow+=1
-        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=6; icol+=1
+        Label(root, text="").grid(sticky="E", column=icol, row=irow, padx=10); irow-=(len(self.levels)+1); icol+=1
 
         self.preds = {}
 
@@ -941,25 +941,32 @@ class framePredictorsClass(ttk.Frame):
                         }
 
         for var in upperAirVars:
-            c = ttk.Label(root, text=var)
+            c = tk.Label(root, text=var)
             c.grid(column=icol, row=irow, pady=10); irow += 1
             CreateToolTip(c, upperAirVars[var])
             padx = 2
             for level in self.levels:
                 irow, icol = add_chk_bt_upperAir(self.preds, str(var) + str(level), irow, icol)
-            irow -= 6; icol += 1
+            irow -= (len(self.levels)+1); icol += 1
 
         Label(root, text="").grid(sticky="W", padx=20, row=irow, column=icol); icol += 1
 
-        irow += 5
+        irow += len(self.levels)
         icol -= 11
 
         singleLevelVars = {
+                        'ps': 'Surface pressure',
                         'psl': 'Mean sea level pressure',
+                        'pr': 'Precipitation',
+                        'tas': 'Surface mean temperature',
+                        'tasmax': 'Surface maximum temperature',
+                        'tasmin': 'Surface minimum temperature',
                         'clt': 'Cloud cover',
+                        'rsds': 'Surface Downwelling Shortwave Radiation',
+                        'rlds': 'Surface Downwelling Longwave Radiation',
                         'uas': 'Surface eastward wind component',
                         'vas': 'Surface northward wind component',
-                        'tas': 'Surface mean temperature',
+                        'sfcWind': 'Surface wind speed',
                         'hurs': 'Surface relative humidity',
                         'K': 'K instability index',
                         'TT': 'Total Totals instability index',
@@ -972,15 +979,49 @@ class framePredictorsClass(ttk.Frame):
         nrows = 0
         for pred in singleLevelVars:
             irow, icol, nrows = add_chk_bt_singleLevels(self.preds, pred, irow, icol, nrows)
-        irow += 2
-        ttk.Label(root, text='').grid(column=icol, row=irow, pady=5)
+        irow += 3
+        tk.Label(root, text='').grid(column=icol, row=irow, pady=5)
+
+        if targetVar != 'SAFs':
+            irow+=1; icol-=8
+
+            # framePredictorsType
+            framePredictorsType = Frame(root)
+            framePredictorsType.grid(sticky="W", column=icol, row=irow, padx=padx, pady=0, columnspan=10)
+
+            predsType_options = {
+                'local': ['Local predictors', 'Predictors are interpolated from the four nearest neightbors.'],
+                'pca': ['PCAs', 'Predictors are transformed with spatial Principal Component Analysis.'],
+            }
+
+            try:
+                if predsType_targetVars_dict[targetVar] == 'local':
+                    last_type = 'local'
+                elif predsType_targetVars_dict[targetVar] == 'pca':
+                    last_type = 'pca'
+                else:
+                    print('Invalid option for type or predictors. Forced to \'local\'')
+                    last_type = 'local'
+            except:
+                last_type = 'local'
+
+            self.predictorsType_option = StringVar()
+            for predsType_opt in predsType_options:
+                c5 = Radiobutton(framePredictorsType, text=predsType_options[predsType_opt][0], variable=self.predictorsType_option, value=predsType_opt, takefocus=False)
+                c5.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); icol+=1
+                CreateToolTip(c5, predsType_options[predsType_opt][1])
+                self.predictorsType_option.set(last_type)
+
 
     def get(self):
-        return self.preds
+        try:
+            return self.preds, self.predictorsType_option
+        except:
+            return self.preds
 
 
 ########################################################################################################################
-class frameTargetVarInfoClass(ttk.Frame):
+class frameTargetVarInfoClass(tk.Frame):
 
     def __init__(self, notebook, root, targetVar):
 
@@ -988,7 +1029,7 @@ class frameTargetVarInfoClass(ttk.Frame):
         irow = 0
         entriesW = 17
 
-        self.chk = {'hresPeriodFilename': tk.StringVar()}
+        self.chk = {}
 
         # try:
         #     isMyTargetVar = (targetVar == myTargetVar)
@@ -1003,14 +1044,13 @@ class frameTargetVarInfoClass(ttk.Frame):
                     'myTargetVarMaxAllowed': tk.StringVar(),
                     'myTargetVarUnits': tk.StringVar(),
                     # 'myTargetVarIsGaussian': tk.StringVar(),
-                    # 'treatAsAdditiveBy_DQM_and_QDM': tk.StringVar(),
                     'myTargetVarIsAdditive': tk.StringVar(),
                     })
 
         if isMyTargetVar == True:
             # myTargetVarName
             Label(root, text='Name:').grid(sticky="NE", column=icol, row=irow, padx=10); icol+=1
-            myTargetVarName_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarName'], width=entriesW, justify='right', takefocus=False)
+            myTargetVarName_Entry = ttk.Entry(root, textvariable=self.chk['myTargetVarName'], width=entriesW, justify='right', takefocus=False)
             try:
                 myTargetVarName_Entry.insert(END, str(myTargetVarName))
             except:
@@ -1023,7 +1063,7 @@ class frameTargetVarInfoClass(ttk.Frame):
             except:
                 reaName = ''
             Label(root, text='Name in reanalysis netCDF:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            reaName_Entry = tk.Entry(root, textvariable=self.chk['reaName'], width=entriesW, justify='right', takefocus=False)
+            reaName_Entry = ttk.Entry(root, textvariable=self.chk['reaName'], width=entriesW, justify='right', takefocus=False)
             reaName_Entry.insert(END, reaName)
             reaName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
 
@@ -1033,26 +1073,15 @@ class frameTargetVarInfoClass(ttk.Frame):
             except:
                 modName = ''
             Label(root, text='Name in models netCDFs:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            modName_Entry = tk.Entry(root, textvariable=self.chk['modName'], width=entriesW, justify='right', takefocus=False)
+            modName_Entry = ttk.Entry(root, textvariable=self.chk['modName'], width=entriesW, justify='right', takefocus=False)
             modName_Entry.insert(END, modName)
             modName_Entry.grid(sticky="W", column=icol, row=irow); irow+=1; icol-=1
-
-
-        # hresPeriodFilename
-        Label(root, text='Hres period filename:').grid(sticky="NE", column=icol, row=irow, padx=10); icol+=1
-        hresPeriodFilename_Entry = tk.Entry(root, textvariable=self.chk['hresPeriodFilename'], width=entriesW, justify='right', takefocus=False)
-        try:
-            hresPeriodFilename_Entry.insert(END, hresPeriodFilename[targetVar])
-        except:
-            hresPeriodFilename_Entry.insert(END, '')
-        hresPeriodFilename_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
 
         if isMyTargetVar == True:
 
             # myTargetVarMinAllowed
             Label(root, text='Minimum value:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            myTargetVarMinAllowed_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarMinAllowed'], width=entriesW, justify='right', takefocus=False)
+            myTargetVarMinAllowed_Entry = ttk.Entry(root, textvariable=self.chk['myTargetVarMinAllowed'], width=entriesW, justify='right', takefocus=False)
             try:
                 myTargetVarMinAllowed_Entry.insert(END, str(myTargetVarMinAllowed))
             except:
@@ -1061,7 +1090,7 @@ class frameTargetVarInfoClass(ttk.Frame):
 
             # myTargetVarMaxAllowed
             Label(root, text='Maximum value:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            myTargetVarMaxAllowed_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarMaxAllowed'], width=entriesW, justify='right', takefocus=False)
+            myTargetVarMaxAllowed_Entry = ttk.Entry(root, textvariable=self.chk['myTargetVarMaxAllowed'], width=entriesW, justify='right', takefocus=False)
             try:
                 myTargetVarMaxAllowed_Entry.insert(END, str(myTargetVarMaxAllowed))
             except:
@@ -1070,7 +1099,7 @@ class frameTargetVarInfoClass(ttk.Frame):
 
             # myTargetVarUnits
             Label(root, text='Units:').grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            myTargetVarUnits_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarUnits'], width=entriesW, justify='right', takefocus=False)
+            myTargetVarUnits_Entry = ttk.Entry(root, textvariable=self.chk['myTargetVarUnits'], width=entriesW, justify='right', takefocus=False)
             try:
                 myTargetVarUnits_Entry.insert(END, str(myTargetVarUnits))
             except:
@@ -1081,7 +1110,7 @@ class frameTargetVarInfoClass(ttk.Frame):
             l = Label(root, text='Additive (A) / Multiplicative (M):')
             l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
             CreateToolTip(l, 'Indicate whether biases and future change should be additive (A) or muliplicative (M)')
-            myTargetVarIsAdditive_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarIsAdditive'], width=entriesW, justify='right', takefocus=False)
+            myTargetVarIsAdditive_Entry = ttk.Entry(root, textvariable=self.chk['myTargetVarIsAdditive'], width=entriesW, justify='right', takefocus=False)
             try:
                 if str(myTargetVarIsAdditive) == 'True':
                     aux = 'A'
@@ -1096,33 +1125,19 @@ class frameTargetVarInfoClass(ttk.Frame):
             # l = Label(root, text='Is gaussian:')
             # l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
             # CreateToolTip(l, 'Set to True if your variable is gaussian and to False otherwise')
-            # myTargetVarIsGaussian_Entry = tk.Entry(root, textvariable=self.chk['myTargetVarIsGaussian'], width=entriesW, justify='right', takefocus=False)
+            # myTargetVarIsGaussian_Entry = ttk.Entry(root, textvariable=self.chk['myTargetVarIsGaussian'], width=entriesW, justify='right', takefocus=False)
             # try:
             #     myTargetVarIsGaussian_Entry.insert(END, str(myTargetVarIsGaussian))
             # except:
             #     myTargetVarIsGaussian_Entry.insert(END, '')
             # myTargetVarIsGaussian_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
 
-            # # treatAsAdditiveBy_DQM_and_QDM
-            # l = Label(root, text='Additive DQM/QDM:')
-            # l.grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            # CreateToolTip(l, 'Set to True if your variable should be bias corrected additive when using DQM/QDM and to False otherwise\n'
-            #                  'True is recommended in general, unless your variable is similar to precipitation, with a nongaussian\n'
-            #                  'distribution and many zeros.')
-            # treatAsAdditiveBy_DQM_and_QDM_Entry = tk.Entry(root, textvariable=self.chk['treatAsAdditiveBy_DQM_and_QDM'], width=entriesW, justify='right', takefocus=False)
-            # try:
-            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, str(treatAsAdditiveBy_DQM_and_QDM))
-            # except:
-            #     treatAsAdditiveBy_DQM_and_QDM_Entry.insert(END, '')
-            # treatAsAdditiveBy_DQM_and_QDM_Entry.grid(sticky="W", column=icol, row=irow); icol-=1; irow+=1
-
-
     def get(self):
         return self.chk
 
 
 ########################################################################################################################
-class frameMethodsClass(ttk.Frame):
+class frameMethodsClass(tk.Frame):
 
     def __init__(self, notebook, root, targetVar, isGaussian=True):
 
@@ -1132,7 +1147,8 @@ class frameMethodsClass(ttk.Frame):
             disabled_methods = ['MLR', 'MLR-ANA', 'MLR-WT']
         else:
             disabled_methods = ['GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
-            if targetVar == 'myTargetVar' and isGaussian != True:
+            gaussian_variables = ['tasmax', 'tasmin', 'tas', 'uas', 'vas', 'psl', 'ps', ]
+            if (targetVar == 'myTargetVar' and isGaussian != True):
                 disabled_methods.append('PSDM')
                 disabled_methods.append('WG-PDF')
 
@@ -1178,24 +1194,24 @@ class frameMethodsClass(ttk.Frame):
         # Functions for selecting/deselecting all
         buttonWidth = 8
         icol, irow = 0, 0
-        ttk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0); icol += 1; irow += 1
-        ttk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
+        tk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0); icol += 1; irow += 1
+        tk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
 
         # Raw
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
 
         # Model Output Statistics
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(root, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        tk.Label(root, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol += 1; irow -= 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol -= 1; irow += 1
 
         # Analogs / Weather Typing
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(root, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        tk.Label(root, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
@@ -1207,8 +1223,8 @@ class frameMethodsClass(ttk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
 
         # Linear methods
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(root, text="Linear methods:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        tk.Label(root, text="Linear methods:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-ANA', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Analogs', icol, irow); icol += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); irow += 1; icol-=2
@@ -1217,8 +1233,8 @@ class frameMethodsClass(ttk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
 
         # Machine Learning
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        ttk.Label(root, text="Machine Learning:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        tk.Label(root, text="Machine Learning:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol += 1; irow -= 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
@@ -1227,14 +1243,14 @@ class frameMethodsClass(ttk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
 
         # Weather Generators
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
-        ttk.Label(root, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
+        tk.Label(root, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); icol += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol -= 1; irow+=1
 
         # Select/deselect all
-        # ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        frameButons = ttk.Frame(root)
+        # tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        frameButons = tk.Frame(root)
         frameButons.grid(column=icol, row=irow, padx=10, pady=20, columnspan=3)
         Button(frameButons, text='Select all', command=select_all, width=buttonWidth, takefocus=False).grid(column=0, row=0)
         Button(frameButons, text='Deselect all', command=deselect_all, width=buttonWidth, takefocus=False).grid(column=1, row=0)
@@ -1245,7 +1261,7 @@ class frameMethodsClass(ttk.Frame):
 
 
 ########################################################################################################################
-class frameClimdexClass(ttk.Frame):
+class frameClimdexClass(tk.Frame):
 
     def __init__(self, notebook, root, targetVar):
 
@@ -1371,8 +1387,106 @@ class frameClimdexClass(ttk.Frame):
             'hurs': {
                 'HRm': 'Mean relative humidity',
             },
+            'huss': {
+                'HUSSm': 'Mean specific humidity',
+                'HUSSx': 'Maximum specific humidity',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
             'clt': {
                 'CLTm': 'Mean cloud cover',
+            },
+            'rsds': {
+                'RSDSm': 'Mean Surface Downwelling Shortwave Radiation',
+                'RSDSx': 'Maximum Surface Downwelling Shortwave Radiation',
+                'RSDSn': 'Minimum Surface Downwelling Shortwave Radiation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'rlds': {
+                'RLDSm': 'Mean Surface Downwelling Longwave Radiation',
+                'RLDSx': 'Maximum Surface Downwelling Longwave Radiation',
+                'RLDSn': 'Minimum Surface Downwelling Longwave Radiation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'evspsbl': {
+                'Em': 'Evaporation',
+                'Ex': 'Evaporation',
+                'En': 'Evaporation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'evspsblpot': {
+                'EPm': 'Potential Evaporation',
+                'EPx': 'Potential Evaporation',
+                'EPn': 'Potential Evaporation',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'psl': {
+                'PSLm': 'Sea Level Pressure',
+                'PSLx': 'Sea Level Pressure',
+                'PSLn': 'Sea Level Pressure',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'ps': {
+                'PSm': 'Surface Pressure',
+                'PSx': 'Surface Pressure',
+                'PSn': 'Surface Pressure',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'mrro': {
+                'RUNOFFm': 'Mean Runoff',
+                'RUNOFFx': 'Maximum Runoff',
+                'RUNOFFn': 'Minimum Runoff',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
+            },
+            'mrso': {
+                'SOILMOISTUREm': 'Mean Soil Water Content',
+                'SOILMOISTUREx': 'Maximum Soil Water Content',
+                'SOILMOISTUREn': 'Minimum Soil Water Content',
+                'p99': '99th percentile',
+                'p95': '95th percentile',
+                'p90': '90th percentile',
+                'p10': '10th percentile',
+                'p5': '5th percentile',
+                'p1': '1st percentile',
             },
             'myTargetVar': {
                 'm': 'Mean value',
@@ -1395,8 +1509,8 @@ class frameClimdexClass(ttk.Frame):
 
         irow, icol = 0, 0
 
-        ttk.Label(root, text="").grid(column=icol, row=irow, padx=30, pady=0); icol += 1; irow += 1
-        ttk.Label(root, text='Climdex') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
+        tk.Label(root, text="").grid(column=icol, row=irow, padx=30, pady=0); icol += 1; irow += 1
+        tk.Label(root, text='Climdex') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
 
         nrows = 1
         colJumps = 0
@@ -1407,7 +1521,7 @@ class frameClimdexClass(ttk.Frame):
         irow = 18; icol -= colJumps
 
         # Select/deselect all
-        ttk.Label(root, text="").grid(sticky="W", column=icol, row=irow, pady=0); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, pady=0); irow += 1
 
         Button(root, text='Select all', command=select_all, width=buttonWidth, takefocus=False).grid(
             sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
@@ -1419,12 +1533,12 @@ class frameClimdexClass(ttk.Frame):
 
 
 ########################################################################################################################
-class tabTasmax(ttk.Frame):
+class tabTasmax(tk.Frame):
 
     def __init__(self, notebook):
         targetVar = 'tasmax'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='T1')
         # notebook.add(tab, text='Temperature: max')
 
         frames = []
@@ -1439,28 +1553,28 @@ class tabTasmax(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1474,12 +1588,12 @@ class tabTasmax(ttk.Frame):
 
 
 ########################################################################################################################
-class tabTasmin(ttk.Frame):
+class tabTasmin(tk.Frame):
 
     def __init__(self, notebook):
         targetVar = 'tasmin'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='T2')
         # notebook.add(tab, text='Temperature: min')
 
 
@@ -1495,28 +1609,28 @@ class tabTasmin(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1530,12 +1644,12 @@ class tabTasmin(ttk.Frame):
 
 
 ########################################################################################################################
-class tabTas(ttk.Frame):
+class tabTas(tk.Frame):
 
     def __init__(self, notebook):
         targetVar = 'tas'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='T3')
         # notebook.add(tab, text='Temperature: mean')
 
 
@@ -1551,28 +1665,28 @@ class tabTas(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1587,13 +1701,13 @@ class tabTas(ttk.Frame):
 
 
 ########################################################################################################################
-class tabPr(ttk.Frame):
+class tabPr(tk.Frame):
 
     def __init__(self, notebook):
 
         targetVar = 'pr'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='P')
         # notebook.add(tab, text='Precipitation')
 
 
@@ -1609,28 +1723,28 @@ class tabPr(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1644,13 +1758,13 @@ class tabPr(ttk.Frame):
 
 
 ########################################################################################################################
-class tabUas(ttk.Frame):
+class tabUas(tk.Frame):
 
     def __init__(self, notebook):
 
         targetVar = 'uas'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='W1 ')
         # notebook.add(tab, text='Wind: u')
 
 
@@ -1666,28 +1780,28 @@ class tabUas(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1701,13 +1815,13 @@ class tabUas(ttk.Frame):
 
 
 ########################################################################################################################
-class tabVas(ttk.Frame):
+class tabVas(tk.Frame):
 
     def __init__(self, notebook):
 
         targetVar = 'vas'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='W2')
         # notebook.add(tab, text='Wind: v')
 
 
@@ -1723,28 +1837,28 @@ class tabVas(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1757,13 +1871,13 @@ class tabVas(ttk.Frame):
         return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
 
 ########################################################################################################################
-class tabSfcWind(ttk.Frame):
+class tabSfcWind(tk.Frame):
 
     def __init__(self, notebook):
 
         targetVar = 'sfcWind'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='W3')
         # notebook.add(tab, text='Wind: speed')
 
 
@@ -1779,28 +1893,28 @@ class tabSfcWind(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1814,13 +1928,13 @@ class tabSfcWind(ttk.Frame):
 
 
 ########################################################################################################################
-class tabHurs(ttk.Frame):
+class tabHurs(tk.Frame):
 
     def __init__(self, notebook):
 
         targetVar = 'hurs'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='H1')
         # notebook.add(tab, text='Humidity')
 
 
@@ -1836,28 +1950,28 @@ class tabHurs(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1871,18 +1985,71 @@ class tabHurs(ttk.Frame):
 
 
 ########################################################################################################################
-class tabClt(ttk.Frame):
+class tabHuss(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'huss'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='H2')
+        # notebook.add(tab, text='Humidity')
+
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Specific Humidity', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabClt(tk.Frame):
 
     def __init__(self, notebook):
 
         targetVar = 'clt'
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=targetVar)
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='R1')
         # notebook.add(tab, text='Clouds')
-
-        irow, icol = 0, 0
-        Label(tab, text="Cloud Cover").grid(column=icol, row=irow, padx=100, pady=(20, 0), columnspan=100); irow+=1
-
 
         frames = []
 
@@ -1896,28 +2063,28 @@ class tabClt(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
         self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -1931,11 +2098,461 @@ class tabClt(ttk.Frame):
 
 
 ########################################################################################################################
-class tabMyTargetVar(ttk.Frame):
+class tabRsds(tk.Frame):
 
     def __init__(self, notebook):
 
-        tab = ttk.Frame(notebook)
+        targetVar = 'rsds'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='R2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Surface Downwelling Shortwave Radiation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabRlds(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'rlds'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='R3')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Surface Downwelling Longwave Radiation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabEvspsbl(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'evspsbl'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='E1')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Evaporation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabEvspsblpot(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'evspsblpot'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='E2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Potential Evaporation', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+
+########################################################################################################################
+class tabPsl(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'psl'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='PS1')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Sea Level Pressure', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabPs(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'ps'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='PS2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Surface Pressure', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabMrro(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'mrro'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='S1')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Total Runoff', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+
+########################################################################################################################
+class tabMrso(tk.Frame):
+
+    def __init__(self, notebook):
+
+        targetVar = 'mrso'
+        tab = tk.Frame(notebook)
+        notebook.add(tab, text='S2')
+        # notebook.add(tab, text='')
+
+        frames = []
+
+        # Enable/disable targetVar
+        irow, icol = 0, 0
+        self.targetVar_active_var = tk.BooleanVar(value=False)
+        if targetVar in targetVars:
+            self.targetVar_active_var = tk.BooleanVar(value=True)
+        c = Checkbutton(tab, text='Soil Water Content', variable=self.targetVar_active_var,
+                        command=lambda: enable(self.targetVar_active_var.get(), frames), takefocus=False)
+        c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
+
+        # framePredictors
+        framePredictors = tk.Frame(tab)
+        frames.append(framePredictors)
+        framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
+        self.predictors_chk_list = []
+        self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, targetVar).get()
+
+        # frameTargetVarInfo
+        frameTargetVarInfo = tk.Frame(tab)
+        frames.append(frameTargetVarInfo)
+        frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
+        self.TargetVarInfo_chk_list = []
+        self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, targetVar).get()
+
+        # frameMethods
+        frameMethods = tk.Frame(tab)
+        frames.append(frameMethods)
+        frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
+        self.methods_chk_list = []
+        self.methods_chk_list = frameMethodsClass(notebook, frameMethods, targetVar).get()
+
+        # frameClimdex
+        frameClimdex = tk.Frame(tab)
+        frames.append(frameClimdex)
+        frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
+        self.Climdex_chk_list = []
+        self.Climdex_chk_list = frameClimdexClass(notebook, frameClimdex, targetVar).get()
+
+        # Enabled/disbled by default
+        enable(targetVar in targetVars, frames)
+
+    def get(self):
+        return self.targetVar_active_var, self.methods_chk_list, self.predictors_chk_list, self.TargetVarInfo_chk_list, self.Climdex_chk_list
+
+
+########################################################################################################################
+class tabMyTargetVar(tk.Frame):
+
+    def __init__(self, notebook):
+
+        tab = tk.Frame(notebook)
         notebook.add(tab, text='myTargetVar')
 
         try:
@@ -1948,7 +2565,6 @@ class tabMyTargetVar(ttk.Frame):
             if methods[i]['var'] == myTargetVar:
                 methods[i]['var'] = 'myTargetVar'
         try:
-            hresPeriodFilename['myTargetVar'] = hresPeriodFilename.pop(myTargetVar)
             preds_dict['myTargetVar'] = preds_dict.pop(myTargetVar)
             climdex_names['myTargetVar'] = climdex_names.pop(myTargetVar)
         except:
@@ -1965,21 +2581,21 @@ class tabMyTargetVar(ttk.Frame):
         c.grid(column=icol, row=irow, padx=(100), pady=(20, 0), columnspan=100); irow+=1
 
         # framePredictors
-        framePredictors = ttk.Frame(tab)
+        framePredictors = tk.Frame(tab)
         frames.append(framePredictors)
         framePredictors.grid(row=irow, column=icol, sticky='n', padx=(40, 0))
         self.predictors_chk_list = []
         self.predictors_chk_list = framePredictorsClass(notebook, framePredictors, 'myTargetVar').get()
 
         # frameTargetVarInfo
-        frameTargetVarInfo = ttk.Frame(tab)
+        frameTargetVarInfo = tk.Frame(tab)
         frames.append(frameTargetVarInfo)
         frameTargetVarInfo.grid(row=irow+1, column=icol, sticky='n')
         self.TargetVarInfo_chk_list = []
         self.TargetVarInfo_chk_list = frameTargetVarInfoClass(notebook, frameTargetVarInfo, 'myTargetVar').get()
 
         # frameMethods
-        frameMethods = ttk.Frame(tab)
+        frameMethods = tk.Frame(tab)
         frames.append(frameMethods)
         frameMethods.grid(row=irow, column=icol+1, sticky='n', rowspan=2)
         self.methods_chk_list = []
@@ -1990,7 +2606,7 @@ class tabMyTargetVar(ttk.Frame):
 
 
         # frameClimdex
-        frameClimdex = ttk.Frame(tab)
+        frameClimdex = tk.Frame(tab)
         frames.append(frameClimdex)
         frameClimdex.grid(row=irow, column=icol+2, sticky='n', rowspan=2)
         self.Climdex_chk_list = []
@@ -2004,10 +2620,10 @@ class tabMyTargetVar(ttk.Frame):
 
 
 ########################################################################################################################
-class tabFigures(ttk.Frame):
+class tabFigures(tk.Frame):
 
     def __init__(self, notebook):
-        tabFigures = ttk.Frame(notebook)
+        tabFigures = tk.Frame(notebook)
         notebook.add(tabFigures, text='Figures')
 
         def open_figure(imgs):
@@ -2117,6 +2733,7 @@ class tabFigures(ttk.Frame):
                                              'one value per grid point.',
             'EVALUATION_varianceBoxplot': 'Bias (relative, %) in the variance of the daily series (downscaled and '
                                           'observed) by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_spatialCorrBoxplot': 'Spatial correlation of the daily maps. Each box contains one value per day.',
             'EVALUATION_qqPlot': 'QQ-plot for one variable by one method vs. observations.',
             'EVALUATION_r2Map': 'R2 score of the daily series (coefficient of determination) by one method.',
             'EVALUATION_rmseMap': 'RMSE of the daily series by one method.',
@@ -2127,8 +2744,14 @@ class tabFigures(ttk.Frame):
                                                 'tmax/tmin and Spearman for pcp.',
             'EVALUATION_r2MapMonthly': 'R2 score (coefficient of determination)  for the monthly (mean for tmax/tmin '
                                        'and accumulated for pcp) series by one method with observations. ',
+            'EVALUATION_correlationBoxplotMonthly': 'Correlation for the monthly (mean for tmax/tmin and accumulated for '
+                                                'pcp) series by one method with observations.',
+            'EVALUATION_R2BoxplotMonthly': 'R2 score (coefficient of determination) for the monthly (mean for tmax/tmin '
+                                       'and accumulated for pcp) series by one method with observations.',
             'EVALUATION_biasClimdexBoxplot': 'Bias (absolute/relative) for the mean climdex in the whole testing period '
                                              'by all methods. Boxes contain one value per grid point.',
+            'EVALUATION_TaylorDiagram': 'Taylor Diagram of the spatial distribution for the mean climdex in the whole '
+                                        'testing period by all methods.',
             'EVALUATION_obsMap': 'Mean observed values in the whole period.',
             'EVALUATION_estMap': 'Mean estimated (downscaled) values in the whole period by one method.',
             'EVALUATION_biasMap': 'Bias (absolute/relative) in the whole period by one method.',
@@ -2198,12 +2821,13 @@ class tabFigures(ttk.Frame):
                                     seasons.append(file.split('_')[5].replace('.png', ''))
 
                             # sort seasons
-                            ordered_seasons = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
-                            aux = ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON', 'None']
-                            for sea in ordered_seasons:
-                                if sea not in seasons:
-                                    aux.remove(sea)
-                            seasons = aux
+                            for sorted_seasons in (
+                                    ['ANNUAL', 'DJF', 'MAM', 'JJA', 'SON'],
+                                   ['ANNUAL', 'DJFM', 'A', 'MJJ', 'ASO', 'N'],
+                                   ):
+                                if set(seasons) == set(sorted_seasons):
+                                    seasons = sorted_seasons
+                                    break
                             self.seasonVar = tk.StringVar()
                             combobox = ttk.Combobox(frameFigSelection, textvariable=self.seasonVar)
                             combobox['values'] = seasons
@@ -2329,7 +2953,10 @@ class selectionWindow():
 
         # Root menu
         root = tk.Tk()
-        root.title("pyClim-SDM")
+        for file in os.listdir('../doc/'):
+            if file.startswith('User_Manual_'):
+                version = file.split('.')[0].split('_')[-1]
+        root.title("pyClim-SDM " + version)
         rootW, rootH = 1280, 620
         root.minsize(rootW, rootH )
         root.maxsize(rootW, rootH )
@@ -2347,9 +2974,8 @@ class selectionWindow():
             self.reanalysisName_var_chk = tabModelsAndScenes(notebook).get()
 
         # Tab: dates
-        self.calibration_years_chk, self.reference_years_chk, self.historical_years_chk, self.ssp_years_chk, self.bc_option_chk, \
-            self.bc_method_chk, self.testing_years_dict_chk, self.reanalysisPeriodFilename_var_chk, self.historicalPeriodFilename_var_chk, \
-            self.sspPeriodFilename_var_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
+        self.calibration_years_chk, self.reference_years_chk, self.bc_option_chk, \
+            self.bc_method_chk, self.testing_years_dict_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
 
         # Tab: domain
         self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, self.saf_lon_right_var_chk, \
@@ -2373,13 +2999,34 @@ class selectionWindow():
         self.targetVars_dict.update({'sfcWind': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabHurs(notebook).get()
         self.targetVars_dict.update({'hurs': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabHuss(notebook).get()
+        self.targetVars_dict.update({'huss': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabClt(notebook).get()
         self.targetVars_dict.update({'clt': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabRsds(notebook).get()
+        self.targetVars_dict.update({'rsds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabRlds(notebook).get()
+        self.targetVars_dict.update({'rlds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabEvspsbl(notebook).get()
+        self.targetVars_dict.update({'evspsbl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabEvspsblpot(notebook).get()
+        self.targetVars_dict.update({'evspsblpot': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabPsl(notebook).get()
+        self.targetVars_dict.update({'psl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabPs(notebook).get()
+        self.targetVars_dict.update({'ps': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabMrro(notebook).get()
+        self.targetVars_dict.update({'mrro': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        aux = tabMrso(notebook).get()
+        self.targetVars_dict.update({'mrso': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+
         aux = tabMyTargetVar(notebook).get()
         self.targetVars_dict.update({'myTargetVar': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
 
         # Tab: visualization
         tabFigures(notebook)
+
+
 
         # Logo
         w = 120
@@ -2423,14 +3070,16 @@ class selectionWindow():
             # Force to select at least one pred
             self.selected_all_preds = []
             self.preds_targetVars_dict = {}
+            self.predsType_targetVars_dict = {}
             for x in self.targetVars_dict:
                 aux = []
-                for pred in self.targetVars_dict[x]['preds']:
-                    if self.targetVars_dict[x]['preds'][pred].get() == True:
+                for pred in self.targetVars_dict[x]['preds'][0]:
+                    if self.targetVars_dict[x]['preds'][0][pred].get() == True:
                         self.selected_all_preds.append(pred)
                         aux.append(pred)
                 if len(aux) != 0:
                     self.preds_targetVars_dict.update({x: aux})
+                    self.predsType_targetVars_dict.update({x: self.targetVars_dict[x]['preds'][1].get()})
             if self.all_checks_ok == True:
                 if len(self.selected_all_preds) == 0:
                     self.all_checks_ok = False
@@ -2457,9 +3106,7 @@ class selectionWindow():
                 if targetVar == 'myTargetVar':
                     targetVarName = self.targetVars_dict[targetVar]['info']['myTargetVarName'].get()
                 if self.all_checks_ok == True:
-                    aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
-                    if not os.path.isfile(pathHres + targetVarName + '_hres_metadata.txt') or \
-                            not os.path.isfile(pathHres + targetVarName + '_'+aux+'.txt'):
+                    if not os.path.isfile(pathHres + targetVarName + '_hres_metadata.txt'):
                         messagebox.showerror("pyClim-SDM",  'Missing hres data for variable ' + targetVarName + '.\n'
                            'Remove ' + targetVarName + ' from your selection or prepare the input_data/hres/ directory properly.')
                         self.all_checks_ok = False
@@ -2483,102 +3130,6 @@ class selectionWindow():
                         aux.append(method['methodName'])
                 if len(aux) != 0:
                     self.methods.update({targetVar: aux})
-
-            # Years
-            ini, end = [], []
-            for targetVar in self.targetVars:
-                aux = self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()
-                try:
-                    ini.append(int(aux.split('-')[0][:4]))
-                    end.append(int(aux.split('-')[1][:4]))
-                except:
-                    pass
-            ini = np.max(np.array(ini))
-            end = np.min(np.array(end))
-            self.aux_calibration_years = (int(self.calibration_years_chk[0].get()), int(self.calibration_years_chk[1].get()))
-            self.aux_reference_years = (int(self.reference_years_chk[0].get()), int(self.reference_years_chk[1].get()))
-            self.aux_historical_years = (int(self.historical_years_chk[0].get()), int(self.historical_years_chk[1].get()))
-            self.aux_ssp_years = (int(self.ssp_years_chk[0].get()), int(self.ssp_years_chk[1].get()))
-            self.all_years_hres = [x for x in range(ini, end+1)]
-            self.all_years_reanalysis = [x for x in range(int(self.reanalysisPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.reanalysisPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            self.all_years_historical = [x for x in range(int(self.historicalPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.historicalPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-            self.all_years_ssp = [x for x in range(int(self.sspPeriodFilename_var_chk.get().split('-')[0][:4]),
-                                                    int(self.sspPeriodFilename_var_chk.get().split('-')[1][:4])+1)]
-
-            # Force calibration years
-            if self.all_checks_ok == True:
-                year = self.aux_calibration_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-            if self.all_checks_ok == True:
-                year = self.aux_calibration_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Calibration years not available by reanalysis or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force reference years
-            if self.all_checks_ok == True:
-                year = self.aux_reference_years[0]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-            if self.all_checks_ok == True:
-                year = self.aux_reference_years[1]
-                if year not in self.all_years_hres or year not in self.all_years_reanalysis \
-                        or year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Reference years not available by reanalysis, historical GCMs or hres data.\n"
-                                                           "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force historical years
-            if self.all_checks_ok == True:
-                year = self.aux_historical_years[0]
-                if year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_historical_years[1]
-                if year not in self.all_years_historical:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM",  "Historical years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
-            # Force ssp years
-            if self.all_checks_ok == True:
-                year = self.aux_ssp_years[0]
-                if year not in self.all_years_ssp:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-                year = self.aux_ssp_years[1]
-                if year not in self.all_years_ssp:
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM", "SSP years selection out of file content.\n"
-                                                       "Please, modify your selection.")
-                else:
-                    self.all_checks_ok = True
-
 
             # seasons
             if self.all_checks_ok == True:
@@ -2636,24 +3187,12 @@ class selectionWindow():
                 # Years
                 self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
                 self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
-                self.historical_years = (self.historical_years_chk[0].get(), self.historical_years_chk[1].get())
-                self.ssp_years = (self.ssp_years_chk[0].get(), self.ssp_years_chk[1].get())
 
                 # split_mode and testing years
                 self.split_mode = self.split_mode_chk.get()
                 self.single_split_testing_years = (
                     self.testing_years_dict_chk['single_split'][0].get(),
                     self.testing_years_dict_chk['single_split'][1].get())
-                self.fold1_testing_years = (
-                    self.testing_years_dict_chk['fold1'][0].get(), self.testing_years_dict_chk['fold1'][1].get())
-                self.fold2_testing_years = (
-                    self.testing_years_dict_chk['fold2'][0].get(), self.testing_years_dict_chk['fold2'][1].get())
-                self.fold3_testing_years = (
-                    self.testing_years_dict_chk['fold3'][0].get(), self.testing_years_dict_chk['fold3'][1].get())
-                self.fold4_testing_years = (
-                    self.testing_years_dict_chk['fold4'][0].get(), self.testing_years_dict_chk['fold4'][1].get())
-                self.fold5_testing_years = (
-                    self.testing_years_dict_chk['fold5'][0].get(), self.testing_years_dict_chk['fold5'][1].get())
 
                 # grid_res
                 self.grid_res = self.grid_res_var_chk.get()
@@ -2687,15 +3226,7 @@ class selectionWindow():
                     for scene in otherScenes.split(';'):
                         self.scene_names_list.append(scene)
 
-                # period filenames
-                self.hresPeriodFilename = {}
-                for targetVar in self.targetVars:
-                    self.hresPeriodFilename.update({targetVar: self.targetVars_dict[targetVar]['info']['hresPeriodFilename'].get()})
                 self.reanalysisName = self.reanalysisName_var_chk.get()
-                self.reanalysisPeriodFilename = self.reanalysisPeriodFilename_var_chk.get()
-                self.historicalPeriodFilename = self.historicalPeriodFilename_var_chk.get()
-                self.sspPeriodFilename = self.sspPeriodFilename_var_chk.get()
-
 
                 # reaNames and modNames
                 for var in self.reaNames:
@@ -2737,7 +3268,6 @@ class selectionWindow():
                         self.myTargetVarIsAdditive = True
                     else:
                         self.myTargetVarIsAdditive = False
-                    # self.treatAsAdditiveBy_DQM_and_QDM = info['treatAsAdditiveBy_DQM_and_QDM'].get()
                     self.reaNames.update({'myTargetVar': self.myTargetReaName})
                     self.modNames.update({'myTargetVar': self.myTargetModName})
                 else:
@@ -2749,7 +3279,6 @@ class selectionWindow():
                     self.myTargetVarUnits = ''
                     # self.myTargetVarIsGaussian = False
                     self.myTargetVarIsAdditive = False
-                    # self.treatAsAdditiveBy_DQM_and_QDM = False
                 if self.myTargetVarMinAllowed == '':
                     self.myTargetVarMinAllowed = None
                 if self.myTargetVarMaxAllowed == '':
@@ -2761,20 +3290,9 @@ class selectionWindow():
                 # print(self.methods)
                 # print(self.calibration_years)
                 # print(self.single_split_testing_years)
-                # print(self.fold1_testing_years)
-                # print(self.fold2_testing_years)
-                # print(self.fold3_testing_years)
-                # print(self.fold4_testing_years)
-                # print(self.fold5_testing_years)
                 # print(self.split_mode)
                 # print(self.reference_years)
-                # print(self.historical_years)
-                # print(self.ssp_years)
-                # print(self.hresPeriodFilename)
                 # print(self.reanalysisName)
-                # print(self.reanalysisPeriodFilename)
-                # print(self.historicalPeriodFilename)
-                # print(self.sspPeriodFilename)
                 # print(self.grid_res)
                 # print(self.saf_lat_up)
                 # print(self.saf_lat_down)
@@ -2783,6 +3301,7 @@ class selectionWindow():
                 # print(self.reaNames)
                 # print(self.modNames)
                 # print(self.preds_targetVars_dict)
+                # print(self.predsType_targetVars_dict)
                 # print(self.saf_list)
                 # print(self.scene_names_list)
                 # print(self.model_names_list)
@@ -2795,24 +3314,19 @@ class selectionWindow():
                 # print(self.myTargetVarUnits)
                 # print(self.myTargetVarIsGaussian)
                 # print(self.myTargetVarIsAdditive)
-                # print(self.treatAsAdditiveBy_DQM_and_QDM)
                 # exit()
 
                 # Write settings file
                 write_settings_file(self.showWelcomeMessage, self.experiment, self.targetVars, self.steps, self.methods,
-                                    self.calibration_years, self.single_split_testing_years,
-                                    self.fold1_testing_years, self.fold2_testing_years, self.fold3_testing_years,
-                                    self.fold4_testing_years, self.fold5_testing_years, self.split_mode,
-                                    self.reference_years, self.historical_years, self.ssp_years,
-                                    self.hresPeriodFilename, self.reanalysisName, self.reanalysisPeriodFilename,
-                                    self.historicalPeriodFilename, self.sspPeriodFilename,
+                                    self.calibration_years, self.single_split_testing_years, self.split_mode,
+                                    self.reference_years, self.reanalysisName,
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
-                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
+                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.predsType_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
-                                    self.apply_bc, self.apply_bc_bySeason, self.bc_method,
+                                    self.apply_bc, self.apply_bc_bySeason, self.inverse_seasonNames, self.bc_method,
                                     self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
                                     self.myTargetVarUnits, self.myTargetVarIsAdditive,
-                                    # self.myTargetVarIsGaussian,self.treatAsAdditiveBy_DQM_and_QDM
+                                    # self.myTargetVarIsGaussian
                                     )
 
                 # Write tmp_main file
@@ -2838,19 +3352,15 @@ class selectionWindow():
 
 ########################################################################################################################
 def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, methods,
-                                calibration_years, single_split_testing_years,
-                                fold1_testing_years, fold2_testing_years, fold3_testing_years,
-                                fold4_testing_years, fold5_testing_years, split_mode,
-                                reference_years, historical_years, ssp_years,
-                                hresPeriodFilename, reanalysisName, reanalysisPeriodFilename,
-                                historicalPeriodFilename, sspPeriodFilename,
+                                calibration_years, single_split_testing_years, split_mode,
+                                reference_years, reanalysisName,
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
-                                reaNames, modNames, preds_targetVars_dict, saf_list,
+                                reaNames, modNames, preds_targetVars_dict, predsType_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
-                                apply_bc, apply_bc_bySeason, bc_method,
+                                apply_bc, apply_bc_bySeason, inverse_seasonNames, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
                                 myTargetVarUnits, myTargetVarIsAdditive,
-                                # myTargetVarIsGaussian, treatAsAdditiveBy_DQM_and_QDM
+                                # myTargetVarIsGaussian
                         ):
 
     """This function prepares a new settings file with the user selected options"""
@@ -2865,20 +3375,9 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("methods = " + str(methods) + "\n")
     f.write("calibration_years = (" + str(calibration_years[0]) + ", " + str(calibration_years[1]) + ")\n")
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
-    f.write("fold1_testing_years = (" + str(fold1_testing_years[0]) + ", " + str(fold1_testing_years[1]) + ")\n")
-    f.write("fold2_testing_years = (" + str(fold2_testing_years[0]) + ", " + str(fold2_testing_years[1]) + ")\n")
-    f.write("fold3_testing_years = (" + str(fold3_testing_years[0]) + ", " + str(fold3_testing_years[1]) + ")\n")
-    f.write("fold4_testing_years = (" + str(fold4_testing_years[0]) + ", " + str(fold4_testing_years[1]) + ")\n")
-    f.write("fold5_testing_years = (" + str(fold5_testing_years[0]) + ", " + str(fold5_testing_years[1]) + ")\n")
     f.write("split_mode = '" + str(split_mode) + "'\n")
     f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
-    f.write("historical_years = (" + str(historical_years[0]) + ", " + str(historical_years[1]) + ")\n")
-    f.write("ssp_years = (" + str(ssp_years[0]) + ", " + str(ssp_years[1]) + ")\n")
-    f.write("hresPeriodFilename = " + str(hresPeriodFilename) + "\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
-    f.write("reanalysisPeriodFilename = '" + str(reanalysisPeriodFilename) + "'\n")
-    f.write("historicalPeriodFilename = '" + str(historicalPeriodFilename) + "'\n")
-    f.write("sspPeriodFilename = '" + str(sspPeriodFilename) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
     f.write("saf_lon_left = " + str(saf_lon_left) + "\n")
@@ -2887,6 +3386,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("reaNames = " + str(reaNames) + "\n")
     f.write("modNames = " + str(modNames) + "\n")
     f.write("preds_targetVars_dict = " + str(preds_targetVars_dict) + "\n")
+    f.write("predsType_targetVars_dict = " + str(predsType_targetVars_dict) + "\n")
     f.write("saf_list = " + str(saf_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
     f.write("model_names_list = " + str(model_names_list) + "\n")
@@ -2902,8 +3402,6 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("myTargetVarUnits = '" + str(myTargetVarUnits) + "'\n")
     # f.write("myTargetVarIsGaussian = " + str(myTargetVarIsGaussian) + "\n")
     f.write("myTargetVarIsAdditive = " + str(myTargetVarIsAdditive) + "\n")
-    # f.write("treatAsAdditiveBy_DQM_and_QDM = " + str(treatAsAdditiveBy_DQM_and_QDM) + "\n")
-
 
     # Close f
     f.close()
