@@ -111,7 +111,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	longitude.long_name = "longitude"
 	longitude[:] = lons
 	var.units = units
-	var.long_name = varName
+	var.long_name = varName_hres_metadata+'_'+varName
 	var[:] = data
 
 	# # print(nc)
