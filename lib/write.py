@@ -77,6 +77,9 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	timeVar[:] = date2num(times, units=timeVar.units, calendar=timeVar.calendar)
 
 	# Create lat/lon and data variable
+	varName_hres_metadata = varName.split('_')[0]
+	varName = '_'.join(varName.split('_')[1:])
+	
 	if regular_grid == True:
 		latitude = nc.createVariable(lat_name, 'f4', (lat_name))
 		longitude = nc.createVariable(lon_name, 'f4', (lon_name))
@@ -86,7 +89,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
 		# point[:] = range(len(lats))
-		ids = list(read.hres_metadata(varName)['id'].values)
+		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
 		ids = [str(i) for i in ids]
 		maxLenght = 0
 		for x in ids:
@@ -107,7 +110,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	longitude.long_name = "longitude"
 	longitude[:] = lons
 	var.units = units
-	var.long_name = varName
+	var.long_name = varName_hres_metadata+'_'+varName
 	var[:] = data
 
 	# # print(nc)
@@ -118,6 +121,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 
 	# Write to file
 	nc.close()
+
 
 ########################################################################################################################
 def netCDF_rotated(path, filename, varName, data, dates):
