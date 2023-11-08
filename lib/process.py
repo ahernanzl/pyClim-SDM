@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -61,9 +61,6 @@ def reanalisys(method_dict, scene, model):
         elif family == 'WG':
             down_scene_WG.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
             down_scene_WG.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
-        elif family == 'DEEP':
-            down_scene_DEEP.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
-            down_scene_DEEP.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
 
     # Parallel processing
     elif running_at_HPC == True:
@@ -114,9 +111,6 @@ def models(method_dict, scene, model):
             elif family == 'WG':
                 down_scene_WG.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
                 down_scene_WG.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
-            elif family == 'DEEP':
-                down_scene_DEEP.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
-                down_scene_DEEP.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
 
         # Parallel processing
         elif running_at_HPC == True:
@@ -125,11 +119,18 @@ def models(method_dict, scene, model):
                 for file in os.listdir('../job/'):
                     if file.endswith(".err"):
                         filename = os.path.join('../job/', file)
-                        filesize = os.path.getsize(filename)
-                        if filesize != 0:
+                        # filesize = os.path.getsize(filename)
+                        emptyFileErr = True
+                        f = open(filename, 'r')
+                        for line in f.readlines():
+                            if not line.startswith('[CIRRUSDESA-INFO -epilog]'):
+                                emptyFileErr = False
+                                break
+                        # if filesize != 0:
+                        if emptyFileErr == False:
                             jobid = filename.split('/')[-1].split('.')[0]
                             print('-----------------------')
-                            print(filename, filesize)
+                            # print(filename, filesize)
                             os.system('mv ' + filename + ' ../job/err/')
                             os.system('mv ' + filename[:-3]+'out ../job/err/')
                             os.system('scancel ' + str(jobid))
@@ -165,6 +166,8 @@ def downscale():
     Calls to downscale reanalysis or downscale models/scenes.
     """
 
+    iterable = []
+
     # Go through all methods
     for method_dict in methods:
 
@@ -178,5 +181,15 @@ def downscale():
                 if model == 'reanalysis':
                     reanalisys(method_dict, scene, model)
                 else:
-                    models(method_dict, scene, model)
+                    if runInParallel_multiprocessing == False:
+                        models(method_dict, scene, model)
+                    else:
+                        iterable.append([method_dict, scene, model])
 
+    # Parallel processing
+    if runInParallel_multiprocessing == True and model != 'reanalysis':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            if model == 'reanalysis':
+                pool.starmap(reanalisys, iterable)
+            else:
+                pool.starmap(models, iterable)

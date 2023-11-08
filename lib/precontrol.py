@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -75,7 +75,7 @@ def missing_data_check():
                     # Calculate percentaje of nans
                     perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
                     PERC_NAN[ipred, iscene, imodel] = perc_nan
-                    print(targetVar, predName, sceneName, model, 'perc_nan', np.max(perc_nan))
+                    print(targetVar, predName, sceneName, model, 'max perc_nan per grid-box', np.max(perc_nan))
 
                     if np.max(perc_nan) != 0:
                         # Plot map
@@ -179,7 +179,7 @@ def predictors_correlation():
                 for ipoint in range(hres_npoints[targetVar]):
 
                     # Interpolate to one point
-                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
                     y = obs_season[:, ipoint]
 
                     # Remove missing data
@@ -1034,5 +1034,9 @@ def GCMs_evaluation():
 
     print('GCMs_evaluation...')
     print(season_dict)
+<<<<<<< HEAD
     # GCMs_evaluation_historical()
+=======
+    GCMs_evaluation_historical()
+>>>>>>> d0dad76af9f26851142c23e0a803d471d0b53508
     GCMs_evaluation_future()

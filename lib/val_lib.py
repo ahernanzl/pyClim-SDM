@@ -26,11 +26,154 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
 import write
+
+
+########################################################################################################################
+class TaylorDiagram(object):
+    """
+    Taylor diagram.
+    Plot model standard deviation and correlation to reference (data)
+    sample in a single-quadrant polar plot, with r=stddev and
+    theta=arccos(correlation).
+    """
+
+    def __init__(self, refstd,
+                 fig=None, rect=111, label='_', srange=(0, 1.5), extend=False):
+        """
+        Set up Taylor diagram axes, i.e. single quadrant polar
+        plot, using `mpl_toolkits.axisartist.floating_axes`.
+        Parameters:
+        * refstd: reference standard deviation to be compared to
+        * fig: input Figure or None
+        * rect: subplot definition
+        * label: reference label
+        * srange: stddev axis extension, in units of *refstd*
+        * extend: extend diagram to negative correlations
+        """
+
+        from matplotlib.projections import PolarAxes
+        import mpl_toolkits.axisartist.floating_axes as FA
+        import mpl_toolkits.axisartist.grid_finder as GF
+
+        self.refstd = refstd  # Reference standard deviation
+
+        tr = PolarAxes.PolarTransform()
+
+        # Correlation labels
+        rlocs = np.array([0, 0.2, 0.4, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1])
+        if extend:
+            # Diagram extended to negative correlations
+            self.tmax = np.pi
+            rlocs = np.concatenate((-rlocs[:0:-1], rlocs))
+        else:
+            # Diagram limited to positive correlations
+            self.tmax = np.pi / 2
+        tlocs = np.arccos(rlocs)  # Conversion to polar angles
+        gl1 = GF.FixedLocator(tlocs)  # Positions
+        tf1 = GF.DictFormatter(dict(zip(tlocs, map(str, rlocs))))
+
+        # Standard deviation axis extent (in units of reference stddev)
+        self.smin = srange[0] * self.refstd
+        self.smax = srange[1] * self.refstd
+
+        ghelper = FA.GridHelperCurveLinear(
+            tr,
+            extremes=(0, self.tmax, self.smin, self.smax),
+            grid_locator1=gl1, tick_formatter1=tf1)
+
+        if fig is None:
+            fig = plt.figure()
+
+        ax = FA.FloatingSubplot(fig, rect, grid_helper=ghelper)
+        fig.add_subplot(ax)
+
+        # Adjust axes
+        ax.axis["top"].set_axis_direction("bottom")  # "Angle axis"
+        ax.axis["top"].toggle(ticklabels=True, label=True)
+        ax.axis["top"].major_ticklabels.set_axis_direction("top")
+        ax.axis["top"].label.set_axis_direction("top")
+        ax.axis["top"].label.set_text("Correlation")
+
+        ax.axis["left"].set_axis_direction("bottom")  # "X axis"
+        ax.axis["left"].label.set_text("Standard deviation")
+
+        ax.axis["right"].set_axis_direction("top")  # "Y-axis"
+        ax.axis["right"].toggle(ticklabels=True)
+        ax.axis["right"].major_ticklabels.set_axis_direction(
+            "bottom" if extend else "left")
+
+        if self.smin:
+            ax.axis["bottom"].toggle(ticklabels=False, label=False)
+        else:
+            ax.axis["bottom"].set_visible(False)  # Unused
+
+        self._ax = ax  # Graphical axes
+        self.ax = ax.get_aux_axes(tr)  # Polar coordinates
+
+        # Add reference point and stddev contour
+        l, = self.ax.plot([0], self.refstd, 'k*',
+                          ls='', ms=10, label=label)
+        t = np.linspace(0, self.tmax)
+        r = np.zeros_like(t) + self.refstd
+        self.ax.plot(t, r, 'k--', label='_')
+
+        # Collect sample points for latter use (e.g. legend)
+        self.samplePoints = [l]
+
+    def add_sample(self, stddev, corrcoef, *args, **kwargs):
+        """
+        Add sample (*stddev*, *corrcoeff*) to the Taylor
+        diagram. *args* and *kwargs* are directly propagated to the
+        `Figure.plot` command.
+        """
+
+        l, = self.ax.plot(np.arccos(corrcoef), stddev,
+                          *args, **kwargs)  # (theta, radius)
+        self.samplePoints.append(l)
+
+        return l
+
+
+    def add_arrow(self, stddev_0, corrcoef_0, stddev_1, corrcoef_1, *args, **kwargs):
+        """
+        Add arrow from point_0 to point_1 (*stddev*, *corrcoeff*) to the Taylor
+        diagram. *args* and *kwargs* are directly propagated to the
+        `Figure.plot` command.
+        """
+        theta0, radius0 = np.arccos(corrcoef_0), stddev_0
+        theta1, radius1 = np.arccos(corrcoef_1), stddev_1
+        d_theta, d_radius = theta1-theta0, radius1-radius0
+
+        try:
+            theta0, radius0, d_theta, d_radius = theta0[0], radius0[0], d_theta[0], d_radius[0]
+        except:
+            pass
+        self.ax.arrow(theta0, radius0, d_theta, d_radius, *args, **kwargs)  # (theta, radius)
+
+    def add_grid(self, *args, **kwargs):
+        """Add a grid."""
+
+        self._ax.grid(*args, **kwargs)
+
+    def add_contours(self, levels=5, **kwargs):
+        """
+        Add constant centered RMS difference contours, defined by *levels*.
+        """
+
+        rs, ts = np.meshgrid(np.linspace(self.smin, self.smax),
+                             np.linspace(0, self.tmax))
+        # Compute centered RMS difference
+        rms = np.sqrt(self.refstd ** 2 + rs ** 2 - 2 * self.refstd * rs * np.cos(ts))
+
+        contours = self.ax.contour(ts, rs, rms, levels, **kwargs)
+
+        return contours
+
 
 ########################################################################################################################
 def daily_boxplots(metric, by_season):
@@ -76,27 +219,30 @@ def daily_boxplots(metric, by_season):
                             aux = postpro_lib.get_season(est, times_scene, season)
                             est_season = aux['data']
                             times = aux['times']
-                        ivalid = [i for i in range(len(times)) if
-                                  (np.count_nonzero(np.isnan(obs_season[i])) == 0 and
-                                                    np.count_nonzero(np.isnan(est_season)[i]) == 0)]
-                        obs_season = obs_season[ivalid]
-                        est_season = est_season[ivalid]
+                        # not_valid_obs = np.where(np.isnan(obs_season))[0]
+                        # not_valid_est = np.where(np.isnan(est_season))[0]
+                        # ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_est)]
+                        # obs_season = obs_season[ivalid]
+                        # est_season = est_season[ivalid]
                         matrix = np.zeros((hres_npoints[targetVar], ))
                         if metric == 'correlation':
                             for ipoint in range(hres_npoints[targetVar]):
                                 X = obs_season[:, ipoint]
                                 Y = est_season[:, ipoint]
-                                if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
-                                    r = round(spearmanr(X, Y)[0], 3)
-                                else:
-                                    r = round(pearsonr(X, Y)[0], 3)
-                                if np.isnan(r) == True:
-                                    r = 0
+                                try:
+                                    if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
+                                        r = round(spearmanr(X, Y)[0], 3)
+                                    else:
+                                        r = round(pearsonr(X, Y)[0], 3)
+                                except:
+                                    r = np.nan
+                                # if np.isnan(r) == True:
+                                #     r = 0
                                 matrix[ipoint] = r
                         elif metric == 'variance':
-                            obs_var = np.var(obs_season, axis=0)
-                            est_var = np.var(est_season, axis=0)
-                            th = 0.001
+                            obs_var = np.nanvar(obs_season, axis=0)
+                            est_var = np.nanvar(est_season, axis=0)
+                            th = zero_division_th[targetVar]
                             est_var[est_var < th] = 0
                             obs_var[obs_var < th] = np.nan
                             bias = 100 * (est_var - obs_var) / obs_var
@@ -105,6 +251,17 @@ def daily_boxplots(metric, by_season):
                             matrix[:] = bias
                         elif metric == 'rmse':
                             matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
+                        elif metric == 'wasserstein-distance':
+                            for ipoint in range(hres_npoints[targetVar]):
+                                X = obs_season[:, ipoint]
+                                Y = est_season[:, ipoint]
+                                try:
+                                    w = wasserstein_distance(X, Y)
+                                except:
+                                    w = np.inf
+                                if ipoint % 100 == 0:
+                                    print(ipoint, w)
+                                matrix[ipoint] = w
                         np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_' +metric, matrix)
                 imethod += 1
 
@@ -129,7 +286,6 @@ def daily_boxplots(metric, by_season):
                         matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_'+metric+'.npy')
                         imethod += 1
 
-
                 # Go through all regions
                 for index, row in df_reg.iterrows():
                     if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
@@ -138,6 +294,10 @@ def daily_boxplots(metric, by_season):
                         npoints = len(iaux)
                         print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
                         matrix_region = matrix[iaux]
+
+                        # Deal with nans
+                        mask = ~np.isnan(matrix_region)
+                        matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
 
                         # Create pathOut
                         if plotAllRegions == False:
@@ -172,6 +332,10 @@ def daily_boxplots(metric, by_season):
                             units = predictands_units[targetVar]
                             # title = ' '.join((targetVar, metric, season))
                             title = targetVar
+                        elif metric == 'wasserstein-distance':
+                            units = ''
+                            # title = ' '.join((targetVar, metric, season))
+                            title = targetVar
                         plt.title(title, fontsize=20)
                         # plt.title(title)
                         plt.ylabel(units, rotation=90)
@@ -188,14 +352,154 @@ def daily_boxplots(metric, by_season):
 
 
 ########################################################################################################################
+def daily_spatial_correlation_boxplots():
+    """
+    Boxplots of correlation, by seasons (optional) and by subregions (optional).
+    :param methods:
+    """
+
+    methods.reverse()
+
+    vars = []
+    for method in methods:
+        var = method['var']
+        if var not in vars:
+            vars.append(var)
+
+    # Go through all variables
+    for targetVar in targetVars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+
+        # Go through all methods
+        imethod = 0
+        for method_dict in methods:
+            var = method_dict['var']
+            if var == targetVar:
+                methodName = method_dict['methodName']
+                print(var, methodName)
+
+                # Read data
+                d = postpro_lib.get_data_eval(var, methodName)
+                ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+                del d
+
+                # Select season
+                for season in season_dict:
+                    if season == annualName:
+                        if season == season_dict[annualName]:
+                            obs_season = obs
+                            est_season = est
+                            times = times_scene
+                        else:
+                            obs_season = postpro_lib.get_season(obs, times_scene, season)['data']
+                            aux = postpro_lib.get_season(est, times_scene, season)
+                            est_season = aux['data']
+                            times = aux['times']
+
+                        not_valid_obs = np.where(np.isnan(obs_season))[1]
+                        not_valid_est = np.where(np.isnan(est_season))[1]
+                        ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_est)]
+                        obs_season = obs_season[ivalid, :]
+                        est_season = est_season[ivalid, :]
+
+                        ndays_valid = obs_season.shape[0]
+                        matrix = np.zeros((ndays_valid, ))
+
+                        for iday in range(ndays_valid):
+                            # if iday % 1000 == 0:
+                            #     print(iday, ndays_valid)
+                            X = obs_season[iday, :]
+                            Y = est_season[iday, :]
+                            # not_valid_obs = np.where(np.isnan(X))[0]
+                            # not_valid_est = np.where(np.isnan(Y))[0]
+                            # # ivalid = [i for i in range(hres_npoints[targetVar])]
+                            # # del ivalid[not_valid_obs]
+                            # # del ivalid[not_valid_est]
+                            # ivalid = [i for i in range(hres_npoints[targetVar]) if
+                            #           (i not in not_valid_obs) and (i not in not_valid_est)]
+                            # X = X[ivalid]
+                            # Y = Y[ivalid]
+                            try:
+                                if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
+                                    r = round(spearmanr(X, Y)[0], 3)
+                                else:
+                                    r = round(pearsonr(X, Y)[0], 3)
+                            except:
+                                r = np.nan
+                            # if np.isnan(r) == True:
+                            #     r = 0
+                            matrix[iday] = r
+                        np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_spatial_corr', matrix)
+                imethod += 1
+
+    # Select season
+    for season in season_dict:
+        if season == annualName:
+            for targetVar in vars:
+                nmethods = len([x for x in methods if x['var'] == targetVar])
+                ndays = testing_ndates
+                matrix = np.zeros((ndays, nmethods))
+                imethod = 0
+                names = []
+                for method_dict in methods:
+                    var = method_dict['var']
+                    if var == targetVar:
+                        methodName = method_dict['methodName']
+                        names.append(methodName)
+                        print('spatial correlation', season, var, methodName)
+                        aux = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_spatial_corr.npy')
+                        matrix[:, imethod] = np.nan                        
+                        matrix[:aux.size, imethod] = aux
+                        imethod += 1
+
+                # Deal with nans
+                mask = ~np.isnan(matrix)
+                matrix = [d[m] for d, m in zip(matrix.T, mask.T)]
+
+                # Create pathOut
+                if plotAllRegions == False:
+                    pathOut = pathFigures
+                else:
+                    path = pathFigures + 'daily_spatialCorrBoxplot/' + targetVar.upper() + '/'
+                    pathOut = path
+                # pathOut = pathFigures
+                if not os.path.exists(pathOut):
+                    os.makedirs(pathOut)
+
+
+                fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
+                medianprops = dict(color="black")
+                g = ax.boxplot(matrix, vert=False, showfliers=False, patch_artist=True, medianprops=medianprops)
+                # fill with colors
+                i = 0
+                color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
+                for patch in g['boxes']:
+                    patch.set_facecolor(color[i])
+                    i += 1
+
+                units = ''
+                # title = ' '.join((targetVar, metric, season))
+                title = targetVar
+                plt.xlim((0, 1))
+                plt.title(title, fontsize=20)
+                # plt.title(title)
+                ax.set_yticklabels(names, rotation=0)
+                # plt.ylines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
+                # plt.show()
+                # exit()
+                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, 'spatialCorrBoxplot', targetVar, 'None', 'all',
+                                                season))+ '.png', bbox_inches='tight')
+                plt.close()
+
+    methods.reverse()
+
+########################################################################################################################
 def climdex_boxplots(by_season):
     """
     Bias boxplots for all climdex, by seasons (optional) and by subregions (optional).
     :param methods:
     :param by_season: boolean
     """
-
-
 
     vars = []
     for method in methods:
@@ -240,7 +544,7 @@ def climdex_boxplots(by_season):
                                 bias = est - obs
                             elif biasMode == 'rel':
                                 units = '%'
-                                th = 0.001
+                                th = zero_division_th[targetVar]
                                 est[est < th] = 0
                                 obs[obs < th] = 0
                                 bias = 100 * (est - obs) / obs
@@ -267,6 +571,10 @@ def climdex_boxplots(by_season):
                                 pathOut = path + subDir
                             if not os.path.exists(pathOut):
                                 os.makedirs(pathOut)
+
+                            # Deal with nans
+                            mask = ~np.isnan(matrix_region)
+                            matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
 
                             fig, ax = plt.subplots(dpi=300)
                             medianprops = dict(color="black")
@@ -301,6 +609,256 @@ def climdex_boxplots(by_season):
                             plt.close()
 
 
+
+
+########################################################################################################################
+def climdex_Taylor_diagrams(by_season):
+    """
+    Taylor diagram for the spatial distribution of all climdex, by seasons (optional) and by subregions (optional).
+    :param methods:
+    :param by_season: boolean
+    """
+
+    vars = []
+    for method in methods:
+        var = method['var']
+        if var not in vars:
+            vars.append(var)
+
+    # Go through all variables
+    for targetVar in vars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+
+        # Read regions csv
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() + '/regions.csv')
+
+        # Go through all climdex
+        for climdex_name in climdex_names[targetVar]:
+
+            # Select season
+            for season in season_dict:
+                if season == annualName or by_season == True:
+
+                    # Go through all regions
+                    for index, row in df_reg.iterrows():
+                        if plotAllRegions == True or (
+                                (plotAllRegions == False) and (index == 0)):
+                            regType, regName, subDir = row['regType'], row['regName'], row[
+                                'subDir']
+                            iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+                            npoints = len(iaux)
+                            print(regType, regName, npoints, 'points',
+                                  str(index) + '/' + str(df_reg.shape[0]))
+
+                            # Go through all methods
+                            imethod = 0
+                            names = []
+                            colors = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
+                            r_matrix = np.zeros((nmethods, 1))
+                            std_matrix = np.zeros((nmethods, 1))
+                            for method_dict in methods:
+                                var = method_dict['var']
+                                if var == targetVar:
+                                    methodName = method_dict['methodName']
+                                    names.append(methodName)
+                                    print(var, climdex_name, season, methodName)
+
+                                    pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
+                                    # obs = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'obs', season))+'.npy'), axis=0)
+                                    # est = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
+                                    obs = np.nanmean(read.netCDF(pathIn, '_'.join(
+                                        (climdex_name, 'obs', season)) + '.nc', climdex_name)[
+                                                         'data'], axis=0)
+                                    est = np.nanmean(read.netCDF(pathIn, '_'.join(
+                                        (climdex_name, 'est', season)) + '.nc', climdex_name)[
+                                                         'data'], axis=0)
+
+                                    obs_region = obs[iaux]
+                                    est_region = est[iaux]
+                                    iValid = [i for i in range(obs_region.size) if (not np.isnan(obs_region[i]) and not np.isnan(est_region[i]))]
+                                    obs_region, est_region = obs_region[iValid], est_region[iValid]
+                                    r_matrix[imethod] = pearsonr(obs_region, est_region)[0]
+                                    std_matrix[imethod] = np.std(est_region) / np.std(obs_region)
+                                    imethod += 1
+
+                            # Create pathOut
+                            if plotAllRegions == False:
+                                pathOut = pathFigures
+                            else:
+                                path = pathFigures + 'biasBoxplot/' + targetVar.upper() + '/'
+                                pathOut = path + subDir
+                            if not os.path.exists(pathOut):
+                                os.makedirs(pathOut)
+
+                            # Create Taylor diagram
+                            fig = plt.figure(dpi=300)
+                            dia = TaylorDiagram(1, fig=fig, rect=111, label="Reference", srange=(0, 1.7))
+                            for imethod in range(nmethods):
+                                dia.add_sample(std_matrix[imethod], r_matrix[imethod], color=colors[imethod],
+                                               marker='*', markersize=10, label=names[imethod])
+                            dia.add_grid()
+                            contours = dia.add_contours(colors='0.5')
+                            plt.clabel(contours, inline=1, fontsize=10, fmt='%.2f')
+
+                            # Add a figure legend
+                            fig.legend(dia.samplePoints,
+                                       [p.get_label() for p in dia.samplePoints],
+                                       fontsize=10, bbox_to_anchor=(1.05, 1), loc=1, borderaxespad=0.)
+                            title = ' '.join(
+                                (targetVar.upper(), climdex_name, season))
+                            # plt.title(title)
+                            # if apply_bc == False:
+                            #     title = climdex_name
+                            # else:
+                            #     title = climdex_name + '    bias corrected'
+                            # plt.title(title, fontsize=16)
+                            filename = '_'.join(('EVALUATION' + bc_sufix,
+                                                 'TaylorDiagram', targetVar,
+                                                 climdex_name, 'all',
+                                                 season))
+                            # plt.show()
+                            # exit()
+                            plt.savefig(pathOut + filename + '.png', bbox_inches='tight')
+                            plt.close()
+
+
+########################################################################################################################
+def monthly_boxplots(metric):
+    """
+    Boxplots of metric,  by subregions (optional).
+    :param metric: correlation or variance
+    """
+
+    vars = []
+    for method in methods:
+        var = method['var']
+        if var not in vars:
+            vars.append(var)
+
+    # Go through all variables
+    for targetVar in targetVars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+
+        # Go through all methods
+        imethod = 0
+        for method_dict in methods:
+            var = method_dict['var']
+            if var == targetVar:
+                methodName = method_dict['methodName']
+                print(var, methodName, metric)
+
+                # Read data
+                d = postpro_lib.get_data_eval(var, methodName)
+                ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+                del d
+
+                # Accumulate months
+
+                npoints = obs.shape[1]
+                firstYear = times_scene[0].year
+                lastYear = times_scene[-1].year
+
+                dates = []
+                for year in range(firstYear, lastYear + 1):
+                    for month in range(1, 13):
+                        dates.append((month, year))
+                ndates = len(dates)
+                est_acc = np.zeros((ndates, npoints))
+                obs_acc = np.zeros((ndates, npoints))
+
+                for idate in range(ndates):
+                    month, year = dates[idate][0], dates[idate][1]
+                    idates = [i for i in range(len(times_scene)) if
+                              ((times_scene[i].year == year) and (times_scene[i].month == month))]
+                    obs_acc[idate] = np.nansum(obs[idates], axis=0)
+                    est_acc[idate] = np.nansum(est[idates], axis=0)
+
+                not_valid_obs = np.where(np.isnan(obs_acc))[0]
+                not_valid_est = np.where(np.isnan(est_acc))[0]
+                ivalid = [i for i in range(len(dates)) if (i not in not_valid_obs) and (i not in not_valid_est)]
+                obs_acc = obs_acc[ivalid]
+                est_acc = est_acc[ivalid]
+                matrix = np.zeros((hres_npoints[targetVar], ))
+                if metric == 'correlation':
+                    for ipoint in range(hres_npoints[targetVar]):
+                        X = obs_acc[:, ipoint]
+                        Y = est_acc[:, ipoint]
+                        try:
+                            r = round(pearsonr(X, Y)[0], 3)
+                        except:
+                            r = np.nan
+                        # if np.isnan(r) == True:
+                        #     r = 0
+                        matrix[ipoint] = r
+                elif metric == 'R2':
+                    matrix = 1 - np.nansum((est_acc - obs_acc) ** 2, axis=0) / np.nansum(obs_acc ** 2, axis=0)
+                np.save('../tmp/'+targetVar+'_'+methodName+'_monthly_' +metric, matrix)
+            imethod += 1
+
+
+    # Correlations have been calculated and storaged. Now they will be plotted
+    for targetVar in vars:
+        nmethods = len([x for x in methods if x['var'] == targetVar])
+        # Read regions csv
+        df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() +'/regions.csv')
+        matrix = np.zeros((hres_npoints[targetVar], nmethods))
+        imethod = 0
+        names = []
+        for method_dict in methods:
+            var = method_dict['var']
+            if var == targetVar:
+                methodName = method_dict['methodName']
+                names.append(methodName)
+                print(metric, var, methodName)
+                matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_monthly_'+metric+'.npy')
+                imethod += 1
+
+        # Go through all regions
+        for index, row in df_reg.iterrows():
+            if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+                regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+                iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+                npoints = len(iaux)
+                print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+                matrix_region = matrix[iaux]
+
+                # Deal with nans
+                mask = ~np.isnan(matrix_region)
+                matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
+
+                # Create pathOut
+                if plotAllRegions == False:
+                    pathOut = pathFigures
+                else:
+                    path = pathFigures + 'daily_'+metric+'/' + targetVar.upper() + '/'
+                    pathOut = path + subDir
+                if not os.path.exists(pathOut):
+                    os.makedirs(pathOut)
+
+                fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
+                medianprops = dict(color="black")
+                g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
+                # fill with colors
+                i = 0
+                color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
+                for patch in g['boxes']:
+                    patch.set_facecolor(color[i])
+                    i += 1
+
+                units = ''
+                title = ' '.join((targetVar, 'monthly', metric))
+                # title = targetVar
+                plt.ylim((0, 1))
+                plt.title(title, fontsize=20)
+                # plt.title(title)
+                plt.ylabel(units, rotation=90)
+                ax.set_xticklabels(names, rotation=90)
+                plt.hlines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
+                # plt.show()
+                # exit()
+                plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, metric+'BoxplotMonthly', targetVar, 'None', 'all'))+
+                            '.png', bbox_inches='tight')
+                plt.close()
 
 
 ########################################################################################################################

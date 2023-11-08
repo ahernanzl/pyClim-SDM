@@ -29,11 +29,12 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
 import write
+
 
 ########################################################################################################################
 def quantile_mapping(obs, hist, sce, targetVar):
@@ -55,8 +56,8 @@ def quantile_mapping(obs, hist, sce, targetVar):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -91,7 +92,7 @@ def quantile_mapping(obs, hist, sce, targetVar):
 def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
     """
     Detrendend Quantile Mapping: remove trend and mean, and then apply empirical quantile mapping (Cannon et al., 2015).
-    Ratio correction for precipitation and additive correction for the rest
+    Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
@@ -113,8 +114,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -132,9 +133,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
 
-            # For precipitation or non gaussian customized target variables
-            # if targetVar == 'pr':
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
+            # For multiplicative correction
+            if bc_mode_dict[targetVar] == 'rel':
 
                 # Treat zeros
                 obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
@@ -152,8 +152,9 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
                 # Add correction and change in the mean value
                 sce_corrected.T[ipoint][ivalid] = sce_data * corr * sce_mean / np.mean(hist_data)
+                sce_corrected.T[ipoint][ivalid][sce_corrected.T[ipoint][ivalid] < th] = 0
 
-            # For the other target variables or for additive customized target variable
+            # For additive correction
             else:
 
                 # Remove mean and detrend
@@ -169,53 +170,72 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
                 # Add correction and mean values removed while detrending
                 sce_corrected.T[ipoint][ivalid] = sce_data + corr + np.mean(obs_data) - np.mean(hist_data)
 
-
-    # Force to theoretical range
-    minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        sce_corrected[sce_corrected < minAllowed] == minAllowed
-    if  maxAllowed != None:
-        sce_corrected[sce_corrected > maxAllowed] == maxAllowed
-
     return sce_corrected
 
 
 ########################################################################################################################
-def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
+def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05, censor_tail=99.9,
+                           force_preserve_mean_change=True):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
-    Ratio correction for precipitation and additive correction for the rest
+    Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
+    Treatment of zeros by “Singularity Stochastic Removal” (SSR) (Vrac et al., 2016)
+    Treatment of upper tail for multiplicative variables: over a certaing quantile, all values are substitute by the
+            mean value over the quantile. Default: 99.9
+    Multiplicative variables do not preserve the relative change in the mean value, specially if it is not calculated
+            using the whole period but by years. Data can be forced to preserve just by removing the bias corrected
+            trend and adding the raw trend (in multiplicative terms and only for multiplicative variables), as in 
+            Pierce et al, 2015.
 
     Args:
     * obs (nDaysObs, nPoints): the observational data
     * hist (nDaysHist, nPoints): the model data at the reference period
     * sce (nDaysSce, nPoints): the scenario data that shall be corrected
+    * default_th: threshold for zero values by default. Inside the function specific thresholds for each target variable
+                are defined.
+    * censor_tail: extreme values of the upper tail are truncated so deltas correspond to the selected percentile
+    * force_preserve_mean_change: if True, data are forced to preserve the relative change in the mean value (only for
+                multiplicative variables)
 
     Adapted from https://github.com/pacificclimate/ClimDown
 
     Cannon, A.J., S.R. Sobie, and T.Q. Murdock (2015) Bias Correction of GCM Precipitation by Quantile Mapping: How Well
     Do Methods Preserve Changes in Quantiles and Extremes?. J. Climate, 28, 6938–6959,
     https://doi.org/10.1175/JCLI-D-14-00754.1
+
+    Pierce, D. W., Cayan, D. R., Maurer, E. P., Abatzoglou, J. T., & Hegewisch, K. C. (2015). Improved Bias Correction 
+    Techniques for Hydrological Simulations of Climate Change, Journal of Hydrometeorology, 16(6), 2421-2442. 
+    doi: https://doi.org/10.1175/JHM-D-14-0236.1
+
+    Vrac, M., Noël, T., and Vautard, R. (2016), Bias correction of precipitation through Singularity Stochastic Removal:
+    Because occurrences matter, J. Geophys. Res. Atmos., 121, 5237– 5258, doi:10.1002/2015JD024511
     """
+
+    # Define specific thresholds for 'zero value' for each targetVar
+    th_dict = {'tas': None, 'tasmax': None, 'tasmin': None, 'pr': None, 'uas': None, 'vas': None, 'sfcWind': None,
+        'hurs': None, 'huss': .00001, 'clt': None, 'rsds': None, 'rlds': None, 'psl': None, 'ps': None,
+        'evspsbl': None, 'evspsblpot': None, 'mrro': None, 'mrso': None,}
+    th = th_dict[targetVar]
+    if th == None:
+        th = default_th
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
     sce_corrected = 1*sce
 
-    # Add a small amount of noise to accomodate ties due to limited precision
-    obs += np.random.uniform(low=-jitter, high=jitter, size=obs.shape)
-    hist += np.random.uniform(low=-jitter, high=jitter, size=hist.shape)
-    sce += np.random.uniform(low=-jitter, high=jitter, size=sce.shape)
-
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
         hist_data = hist.T[ipoint]
         sce_data = sce.T[ipoint]
+
+        obs_auxPlot = 1* obs_data
+        hist_auxPlot = 1* hist_data
+        sce_auxPlot = 1*sce_data
 
         # Remove missing data from obs and hist
         obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
@@ -224,31 +244,82 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, th=0.05, jitter=0.01):
         if hist_data.size == 0:
             sce_corrected.T[ipoint] = np.nan
         else:
+
             # Select valid data from sce
             ivalid = np.where(np.isnan(sce_data) == False)
             sce_data = sce_data[ivalid]
+            sce_times_ipoint = list(np.array(sce_times)[ivalid])
 
-            # Treat zeros
-            # if targetVar == 'pr':
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
-                obs_data[obs_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(obs_data < th)[0].shape))
-                hist_data[hist_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(hist_data < th)[0].shape))
-                sce_data[sce_data < th] = np.random.uniform(low=0.0001, high=th, size=(np.where(sce_data < th)[0].shape))
+            # For multiplicative correction
+            if bc_mode_dict[targetVar] == 'rel':
+
+                # Multiply hist, sce by a factor so artifacted high deltas for TF methods are avoided
+                aux = 1*hist_data; aux[aux<=th] = np.nan; m1 = np.nanmin(aux)
+                aux = 1*sce_data; aux[aux<=th] = np.nan; m2 = np.nanmin(aux)
+                factor_TF = min(m1, m2)/th
+                hist_data /= factor_TF
+                sce_data /= factor_TF
+
+                # Add noise to zeros
+                np.random.seed(seed=0)
+                obs_data[obs_data < th] = np.random.uniform(low=th/100, high=th, size=(np.where(obs_data < th)[0].shape))
+                hist_data[hist_data < th] = np.random.uniform(low=th/100, high=th, size=(np.where(hist_data < th)[0].shape))
+                sce_data[sce_data < th] = np.random.uniform(low=th/100, high=th, size=(np.where(sce_data < th)[0].shape))
 
             # Calculate percentiles
             sce_ecdf = ECDF(sce_data)
             p = sce_ecdf(sce_data) * 100
 
             # Calculate and apply delta correction
-            # For precipitation or non gaussian customized target variables
-            if targetVar == 'pr' or (targetVar == myTargetVar and treatAsAdditiveBy_DQM_and_QDM == False):
-            # if targetVar == 'pr':
+            # For multiplicative correction
+            if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
-                sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) * delta
-            # For the other target variables or for additive customized target variable
+                sceCorr_data = np.percentile(obs_data, p) * delta
+
+                # Set drizzle back to zero
+                sceCorr_data[sceCorr_data < th] = 0
+                obs_data[obs_data < th] = 0
+                hist_data[hist_data < th] = 0
+                sce_data[sce_data < th] = 0
+
+                # Set values over censor_tail percentile (99.9) to the mean value over it
+                censor_tail_value = np.nanpercentile(sceCorr_data, censor_tail)
+                mean_over_censor_tail_value = np.nanmean(sceCorr_data[sceCorr_data >= censor_tail_value])
+                sceCorr_data[sceCorr_data > censor_tail_value] = mean_over_censor_tail_value
+
+            # For additive corretcion
             else:
                 delta = sce_data - np.percentile(hist_data, p)
-                sce_corrected.T[ipoint][ivalid] = np.percentile(obs_data, p) + delta
+                sceCorr_data = np.percentile(obs_data, p) + delta
+
+            # Load corrected data to the final matrix
+            sce_corrected.T[ipoint][ivalid] = sceCorr_data
+
+    # Force preserve trend in the mean values by year
+    if bc_mode_dict[targetVar] == 'rel' and force_preserve_mean_change == True:
+
+        # Group days by year
+        years = np.array([x.year for x in sce_times])
+        yearsUnique = list(dict.fromkeys(years))
+        nYears = len(yearsUnique)
+
+        # Calculate mean obs and mean hist
+        mean_obs = np.nanmean(obs, axis=0)
+        mean_hist = np.nanmean(hist, axis=0)
+
+        # Compute and apply the needed factor
+        factor_trend = np.ones((sce_corrected.shape))
+        for iYear in range(nYears):
+            idatesYear = [i for i in range(len(sce_times)) if sce_times[i].year == yearsUnique[iYear]]
+            mean_sce = np.nanmean(sce[idatesYear], axis=0)
+            mean_sce_corrected = np.nanmean(sce_corrected[idatesYear], axis=0)
+            factor_trend[idatesYear] = (mean_sce * mean_obs) / (mean_sce_corrected * mean_hist)
+            iNotValid = np.where((mean_sce_corrected * mean_hist) == 0)[0]
+            aux = factor_trend[idatesYear]
+            aux[:, iNotValid] = 1
+            factor_trend[idatesYear] = aux
+
+        sce_corrected *= factor_trend
 
     return sce_corrected
 
@@ -280,7 +351,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
     cdf_th = kwargs.get('cdf_th', 0.99999)
     if targetVar == 'pr':
-        low_lim = kwargs.get('low_lim', 0.1)
+        # low_lim = kwargs.get('low_lim', 0.1)
+        low_lim = kwargs.get('low_lim', 1)
         min_sample_size = kwargs.get('min_sample_size', 10)
 
     # Define parameters and variables
@@ -289,8 +361,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -451,6 +523,9 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     :return:
     """
 
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        obs /= 1000
 
     if apply_bc_bySeason == False:
         # Correct bias
@@ -459,7 +534,7 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
         elif bc_method == 'DQM':
             scene_bc = detrended_quantile_mapping(obs, hist, sce, targetVar)
         elif bc_method == 'QDM':
-            scene_bc = quantile_delta_mapping(obs, hist, sce, targetVar)
+            scene_bc = quantile_delta_mapping(obs, hist, sce, targetVar, sce_times)
         elif bc_method == 'PSDM':
             scene_bc = scaled_distribution_mapping(obs, hist, sce, targetVar)
     else:
@@ -486,15 +561,15 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
                 elif bc_method == 'DQM':
                     scene_bc[idates] = detrended_quantile_mapping(obs_season, hist_season, sce_season, targetVar)
                 elif bc_method == 'QDM':
-                    scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, targetVar)
+                    scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, targetVar, sce_times_season)
                 elif bc_method == 'PSDM':
                     scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, targetVar)
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if minAllowed != None:
-        scene_bc[scene_bc < minAllowed] == minAllowed
-    if maxAllowed != None:
-        scene_bc[scene_bc > maxAllowed] == maxAllowed
+    if minAllowed is not None:
+        scene_bc[scene_bc < minAllowed] = minAllowed
+    if maxAllowed is not None:
+        scene_bc[scene_bc > maxAllowed] = maxAllowed
 
     return scene_bc

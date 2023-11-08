@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -86,7 +86,7 @@ def downscale_chunk_WG_PDF(targetVar, methodName, family, mode, fields, scene, m
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -129,7 +129,7 @@ def downscale_chunk_WG_PDF(targetVar, methodName, family, mode, fields, scene, m
         if ipoint % 1000 == 0:
             print('interpolating', ipoint)
         var_scene_interp[:, ipoint] = grids.interpolate_predictors(var_scene,
-                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode)[:, 0]
+                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
     # np.save(pathTmp+'var_scene_interp', var_scene_interp)
     # var_scene_interp = np.load(pathTmp+'var_scene_interp.npy')
     del var_scene
@@ -313,7 +313,7 @@ def downscale_chunk_WG_NMM(targetVar, methodName, family, mode, fields, scene, m
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -355,7 +355,7 @@ def downscale_chunk_WG_NMM(targetVar, methodName, family, mode, fields, scene, m
         if ipoint % 1000 == 0:
             print('interpolating', ipoint)
         var_scene_interp[:, ipoint] = grids.interpolate_predictors(var_scene,
-                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode)[:, 0]
+                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
     del var_scene
     # np.save(pathTmp+'var_scene_interp', var_scene_interp)
     # var_scene_interp=np.load(pathTmp+'var_scene_interp.npy')
@@ -523,7 +523,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Set units
     units = predictands_units[targetVar]
-    if units == None:
+    if units is None:
         units = ''
 
     if split_mode[:4] == 'fold':
@@ -537,13 +537,16 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     print('-------------------------------------------------------------------------')
     print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        est /= 1000
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        est[est < 100*minAllowed] == 100*minAllowed
-    if  maxAllowed != None:
-        est[est > 100*maxAllowed] == 100*maxAllowed
+    if  minAllowed is not None:
+        est[est < minAllowed] = minAllowed
+    if  maxAllowed is not None:
+        est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

@@ -8,10 +8,10 @@
 
 **License:** GNU General Public License v3.0
 
-**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2022). Statistical downscaling in the Tropics and Mid-latitudes: a comparative assessment for generating regional information on climate change. Journal of Applied Meteorology and Climatology. Submitted.
+**Citation:** Hernanz, A., Correa, C., García-Valero, J. A., Domínguez, M., Rodríguez-Guisado, E., & Rodríguez-Camino, E. (2023). pyClim-SDM: Service for generation of statistical downscaled climate change projections supporting national adaptation strategies. Climate Services. https://doi.org/10.1016/j.cliser.2023.100408
 ___
 
-pyClim-SDM is a software for statistical downscaling of climate change projections for the following daily surface variables: mean, maximum and minimum temperature, precipitation, zonal and meridional wind components, relative humidity and cloud cover.
+pyClim-SDM is a software for statistical downscaling of climate change projections for the following daily surface variables: mean, maximum and minimum temperature, precipitation, zonal and meridional wind components, relative and specific humidity, cloud cover, surface downwelling shortwave and longwave radiation, evaporation, potential evaporation, sea level pressure, surface pressure, total runoff and soil water content.
 Additionally, it is prepared for downscaling any other user defined variable. pyClim-SDM incorporates the following utilities:
 - evaluation of Global Climate Models (GCMs).
 - downscaling of both reanalysis (for evaluation) and GCMs.
@@ -29,7 +29,7 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).
 - **DQM**: Detrended Quantile Mapping (Cannon *et al.*, 2015). Quantile adjustment over detrended series.
 - **QDM**: Quantile Delta Mapping in (Cannon *et al.*, 2015). Delta change over quantiles.
-- **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2021).
+- **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2017).
 ### Analogs / Weather Typing:
 - **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).
 - **ANA-LOC**: Same as ANA-SYN but using synoptic+local analogy. See Petisco de Lara, (2008a), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
@@ -42,10 +42,10 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 ### Machine Learning:
 - **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
 - **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
-- **RF**: Random Forest. Non-linear machine learning classification/regression. 
-- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression.  
+- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
+- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
 - **ANN**: Artificial Neural Networks. Non-linear machine learning classification/regression. See García-Valero (2021) and Hernanz *et al.* (2021).
-- **CNN**: Convoltional Neural Networks. Non-linear machine learning classification/regression. 
+- **CNN**: Convolutional Neural Networks. Non-linear machine learning classification/regression. 
 ### Weather Generators:
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 - **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).
@@ -58,20 +58,9 @@ pyClim-SDM has been originally designed for **Linux** and might present problems
 
 In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
 requirements.txt. You can install them by following these steps: 
-- Install Miniconda (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html#linux-installers
-- Create a virtual environment: **conda create --name env**
-- Activate your environment: **conda activate env**
-- Install the requirements.txt: **python install_requirements.py**
-
-
-
-# How to use
-
-- For your first steps you can use some example datsets included in the 'input_data_template' just by renaming this folder as 'input_data', but limit your selection to the default sets of predictors and target variables. Be aware that only a few predictors have been included as well as few target points, so no conclusion about the methods skill must be reached using these data
-- Run src/gui_mode.py and follow the very intuitive menu
-- Alternatively, pyClim-SDM can be used without the graphical interface by running src/manual_mode.py and tuning the config/manual_settings.py file.
-- In order to use your own datasets, spatial domain, etc., prepare your 'input_data' directory following the structure and format of the 'input_data_template'. Beware that the targetVariables themselves, given by reanalysis/GCMs are mandatory files for some methods and purposes. hres format: tas/tasmax/tasmin in degrees, pr in mm, uas/vas in m/s, hurs in %, clt in %. One row per date. The first column corresponds to the date yyyymmdd, and the other rows (as many as grid points) containing data.  Missing data must be coded as -999. Reanalysis and models format: One netCDF file per variable, models and scene, with all pressure levels. 
-- When working in a HPC, define partition name at config/advanced_settings.py and tune jobs specifications at lib/launch_jobs.py.
+- Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
+- Create a virtual environment: **conda create -n env_pyClim-SDM -y -c conda-forge absl-py=1.2.0 numpy=1.23.1 pandas=1.4.3 geopandas=0.7.0 geopy=2.2.0 matplotlib=3.5.2 mpi4py=3.1.3 netCDF4=1.6.0 scikit-learn=1.1.2 scipy=1.9.0 seaborn=0.11.2 Shapely=1.8.2 statsmodels=0.13.2 tensorflow=2.7.0 xarray=0.17.0 xgboost=1.5.1 basemap=1.3.3**
+- Activate your environment: **conda activate env_pyClim-SDM**
 
 
 # References

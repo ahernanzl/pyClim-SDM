@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -64,9 +64,9 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Set scene dates and predictors
         if scene == 'TESTING':
-            var_calib = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_training.npy')
+            var_calib = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_training.npy')
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -147,8 +147,8 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-        X_train = grids.interpolate_predictors(var_calib, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)
+        X_train = grids.interpolate_predictors(var_calib, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)
         Y_train = obs[:, ipoint]
         Y_train = Y_train[:, np.newaxis]
 
@@ -159,7 +159,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if methodName == 'DQM':
             est[:, ipoint_local_index] = MOS_lib.detrended_quantile_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
         if methodName == 'QDM':
-            est[:, ipoint_local_index] = MOS_lib.quantile_delta_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
+            est[:, ipoint_local_index] = MOS_lib.quantile_delta_mapping(Y_train, X_train, X_test, targetVar, scene_dates)[:, 0]
         elif methodName == 'PSDM':
             est[:, ipoint_local_index] = MOS_lib.scaled_distribution_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
 
@@ -231,7 +231,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Set units
     units = predictands_units[targetVar]
-    if units == None:
+    if units is None:
         units = ''
 
     if split_mode[:4] == 'fold':
@@ -245,13 +245,16 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     print('-------------------------------------------------------------------------')
     print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
     print('-------------------------------------------------------------------------')
+    if targetVar == 'huss':
+        print('huss modification /1000...')
+        est /= 1000
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        est[est < 100*minAllowed] == 100*minAllowed
-    if  maxAllowed != None:
-        est[est > 100*maxAllowed] == 100*maxAllowed
+    if  minAllowed is not None:
+        est[est < minAllowed] = minAllowed
+    if  maxAllowed is not None:
+        est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

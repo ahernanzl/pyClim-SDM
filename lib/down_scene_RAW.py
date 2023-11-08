@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -70,7 +70,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -120,7 +120,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             print('downscaling', targetVar, methodName, scene, model, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
 
         # Interpolate to ipoint
-        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp)
+        X_test = grids.interpolate_predictors(var_scene, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp, targetVar, forceNormalInterpolation=True)
 
         # Apply downscaling
         est[:, ipoint_local_index] = 100 * X_test[:, 0] # Factor 100 is for coherency with other methods
@@ -198,7 +198,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Set units
     units = predictands_units[targetVar]
-    if units == None:
+    if units is None:
         units = ''
 
     if split_mode[:4] == 'fold':
@@ -216,10 +216,10 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed != None:
-        est[est < 100*minAllowed] == 100*minAllowed
-    if  maxAllowed != None:
-        est[est > 100*maxAllowed] == 100*maxAllowed
+    if  minAllowed is not None:
+        est[est < minAllowed] = minAllowed
+    if  maxAllowed is not None:
+        est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
     write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)

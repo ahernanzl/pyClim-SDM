@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -40,25 +40,28 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
     start = datetime.datetime.now()
 
     # Create path for results
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
 
     # Select climdex
     for climdex_name in climdex_names[targetVar]:
         print(climdex_name)
 
         # Get percentile calendars
-        if climdex_name in ('TX90p', 'TN90p', 'WSDI', '90p_days'):
+        if climdex_name in ('TX90p', 'TN90p', 'T90p', 'WSDI', '90p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90)
-        elif climdex_name in ('TX99p', 'TN99p', '99p_days'):
+        elif climdex_name in ('TX99p', 'TN99p', 'T99p', '99p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 99)
-        elif climdex_name in ('TX95p', 'TN95p', '95p_days'):
+        elif climdex_name in ('TX95p', 'TN95p', 'T95p', '95p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 95)
-        elif climdex_name in ('TX10p', 'TN10p', 'CSDI', '10p_days'):
+        elif climdex_name in ('TX10p', 'TN10p', 'T10p', 'CSDI', '10p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10)
-        elif climdex_name in ('TX1p', 'TN1p', '1p_days'):
+        elif climdex_name in ('TX1p', 'TN1p', 'T1p', '1p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 1)
-        elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
+        elif climdex_name in ('TX5p', 'TN5p', 'T5p', '5p_days'):
             percCalendar = get_perc_calendar(targetVar, times_ref, ref, 5)
         elif climdex_name in ('R95p', 'R95pFRAC'):
             # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
@@ -80,6 +83,7 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
 
         # Select season
         for season in season_dict:
+            # season = 'JJA'
             aux = get_season(data, times, season)
             data_season = aux['data']
             times_season = aux['times']
@@ -199,7 +203,7 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
     warnings.filterwarnings("ignore", message="Mean of empty slice")
 
     # Force myTargetVar to str
-    if myTargetVar == None:
+    if myTargetVar is None:
         myTargetVarStr = 'None'
     else:
         myTargetVarStr = str(myTargetVar)
@@ -241,23 +245,26 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
         # Calculate climdex for iyear
         if climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
             results.append(np.nanpercentile(data_year, int(climdex_name[1:]), axis=0))
-        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'CLTm', 'm'):
+        elif climdex_name in ('TXm', 'TNm', 'Tm', 'Pm', 'Um', 'Vm', 'SFCWINDm', 'HRm', 'HUSSm', 'CLTm',
+                              'RSDSm', 'RLDSm', 'Em', 'EPm', 'PSLm', 'PSm', 'RUNOFFm', 'SOILMOISTUREm', 'm'):
             results.append(np.nanmean(data_year, axis=0))
-        elif climdex_name in ('TX90p', 'TN90p', '90p_days'):
+        elif climdex_name in ('TX90p', 'TN90p', 'T90p', '90p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX99p', 'TN99p', '99p_days'):
+        elif climdex_name in ('TX99p', 'TN99p', 'T99p', '99p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX95p', 'TN95p', '95p_days'):
+        elif climdex_name in ('TX95p', 'TN95p', 'T95p', '95p_days'):
             results.append(np.nanmean(100.*(data_year > aux), axis=0))
-        elif climdex_name in ('TX10p', 'TN10p', '10p_days'):
+        elif climdex_name in ('TX10p', 'TN10p', 'T10p', '10p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TX1p', 'TN1p', '1p_days'):
+        elif climdex_name in ('TX1p', 'TN1p', 'T1p', '1p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TX5p', 'TN5p', '5p_days'):
+        elif climdex_name in ('TX5p', 'TN5p', 'T5p', '5p_days'):
             results.append(np.nanmean(100.*(data_year < aux), axis=0))
-        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'x'):
+        elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'HUSSx',
+                              'RSDSx', 'RLDSx', 'Ex', 'EPx', 'PSLx', 'PSx', 'RUNOFFx', 'SOILMOISTUREx','x'):
             results.append(np.nanmax(data_year, axis=0))
-        elif climdex_name in ('TXn', 'TNn', 'Tn', 'n'):
+        elif climdex_name in ('TXn', 'TNn', 'Tn', 'HUSSn',
+                              'RSDSn', 'RLDSn', 'En', 'EPn', 'PSLn', 'PSn', 'RUNOFFn', 'SOILMOISTUREn', 'n'):
             results.append(np.nanmin(data_year, axis=0))
         elif climdex_name == 'WSDI':
             results.append(get_spell_duration(data_year > aux, climdex_name))
@@ -437,7 +444,7 @@ def get_data_eval(targetVar, methodName):
 
 
 ########################################################################################################################
-def get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathIn, iaux):
+def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_name, season, pathIn, iaux):
     """
     Get data projections. Return ssp_dict with model names and change.
     """
@@ -448,53 +455,52 @@ def get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathI
 
     ssp_dict = {}
     for scene in scene_list:
-        if scene != 'historical':
-            models = []
-            all_data = np.zeros((0, nYears, npoints))
-            for model in model_list:
-                fileIn = '_'.join((climdex_name, scene, model, season)) + '.nc'
-                # Check if scene/model exists
-                if os.path.isfile(pathIn + fileIn):
-                    # Read data and select region
-                    # data = np.load(pathIn + fileIn)[:, iaux]
-                    data = read.netCDF(pathIn, fileIn, climdex_name)['data'][:, iaux]
-                    # ref = np.load(
-                    #     pathIn + '_'.join((climdex_name, 'REFERENCE', model, season)) + '.npy')[:, iaux]
-                    ref = read.netCDF(pathIn, '_'.join((climdex_name, 'REFERENCE', model, season))+'.nc', climdex_name)['data'][:, iaux]
-                    ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
+        # if scene != 'historical':
+        if scene == 'historical':
+            nYears = n_histYears
+        else:
+            nYears = n_sspYears
+        models = []
+        all_data = np.zeros((0, nYears, npoints))
+        for model in model_list:
+            fileIn = '_'.join((climdex_name, scene, model, season)) + '.nc'
+            # Check if scene/model exists
+            if os.path.isfile(pathIn + fileIn):
+                # Read data and select region
+                data = read.netCDF(pathIn, fileIn, climdex_name)['data'][:, iaux]
+                ref = read.netCDF(pathIn, '_'.join((climdex_name, 'REFERENCE', model, season))+'.nc', climdex_name)['data'][:, iaux]
+                ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
 
-                    # # Plot reference mean maps for climdex control, to detect possible errors
-                    # if (regType == typeCompleteRegion) and (plotAllRegions == True):
-                    #     title = ' '.join((climdex_name, 'REFERENCE', model, season))
-                    #     plot.map(ref_mean[0], None,
-                    #              path=pathOut + 'reference_mean_maps/' + climdex_name + '/' +
-                    #                   season + '/', filename=model, title=title)
-                    #     plt.close()
-
-
-                    biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
-                    if biasMode == 'abs':
-                        change = data - ref_mean
-                    elif biasMode == 'rel':
-                        th = 0.001
-                        data[data < th] = 0
-                        ref_mean[ref_mean < th] = 0
-                        change = 100 * (data - ref_mean) / ref_mean
-                        change[(ref_mean == 0) * (data == 0)] = 0
-                        change[np.isinf(change)] = np.nan
-                    else:
-                        print(targetVar + '_' + climdex_name + 'not defined at units_and_biasMode_climdex (advanced_settings)')
-                        exit()
+                # # Plot reference mean maps for climdex control, to detect possible errors
+                # if (regType == typeCompleteRegion) and (plotAllRegions == True):
+                #     title = ' '.join((climdex_name, 'REFERENCE', model, season))
+                #     plot.map(ref_mean[0], None,
+                #              path=pathOut + 'reference_mean_maps/' + climdex_name + '/' +
+                #                   season + '/', filename=model, title=title)
+                #     plt.close()
 
 
-                    del data, ref, ref_mean
+                biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                if biasMode == 'abs':
+                    change = data - ref_mean
+                elif biasMode == 'rel':
+                    th = zero_division_th[targetVar]
+                    data[data < th] = 0
+                    ref_mean[ref_mean < th] = 0
+                    change = 100 * (data - ref_mean) / ref_mean
+                    change[(ref_mean == 0) * (data == 0)] = 0
+                    change[np.isinf(change)] = np.nan
+                else:
+                    print(targetVar + '_' + climdex_name + 'not defined at units_and_biasMode_climdex (advanced_settings)')
+                    exit()
+                del data, ref, ref_mean
 
-                    # Accumulate results
-                    models.append(model)
-                    all_data = np.append(all_data, change[np.newaxis, :, :], axis=0)
+                # Accumulate results
+                models.append(model)
+                all_data = np.append(all_data, change[np.newaxis, :, :], axis=0)
 
-            # Acumulate results
-            ssp_dict.update({scene: {'models': models, 'data': all_data}})
+        # Acumulate results
+        ssp_dict.update({scene: {'models': models, 'data': all_data}})
 
     return ssp_dict
 
@@ -533,8 +539,11 @@ def figures_projections(lan='EN'):
         pathIn = path + 'climdex/'
         pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
         pathOut = path + 'climdex/figures/'
-        if not os.path.exists(pathOut):
+
+        try:
             os.makedirs(pathOut)
+        except:
+            pass
 
         # Read regions csv
         df_reg = pd.read_csv(pathAux + 'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
@@ -606,8 +615,10 @@ def figures_projections(lan='EN'):
                            }
 
         # Define years
-        years = [x for x in range(ssp_years[0], ssp_years[1] + 1)]
-        nYears = len(years)
+        hist_years_local = [x for x in range(historical_years[0], historical_years[1] + 1)]
+        n_histYears = len(hist_years_local)
+        ssp_years_local = [x for x in range(ssp_years[0], ssp_years[1] + 1)]
+        n_sspYears = len(ssp_years_local)
 
         # Go through all regions
         for index, row in df_reg.iterrows():
@@ -629,120 +640,198 @@ def figures_projections(lan='EN'):
                     for season in season_dict:
 
                         # Get data
-                        ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathIn, iaux)
-                        raw_ssp_dict = get_data_projections(nYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
+                        ssp_dict = get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_name, season, pathIn, iaux)
+                        raw_ssp_dict = get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
 
                         # Evolution figures of mean trend in the whole region vs RAW
-                        if (regType == typeCompleteRegion):
-                            trend_raw(pathOut, subDir, ssp_dict['ssp585'], raw_ssp_dict['ssp585'], climdex_name, years,
-                                      ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName, xlabel)
+                        if activate_plot_evolTrendRaw == True:
+                            if (regType == typeCompleteRegion):
+                                trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local,
+                                          ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
+                                          regType, regName, xlabel)
 
                         # Csv with data for evolution graphs
                         # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season)
+                        csv_evol(pathOut, subDir, n_sspYears, ssp_dict, ssp_years_local, climdex_name, season)
 
                         # Spaghetti plot
-                        # if climdex_name in ('TXm', 'TNm'):
-                        spaghetti(pathOut, subDir, ssp_dict, years, ylim_dict[climdex_name], climdex_name,
-                                              ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+                        if activate_plot_spaghetti == True:
+                            # if climdex_name in ('TXm', 'TNm'):
+                            spaghetti(pathOut, subDir, ssp_dict, ssp_years_local, ylim_dict[climdex_name], climdex_name,
+                                                  ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
 
                         # Mean and spread ensemble tube plot
-                        # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim_dict[climdex_name],
-                             ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
+                        if activate_plot_evolTube == True:
+                            # if (season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                            tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim_dict[climdex_name],
+                                 ylabel_dict[climdex_name], season, targetVar, methodName, regType, regName, xlabel)
 
                         # Change maps
-                        # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
-                        if regType == typeCompleteRegion:
-                            change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
+                        if activate_plot_changeMaps == True:
+                            # if (regType == typeCompleteRegion) and (climdex_name in ('TXm', 'TNm', 'Pm', 'PRCPTOT')):
+                            if regType == typeCompleteRegion:
+                                change_maps(ssp_dict, ssp_years_local, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict)
 
 
 ########################################################################################################################
-def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar, methodName, xlabel):
+def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel,
+              season, targetVar, methodName, regType, regName, xlabel, add_historical=True):
 
-    # if methodName != 'RAW':
-    color = methods_colors[methodName]
-    linestyle = methods_linestyles[methodName]
-    title_size = 28
-    try:
-        sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
-    except:
-        sign_ylabel = ''
+    print('evolTrendRaw', methodName, targetVar, climdex_name, season)
+    for scene in collections.OrderedDict(sorted(ssp_dict.items())).keys():
+        if scene != 'historical':
+            ssp_dict_scene = ssp_dict[scene]
+            raw_ssp_dict_scene = raw_ssp_dict[scene]
+            hist_dict_scene = ssp_dict['historical']
+            raw_hist_dict_scene = raw_ssp_dict['historical']
 
-    # method
-    models = ssp_dict['models']
-    nModels = len(models)
-    data = np.nanmean(ssp_dict['data'], axis=2)
-    if targetVar not in ['tas', 'tasmax', 'tasmin',]:
-        data = gaussian_filter1d(data, 2)
-    # mean = np.nanmean(data, axis=0)
-    # std = np.nanstd(data, axis=0)
-    # fig, ax = plt.subplots(dpi=300)
-    # plt.plot(years, mean, label=methodName, color=color, linestyle=linestyle)
-    # plt.fill_between(years, mean - std, mean + std, color=color, alpha=0.8)
-    median = np.nanmedian(data, axis=0)
-    top = np.nanpercentile(data, 75, axis=0)
-    bottom = np.nanpercentile(data, 25, axis=0)
-    fig, ax = plt.subplots(dpi=300)
-    plt.plot(years, median, label=methodName+ ' (' + str(nModels) + ')', color=plot.lighten_color(color, 1.2), linestyle=linestyle)
-    plt.fill_between(years, bottom, top, color=color, alpha=0.8)
+            # if methodName != 'RAW':
+            color = methods_colors[methodName]
+            linestyle = methods_linestyles[methodName]
+            title_size = 28
+            try:
+                sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
+                if units_and_biasMode_climdex[targetVar+'_'+climdex_name]['biasMode'] == 'rel':
+                    sign_ylabel = '%'
+            except:
+                sign_ylabel = ''
 
-    # RAW
-    models = raw_ssp_dict['models']
-    nModels = len(models)
-    data = np.nanmean(raw_ssp_dict['data'], axis=2)
-    if targetVar not in ['tas', 'tasmax', 'tasmin',]:
-        data = gaussian_filter1d(data, 2)
-    # mean = np.nanmean(data, axis=0)
-    # std = np.nanstd(data, axis=0)
-    # plt.plot(years, mean, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
-    # plt.fill_between(years, mean - std, mean + std, color=methods_colors['RAW'], alpha=0.7)
-    median = np.nanmedian(data, axis=0)
-    top = np.nanpercentile(data, 75, axis=0)
-    bottom = np.nanpercentile(data, 25, axis=0)
-    plt.plot(years, median, label='RAW (' + str(nModels) + ')', color='dimgray', linestyle=methods_linestyles['RAW'])
-    plt.fill_between(years, bottom, top, color=methods_colors['RAW'], alpha=0.7)
+            # ------------------- method ssp
+            models = ssp_dict_scene['models']
+            nModels = len(models)
 
-    try:
-        plt.ylim(ylim)
-        plt.ylabel(sign_ylabel)
-    except:
-        pass
-    # plt.xlabel(xlabel)
-    plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
-    plt.legend()
-    # plt.show()
-    # exit()
-    filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName, season))
-    # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
-    if (plotAllRegions == False):
-        plt.title(methodName, fontsize=title_size)
-        if not os.path.exists(pathFigures):
-            os.makedirs(pathFigures)
-        plt.savefig(pathFigures + filename + '.png')
-    elif plotAllRegions == True:
-        title = regName.upper() + '\n' + season
-        plt.title(title)
-        if not os.path.exists(pathOut):
-            os.makedirs(pathOut)
-        plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
-    plt.close()
+            data = np.nanmean(ssp_dict_scene['data'], axis=2)
+            if targetVar not in ['tas', 'tasmax', 'tasmin']:
+                data = gaussian_filter1d(data, 2)
+            # mean = np.nanmean(data, axis=0)
+            # std = np.nanstd(data, axis=0)
+            # fig, ax = plt.subplots(dpi=300)
+            # plt.plot(ssp_years_local, mean, label=methodName, color=color, linestyle=linestyle)
+            # plt.fill_between(ssp_years_local, mean - std, mean + std, color=color, alpha=0.8)
+            median = np.nanmedian(data, axis=0)
+            top = np.nanpercentile(data, 75, axis=0)
+            bottom = np.nanpercentile(data, 25, axis=0)
+            plt.plot(ssp_years_local, median, label=methodName+ ' (' + str(nModels) + ')', color=plot.lighten_color(color, 1.2), linestyle=linestyle)
+            plt.fill_between(ssp_years_local, bottom, top, color=color, alpha=0.8)
+
+            # -----------------------  RAW  ssp
+            models = raw_ssp_dict_scene['models']
+            nModels = len(models)
+            data = np.nanmean(raw_ssp_dict_scene['data'], axis=2)
+            if targetVar not in ['tas', 'tasmax', 'tasmin']:
+                data = gaussian_filter1d(data, 2)
+            # mean = np.nanmean(data, axis=0)
+            # std = np.nanstd(data, axis=0)
+            # plt.plot(ssp_years_local, mean, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
+            # plt.fill_between(ssp_years_local, mean - std, mean + std, color=methods_colors['RAW'], alpha=0.7)
+            median = np.nanmedian(data, axis=0)
+            top = np.nanpercentile(data, 75, axis=0)
+            bottom = np.nanpercentile(data, 25, axis=0)
+            plt.plot(ssp_years_local, median, label='RAW (' + str(nModels) + ')', color='dimgray', linestyle=methods_linestyles['RAW'])
+            plt.fill_between(ssp_years_local, bottom, top, color=methods_colors['RAW'], alpha=0.7)
+
+            # try:
+            #     plt.ylim(ylim)
+            #     plt.ylabel(sign_ylabel)
+            # except:
+            #     pass
+            # plt.xlabel(xlabel)
+            plt.plot(ssp_years_local, np.zeros((len(ssp_years_local, ))), color='k', linewidth=0.2)
+
+            # if methodName != 'RAW':
+            color = methods_colors[methodName]
+            linestyle = methods_linestyles[methodName]
+            title_size = 28
+            try:
+                sign_ylabel = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['units']
+                if units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode'] == 'rel':
+                    sign_ylabel = '%'
+            except:
+                sign_ylabel = ''
+
+            if add_historical == True:
+                # -------------------- method hist
+                models = hist_dict_scene['models']
+                nModels = len(models)
+                data = np.nanmean(hist_dict_scene['data'], axis=2)
+                if targetVar not in ['tas', 'tasmax', 'tasmin']:
+                    data = gaussian_filter1d(data, 2)
+                # mean = np.nanmean(data, axis=0)
+                # std = np.nanstd(data, axis=0)
+                # fig, ax = plt.subplots(dpi=300)
+                # plt.plot(hist_years_local, mean, label=methodName, color=color, linestyle=linestyle)
+                # plt.fill_between(hist_years_local, mean - std, mean + std, color=color, alpha=0.8)
+                median = np.nanmedian(data, axis=0)
+                top = np.nanpercentile(data, 75, axis=0)
+                bottom = np.nanpercentile(data, 25, axis=0)
+                # fig, ax = plt.subplots(dpi=300)
+                plt.plot(hist_years_local, median, color=plot.lighten_color(color, 1.2), linestyle=linestyle)
+                plt.fill_between(hist_years_local, bottom, top, color=color, alpha=0.8)
+
+                # ------------------ RAW hist
+                models = raw_hist_dict_scene['models']
+                nModels = len(models)
+                data = np.nanmean(raw_hist_dict_scene['data'], axis=2)
+                if targetVar not in ['tas', 'tasmax', 'tasmin']:
+                    data = gaussian_filter1d(data, 2)
+                # mean = np.nanmean(data, axis=0)
+                # std = np.nanstd(data, axis=0)
+                # plt.plot(hist_years_local, mean, label='RAW', color='dimgray', linestyle=methods_linestyles['RAW'])
+                # plt.fill_between(hist_years_local, mean - std, mean + std, color=methods_colors['RAW'], alpha=0.7)
+                median = np.nanmedian(data, axis=0)
+                top = np.nanpercentile(data, 75, axis=0)
+                bottom = np.nanpercentile(data, 25, axis=0)
+                plt.plot(hist_years_local, median, color='dimgray', linestyle=methods_linestyles['RAW'])
+                plt.fill_between(hist_years_local, bottom, top, color=methods_colors['RAW'], alpha=0.7)
+
+                # try:
+                #     plt.ylim(ylim)
+                #     plt.ylabel(sign_ylabel)
+                # except:
+                #     pass
+                # plt.xlabel(xlabel)
+                plt.plot(hist_years_local, np.zeros((len(hist_years_local, ))), color='k', linewidth=0.2)
+
+            # plt.ylim((-50, 50))
+            plt.title(climdex_name+' '+season)
+            plt.legend()
+            # plt.show()
+            # exit()
+            filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName+'-'+scene, season))
+            # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
+            if (plotAllRegions == False):
+                # plt.title(methodName, fontsize=title_size)
+                if not os.path.exists(pathFigures):
+                    os.makedirs(pathFigures)
+                plt.savefig(pathFigures + filename + '.png')
+            elif plotAllRegions == True:
+                title = regName.upper() + '\n' + season
+                plt.title(title)
+
+                try:
+                    os.makedirs(pathOut + 'evolution/' + subDir)
+                except:
+                    pass
+                plt.savefig(pathOut + 'evolution/' + subDir + filename + '.png')
+            plt.close()
 
 
 ########################################################################################################################
 def csv_evol(pathOut, subDir, nYears, ssp_dict, years, climdex_name, season):
     """Write csv with data for evolution graphs"""
 
+    print('csv_evol', climdex_name, season)
     if not os.path.exists(pathOut + 'csv/' + subDir):
         os.makedirs(pathOut + 'csv/' + subDir)
     data_allScenes = np.zeros((nYears, 0))
     models_allScenes = []
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
-        models = [x + '_' + scene for x in ssp_dict[scene]['models']]
-        for model in models:
-            models_allScenes.append(model)
-        data = ssp_dict[scene]['data'].mean(axis=2).T
-        data_allScenes = np.append(data_allScenes, data, axis=1)
+        if scene != 'historical':
+            models = [x + '_' + scene for x in ssp_dict[scene]['models']]
+            for model in models:
+                models_allScenes.append(model)
+            data = ssp_dict[scene]['data'].mean(axis=2).T
+            data_allScenes = np.append(data_allScenes, data, axis=1)
     models_allScenes.insert(0, 'Año')
     data_allScenes = np.insert(data_allScenes, 0, years, axis=1)
     np.savetxt(pathOut + 'csv/' + subDir + climdex_name + '_' + season + '.csv', data_allScenes,
@@ -754,27 +843,30 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
               methodName, regType, regName, xlabel):
     """Plot evolution graphs all models"""
 
+    print('spaghetti', methodName, targetVar, climdex_name, season)
+
     color_dict = {'ssp119': 'Greys', 'ssp126': 'Blues', 'ssp245': 'Greens', 'ssp370': 'Oranges', 'ssp585': 'Reds'}
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
-        models = ssp_dict[scene]['models']
-        nModels = len(models)
-        all_data = ssp_dict[scene]['data']
+        if scene != 'historical':
+            models = ssp_dict[scene]['models']
+            nModels = len(models)
+            all_data = ssp_dict[scene]['data']
 
-        # Define colors
-        evenly_spaced_interval = np.linspace(0.2, 0.8, int(nModels / 4) + 1)
-        cm = plt.get_cmap(color_dict[scene])
-        colors = [cm(x) for x in evenly_spaced_interval]
-        linestyles = ['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--',
-                      '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':',
-                      '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--',
-                      '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':']
+            # Define colors
+            evenly_spaced_interval = np.linspace(0.2, 0.8, int(nModels / 4) + 1)
+            cm = plt.get_cmap(color_dict[scene])
+            colors = [cm(x) for x in evenly_spaced_interval]
+            linestyles = ['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--',
+                          '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':',
+                          '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--',
+                          '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':']
 
-        for i in range(nModels):
-            model = models[i]
-            data = all_data[i].mean(axis=1)
-            color = colors[int(i / 4)]
-            linestyle = linestyles[i]
-            plt.plot(years, data, label=model, color=color, linestyle=linestyle)
+            for i in range(nModels):
+                model = models[i]
+                data = all_data[i].mean(axis=1)
+                color = colors[int(i / 4)]
+                linestyle = linestyles[i]
+                plt.plot(years, data, label=model, color=color, linestyle=linestyle)
 
     try:
         plt.ylim(ylim)
@@ -803,39 +895,71 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
     plt.close()
 
 ########################################################################################################################
-def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, targetVar,
-         methodName, regType, regName, xlabel):
+def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel, season, targetVar,
+         methodName, regType, regName, xlabel, add_historical=True):
     """Plot evolution graphs mean and spread"""
 
-    color_dict = {'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
+    print('tube', methodName, targetVar, climdex_name, season)
+
+    color_dict = {'historical': 'grey', 'ssp119': 'darkblue', 'ssp126': 'lightblue', 'ssp245': 'orange', 'ssp370': 'salmon', 'ssp585': 'darkred'}
+    aux_counter = 0
     for scene in collections.OrderedDict(sorted(ssp_dict.items(), reverse=True)).keys():
-        models = ssp_dict[scene]['models']
-        nModels = len(models)
-        data = ssp_dict[scene]['data'].mean(axis=2)
-        if climdex_name in ('PRCPTOT', 'Pm', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
-            data = gaussian_filter1d(data, 2)
-        if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
-            data = gaussian_filter1d(data, 8)
-        # mean = np.nanmean(data, axis=0)
-        # std = np.nanstd(data, axis=0)
-        # scene_legend = scene_names_dict[scene]
-        # plt.plot(years, mean, label=scene_legend + '   (' + str(nModels) + ')', color=color_dict[scene])
-        # plt.fill_between(years, mean - std, mean + std, color=color_dict[scene], alpha=0.3)
-        median = np.nanmedian(data, axis=0)
-        top = np.nanpercentile(data, 75, axis=0)
-        bottom = np.nanpercentile(data, 25, axis=0)
-        scene_legend = scene_names_dict[scene]
-        plt.plot(years, median, label=scene_legend + '   (' + str(nModels) + ')', color=plot.lighten_color(color_dict[scene], 1.2))
-        plt.fill_between(years, bottom, top, color=color_dict[scene], alpha=0.3)
+        if scene != 'historical':
+
+            # --- ssp
+            models = ssp_dict[scene]['models']
+            nModels = len(models)
+            data = ssp_dict[scene]['data'].mean(axis=2)
+            if targetVar not in ['tas', 'tasmax', 'tasmin']:
+                data = gaussian_filter1d(data, 2)
+            if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+                data = gaussian_filter1d(data, 8)
+            # mean = np.nanmean(data, axis=0)
+            # std = np.nanstd(data, axis=0)
+            # scene_legend = scene_names_dict[scene]
+            # plt.plot(ssp_years_local, mean, label=scene_legend + '   (' + str(nModels) + ')', color=color_dict[scene])
+            # plt.fill_between(ssp_years_local, mean - std, mean + std, color=color_dict[scene], alpha=0.3)
+            median = np.nanmedian(data, axis=0)
+            top = np.nanpercentile(data, 75, axis=0)
+            bottom = np.nanpercentile(data, 25, axis=0)
+            scene_legend = scene_names_dict[scene]
+            plt.plot(ssp_years_local, median, label=scene_legend + '   (' + str(nModels) + ')', color=plot.lighten_color(color_dict[scene], 1.2))
+            plt.fill_between(ssp_years_local, bottom, top, color=color_dict[scene], alpha=0.3)
+
+            if add_historical == True and aux_counter == 0:
+                # --- historical
+                models = ssp_dict['historical']['models']
+                nModels = len(models)
+                data = ssp_dict['historical']['data'].mean(axis=2)
+                if targetVar not in ['tas', 'tasmax', 'tasmin']:
+                    data = gaussian_filter1d(data, 2)
+                if climdex_name in ('FWI90p', ):  # At the moment only Pm and PRCPTOT are smoothed, but this is optional
+                    data = gaussian_filter1d(data, 8)
+                # mean = np.nanmean(data, axis=0)
+                # std = np.nanstd(data, axis=0)
+                # scene_legend = scene_names_dict[scene]
+                # plt.plot(hist_years_local, mean, label=scene_legend + '   (' + str(nModels) + ')', color=color_dict[scene])
+                # plt.fill_between(hist_years_local, mean - std, mean + std, color=color_dict[scene], alpha=0.3)
+                median = np.nanmedian(data, axis=0)
+                top = np.nanpercentile(data, 75, axis=0)
+                bottom = np.nanpercentile(data, 25, axis=0)
+                scene_legend = scene_names_dict[scene]
+                plt.plot(hist_years_local, median, label='historical  (' + str(nModels) + ')', color=plot.lighten_color(color_dict['historical'], 1.2))
+                plt.fill_between(hist_years_local, bottom, top, color=color_dict['historical'], alpha=0.3)
+                aux_counter = aux_counter + 1
 
     plt.legend(loc='upper left')
+    handles, labels = plt.gca().get_legend_handles_labels()
+    handles_sorted, labels_sorted = zip(*sorted(zip(handles, labels), key=lambda x: x[1]))
+    plt.legend(handles_sorted, labels_sorted)
     try:
         plt.ylim(ylim)
         plt.ylabel(ylabel)
     except:
         pass
     plt.xlabel(xlabel)
-    plt.plot(years, np.zeros((len(years, ))), color='k', linewidth=0.2)
+    plt.plot(hist_years_local, np.zeros((len(hist_years_local, ))), color='k', linewidth=0.2)
+    plt.plot(ssp_years_local, np.zeros((len(ssp_years_local, ))), color='k', linewidth=0.2)
     # plt.show()
     # exit()
     # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'Pm'))):
@@ -857,51 +981,53 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, years, ylim, ylabel, season, t
 def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pathOut, scene_names_dict):
     """Plot change maps"""
 
+    print('change_maps', methodName, targetVar, climdex_name, season)
+
     # Go through all scenes
     for scene in ssp_dict.keys():
+        if scene != 'historical':
+            # Go through all periods
+            for term_years in (shortTerm_years, longTerm_years):
+                # if ((plotAllRegions == True) or ((scene == 'ssp585') and (term_years == longTerm_years))):
+                period = str(term_years[0]) + '-' + str(term_years[1])
+                years_list = [x for x in range(term_years[0], term_years[1] + 1)]
+                iYears = [i for i in range(len(years)) if years[i] in years_list]
+                dataTerm = np.mean(ssp_dict[scene]['data'][:, iYears, :], axis=1)
 
-        # Go through all periods
-        for term_years in (shortTerm_years, longTerm_years):
-            # if ((plotAllRegions == True) or ((scene == 'ssp585') and (term_years == longTerm_years))):
-            period = str(term_years[0]) + '-' + str(term_years[1])
-            years_list = [x for x in range(term_years[0], term_years[1] + 1)]
-            iYears = [i for i in range(len(years)) if years[i] in years_list]
-            dataTerm = np.mean(ssp_dict[scene]['data'][:, iYears, :], axis=1)
+                # Delete nan
+                iNans = np.unique(np.where(np.isnan(dataTerm))[0])
+                dataTerm = np.delete(dataTerm, iNans, axis=0)
 
-            # Delete nan
-            iNans = np.unique(np.where(np.isnan(dataTerm))[0])
-            dataTerm = np.delete(dataTerm, iNans, axis=0)
-
-            # Calculatean and plot mean and spread
-            # mean = np.mean(dataTerm, axis=0)
-            mean = np.median(dataTerm, axis=0)
-            if plotAllRegions == False:
-                # title = scene_names_dict[scene]+'   '+period+'     '+season
-                title = scene_names_dict[scene]+ ' '+period+' change'
-                filename = '_'.join(
-                    ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
-                plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
-                         filename=filename, title=title)
-            else:
-                filename = '_'.join(('meanChangeMap', climdex_name, scene, season+'-'+period))
-                # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
-                title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
-                         filename=filename, title=title)
-            # spread = np.std(dataTerm, axis=0)
-            spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
-            if plotAllRegions == False:
-                filename = '_'.join(
-                    ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
-                title = scene_names_dict[scene]+' '+period+' spread'
-                plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathFigures,
-                         filename=filename, title=title)
-            else:
-                filename = '_'.join(('spreadChangeMap', climdex_name, scene, season+'-'+period))
-                # title = ' '.join(('mod_spread', climdex_name, scene, season, period))
-                title = scene_names_dict[scene]+'   '+period+'\n'+season
-                plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
-                         filename=filename, title=title)
+                # Calculatean and plot mean and spread
+                # mean = np.mean(dataTerm, axis=0)
+                mean = np.median(dataTerm, axis=0)
+                if plotAllRegions == False:
+                    # title = scene_names_dict[scene]+'   '+period+'     '+season
+                    title = scene_names_dict[scene]+ ' '+period+' change'
+                    filename = '_'.join(
+                        ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
+                    plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
+                             filename=filename, title=title)
+                else:
+                    filename = '_'.join(('meanChangeMap', climdex_name, scene, season+'-'+period))
+                    # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
+                    title = scene_names_dict[scene]+'   '+period+'\n'+season
+                    plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
+                             filename=filename, title=title)
+                # spread = np.std(dataTerm, axis=0)
+                spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
+                if plotAllRegions == False:
+                    filename = '_'.join(
+                        ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
+                    title = scene_names_dict[scene]+' '+period+' spread'
+                    plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathFigures,
+                             filename=filename, title=title)
+                else:
+                    filename = '_'.join(('spreadChangeMap', climdex_name, scene, season+'-'+period))
+                    # title = ' '.join(('mod_spread', climdex_name, scene, season, period))
+                    title = scene_names_dict[scene]+'   '+period+'\n'+season
+                    plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
+                             filename=filename, title=title)
 
 
 ########################################################################################################################
@@ -1117,7 +1243,7 @@ def format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType,
     if targetVar == 'pr':
         units = 'décimas de mm'
     else:
-        units = degree_sign
+        units = 'décimas de ' + degree_sign
 
     # Go through all models and scenes
     for model in model_list:
@@ -1160,6 +1286,8 @@ def format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType,
                 id = [str(x) for x in id]
                 header = ' '.join((model, scene, period, df_vars['nameForDailyData'].values[0], '(', units, ')',
                                    df_methods['nameForDailyData'].values[0])) + '\n' + ';'.join(id)
-                np.savetxt(pathOut+'ASCII/'+fileOut_noExt+'.csv', data, fmt=['%.i'] + ['%.2f'] * (len(id) - 1), delimiter=';', header=header)
+                # Convert to tenths
+                data = 10*data.astype('int')
+                np.savetxt(pathOut+'ASCII/'+fileOut_noExt+'.csv', data, fmt=['%.i'] * len(id), delimiter=';', header=header)
 
 

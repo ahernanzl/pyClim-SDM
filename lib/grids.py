@@ -26,14 +26,14 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
 import write
 
 ########################################################################################################################
-def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp):
+def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp, targetVar, forceNormalInterpolation=False):
     '''
     :param pred: (ndays, npreds, nlats, nlons)
     :param interpolation_method:
@@ -43,6 +43,14 @@ def interpolate_predictors(pred, i_4nn, j_4nn, w_4nn, interp):
     :return: predOut(ndays, npreds)
     '''
 
+    # For variables with PCA transformation, no interpolation is needed, so low resolution coordinates and weight are tricked
+    if predsType_targetVars_dict[targetVar]=='pca' and forceNormalInterpolation==False:
+        i_4nn[:] = 0
+        j_4nn[:] = 0
+        w_4nn[:] = 0
+        w_4nn[0] = 1
+
+    warnings.filterwarnings("ignore")
 
     # Define npreds, ndays, predOut
     npreds, ndays = pred.shape[1], pred.shape[0]
@@ -173,8 +181,11 @@ def association(interp, targetVar):
 
     # Save results
     pathOut=pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp+'/'
-    if not os.path.exists(pathOut):
+
+    try:
         os.makedirs(pathOut)
+    except:
+        pass
     df_association.to_csv(pathOut+'association.csv')
 
     # Create arrays for speed
@@ -237,11 +248,15 @@ def subregions(targetVar):
 
     # If a division by regions will be used
     if divideByRegions == True:
-        if nameCompleteRegion == 'EspañaPB':
+        if nameCompleteRegion in ['EspañaPB', 'Canarias']:
 
             # Read shapefiles
-            prov_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_provinciales_inspire_peninbal_etrs89/recintos_provinciales_inspire_peninbal_etrs89.shp')
-            ccaa_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_autonomicas_inspire_peninbal_etrs89/recintos_autonomicas_inspire_peninbal_etrs89.shp')
+            if nameCompleteRegion == 'EspañaPB':
+                prov_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_provinciales_inspire_peninbal_etrs89/recintos_provinciales_inspire_peninbal_etrs89.shp')
+                ccaa_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_autonomicas_inspire_peninbal_etrs89/recintos_autonomicas_inspire_peninbal_etrs89.shp')
+            elif nameCompleteRegion == 'Canarias':
+                prov_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_provinciales_inspire_canarias_wgs84/recintos_provinciales_inspire_canarias_wgs84.shp')
+                ccaa_shp = gpd.read_file('../input_data/shapefiles/PROV_&_CCAA/recintos_autonomicas_inspire_canarias_wgs84/recintos_autonomicas_inspire_canarias_wgs84.shp')
             cuencas_shp = gpd.read_file('../input_data/shapefiles/CUENCAS/DemarcacionesHidrograficasPHC2015_2021.shp')
 
             # Define field names for each divission
