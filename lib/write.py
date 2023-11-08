@@ -94,6 +94,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 				maxLenght = len(x)
 		point = nc.createVariable('point', 'S'+str(maxLenght), 'point')
 		point.long_name = ""
+		point.units = ' '
 		for i in range(len(ids)):
 			point[i] = ids[i]
 		latitude = nc.createVariable(lat_name, 'f4', 'point')
