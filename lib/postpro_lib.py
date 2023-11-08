@@ -100,7 +100,7 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
             # Save results
             # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
             times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
-            write.netCDF(pathOut, '_'.join((climdex_name, filename, season))+'.nc', climdex_name, data_climdex, '',
+            write.netCDF(pathOut, '_'.join((climdex_name, filename, season))+'.nc', targetVar+'_'+climdex_name, data_climdex, '',
                          hres_lats[targetVar], hres_lons[targetVar], times_years, regular_grid=False)
 
     print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
