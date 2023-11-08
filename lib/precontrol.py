@@ -1034,5 +1034,9 @@ def GCMs_evaluation():
 
     print('GCMs_evaluation...')
     print(season_dict)
+
+    # GCMs_evaluation_historical()
+
     GCMs_evaluation_historical()
+
     GCMs_evaluation_future()
