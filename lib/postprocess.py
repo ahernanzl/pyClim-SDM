@@ -28,7 +28,7 @@ import precontrol
 import preprocess
 import process
 import read
-import transform
+import standardization
 import TF_lib
 import val_lib
 import WG_lib
@@ -360,15 +360,16 @@ def get_climdex_allModels(targetVar, methodName):
         for climdex_name in climdex_names[targetVar]:
             for season in season_dict:
                 for scene in scene_list:
-                    filenames.append(pathOut + '_'.join((climdex_name, scene, model, season)) + '.nc')
+                    filenames.append(pathOut + '_'.join((targetVar+'_'+climdex_name, scene, model, season)) + '.nc')
 
         climdex_already_calculated = True
         for filename in filenames:
             filename = filename.split('/')[-1]
-            scene = filename.split('_')[1]
-            model = filename.split('_')[2] + '_' + filename.split('_')[3]
+            scene = filename.split('_')[2]
+            model = filename.split('_')[3] + '_' + filename.split('_')[4]
             if ((os.path.isfile(pathIn + model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
                 climdex_already_calculated = False
+
         if climdex_already_calculated == False or force_climdex_calculation == True:
 
             # Check if model historical exists
@@ -411,6 +412,7 @@ def get_climdex_allModels(targetVar, methodName):
                     launch_jobs.climdex(model, targetVar, methodName)
 
     return iterable
+
 
 ########################################################################################################################
 def get_climdex_oneModel(targetVar, methodName, model):
