@@ -307,8 +307,8 @@ def climdex(by_season=True):
 
                                 # obs_climdex = np.load(pathIn + '_'.join((climdex_name, 'obs', season)) + '.npy')[:, iaux]
                                 # est_climdex = np.load(pathIn + '_'.join((climdex_name, 'est', season)) + '.npy')[:, iaux]
-                                obs_climdex = read.netCDF(pathIn, '_'.join((climdex_name, 'obs', season))+'.nc', climdex_name)['data'][:, iaux]
-                                est_climdex = read.netCDF(pathIn, '_'.join((climdex_name, 'est', season))+'.nc', climdex_name)['data'][:, iaux]
+                                obs_climdex = read.netCDF(pathIn, '_'.join((targetVar+'_'+climdex_name, 'obs', season))+'.nc', targetVar+'_'+climdex_name)['data'][:, iaux]
+                                est_climdex = read.netCDF(pathIn, '_'.join((targetVar+'_'+climdex_name, 'est', season))+'.nc', targetVar+'_'+climdex_name)['data'][:, iaux]
 
                                 # Calculate mean for obs  and est (remember that climdex whith no annaul value, such as p10, p95, etc)
                                 # have the same value for all years

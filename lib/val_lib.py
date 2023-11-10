@@ -535,8 +535,8 @@ def climdex_boxplots(by_season):
                             pathIn = '../results/EVALUATION'+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'
                             # obs = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'obs', season))+'.npy'), axis=0)
                             # est = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
-                            obs = np.nanmean(read.netCDF(pathIn, '_'.join((climdex_name, 'obs', season))+'.nc', climdex_name)['data'], axis=0)
-                            est = np.nanmean(read.netCDF(pathIn, '_'.join((climdex_name, 'est', season))+'.nc', climdex_name)['data'], axis=0)
+                            obs = np.nanmean(read.netCDF(pathIn, '_'.join((targetVar+'_'+climdex_name, 'obs', season))+'.nc', targetVar+'_'+climdex_name)['data'], axis=0)
+                            est = np.nanmean(read.netCDF(pathIn, '_'.join((targetVar+'_'+climdex_name, 'est', season))+'.nc', targetVar+'_'+climdex_name)['data'], axis=0)
 
                             biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
                             if biasMode == 'abs':
@@ -667,10 +667,10 @@ def climdex_Taylor_diagrams(by_season):
                                     # obs = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'obs', season))+'.npy'), axis=0)
                                     # est = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
                                     obs = np.nanmean(read.netCDF(pathIn, '_'.join(
-                                        (climdex_name, 'obs', season)) + '.nc', climdex_name)[
+                                        (targetVar+'_'+climdex_name, 'obs', season)) + '.nc', targetVar+'_'+climdex_name)[
                                                          'data'], axis=0)
                                     est = np.nanmean(read.netCDF(pathIn, '_'.join(
-                                        (climdex_name, 'est', season)) + '.nc', climdex_name)[
+                                        (targetVar+'_'+climdex_name, 'est', season)) + '.nc', targetVar+'_'+climdex_name)[
                                                          'data'], axis=0)
 
                                     obs_region = obs[iaux]
