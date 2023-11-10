@@ -78,7 +78,6 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 
 	# Create lat/lon and data variable
 	varName_hres_metadata = varName.split('_')[0]
-	varName = '_'.join(varName.split('_')[1:])
 	
 	if regular_grid == True:
 		latitude = nc.createVariable(lat_name, 'f4', (lat_name))
@@ -110,7 +109,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	longitude.long_name = "longitude"
 	longitude[:] = lons
 	var.units = units
-	var.long_name = varName_hres_metadata+'_'+varName
+	var.long_name = varName
 	var[:] = data
 
 	# # print(nc)
