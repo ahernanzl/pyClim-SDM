@@ -463,12 +463,12 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
         models = []
         all_data = np.zeros((0, nYears, npoints))
         for model in model_list:
-            fileIn = '_'.join((climdex_name, scene, model, season)) + '.nc'
+            fileIn = '_'.join((targetVar+'_'+climdex_name, scene, model, season)) + '.nc'
             # Check if scene/model exists
             if os.path.isfile(pathIn + fileIn):
                 # Read data and select region
-                data = read.netCDF(pathIn, fileIn, climdex_name)['data'][:, iaux]
-                ref = read.netCDF(pathIn, '_'.join((climdex_name, 'REFERENCE', model, season))+'.nc', climdex_name)['data'][:, iaux]
+                data = read.netCDF(pathIn, fileIn, targetVar+'_'+climdex_name)['data'][:, iaux]
+                ref = read.netCDF(pathIn, '_'.join((targetVar+'_'+climdex_name, 'REFERENCE', model, season))+'.nc', targetVar+'_'+climdex_name)['data'][:, iaux]
                 ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
 
                 # # Plot reference mean maps for climdex control, to detect possible errors
