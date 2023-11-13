@@ -156,7 +156,7 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
     data = np.concatenate((data_list[0], data_list[1], data_list[2], data_list[3], data_list[4]))
 
     # Save results and delete folds
-    write.netCDF(path, '_'.join((model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times, regular_grid=False)
+    write.netCDF(path, '_'.join((var, model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times, regular_grid=False)
     # os.system('rm ' + path + '*fold*')
     for ifold in range(5):
         os.remove(path + model + '_' + scene + '_fold' + str(ifold+1) + '.nc')
