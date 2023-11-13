@@ -271,7 +271,7 @@ def bias_correction_oneModel(targetVar, methodName, model):
                 # Save bias corrected scene
                 hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
                 hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
-                write.netCDF(pathOut, model + '_' + scene + '.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
+                write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + '.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
                              scene_dates, regular_grid=False)
 
 
@@ -360,15 +360,16 @@ def get_climdex_allModels(targetVar, methodName):
         for climdex_name in climdex_names[targetVar]:
             for season in season_dict:
                 for scene in scene_list:
-                    filenames.append(pathOut + '_'.join((climdex_name, scene, model, season)) + '.nc')
+                    filenames.append(pathOut + '_'.join((targetVar, climdex_name, scene, model, season)) + '.nc')
 
         climdex_already_calculated = True
         for filename in filenames:
             filename = filename.split('/')[-1]
-            scene = filename.split('_')[1]
-            model = filename.split('_')[2] + '_' + filename.split('_')[3]
+            scene = filename.split('_')[2]
+            model = filename.split('_')[3] + '_' + filename.split('_')[4]
             if ((os.path.isfile(pathIn + model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
                 climdex_already_calculated = False
+
         if climdex_already_calculated == False or force_climdex_calculation == True:
 
             # Check if model historical exists
@@ -411,6 +412,7 @@ def get_climdex_allModels(targetVar, methodName):
                     launch_jobs.climdex(model, targetVar, methodName)
 
     return iterable
+
 
 ########################################################################################################################
 def get_climdex_oneModel(targetVar, methodName, model):
