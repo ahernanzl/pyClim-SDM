@@ -222,7 +222,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
-    write.netCDF(pathOut, model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
+    write.netCDF(pathOut, targetVar+'_'+model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
     # print(est[0, :10], est.shape)
 
     # If using k-folds, join them
