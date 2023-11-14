@@ -150,7 +150,7 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
     data_list = []
     times = []
     for ifold in range(5):
-        aux = read.netCDF(path, '_'.join((model, scene, 'fold')) + str(ifold+1) + '.nc', var)
+        aux = read.netCDF(path, '_'.join((var, model, scene, 'fold')) + str(ifold+1) + '.nc', var)
         data_list.append(aux['data'])
         times += list(aux['times'])
     data = np.concatenate((data_list[0], data_list[1], data_list[2], data_list[3], data_list[4]))
@@ -159,7 +159,7 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
     write.netCDF(path, '_'.join((var, model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times, regular_grid=False)
     # os.system('rm ' + path + '*fold*')
     for ifold in range(5):
-        os.remove(path + model + '_' + scene + '_fold' + str(ifold+1) + '.nc')
+        os.remove(path + var + '_' + model + '_' + scene + '_fold' + str(ifold+1) + '.nc')
 
 
 ########################################################################################################################
