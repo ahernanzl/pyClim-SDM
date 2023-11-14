@@ -93,7 +93,7 @@ def bias_correction_renalysis(targetVar, methodName):
         os.makedirs(pathTmp)
 
     # Read data
-    est_aux = read.netCDF(pathIn, 'reanalysis_TESTING.nc', targetVar)
+    est_aux = read.netCDF(pathIn, targetVar + '_' + 'reanalysis_TESTING.nc', targetVar)
     est_times = est_aux['times']
     est_data = est_aux['data']
     obs_aux = read.hres_data(targetVar, period='calibration')
@@ -143,7 +143,7 @@ def bias_correction_renalysis(targetVar, methodName):
     # Save bias corrected scene
     hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
     hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
-    write.netCDF(pathOut, 'reanalysis_TESTING.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
+    write.netCDF(pathOut, targetVar + '_' + 'reanalysis_TESTING.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
                  est_times, regular_grid=False)
 
 
@@ -243,7 +243,7 @@ def bias_correction_oneModel(targetVar, methodName, model):
 
         # Read obs and mod in bias correction period
         obs_data = read.hres_data(targetVar, period='biasCorr')['data']
-        aux = read.netCDF(pathIn, model + '_historical.nc', targetVar)
+        aux = read.netCDF(pathIn, targetVar + '_' + model + '_historical.nc', targetVar)
         idates = [i for i in range(len(aux['times'])) if
                   aux['times'][i].year in range(biasCorr_years[0], biasCorr_years[1] + 1)]
         mod_data = aux['data'][idates]
@@ -252,12 +252,12 @@ def bias_correction_oneModel(targetVar, methodName, model):
         for scene in scene_list:
 
             # Check if scene/model exists
-            if os.path.isfile(pathIn + model + '_' + scene + '.nc'):
+            if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc'):
 
                 print(scene)
 
                 # Read scene data
-                aux = read.netCDF(pathIn, model + '_' + scene + '.nc', targetVar)
+                aux = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
                 scene_dates = aux['times']
                 scene_data = aux['data']
                 del aux
@@ -437,7 +437,7 @@ def get_climdex_oneModel(targetVar, methodName, model):
         pass
 
     # Read reference data (as a scene)
-    aux = read.netCDF(pathIn, model + '_historical.nc', targetVar)
+    aux = read.netCDF(pathIn, targetVar + '_' + model + '_historical.nc', targetVar)
     times_ref = aux['times']
     ref = aux['data']
     idates = [i for i in range(len(times_ref)) if
@@ -460,9 +460,9 @@ def get_climdex_oneModel(targetVar, methodName, model):
     for scene in scene_list:
 
         # Check if scene/model exists
-        if os.path.isfile(pathIn + model + '_' + scene + '.nc'):
+        if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc'):
             # Read scene data
-            aux = read.netCDF(pathIn, model + '_' + scene + '.nc', targetVar)
+            aux = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
             times = aux['times']
             data = aux['data']
             del aux
@@ -522,9 +522,9 @@ def nc2ascii():
 
                 # Daily data
                 pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-                fileName = model+'_'+scene
+                fileName = targetVar + '_' + model + '_' + scene
                 if os.path.isfile(pathIn + fileName +'.nc'):
-                    nc = read.netCDF(pathIn, model + '_' + scene + '.nc', targetVar)
+                    nc = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
                     times = nc['times']
                     data = nc['data']
                     data[np.isnan(data)] = -999
@@ -552,10 +552,10 @@ def nc2ascii():
                 for climdex in climdex_names[targetVar]:
                     for season in season_dict:
                         if scene == 'TESTING':
-                            fileIn = '_'.join((climdex, 'est', season))
+                            fileIn = '_'.join((targetVar, climdex, 'est', season))
                         else:
-                            fileIn = '_'.join((climdex, scene, model, season))
-                        fileOut = '_'.join((climdex, scene, model, season))
+                            fileIn = '_'.join((targetVar, climdex, scene, model, season))
+                        fileOut = '_'.join((targetVar, climdex, scene, model, season))
                         if os.path.isfile(pathIn + fileIn +'.nc'):
                             print('writing climdex to ASCCI file for', targetVar, climdex, methodName, bc_sufix, scene, model, '...')
                             data = read.netCDF(pathIn, fileIn, climdex)['data']
