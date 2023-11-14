@@ -431,7 +431,7 @@ def get_data_eval(targetVar, methodName):
     aux = read.hres_data(targetVar, period='testing')
     times_scene = aux['times']
     obs = aux['data']
-    est = read.netCDF(pathIn, 'reanalysis_TESTING.nc', targetVar)['data']
+    est = read.netCDF(pathIn, targetVar + '_' + 'reanalysis_TESTING.nc', targetVar)['data']
     del aux
 
     special_value = predictands_codification[targetVar]['special_value']
@@ -468,7 +468,7 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
             if os.path.isfile(pathIn + fileIn):
                 # Read data and select region
                 data = read.netCDF(pathIn, fileIn, targetVar+'_'+climdex_name)['data'][:, iaux]
-                ref = read.netCDF(pathIn, '_'.join((targetVar+'_'+climdex_name, 'REFERENCE', model, season))+'.nc', targetVar+'_'+climdex_name)['data'][:, iaux]
+                ref = read.netCDF(pathIn, '_'.join((targetVar, climdex_name, 'REFERENCE', model, season))+'.nc', targetVar+'_'+climdex_name)['data'][:, iaux]
                 ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
 
                 # # Plot reference mean maps for climdex control, to detect possible errors
@@ -1254,9 +1254,9 @@ def format_web_AEMET_dailyData(targetVar, methodName, df_methods, df_targetType,
                 period = str(rcp_years[0]) + '-' + str(rcp_years[1])
 
             # Check if scene/model exists
-            if os.path.isfile(pathIn + model + '_' + scene + '.nc'):
+            if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc'):
                 # Read scene data
-                nc = read.netCDF(pathIn, model + '_' + scene + '.nc', targetVar)
+                nc = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
                 times = nc['times']
                 data = nc['data']
                 del nc
