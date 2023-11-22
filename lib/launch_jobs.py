@@ -134,6 +134,11 @@ def training(targetVar, methodName, family, mode, fields):
         n = 32
     elif methodName == 'RF' and targetVar != 'pr':
         n = 64
+    elif methodName == 'APRF' and targetVar == 'pr':
+        n = 32
+    elif methodName == 'APRF' and targetVar != 'pr':
+        print('not valid: APRF must be used exclusively for precipitation')
+        exit()
     elif methodName == 'XGB':
         n = 32
     elif methodName in ('ANN', 'CNN', ):
@@ -196,6 +201,11 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
         n = 80
     elif methodName == 'RF' and targetVar != 'pr':
         n = 128
+    elif methodName == 'APRF' and targetVar == 'pr':
+        n = 128
+    elif methodName == 'APRF' and targetVar != 'pr':
+        print('not valid: APRF must be used exclusively for precipitation')
+        exit()
     elif methodName == 'ANN':
         n = 80
     elif methodName in ('CNN', ):

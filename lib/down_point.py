@@ -244,10 +244,35 @@ def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
             israiny = (odds_rainy[:, 0] >= .5)
 
     # Predicts estimated target
-    try:
-        Y = reg_ipoint.predict(X, verbose=0)
-    except:
-        Y = reg_ipoint.predict(X)
+	if methodName != 'APRF':
+        try:
+            Y = reg_ipoint.predict(X, verbose=0)
+        except:
+            Y = reg_ipoint.predict(X)
+    else:
+        # Predicts estimated target in the case of A Posteriori Random Forest with BC3 implementation
+        # (see Legasa et al.,2022. A posteriori random forests for stochastic downscaling of precipitation by predicting
+        # probability distributions. Water Resources Research, 58, e2021WR030272. https://doi.org/10.1029/2021WR030272)
+        try:
+            predictions = np.array([tree.predict(X, verbose=0) for tree in reg_ipoint.best_estimator_.estimators_])
+        except:
+            predictions = np.array([tree.predict(X) for tree in reg_ipoint.best_estimator_.estimators_])
+        EV = []
+        for y in predictions.T:
+            sumy = np.sum(y)
+            logy = np.log(y)
+            n = len(y)
+            aux = n * np.sum(y * logy) - sumy * np.sum(logy)
+            a_point = n * sumy / aux
+            a = a_point - 1 / n * (
+                        3 * a_point - 2 / 3 * a_point / (1 + a_point) - 4 / 5 * a_point / (1 + a_point) ** 2)
+            b = n * a / sumy
+            try:
+                EV.append(np.nanmean(gamma.rvs(a, scale=1 / b, size=250)))  # stochastic
+                # EV.append(a / b) # deterministic
+            except:
+                EV.append(a / b) 
+        Y = np.array(EV)
 
     if Y.ndim > 1:
         Y = Y[:, 0]

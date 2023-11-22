@@ -137,6 +137,7 @@ methods = {
         # 'SVM',
         # 'LS-SVM',
         # 'RF',
+        # 'APRF',
         # 'XGB',
         # 'ANN',
         # 'CNN',

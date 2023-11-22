@@ -230,7 +230,7 @@ def train_point(targetVar, methodName, X, y, ipoint):
                                  param_grid={"alpha": np.logspace(-3, 0, 4), "gamma": np.logspace(-2, 2, 5)}, cv=3)
             regressor.fit(X, y)
 
-        elif methodName == 'RF':
+        elif methodName == 'RF' or methodName == 'APRF':
             regressor = GridSearchCV(RandomForestRegressor(), param_grid={"max_depth": [20, 60]}, cv=3)
             regressor.fit(X, y)
 
@@ -317,7 +317,7 @@ def train_point(targetVar, methodName, X, y, ipoint):
             classifier = CalibratedClassifierCV(classifier, cv=5)
             classifier.fit(X, 1*israiny)
 
-        elif methodName == 'RF':
+        elif methodName == 'RF' or methodName == 'APRF':
             classifier = GridSearchCV(RandomForestClassifier(), param_grid={"max_depth": [20, 60]}, cv=3)
             if plot_hyperparameters_epochs_nEstimators_featureImportances == False:
                 classifier = CalibratedClassifierCV(classifier, cv=5)
