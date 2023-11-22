@@ -244,7 +244,7 @@ def TF_pr(methodName, X, clf_ipoint, reg_ipoint):
             israiny = (odds_rainy[:, 0] >= .5)
 
     # Predicts estimated target
-	if methodName != 'APRF':
+    if methodName != 'APRF':
         try:
             Y = reg_ipoint.predict(X, verbose=0)
         except:
