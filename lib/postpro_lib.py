@@ -33,7 +33,7 @@ import WG_lib
 import write
 
 ########################################################################################################################
-def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_ref):
+def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_ref, calendar):
     """
     Calculate all climdex/season and save them into files.
     """
@@ -105,7 +105,7 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
             # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
             times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
             write.netCDF(pathOut, '_'.join((targetVar, climdex_name, filename, season))+'.nc', targetVar+'_'+climdex_name, data_climdex, '',
-                         hres_lats[targetVar], hres_lons[targetVar], times_years, regular_grid=False)
+                         hres_lats[targetVar], hres_lons[targetVar], times_years, calendar, regular_grid=False)
 
     print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
 
@@ -225,17 +225,21 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
         times_year = [x for x in times if x.year == year]
         data_nDays, ref_nDays = data_year.shape[0], ref.shape[0]
 
-        # Deal with leap years
-        if data_nDays == ref_nDays:
-            aux = 1*ref
-        elif data_nDays == ref_nDays + 1:
-            i_28feb = [times_ref.index(x) for x in times_ref if ((x.month == 2) and (x.day == 28))][0]
-            aux = 0*data_year
-            aux[:i_28feb+1] = ref[:i_28feb+1]
-            aux[i_28feb+1] = ref[i_28feb]
-            aux[i_28feb+1:] = ref[i_28feb:]
-        else:
-            exit(times_year, len(times_year), ref_nDays)
+        # # Deal with leap years
+        # print(data_nDays, ref_nDays)
+        # exit()
+        # if data_nDays == ref_nDays:
+        #     aux = 1*ref
+        # elif data_nDays == ref_nDays + 1:
+        #     i_28feb = [times_ref.index(x) for x in times_ref if ((x.month == 2) and (x.day == 28))][0]
+        #     aux = 0*data_year
+        #     aux[:i_28feb+1] = ref[:i_28feb+1]
+        #     aux[i_28feb+1] = ref[i_28feb]
+        #     aux[i_28feb+1:] = ref[i_28feb:]
+        # else:
+        #     print(times_year, len(times_year), ref_nDays)
+        #     exit()
+        aux = 1 * ref
 
         # # Remove days with nan
         # iNans = np.unique(np.where(np.isnan(data_year))[0])

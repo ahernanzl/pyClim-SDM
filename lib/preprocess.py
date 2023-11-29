@@ -85,17 +85,7 @@ def common_fold_dependent():
         print('train/test split', targetVar)
 
         # Reanalysis
-        if pseudoreality == False:
-            data_calib = read.lres_data(targetVar, 'var')['data']
-
-        # Model with pseudoreality
-        elif pseudoreality == True:
-            scene = scene_list[0]
-            aux = read.lres_data(targetVar, 'var', model=GCM_shortName, scene=scene)
-            dates = aux['times']
-            data = aux['data']
-            time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
-            data_calib = data[time_first:time_last]
+        data_calib = read.lres_data(targetVar, 'var')['data']
 
         # Get days for training and testing and saves split data to files
         years = np.array([x.year for x in calibration_dates])

@@ -82,6 +82,7 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     units = nc.variables[time_name].units
     times_num = nc.variables[time_name][:].data
     times = num2date(times_num, units=units, calendar=calendar)
+    # exit()
 
     # bounds = num2date(nc.variables['time_bnds'][:], units=units, calendar=calendar)
     # print(bounds[0])
@@ -118,22 +119,6 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
             data[data == nc.variables[nc_variable]._FillValue] = np.nan
     if np.ma.is_masked(data):
         data = np.ma.MaskedArray.filled(data, fill_value=np.nan)
-
-    if calendar in ['360_day', '360']:
-        valid_idates = []
-        for i in range(times.size):
-            if not ((times[i].month == 2) and (times[i].day >= 29)):
-                valid_idates.append(i)
-                year = times[i].year
-                month = times[i].month
-                day = times[i].day
-                times[i] = datetime.datetime(year, month, day, 12, 0)
-        data = data[valid_idates]
-        times = times[valid_idates]
-    else:
-        for i in range(times.size):
-            year, month, day, hour, minute = times[i].year, times[i].month, times[i].day, 12, 0
-            times[i] = datetime.datetime(year, month, day, hour, minute)
 
     data = data.__array__()
     # data = np.frombuffer(data.getdata).reshape(data.shape)
@@ -341,7 +326,8 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             print('At least one direct predictors is needed, not only derived predictors.')
             exit()
 
-        idates = [i for i in range(len(aux_times)) if aux_times[i] in dates]
+        years = list(set([x.year for x in dates]))
+        idates = [i for i in range(len(aux_times)) if aux_times[i].year in years]
 
         # var
         if field == 'var':
@@ -359,13 +345,11 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
 
             # tasmax
             if 'tasmax' in preds:
-                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data'][
-                    idates];
+                data[i] = one_direct_predictor('tasmax', level=None, grid='ext', model=model, scene=scene)['data'][idates];
                 i += 1
             # tasmin
             if 'tasmin' in preds:
-                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data'][
-                    idates];
+                data[i] = one_direct_predictor('tasmin', level=None, grid='ext', model=model, scene=scene)['data'][idates];
                 i += 1
             # pr
             if 'pr' in preds:
@@ -394,8 +378,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             # uas, vas
             for var in ('uas', 'vas'):
                 if var in preds:
-                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][
-                        idates];
+                    data[i] = one_direct_predictor(var, level=None, grid='ext', model=model, scene=scene)['data'][idates];
                     i += 1
             # sfcWind
             if 'sfcWind' in preds:
@@ -422,8 +405,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             for var in ['ua', 'va', 'ta', 'zg']:
                 for level in preds_levels:
                     if var + str(level) in preds:
-                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][
-                            idates];
+                        data[i] = one_direct_predictor(var, level=level, grid='ext', model=model, scene=scene)['data'][idates];
                         i += 1
             # hus
             var = 'hus'

@@ -81,23 +81,8 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             ncName = list(preds.keys())[0]
             calendar = read.one_direct_predictor(ncName, model=model, scene=scene)['calendar']
 
-            # Auxiliary dates "avail" are defined in case historical projections contain years out of calibration_years
-            avail_first_date = max(calibration_first_date, dates[0])
-            avail_last_date = min(calibration_last_date, dates[-1])
-            avail_ndates = (avail_last_date - avail_first_date).days + 1
-            avail_dates = [avail_first_date + datetime.timedelta(days=i) for i in range(avail_ndates)]
-
-            time_first, time_last = dates.index(avail_first_date), dates.index(avail_last_date) + 1
-            var_calib = var_calib[time_first:time_last]
-            if calendar in ['365', '365_day', 'noleap' ]:
-                dates = [x for x in avail_dates if not ((x.month == 2) and (x.day == 29))]
-            elif calendar in ['360', '360_day', ]:
-                dates = [x for x in avail_dates if not (((x.month == 2) and (x.day >= 29)) | (x.day > 30))]
-            else:
-                dates = avail_dates
-            years_aux = np.array([x.year for x in dates])
-            idates_calib = np.array(
-                [i for i in range(years_aux.size) if ((years_aux[i] < testing_years[0]) | (years_aux[i] > testing_years[1]))])
+            years_train = list(set([x.year for x in training_dates]))
+            idates_calib = [i for i in range(len(dates)) if dates[i].year in years_train]
             var_calib = var_calib[idates_calib]
 
             # Read var_scene (from model)
@@ -181,53 +166,35 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     # Gets scene dates
     if scene == 'TESTING':
         scene_dates = testing_dates
-        model_dates = testing_dates
+        calendar = reanalysis_calendar
     else:
         if scene == 'historical':
             periodFilename = historicalPeriodFilename
-            scene_dates = historical_dates
         else:
             periodFilename = sspPeriodFilename
-            scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
         ncVar = modNames[targetVar]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
-        filename = ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename + '.nc'
-        model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
-        model_dates = [x for x in model_dates if x.year >= scene_dates[0].year and x.year <= scene_dates[-1].year]
+        filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
+        aux = read.netCDF(path, filename, ncVar)
+        scene_dates = np.ndarray.tolist(aux['times'])
+        calendar = aux['calendar']
 
     # Create empty array and accumulate results
-    est = np.zeros((len(model_dates), 0))
+    est = np.zeros((len(scene_dates), 0))
     for ichunk in range(n_chunks):
-        path = '../tmp/ESTIMATED_'+ '_'.join((targetVar, methodName, scene, model)) + '/'
+        path = '../tmp/ESTIMATED_' + '_'.join((targetVar, methodName, scene, model)) + '/'
         filename = path + '/ichunk_' + str(ichunk) + '.npy'
         est = np.append(est, np.load(filename), axis=1)
     shutil.rmtree(path)
 
     # Save to file
-    if experiment == 'EVALUATION':
-        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-    elif experiment == 'PSEUDOREALITY':
-        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
-        aux[:] = np.nan
-        idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
-        aux[idates] = est
-        est = aux
-        del aux
-        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-    else:
-        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
-        aux[:] = np.nan
-        idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
-        aux[idates] = est
-        est = aux
-        del aux
-        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+    pathOut = '../results/' + experiment + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lons.npy')
+    hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_bilinear/hres_lats.npy')
+    hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_bilinear/hres_lons.npy')
 
     # Set units
     units = predictands_units[targetVar]
@@ -241,28 +208,32 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
 
     # Special values are set to nan
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
-    est[np.abs(est-predictands_codification[targetVar]['special_value']) < 0.01] = np.nan
+    est[np.abs(est - predictands_codification[targetVar]['special_value']) < 0.01] = np.nan
     print('-------------------------------------------------------------------------')
-    print('results contain', 100*int(np.where(np.isnan(est))[0].size/est.size), '% of nans')
+    print('results contain', 100 * int(np.where(np.isnan(est))[0].size / est.size), '% of nans')
     print('-------------------------------------------------------------------------')
+
     if targetVar == 'huss':
         print('huss modification /1000...')
         est /= 1000
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
-    if  minAllowed is not None:
+    if minAllowed is not None:
         est[est < minAllowed] = minAllowed
-    if  maxAllowed is not None:
+    if maxAllowed is not None:
         est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
-    write.netCDF(pathOut, targetVar+'_'+model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
+    write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + fold_sufix + '.nc', targetVar, est, units,
+                 hres_lats, hres_lons,
+                 scene_dates, calendar, regular_grid=False)
     # print(est[0, :10], est.shape)
 
     # If using k-folds, join them
     if split_mode == 'fold5':
         aux_lib.join_kfolds(targetVar, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons)
+
 
 ########################################################################################################################
 

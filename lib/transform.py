@@ -62,13 +62,8 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
         os.makedirs(pathOut)
 
     # Read low resolution data from reanalysis
-    if pseudoreality == True:
-        aux = read.lres_data(targetVar, field=field, grid=grid, model=GCM_shortName, scene=scene)
-        dates = aux['times']
-        data = aux['data']
-    else:
-        dates = calibration_dates
-        data = read.lres_data(targetVar, field=field, grid=grid)['data']
+    dates = calibration_dates
+    data = read.lres_data(targetVar, field=field, grid=grid)['data']
 
     calib_data = 1*data
     ref_data = 1*data
@@ -79,7 +74,7 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
     ref_data = ref_data[time_first:time_last]
 
     # Fill Nans with interpolation
-    if force_fillNans_for_local_predictors == True and np.sum(np.where(np.isnan(ref_data)) != 0):
+    if force_fillNans_for_local_predictors == True and (np.sum(np.where(np.isnan(ref_data))) != 0):
         aux = aux_lib.fillNans(ref_data)
         ref_data, filled = aux[0], aux[1]
 
@@ -150,29 +145,13 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
     aux = read.lres_data(targetVar, field=field, grid=grid, model=model, scene='historical')
     scene_dates = aux['times']
 
-    # Read calendar
-    for pred in preds_dict[targetVar]:
-        if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
-            level = int(pred[-4:])
-        elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
-            level = int(pred[-3:])
-        else:
-            level = None
-        try:
-            calendar = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene='historical')['calendar']
-            break
-        except:
-            pass
-
-    if calendar in ('360', '360_day'):
-        time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_dates[-2])
-    else:
-        time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_last_date) + 1
+    reference_years = list(set([x.year for x in reference_dates]))
+    idates = [i for i in range(len(scene_dates)) if scene_dates[i].year in reference_years]
     data = aux['data']
-    data = data[time_first:time_last]
+    data = data[idates]
 
     # Fill Nans with interpolation
-    if force_fillNans_for_local_predictors == True and np.sum(np.where(np.isnan(data)) != 0):
+    if force_fillNans_for_local_predictors == True and (np.sum(np.where(np.isnan(data))) != 0):
         aux = aux_lib.fillNans(data)
         data, filled = aux[0], aux[1]
 
@@ -194,7 +173,7 @@ def transform(targetVar, data, model, fields_and_grid):
     warnings.filterwarnings("ignore")
 
     # Fill Nans with interpolation
-    if force_fillNans_for_local_predictors == True and np.sum(np.where(np.isnan(data)) != 0):
+    if force_fillNans_for_local_predictors == True and (np.sum(np.where(np.isnan(data))) != 0):
         aux = aux_lib.fillNans(data)
         data, filled = aux[0], aux[1]
 
