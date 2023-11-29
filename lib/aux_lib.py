@@ -156,7 +156,9 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
     data = np.concatenate((data_list[0], data_list[1], data_list[2], data_list[3], data_list[4]))
 
     # Save results and delete folds
-    write.netCDF(path, '_'.join((var, model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times, regular_grid=False)
+    write.netCDF(path, '_'.join((var, model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times,
+                 reanalysis_calendar, regular_grid=False)
+
     # os.system('rm ' + path + '*fold*')
     for ifold in range(5):
         os.remove(path + var + '_' + model + '_' + scene + '_fold' + str(ifold+1) + '.nc')
@@ -183,7 +185,7 @@ def prepare_hres_data_ascii2npy(targetVar):
     """
 
     filename = pathHres + targetVar + '_' + hresPeriodFilename[targetVar]
-    fill_value_txt = -999 # This is the value in the txt file, and this function convert it to np.nan for the .npy file
+    fill_value_txt = fill_value # This is the value in the txt file, and this function convert it to np.nan for the .npy file
 
     minYear = int(hresPeriodFilename[targetVar].split('-')[0][:4])
     maxYear = int(hresPeriodFilename[targetVar].split('-')[1][:4])
@@ -195,8 +197,6 @@ def prepare_hres_data_ascii2npy(targetVar):
     # ------------------------
     # read data
     # ------------------------
-    if pseudoreality == True:
-        exit('Do not run read.hres_data first time True for pseudoreality')
     num_lines = sum(1 for line in open(filename + '.txt'))
     lon_line=hres_npoints[targetVar]+1
     data=np.zeros((0))

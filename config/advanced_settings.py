@@ -214,26 +214,10 @@ predictands_units = {
 if myTargetVar in targetVars:
     predictands_units.update({myTargetVar: myTargetVarUnits})
 
-###################################     PSEUDOREALITY    ###########################################################
-
-# Select a GCM/RCM combination if using pseudo reality and do nothing otherwise
-pseudoreality, GCM_shortName, GCM_longName, RCM = False, None, None, None
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'CNRM-CM5', 'CNRM-CERFACS-CNRM-CM5', 'CNRM-ALADIN63'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'CNRM-CM5', 'CNRM-CERFACS-CNRM-CM5', 'DMI-HIRHAM5'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'CNRM-CM5', 'CNRM-CERFACS-CNRM-CM5', 'KNMI-RACMO22E'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'IPSL-CM5A-MR', 'IPSL-IPSL-CM5A-MR', 'DMI-HIRHAM5'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'IPSL-CM5A-MR', 'IPSL-IPSL-CM5A-MR', 'KNMI-RACMO22E'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'MPI-ESM-LR', 'MPI-M-MPI-ESM-LR', 'CNRM-ALADIN63'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'MPI-ESM-LR', 'MPI-M-MPI-ESM-LR', 'KNMI-RACMO22E'
 
 # Definition of paths (do not change)
-if pseudoreality == True:
-    experiment = 'PSEUDOREALITY'
-    pathHres = '../input_data/OBS_PSEUDO/hres_' + GCM_longName + '_' + RCM + '/'
-    pathAux = '../aux_RCM/'
-else:
-    pathHres = '../input_data/hres/'
-    pathAux = '../aux/'
+pathHres = '../input_data/hres/'
+pathAux = '../aux/'
 # Set to False only if generating figures for different subregions so they will be saved in subdirectories.
 pathFigures = '../results/Figures/'
 
@@ -287,7 +271,7 @@ aggregation_pcp_WG_PDF = 1
 
 if experiment == 'EVALUATION':
     classifier_mode = 'deterministic'  # clf.predict. Recommended if validating daily data
-elif experiment in ('PROJECTIONS', 'PSEUDOREALITY'):
+elif experiment == 'PROJECTIONS':
     classifier_mode = 'probabilistic'  # clf.predict_proba. Recommended for out of range (extrapolation) classifications.
     # It slows down training.
 
@@ -318,7 +302,7 @@ for methodName in convolutional_methods:
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the
 # climdex (projections), set to False. This parameter is used in postporcess.get_climdex_oneModel
-if experiment in ('EVALUATION', 'PSEUDOREALITY'):
+if experiment == 'EVALUATION':
     reference_climatology_from_observations = True
 elif experiment == 'PROJECTIONS':
     reference_climatology_from_observations = False
@@ -336,6 +320,9 @@ else:
 
 
 #############################################  GRIDS  ##################################################################
+
+# Missing data codification for predictands, both as input_data and as results
+fill_value = -999
 
 target_type = 'gridded_data'
 # target_type = 'stations'
@@ -423,11 +410,6 @@ elif len(sspPeriodFilenames) == 0:
     sspPeriodFilename = ''
     ssp_years = (2015, 2100)
 
-if experiment == 'PSEUDOREALITY':
-    calibration_years = (1961, 2005)
-    testing_years = (1986, 2005)
-    historical_years = (1986, 2005)
-    ssp_years = (2081, 2100)
 shortTerm_years = (2041, 2070)
 longTerm_years = (2071, 2100)
 
@@ -503,17 +485,11 @@ calibration_first_date = datetime.datetime(calibration_years[0], 1, 1, 12, 0)
 calibration_last_date = datetime.datetime(calibration_years[1], 12, 31, 12, 0)
 calibration_ndates = (calibration_last_date - calibration_first_date).days + 1
 calibration_dates = [calibration_first_date + datetime.timedelta(days=i) for i in range(calibration_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    calibration_dates = [x for x in calibration_dates if not ((x.month == 2) and (x.day == 29))]
-    calibration_ndates = len(calibration_dates)
 # Testing period
 testing_first_date = datetime.datetime(testing_years[0], 1, 1, 12, 0)
 testing_last_date = datetime.datetime(testing_years[1], 12, 31, 12, 0)
 testing_ndates = (testing_last_date - testing_first_date).days + 1
 testing_dates = [testing_first_date + datetime.timedelta(days=i) for i in range(testing_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    testing_dates = [x for x in testing_dates if not ((x.month == 2) and (x.day == 29))]
-    testing_ndates = len(testing_dates)
 # Training
 training_dates = [x for x in calibration_dates if x not in testing_dates]
 training_ndates = len(training_dates)
@@ -522,33 +498,21 @@ reference_first_date = datetime.datetime(reference_years[0], 1, 1, 12, 0)
 reference_last_date = datetime.datetime(reference_years[1], 12, 31, 12, 0)
 reference_ndates = (reference_last_date - reference_first_date).days + 1
 reference_dates = [reference_first_date + datetime.timedelta(days=i) for i in range(reference_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    reference_dates = [x for x in reference_dates if not ((x.month == 2) and (x.day == 29))]
-    reference_ndates = len(reference_dates)
 # BiasCorrection
 biasCorr_first_date = datetime.datetime(biasCorr_years[0], 1, 1, 12, 0)
 biasCorr_last_date = datetime.datetime(biasCorr_years[1], 12, 31, 12, 0)
 biasCorr_ndates = (biasCorr_last_date - biasCorr_first_date).days + 1
 biasCorr_dates = [biasCorr_first_date + datetime.timedelta(days=i) for i in range(biasCorr_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    biasCorr_dates = [x for x in biasCorr_dates if not ((x.month == 2) and (x.day == 29))]
-    biasCorr_ndates = len(biasCorr_dates)
 # historical scene
 historical_first_date = datetime.datetime(historical_years[0], 1, 1, 12, 0)
 historical_last_date = datetime.datetime(historical_years[1], 12, 31, 12, 0)
 historical_ndates = (historical_last_date - historical_first_date).days + 1
 historical_dates = [historical_first_date + datetime.timedelta(days=i) for i in range(historical_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    historical_dates = [x for x in historical_dates if not ((x.month == 2) and (x.day == 29))]
-    historical_ndates = len(historical_dates)
 # RCP scene
 ssp_first_date = datetime.datetime(ssp_years[0], 1, 1, 12, 0)
 ssp_last_date = datetime.datetime(ssp_years[1], 12, 31, 12, 0)
 ssp_ndates = (ssp_last_date - ssp_first_date).days + 1
 ssp_dates = [ssp_first_date + datetime.timedelta(days=i) for i in range(ssp_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    ssp_dates = [x for x in ssp_dates if not ((x.month == 2) and (x.day == 29))]
-    ssp_ndates = len(ssp_dates)
 # Short and long term
 shortTermPeriodFilename = str(shortTerm_years[0]) + '-' + str(shortTerm_years[1])
 longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
@@ -751,6 +715,13 @@ if 'nc' not in locals():
     print('Check the input_data/reanalysis/ folder')
     exit()
 
+if 'time' in nc.variables:
+    reanalysis_calendar = nc.variables['time'].calendar
+else:
+    print('ERROR: Variable time not found at reanalysis netCDF')
+    exit()
+
+
 if 'lat' in nc.variables:
     lat_name, lon_name = 'lat', 'lon'
 elif 'latitude' in nc.variables:
@@ -852,9 +823,6 @@ if experiment == 'EVALUATION':
 elif experiment == 'PROJECTIONS':
     scene_list = list(scene_names_dict.keys())
     model_list = model_names_list
-elif experiment == 'PSEUDOREALITY':
-    scene_list = ('historical', 'RCP85')
-    model_list = (GCM_shortName,)
 elif experiment == 'PRECONTROL':
     scene_list = list(scene_names_dict.keys())
     model_list = model_names_list

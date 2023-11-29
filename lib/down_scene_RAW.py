@@ -148,24 +148,23 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     # Gets scene dates
     if scene == 'TESTING':
         scene_dates = testing_dates
-        model_dates = testing_dates
+        calendar = reanalysis_calendar
     else:
         if scene == 'historical':
             periodFilename = historicalPeriodFilename
-            scene_dates = historical_dates
         else:
             periodFilename = sspPeriodFilename
-            scene_dates = ssp_dates
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
         ncVar = modNames[targetVar]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
         filename = ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename + '.nc'
-        model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
-        model_dates = [x for x in model_dates if x.year >= scene_dates[0].year and x.year <= scene_dates[-1].year]
+        aux = read.netCDF(path, filename, ncVar)
+        scene_dates = np.ndarray.tolist(aux['times'])
+        calendar = aux['calendar']
 
     # Create empty array and accumulate results
-    est = np.zeros((len(model_dates), 0))
+    est = np.zeros((len(scene_dates), 0))
     for ichunk in range(n_chunks):
         path = '../tmp/ESTIMATED_'+ '_'.join((targetVar, methodName, scene, model)) + '/'
         filename = path + '/ichunk_' + str(ichunk) + '.npy'
@@ -173,24 +172,7 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     shutil.rmtree(path)
 
     # Save to file
-    if experiment == 'EVALUATION':
-        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-    elif experiment == 'PSEUDOREALITY':
-        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
-        aux[:] = np.nan
-        idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
-        aux[idates] = est
-        est = aux
-        del aux
-        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-    else:
-        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
-        aux[:] = np.nan
-        idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
-        aux[idates] = est
-        est = aux
-        del aux
-        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+    pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
 
     # Save results
     hres_lats = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp+'/hres_lats.npy')
@@ -222,12 +204,14 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
-    write.netCDF(pathOut, targetVar+'_'+model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
+    write.netCDF(pathOut, targetVar+'_'+model+'_'+scene+fold_sufix+'.nc', targetVar, est, units, hres_lats, hres_lons,
+                 scene_dates, calendar, regular_grid=False)
     # print(est[0, :10], est.shape)
 
     # If using k-folds, join them
     if split_mode == 'fold5':
         aux_lib.join_kfolds(targetVar, methodName, family, mode, fields, scene, model, units, hres_lats, hres_lons)
+
 
 ########################################################################################################################
 

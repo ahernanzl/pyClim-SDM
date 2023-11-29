@@ -37,7 +37,7 @@ import write
 
 
 ########################################################################################################################
-def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid=True, calendar='gregorian', level=None,
+def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, regular_grid=True, level=None,
 		   level_name='level', lat_name='lat', lon_name='lon', time_name='time'):
 	"""
 	This function writes data to netCDF file.
@@ -53,7 +53,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 	# Define dataset and dimensions
 	nc=Dataset(path+filename, 'w', format='NETCDF4')
 	nc.Conventions = "CF-1.8"
-	nc.createDimension(time_name, len(dates))
+	nc.createDimension(time_name, len(times))
 
 	if regular_grid == True:
 		nc.createDimension(lat_name, len(lats))
@@ -68,8 +68,6 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 		# levelVar[:] = level
 
 	# # Create time variable
-	times = [datetime.datetime(dates[i].year, dates[i].month,dates[i].day)+datetime.timedelta(hours=12)
-			 for i in range(len(dates))]
 	timeVar = nc.createVariable(varname=time_name, dimensions=(time_name,),datatype='float64')
 	timeVar.calendar = calendar
 	timeVar.long_name = "Time variable"
@@ -102,6 +100,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, dates, regular_grid
 		latitude = nc.createVariable(lat_name, 'f4', 'point')
 		longitude = nc.createVariable(lon_name, 'f4', 'point')
 		var = nc.createVariable(varName, 'f4', (time_name, 'point'))
+
+	var.fill_value = fill_value
+	data[np.isnan(data)] = fill_value
+
 	latitude.units = 'degrees_north'
 	latitude.long_name = "latitude"
 	latitude[:] = lats
