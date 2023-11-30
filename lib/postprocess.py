@@ -325,7 +325,7 @@ def get_climdex_for_evaluation(targetVar, methodName):
         pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
         pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
-    if os.path.isfile(pathIn+'reanalysis_TESTING.nc'):
+    if os.path.isfile(pathIn+targetVar+'_reanalysis_TESTING.nc'):
 
         # Read data
         d = postpro_lib.get_data_eval(targetVar, methodName)
