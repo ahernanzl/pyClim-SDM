@@ -119,6 +119,7 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
             times_percCalendar_season = aux['times']
             del aux
 
+
             # Calculate climdex for obs and est
             data_climdex = calculate_climdex(climdex_name, data_season, data_percCalendar_season,
                                                   times_season, times_percCalendar_season)['data']
@@ -370,7 +371,7 @@ def get_perc_calendar(targetVar, times, data, q, calendar):
     """
     times: list
     data: numpy array (ntimes, npoints)
-    :return: percCalendar: numpy array (ndays_year, npoints)
+    :return: percCalendar: numpy array (max_ndays_year, npoints)
     """
 
     data = (100 * data).astype(predictands_codification[targetVar]['type'])
@@ -405,11 +406,15 @@ def get_perc_calendar(targetVar, times, data, q, calendar):
     data = percCalendar
 
     times_calendar = []
-    for x in times:
-        if (x.month, x.day) in all_days_ref_calendar:
-            for x2 in times_calendar:
-                if not (x.month==x2.month and x.day==x2.day):
-                    times_calendar.append(x)
+    for month in range(1, 13):
+        for day in range(1, 32):
+            x = (month, day)
+            if x in all_days_ref_calendar:
+                for x2 in times:
+                    if month==x2.month and day==x2.day and x2 not in times_calendar:
+                        times_calendar.append(x2)
+                        break
+
 
     return {'data': data, 'times': times_calendar}
 
