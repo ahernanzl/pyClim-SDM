@@ -85,18 +85,14 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 		else:
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
-		# point[:] = range(len(lats))
-		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
-		ids = [str(i) for i in ids]
-		maxLenght = 0
-		for x in ids:
-			if len(x) > maxLenght:
-				maxLenght = len(x)
-		point = nc.createVariable('point', 'S' + str(maxLenght), 'point')
+		point = nc.createVariable('point', 'i', 'point')
 		point.units = ' '
 		point.long_name = ""
-		for i in range(len(ids)):
-			point[i] = ids[i]
+		point[:] = range(len(lats))
+		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
+		ids = [str(i) for i in ids]
+		point.id_names = ids
+
 		latitude = nc.createVariable(lat_name, 'f4', 'point')
 		longitude = nc.createVariable(lon_name, 'f4', 'point')
 		var = nc.createVariable(varName, 'f4', (time_name, 'point'))
