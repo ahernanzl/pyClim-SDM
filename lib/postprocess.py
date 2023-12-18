@@ -172,13 +172,13 @@ def bias_correction_allModels(targetVar, methodName):
     for model in model_list:
 
         # Check if model historical exists
-        if os.path.isfile(pathIn + model + '_historical.nc'):
+        if os.path.isfile(pathIn + targetVar+'_'+model + '_historical.nc'):
 
             # Check if all scenes by model have already been corrected
             to_be_corrected = False
             for scene in scene_list:
-                if os.path.isfile(pathIn + model + '_' + scene + '.nc') and \
-                        not os.path.isfile(pathOut + model + '_' + scene + '.nc'):
+                if os.path.isfile(pathIn + targetVar+'_'+model + '_' + scene + '.nc') and \
+                        not os.path.isfile(pathOut + targetVar+'_'+model + '_' + scene + '.nc'):
                     to_be_corrected = True
 
             if to_be_corrected == True or force_bias_correction == True:
@@ -319,7 +319,7 @@ def get_climdex_for_evaluation(targetVar, methodName):
         pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
         pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
-    if os.path.isfile(pathIn+'reanalysis_TESTING.nc'):
+    if os.path.isfile(pathIn+targetVar+'_'+'reanalysis_TESTING.nc'):
 
         # Read data
         d = postpro_lib.get_data_eval(targetVar, methodName)
@@ -367,7 +367,7 @@ def get_climdex_allModels(targetVar, methodName):
             filename = filename.split('/')[-1]
             scene = filename.split('_')[2]
             model = filename.split('_')[3] + '_' + filename.split('_')[4]
-            if ((os.path.isfile(pathIn + model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
+            if ((os.path.isfile(pathIn + targetVar+'_'+model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
                 climdex_already_calculated = False
 
         if climdex_already_calculated == False or force_climdex_calculation == True:

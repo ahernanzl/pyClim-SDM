@@ -130,7 +130,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'spred' in fields:
-                pred_scene = read.lres_data(targetVar, fields='pred', grid='saf', model=model, scene=scene)['data'][idates]
+                pred_scene = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=scene)['data'][idates]
                 pred_scene = standardization.standardize(targetVar, pred_scene, model, 'spred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
