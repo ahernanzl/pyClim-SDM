@@ -413,6 +413,7 @@ elif len(sspPeriodFilenames) == 0:
 shortTerm_years = (2041, 2070)
 longTerm_years = (2071, 2100)
 
+dates_forced = False
 aux_hres_years = (max([int(hresPeriodFilename[x][:4]) for x in targetVars]), min([int(hresPeriodFilename[x][-8:-4]) for x in targetVars]))
 aux_reanalysis_years = (int(reanalysisPeriodFilename[:4]), int(reanalysisPeriodFilename[-8:-4]))
 aux_historical_years = (int(historicalPeriodFilename[:4]), int(historicalPeriodFilename[-8:-4]))
@@ -427,7 +428,7 @@ if calibration_years[0] < allowedCalibrationYears[0] or calibration_years[1] > a
     print('The maximum allowed period for \'Calibration years\' for the current predictands selection is: '+str(allowedCalibrationYears))
     print('Based on this limiation and your selection, \'Calibration years\' have been forzed to ' + str(calibration_years))
     print('---------------------------------------------------------------------------')
-
+    dates_forced = True
 
 allowedReferenceYears = (max(aux_hres_years[0], aux_reanalysis_years[0], aux_historical_years[0]), min(aux_hres_years[1], aux_reanalysis_years[1], aux_historical_years[1]))
 if reference_years[0] < allowedReferenceYears[0] or reference_years[1] > allowedReferenceYears[1]:
@@ -441,7 +442,29 @@ if reference_years[0] < allowedReferenceYears[0] or reference_years[1] > allowed
     print('The maximum allowed period for \'Reference years\' for the current predictands selection is: '+str(allowedReferenceYears))
     print('Based on this limiation and your selection, \'Reference years\' have been forzed to ' + str(reference_years))
     print('---------------------------------------------------------------------------')
+    dates_forced = True
 
+if split_mode == 'single_split':
+    allowedSingle_split_testing_years = calibration_years
+    if single_split_testing_years[0] < allowedSingle_split_testing_years[0] or single_split_testing_years[1] > allowedSingle_split_testing_years[1]:
+        print('---------------------------------------------------------------------------')
+        print('WARNING: Your current selection for \'Testing years\' is ' + str(single_split_testing_years)+' but your input data do not cover that period:')
+        print('- reanalysis: ' + str(aux_reanalysis_years[0])+'-'+str(aux_reanalysis_years[1]))
+        print('- models: ' + str(aux_historical_years[0])+'-'+str(aux_historical_years[1]))
+        for targetVar in targetVars:
+            print('- hres ' + targetVar + ': ' + str(hresPeriodFilename[targetVar][:4])+'-'+str(hresPeriodFilename[targetVar][-8:-4]))
+        single_split_testing_years = (max(single_split_testing_years[0], allowedSingle_split_testing_years[0]), min(single_split_testing_years[1], allowedSingle_split_testing_years[1]))
+        print('The maximum allowed period for \'Testing years\' for the current predictands selection is: '+str(allowedSingle_split_testing_years))
+        print('Based on this limiation and your selection, \'Testing years\' have been forzed to ' + str(single_split_testing_years))
+        print('---------------------------------------------------------------------------')
+        dates_forced = True
+
+if dates_forced == True:
+    a = input(
+        "Read the modifications applied to your selection (explained above) and press 'c' to continue, or any other key to cancel:")
+    if a != 'c':
+        print('Process canceled.')
+        exit()
 
 # Definition of testing_years and historical_years depending on the experiment (do not change)
 nyears = calibration_years[1]-calibration_years[0]+1
@@ -751,26 +774,33 @@ else:
     possible_saf_lat_down_list = [x for x in lats[:-1] if x <= hres_min_lat]
     possible_saf_lon_left_list = [x for x in lons[1:] if x <= hres_min_lon]
     possible_saf_lon_right_list = [x for x in lons[:-1] if x >= hres_max_lon]
+    saf_grid_modified = False
     if saf_lat_up not in possible_saf_lat_up_list:
         old = saf_lat_up
         saf_lat_up = min(possible_saf_lat_up_list, key=lambda x:abs(x-saf_lat_up))
         print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
-        time.sleep(1)
+        saf_grid_modified = True
     if saf_lat_down not in possible_saf_lat_down_list:
         old = saf_lat_down
         saf_lat_down = min(possible_saf_lat_down_list, key=lambda x:abs(x-saf_lat_down))
         print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
-        time.sleep(1)
+        saf_grid_modified = True
     if saf_lon_left not in possible_saf_lon_left_list:
         old = saf_lon_left
         saf_lon_left = min(possible_saf_lon_left_list, key=lambda x:abs(x-saf_lon_left))
         print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
-        time.sleep(1)
+        saf_grid_modified = True
     if saf_lon_right not in possible_saf_lon_right_list:
         old = saf_lon_right
         saf_lon_right = min(possible_saf_lon_right_list, key=lambda x:abs(x-saf_lon_right))
         print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
-        time.sleep(1)
+        saf_grid_modified = True
+    if saf_grid_modified == True:
+        a = input(
+            "Read the modifications applied to your selection (explained above) and press 'c' to continue, or any other key to cancel:")
+        if a != 'c':
+            print('Process canceled.')
+            exit()
 
 # ext
 ext_lat_up, ext_lat_down = saf_lat_up + grid_res, saf_lat_down - grid_res
