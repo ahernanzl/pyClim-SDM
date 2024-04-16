@@ -304,8 +304,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
         nYears = len(yearsUnique)
 
         # Calculate mean obs and mean hist
-        mean_obs = np.nanmean(obs, axis=0)
-        mean_hist = np.nanmean(hist, axis=0)
+        mean_obs = np.nanmean(obs_data)
+        mean_hist = np.nanmean(hist_data)
 
         # Compute and apply the needed factor
         factor_trend = np.ones((sce_corrected.shape))
@@ -313,12 +313,17 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             idatesYear = [i for i in range(len(sce_times)) if sce_times[i].year == yearsUnique[iYear]]
             mean_sce = np.nanmean(sce[idatesYear], axis=0)
             mean_sce_corrected = np.nanmean(sce_corrected[idatesYear], axis=0)
+
+            print(mean_sce, mean_obs, mean_sce_corrected , mean_hist)
+            print((mean_sce * mean_obs) / (mean_sce_corrected * mean_hist))
             factor_trend[idatesYear] = (mean_sce * mean_obs) / (mean_sce_corrected * mean_hist)
             iNotValid = np.where((mean_sce_corrected * mean_hist) == 0)[0]
             aux = factor_trend[idatesYear]
             aux[:, iNotValid] = 1
             factor_trend[idatesYear] = aux
         sce_corrected *= factor_trend
+
+    # print(factor_trend)
 
     return sce_corrected
 
