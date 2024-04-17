@@ -89,6 +89,7 @@ def train_chunk_WG_PDF(targetVar, methodName, family, mode, fields, iproc=0, npr
     # Read X, Y (chunks)
     X = np.load(pathOut + 'var_calib_' + str(iproc) + '.npy')
     Y = np.load(pathOut + 'obs_' + str(iproc) + '.npy')
+    Y[Y==predictands_codification[targetVar]['special_value']] = np.nan
 
     # Create empty arrays for results
     PARAM1_X = np.zeros((n_blocks, npoints_ichunk))
@@ -273,6 +274,7 @@ def train_chunk_WG_NMM(targetVar, methodName, family, mode, fields, iproc=0, npr
     # Read X, Y (chunks)
     X = np.load(pathOut + 'var_calib_' + str(iproc) + '.npy')
     Y = np.load(pathOut + 'obs_' + str(iproc) + '.npy')
+    Y[Y==predictands_codification[targetVar]['special_value']] = np.nan
     print(iproc, X.shape, Y.shape, len(times))
 
     # Add ichunk to pathOut
