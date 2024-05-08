@@ -74,6 +74,10 @@ if 'myTargetVar' in targetVars:
     except:
         pass
     try:
+        predsType_targetVars_dict[myTargetVar] = predsType_targetVars_dict.pop('myTargetVar')
+    except:
+        pass
+    try:
         preds_targetVars_dict[myTargetVar] = preds_targetVars_dict.pop('myTargetVar')
     except:
         pass
@@ -210,26 +214,10 @@ predictands_units = {
 if myTargetVar in targetVars:
     predictands_units.update({myTargetVar: myTargetVarUnits})
 
-###################################     PSEUDOREALITY    ###########################################################
-
-# Select a GCM/RCM combination if using pseudo reality and do nothing otherwise
-pseudoreality, GCM_shortName, GCM_longName, RCM = False, None, None, None
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'CNRM-CM5', 'CNRM-CERFACS-CNRM-CM5', 'CNRM-ALADIN63'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'CNRM-CM5', 'CNRM-CERFACS-CNRM-CM5', 'DMI-HIRHAM5'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'CNRM-CM5', 'CNRM-CERFACS-CNRM-CM5', 'KNMI-RACMO22E'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'IPSL-CM5A-MR', 'IPSL-IPSL-CM5A-MR', 'DMI-HIRHAM5'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'IPSL-CM5A-MR', 'IPSL-IPSL-CM5A-MR', 'KNMI-RACMO22E'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'MPI-ESM-LR', 'MPI-M-MPI-ESM-LR', 'CNRM-ALADIN63'
-# pseudoreality, GCM_shortName, GCM_longName, RCM = True, 'MPI-ESM-LR', 'MPI-M-MPI-ESM-LR', 'KNMI-RACMO22E'
 
 # Definition of paths (do not change)
-if pseudoreality == True:
-    experiment = 'PSEUDOREALITY'
-    pathHres = '../input_data/OBS_PSEUDO/hres_' + GCM_longName + '_' + RCM + '/'
-    pathAux = '../aux_RCM/'
-else:
-    pathHres = '../input_data/hres/'
-    pathAux = '../aux/'
+pathHres = '../input_data/hres/'
+pathAux = '../aux/'
 # Set to False only if generating figures for different subregions so they will be saved in subdirectories.
 pathFigures = '../results/Figures/'
 
@@ -283,13 +271,18 @@ aggregation_pcp_WG_PDF = 1
 
 if experiment == 'EVALUATION':
     classifier_mode = 'deterministic'  # clf.predict. Recommended if validating daily data
-elif experiment in ('PROJECTIONS', 'PSEUDOREALITY'):
+elif experiment == 'PROJECTIONS':
     classifier_mode = 'probabilistic'  # clf.predict_proba. Recommended for out of range (extrapolation) classifications.
     # It slows down training.
 
+# If predictors contain Nans, they can be filled with interpolation
+force_fillNans_for_local_predictors = True
+
+# If they are not filled:
 # When a point and day has missing predictors, all days (for that point) will be recalibrated if True.
 # If False, all days (for that point) will be calculated normally, and that particular day and point will be set to Nan
 recalibrating_when_missing_preds = True
+
 
 # Transfer function methods can use local predictors (nearest neightbour / bilinear) or predictors from the whole grid
 # When using the whole grid, they have more information as inputs, but that consumes more memory
@@ -309,7 +302,7 @@ for methodName in convolutional_methods:
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the
 # climdex (projections), set to False. This parameter is used in postporcess.get_climdex_oneModel
-if experiment in ('EVALUATION', 'PSEUDOREALITY'):
+if experiment == 'EVALUATION':
     reference_climatology_from_observations = True
 elif experiment == 'PROJECTIONS':
     reference_climatology_from_observations = False
@@ -327,6 +320,9 @@ else:
 
 
 #############################################  GRIDS  ##################################################################
+
+# Missing data codification for predictands, both as input_data and as results
+fill_value = -999
 
 target_type = 'gridded_data'
 # target_type = 'stations'
@@ -414,14 +410,10 @@ elif len(sspPeriodFilenames) == 0:
     sspPeriodFilename = ''
     ssp_years = (2015, 2100)
 
-if experiment == 'PSEUDOREALITY':
-    calibration_years = (1961, 2005)
-    testing_years = (1986, 2005)
-    historical_years = (1986, 2005)
-    ssp_years = (2081, 2100)
 shortTerm_years = (2041, 2070)
 longTerm_years = (2071, 2100)
 
+dates_forced = False
 aux_hres_years = (max([int(hresPeriodFilename[x][:4]) for x in targetVars]), min([int(hresPeriodFilename[x][-8:-4]) for x in targetVars]))
 aux_reanalysis_years = (int(reanalysisPeriodFilename[:4]), int(reanalysisPeriodFilename[-8:-4]))
 aux_historical_years = (int(historicalPeriodFilename[:4]), int(historicalPeriodFilename[-8:-4]))
@@ -436,7 +428,7 @@ if calibration_years[0] < allowedCalibrationYears[0] or calibration_years[1] > a
     print('The maximum allowed period for \'Calibration years\' for the current predictands selection is: '+str(allowedCalibrationYears))
     print('Based on this limiation and your selection, \'Calibration years\' have been forzed to ' + str(calibration_years))
     print('---------------------------------------------------------------------------')
-
+    dates_forced = True
 
 allowedReferenceYears = (max(aux_hres_years[0], aux_reanalysis_years[0], aux_historical_years[0]), min(aux_hres_years[1], aux_reanalysis_years[1], aux_historical_years[1]))
 if reference_years[0] < allowedReferenceYears[0] or reference_years[1] > allowedReferenceYears[1]:
@@ -450,7 +442,29 @@ if reference_years[0] < allowedReferenceYears[0] or reference_years[1] > allowed
     print('The maximum allowed period for \'Reference years\' for the current predictands selection is: '+str(allowedReferenceYears))
     print('Based on this limiation and your selection, \'Reference years\' have been forzed to ' + str(reference_years))
     print('---------------------------------------------------------------------------')
+    dates_forced = True
 
+if split_mode == 'single_split':
+    allowedSingle_split_testing_years = calibration_years
+    if single_split_testing_years[0] < allowedSingle_split_testing_years[0] or single_split_testing_years[1] > allowedSingle_split_testing_years[1]:
+        print('---------------------------------------------------------------------------')
+        print('WARNING: Your current selection for \'Testing years\' is ' + str(single_split_testing_years)+' but your input data do not cover that period:')
+        print('- reanalysis: ' + str(aux_reanalysis_years[0])+'-'+str(aux_reanalysis_years[1]))
+        print('- models: ' + str(aux_historical_years[0])+'-'+str(aux_historical_years[1]))
+        for targetVar in targetVars:
+            print('- hres ' + targetVar + ': ' + str(hresPeriodFilename[targetVar][:4])+'-'+str(hresPeriodFilename[targetVar][-8:-4]))
+        single_split_testing_years = (max(single_split_testing_years[0], allowedSingle_split_testing_years[0]), min(single_split_testing_years[1], allowedSingle_split_testing_years[1]))
+        print('The maximum allowed period for \'Testing years\' for the current predictands selection is: '+str(allowedSingle_split_testing_years))
+        print('Based on this limiation and your selection, \'Testing years\' have been forzed to ' + str(single_split_testing_years))
+        print('---------------------------------------------------------------------------')
+        dates_forced = True
+
+if dates_forced == True:
+    a = input(
+        "Read the modifications applied to your selection (explained above) and press 'c' to continue, or any other key to cancel:")
+    if a != 'c':
+        print('Process canceled.')
+        exit()
 
 # Definition of testing_years and historical_years depending on the experiment (do not change)
 nyears = calibration_years[1]-calibration_years[0]+1
@@ -494,17 +508,11 @@ calibration_first_date = datetime.datetime(calibration_years[0], 1, 1, 12, 0)
 calibration_last_date = datetime.datetime(calibration_years[1], 12, 31, 12, 0)
 calibration_ndates = (calibration_last_date - calibration_first_date).days + 1
 calibration_dates = [calibration_first_date + datetime.timedelta(days=i) for i in range(calibration_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    calibration_dates = [x for x in calibration_dates if not ((x.month == 2) and (x.day == 29))]
-    calibration_ndates = len(calibration_dates)
 # Testing period
 testing_first_date = datetime.datetime(testing_years[0], 1, 1, 12, 0)
 testing_last_date = datetime.datetime(testing_years[1], 12, 31, 12, 0)
 testing_ndates = (testing_last_date - testing_first_date).days + 1
 testing_dates = [testing_first_date + datetime.timedelta(days=i) for i in range(testing_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    testing_dates = [x for x in testing_dates if not ((x.month == 2) and (x.day == 29))]
-    testing_ndates = len(testing_dates)
 # Training
 training_dates = [x for x in calibration_dates if x not in testing_dates]
 training_ndates = len(training_dates)
@@ -513,33 +521,21 @@ reference_first_date = datetime.datetime(reference_years[0], 1, 1, 12, 0)
 reference_last_date = datetime.datetime(reference_years[1], 12, 31, 12, 0)
 reference_ndates = (reference_last_date - reference_first_date).days + 1
 reference_dates = [reference_first_date + datetime.timedelta(days=i) for i in range(reference_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    reference_dates = [x for x in reference_dates if not ((x.month == 2) and (x.day == 29))]
-    reference_ndates = len(reference_dates)
 # BiasCorrection
 biasCorr_first_date = datetime.datetime(biasCorr_years[0], 1, 1, 12, 0)
 biasCorr_last_date = datetime.datetime(biasCorr_years[1], 12, 31, 12, 0)
 biasCorr_ndates = (biasCorr_last_date - biasCorr_first_date).days + 1
 biasCorr_dates = [biasCorr_first_date + datetime.timedelta(days=i) for i in range(biasCorr_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    biasCorr_dates = [x for x in biasCorr_dates if not ((x.month == 2) and (x.day == 29))]
-    biasCorr_ndates = len(biasCorr_dates)
 # historical scene
 historical_first_date = datetime.datetime(historical_years[0], 1, 1, 12, 0)
 historical_last_date = datetime.datetime(historical_years[1], 12, 31, 12, 0)
 historical_ndates = (historical_last_date - historical_first_date).days + 1
 historical_dates = [historical_first_date + datetime.timedelta(days=i) for i in range(historical_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    historical_dates = [x for x in historical_dates if not ((x.month == 2) and (x.day == 29))]
-    historical_ndates = len(historical_dates)
 # RCP scene
 ssp_first_date = datetime.datetime(ssp_years[0], 1, 1, 12, 0)
 ssp_last_date = datetime.datetime(ssp_years[1], 12, 31, 12, 0)
 ssp_ndates = (ssp_last_date - ssp_first_date).days + 1
 ssp_dates = [ssp_first_date + datetime.timedelta(days=i) for i in range(ssp_ndates)]
-if ((pseudoreality == True) and (GCM_shortName == 'IPSL-CM5A-MR')):
-    ssp_dates = [x for x in ssp_dates if not ((x.month == 2) and (x.day == 29))]
-    ssp_ndates = len(ssp_dates)
 # Short and long term
 shortTermPeriodFilename = str(shortTerm_years[0]) + '-' + str(shortTerm_years[1])
 longTermPeriodFilename = str(longTerm_years[0]) + '-' + str(longTerm_years[1])
@@ -742,6 +738,13 @@ if 'nc' not in locals():
     print('Check the input_data/reanalysis/ folder')
     exit()
 
+if 'time' in nc.variables:
+    reanalysis_calendar = nc.variables['time'].calendar
+else:
+    print('ERROR: Variable time not found at reanalysis netCDF')
+    exit()
+
+
 if 'lat' in nc.variables:
     lat_name, lon_name = 'lat', 'lon'
 elif 'latitude' in nc.variables:
@@ -771,26 +774,33 @@ else:
     possible_saf_lat_down_list = [x for x in lats[:-1] if x <= hres_min_lat]
     possible_saf_lon_left_list = [x for x in lons[1:] if x <= hres_min_lon]
     possible_saf_lon_right_list = [x for x in lons[:-1] if x >= hres_max_lon]
+    saf_grid_modified = False
     if saf_lat_up not in possible_saf_lat_up_list:
         old = saf_lat_up
         saf_lat_up = min(possible_saf_lat_up_list, key=lambda x:abs(x-saf_lat_up))
         print('Synoptic domain incompatible with coordinates in input files. saf_lat_up forced from', old, 'to', saf_lat_up)
-        time.sleep(1)
+        saf_grid_modified = True
     if saf_lat_down not in possible_saf_lat_down_list:
         old = saf_lat_down
         saf_lat_down = min(possible_saf_lat_down_list, key=lambda x:abs(x-saf_lat_down))
         print('Synoptic domain incompatible with coordinates in input files. saf_lat_down forced from', old, 'to', saf_lat_down)
-        time.sleep(1)
+        saf_grid_modified = True
     if saf_lon_left not in possible_saf_lon_left_list:
         old = saf_lon_left
         saf_lon_left = min(possible_saf_lon_left_list, key=lambda x:abs(x-saf_lon_left))
         print('Synoptic domain incompatible with coordinates in input files. saf_lon_left forced from', old, 'to', saf_lon_left)
-        time.sleep(1)
+        saf_grid_modified = True
     if saf_lon_right not in possible_saf_lon_right_list:
         old = saf_lon_right
         saf_lon_right = min(possible_saf_lon_right_list, key=lambda x:abs(x-saf_lon_right))
         print('Synoptic domain incompatible with coordinates in input files. saf_lon_right forced from', old, 'to', saf_lon_right)
-        time.sleep(1)
+        saf_grid_modified = True
+    if saf_grid_modified == True:
+        a = input(
+            "Read the modifications applied to your selection (explained above) and press 'c' to continue, or any other key to cancel:")
+        if a != 'c':
+            print('Process canceled.')
+            exit()
 
 # ext
 ext_lat_up, ext_lat_down = saf_lat_up + grid_res, saf_lat_down - grid_res
@@ -843,9 +853,6 @@ if experiment == 'EVALUATION':
 elif experiment == 'PROJECTIONS':
     scene_list = list(scene_names_dict.keys())
     model_list = model_names_list
-elif experiment == 'PSEUDOREALITY':
-    scene_list = ('historical', 'RCP85')
-    model_list = (GCM_shortName,)
 elif experiment == 'PRECONTROL':
     scene_list = list(scene_names_dict.keys())
     model_list = model_names_list
@@ -882,12 +889,12 @@ plotAllRegions = False  # Set to False so only the complete region will be plott
 # ####################  CLIMDEX AND BIAS MODE    #####################################################
 units_and_biasMode_climdex = {
     'tasmax_TXm': {'units': degree_sign, 'biasMode': 'abs'},
-    'tasmax_TX90p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmax_TX99p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmax_TX95p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmax_TX10p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmax_TX1p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmax_TX5p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmax_TX90p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmax_TX99p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmax_TX95p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmax_TX10p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmax_TX1p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmax_TX5p': {'units': 'days', 'biasMode': 'abs'},
     'tasmax_TXx': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_TXn': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmax_p99': {'units': degree_sign, 'biasMode': 'abs'},
@@ -901,12 +908,12 @@ units_and_biasMode_climdex = {
     'tasmax_WSDI': {'units': 'days', 'biasMode': 'rel'},
 
     'tasmin_TNm': {'units': degree_sign, 'biasMode': 'abs'},
-    'tasmin_TN90p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmin_TN99p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmin_TN95p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmin_TN10p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmin_TN5p': {'units': 'days', 'biasMode': 'rel'},
-    'tasmin_TN1p': {'units': 'days', 'biasMode': 'rel'},
+    'tasmin_TN90p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmin_TN99p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmin_TN95p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmin_TN10p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmin_TN5p': {'units': 'days', 'biasMode': 'abs'},
+    'tasmin_TN1p': {'units': 'days', 'biasMode': 'abs'},
     'tasmin_TNx': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_TNn': {'units': degree_sign, 'biasMode': 'abs'},
     'tasmin_p99': {'units': degree_sign, 'biasMode': 'abs'},
@@ -920,12 +927,12 @@ units_and_biasMode_climdex = {
     'tasmin_CSDI': {'units': 'days', 'biasMode': 'rel'},
 
     'tas_Tm': {'units': degree_sign, 'biasMode': 'abs'},
-    'tas_T90p': {'units': 'days', 'biasMode': 'rel'},
-    'tas_T99p': {'units': 'days', 'biasMode': 'rel'},
-    'tas_T95p': {'units': 'days', 'biasMode': 'rel'},
-    'tas_T10p': {'units': 'days', 'biasMode': 'rel'},
-    'tas_T5p': {'units': 'days', 'biasMode': 'rel'},
-    'tas_T1p': {'units': 'days', 'biasMode': 'rel'},
+    'tas_T90p': {'units': 'days', 'biasMode': 'abs'},
+    'tas_T99p': {'units': 'days', 'biasMode': 'abs'},
+    'tas_T95p': {'units': 'days', 'biasMode': 'abs'},
+    'tas_T10p': {'units': 'days', 'biasMode': 'abs'},
+    'tas_T5p': {'units': 'days', 'biasMode': 'abs'},
+    'tas_T1p': {'units': 'days', 'biasMode': 'abs'},
     'tas_Tx': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_Tn': {'units': degree_sign, 'biasMode': 'abs'},
     'tas_p99': {'units': degree_sign, 'biasMode': 'abs'},

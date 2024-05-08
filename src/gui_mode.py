@@ -101,7 +101,7 @@ def switch_bc_method(bc_opt, bc_mehods_bt):
         else:
             object["state"] = "normal"
 
-    
+
 
 ########################################################################################################################
 def enable(targetVar_active_var, frames):
@@ -870,7 +870,6 @@ class framePredictorsClass(tk.Frame):
 
     def __init__(self, notebook, root, targetVar):
 
-
         def add_chk_bt_upperAir(chk_list, pred, irow, icol):
             """Check buttons for upper air predictors"""
             checked = tk.BooleanVar(value=False)
@@ -983,8 +982,42 @@ class framePredictorsClass(tk.Frame):
         irow += 3
         tk.Label(root, text='').grid(column=icol, row=irow, pady=5)
 
+        if targetVar != 'SAFs':
+            irow+=1; icol-=8
+
+            # framePredictorsType
+            framePredictorsType = Frame(root)
+            framePredictorsType.grid(sticky="W", column=icol, row=irow, padx=padx, pady=0, columnspan=10)
+
+            predsType_options = {
+                'local': ['Local predictors', 'Predictors are interpolated from the four nearest neightbors.'],
+                'pca': ['PCAs', 'Predictors are transformed with spatial Principal Component Analysis.'],
+            }
+
+            try:
+                if predsType_targetVars_dict[targetVar] == 'local':
+                    last_type = 'local'
+                elif predsType_targetVars_dict[targetVar] == 'pca':
+                    last_type = 'pca'
+                else:
+                    print('Invalid option for type or predictors. Forced to \'local\'')
+                    last_type = 'local'
+            except:
+                last_type = 'local'
+
+            self.predictorsType_option = StringVar()
+            for predsType_opt in predsType_options:
+                c5 = Radiobutton(framePredictorsType, text=predsType_options[predsType_opt][0], variable=self.predictorsType_option, value=predsType_opt, takefocus=False)
+                c5.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); icol+=1
+                CreateToolTip(c5, predsType_options[predsType_opt][1])
+                self.predictorsType_option.set(last_type)
+
+
     def get(self):
-        return self.preds
+        try:
+            return self.preds, self.predictorsType_option
+        except:
+            return self.preds
 
 
 ########################################################################################################################
@@ -3037,14 +3070,16 @@ class selectionWindow():
             # Force to select at least one pred
             self.selected_all_preds = []
             self.preds_targetVars_dict = {}
+            self.predsType_targetVars_dict = {}
             for x in self.targetVars_dict:
                 aux = []
-                for pred in self.targetVars_dict[x]['preds']:
-                    if self.targetVars_dict[x]['preds'][pred].get() == True:
+                for pred in self.targetVars_dict[x]['preds'][0]:
+                    if self.targetVars_dict[x]['preds'][0][pred].get() == True:
                         self.selected_all_preds.append(pred)
                         aux.append(pred)
                 if len(aux) != 0:
                     self.preds_targetVars_dict.update({x: aux})
+                    self.predsType_targetVars_dict.update({x: self.targetVars_dict[x]['preds'][1].get()})
             if self.all_checks_ok == True:
                 if len(self.selected_all_preds) == 0:
                     self.all_checks_ok = False
@@ -3266,6 +3301,7 @@ class selectionWindow():
                 # print(self.reaNames)
                 # print(self.modNames)
                 # print(self.preds_targetVars_dict)
+                # print(self.predsType_targetVars_dict)
                 # print(self.saf_list)
                 # print(self.scene_names_list)
                 # print(self.model_names_list)
@@ -3285,7 +3321,7 @@ class selectionWindow():
                                     self.calibration_years, self.single_split_testing_years, self.split_mode,
                                     self.reference_years, self.reanalysisName,
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
-                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
+                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.predsType_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
                                     self.apply_bc, self.apply_bc_bySeason, self.inverse_seasonNames, self.bc_method,
                                     self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
@@ -3319,7 +3355,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
                                 calibration_years, single_split_testing_years, split_mode,
                                 reference_years, reanalysisName,
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
-                                reaNames, modNames, preds_targetVars_dict, saf_list,
+                                reaNames, modNames, preds_targetVars_dict, predsType_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
                                 apply_bc, apply_bc_bySeason, inverse_seasonNames, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
@@ -3350,6 +3386,7 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f.write("reaNames = " + str(reaNames) + "\n")
     f.write("modNames = " + str(modNames) + "\n")
     f.write("preds_targetVars_dict = " + str(preds_targetVars_dict) + "\n")
+    f.write("predsType_targetVars_dict = " + str(predsType_targetVars_dict) + "\n")
     f.write("saf_list = " + str(saf_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
     f.write("model_names_list = " + str(model_names_list) + "\n")

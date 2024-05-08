@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -179,7 +179,7 @@ def predictors_correlation():
                 for ipoint in range(hres_npoints[targetVar]):
 
                     # Interpolate to one point
-                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)[:, 0]
+                    X = grids.interpolate_predictors(data_season, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
                     y = obs_season[:, ipoint]
 
                     # Remove missing data
@@ -313,14 +313,12 @@ def GCMs_evaluation_historical():
 
                         aux = read.lres_data(targetVar, 'pred', model=model, scene=sceneName, predName=predName)
                         scene_dates = aux['times']
-                        if calendar in ['360_day', '360']:
-                            time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(reference_dates[-2])
-                        else:
-                            time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(
-                                reference_last_date) + 1
+
+                        years_aux = list(set([x.year for x in scene_dates]))
+                        idates = [i for i in range(len(scene_dates)) if scene_dates[i].year in years_aux]
                         sceneData = aux['data']
-                        sceneData = sceneData[time_first:time_last]
-                        scene_dates = scene_dates[time_first:time_last]
+                        sceneData = sceneData[idates]
+                        scene_dates = scene_dates[idates]
 
                         # if predName == targetVar:
                         #     n = n + 1
@@ -385,24 +383,6 @@ def GCMs_evaluation_historical():
                                     monsum = np.nansum(varcy[kkmon,:,:], axis=0)/nyears
                                     lst_months.append(np.nanmean(monsum))
                             cycle_rea = lst_months
-
-                        # # Calculate rea annual values (used in spaghetti plots)
-                        # datevec = postpro_lib.get_season(rea, reference_dates, season)['times']
-                        # if predName == targetVar:
-                        #     varcy = postpro_lib.get_season(rea, reference_dates, season)['data']
-                        # else:
-                        #     varcy = (postpro_lib.get_season(rea, reference_dates, season)['data'] - rea_mean_refperiod)/ rea_std_refperiod
-                        # lst_years = []
-                        # for iyear in years:
-                        #     kkyear = [ii for ii,val in enumerate(datevec) if val.year == iyear]
-                        #     if predName != 'pr':
-                        #         yearmean = np.nanmean(varcy[kkyear,:,:], axis=0)
-                        #         lst_years.append(np.nanmean(yearmean))
-                        #     else:
-                        #         yearsum = np.nansum(varcy[kkyear,:,:], axis=0)
-                        #         lst_years.append(np.nanmean(yearsum))
-                        # spaghetti_rea = lst_years
-
 
                         # Select season data
                         rea_season = postpro_lib.get_season(rea, reference_dates, season)['data']
@@ -665,12 +645,6 @@ def GCMs_evaluation_future():
                                     unitspred = 'm'
                             aux2 = read.lres_data(targetVar, 'pred', model=model, scene='historical', predName=predName)
                             scene_dates = aux2['times']
-                            if calendar in ['360_day', '360']:
-                                time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(
-                                    reference_dates[-2])
-                            else:
-                                time_first, time_last = scene_dates.index(reference_first_date), scene_dates.index(
-                                    reference_last_date) + 1
 
                             # Read model scene
                             aux = read.lres_data(targetVar, 'pred', model=model, scene=sceneName, predName=predName)
@@ -1034,5 +1008,9 @@ def GCMs_evaluation():
 
     print('GCMs_evaluation...')
     print(season_dict)
+
+    # GCMs_evaluation_historical()
+
     GCMs_evaluation_historical()
+
     GCMs_evaluation_future()

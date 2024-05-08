@@ -27,7 +27,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -72,14 +72,14 @@ def ANA_pr(syn_dist, weather_type_id, iana, pred_scene, var_scene, pred_calib, v
                 loc_dist = syn_dist
             # Consider local distances
             else:
-                pred_scene = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode)
-                pred_calib = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)
+                pred_scene = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode, targetVar)
+                pred_calib = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode, targetVar)
                 loc_dist = ANA_lib.get_local_distances(pred_calib, pred_scene, sigPreds)
     elif analogy_mode == 'HYB':
         loc_dist = syn_dist
         nSigPreds = 0
-        var_scene = grids.interpolate_predictors(var_scene[np.newaxis, :, :, :], i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
-        var_calib = grids.interpolate_predictors(var_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)[:, 0]
+        var_scene = grids.interpolate_predictors(var_scene[np.newaxis, :, :, :], i_4nn, j_4nn, w_4nn, interp_mode, targetVar)[:, 0]
+        var_calib = grids.interpolate_predictors(var_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode, targetVar)[:, 0]
 
     # Remove days with no predictand, unless there is no day with predictand
     valid = np.where(obs < special_value)[0]
@@ -136,7 +136,7 @@ def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, ob
     mode = 'PP'
 
     # Interpolate and reshapes for regression
-    X = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode)
+    X = grids.interpolate_predictors(pred_scene, i_4nn, j_4nn, w_4nn, interp_mode, targetVar)
 
     # If there are missing predictors, or regression is not precalibrated by clusters, or distance of problem day to
     # centroid too large, or intercept is nan because there where not enough valid data to pre-calibrate the regression,
@@ -157,7 +157,7 @@ def ANA_others(targetVar, iana, pred_scene, var_scene, pred_calib, var_calib, ob
         train_regressor = True
 
     if train_regressor == True:
-        X_train = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode)
+        X_train = grids.interpolate_predictors(pred_calib[iana], i_4nn, j_4nn, w_4nn, interp_mode, targetVar)
         Y_train = obs[iana]
 
     # Remove missing predictors

@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -86,7 +86,7 @@ def downscale_chunk_WG_PDF(targetVar, methodName, family, mode, fields, scene, m
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -129,7 +129,7 @@ def downscale_chunk_WG_PDF(targetVar, methodName, family, mode, fields, scene, m
         if ipoint % 1000 == 0:
             print('interpolating', ipoint)
         var_scene_interp[:, ipoint] = grids.interpolate_predictors(var_scene,
-                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode)[:, 0]
+                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
     # np.save(pathTmp+'var_scene_interp', var_scene_interp)
     # var_scene_interp = np.load(pathTmp+'var_scene_interp.npy')
     del var_scene
@@ -313,7 +313,7 @@ def downscale_chunk_WG_NMM(targetVar, methodName, family, mode, fields, scene, m
         # Set scene dates and predictors
         if scene == 'TESTING':
             scene_dates = testing_dates
-            var_scene = np.load(pathAux+'STANDARDIZATION/VAR/'+targetVar+'_testing.npy')
+            var_scene = np.load(pathAux+'TRANSFORMATION/VAR/'+targetVar+'_testing.npy')
         else:
             if scene == 'historical':
                 years = historical_years
@@ -355,7 +355,7 @@ def downscale_chunk_WG_NMM(targetVar, methodName, family, mode, fields, scene, m
         if ipoint % 1000 == 0:
             print('interpolating', ipoint)
         var_scene_interp[:, ipoint] = grids.interpolate_predictors(var_scene,
-                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode)[:, 0]
+                                  i_4nn[ipoint_global], j_4nn[ipoint_global], w_4nn[ipoint_global], interp_mode, targetVar, forceNormalInterpolation=True)[:, 0]
     del var_scene
     # np.save(pathTmp+'var_scene_interp', var_scene_interp)
     # var_scene_interp=np.load(pathTmp+'var_scene_interp.npy')
@@ -470,24 +470,23 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
     # Gets scene dates
     if scene == 'TESTING':
         scene_dates = testing_dates
-        model_dates = testing_dates
+        calendar = reanalysis_calendar
     else:
         if scene == 'historical':
-            periodFilename  = historicalPeriodFilename
-            scene_dates = historical_dates
+            periodFilename = historicalPeriodFilename
         else:
-            periodFilename  = sspPeriodFilename
-            scene_dates = ssp_dates
+            periodFilename = sspPeriodFilename
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
         ncVar = modNames[targetVar]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
-        filename = ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename  + '.nc'
-        model_dates = np.ndarray.tolist(read.netCDF(path, filename, ncVar)['times'])
-        model_dates = [x for x in model_dates if x.year >= scene_dates[0].year and x.year <= scene_dates[-1].year]
+        filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
+        aux = read.netCDF(path, filename, ncVar)
+        scene_dates = np.ndarray.tolist(aux['times'])
+        calendar = aux['calendar']
 
     # Create empty array and accumulate results
-    est = np.zeros((len(model_dates), 0))
+    est = np.zeros((len(scene_dates), 0))
     for ichunk in range(n_chunks):
         path = '../tmp/ESTIMATED_'+ '_'.join((targetVar, methodName, scene, model)) + '/'
         filename = path + '/ichunk_' + str(ichunk) + '.npy'
@@ -498,28 +497,11 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est[est < 0.01] = 0
 
     # Save to file
-    if experiment == 'EVALUATION':
-        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-    elif experiment == 'PSEUDOREALITY':
-        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
-        aux[:] = np.nan
-        idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
-        aux[idates] = est
-        est = aux
-        del aux
-        pathOut = '../results/'+experiment+'/'+ GCM_longName + '_' + RCM + '/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-    else:
-        aux = np.zeros((len(scene_dates), hres_npoints[targetVar]))
-        aux[:] = np.nan
-        idates = [i for i in range(len(scene_dates)) if scene_dates[i] in model_dates]
-        aux[idates] = est
-        est = aux
-        del aux
-        pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+    pathOut = '../results/' + experiment + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     # Save results
-    hres_lats = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lats.npy')
-    hres_lons = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/hres_lons.npy')
+    hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_bilinear/hres_lats.npy')
+    hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper() + '_bilinear/hres_lons.npy')
 
     # Set units
     units = predictands_units[targetVar]
@@ -527,9 +509,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         units = ''
 
     if split_mode[:4] == 'fold':
-        sufix = '_' + split_mode
+        fold_sufix = '_' + split_mode
     else:
-        sufix = ''
+        fold_sufix = ''
 
     # Special values are set to nan
     warnings.filterwarnings("ignore", message="invalid value encountered in less")
@@ -549,7 +531,9 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         est[est > maxAllowed] = maxAllowed
 
     # Save data to netCDF file
-    write.netCDF(pathOut, targetVar+'_'+model+'_'+scene+sufix+'.nc', targetVar, est, units, hres_lats, hres_lons, scene_dates, regular_grid=False)
+    write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + fold_sufix + '.nc', targetVar, est, units,
+                 hres_lats, hres_lons,
+                 scene_dates, calendar, regular_grid=False)
     # print(est[0, :10], est.shape)
 
     # If using k-folds, join them
