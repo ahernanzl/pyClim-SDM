@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -59,14 +59,13 @@ def common():
 
     # Standardize reanalysis (pred and saf, standardization period)
     for fields_and_grid in (
+            'saf',
             'pred',
             'spred',
-            'saf',
         ):
         for targetVar in targetVars:
-            print(fields_and_grid, targetVar, 'get_mean_and_std_reanalysis')
-            standardization.get_mean_and_std_reanalysis(targetVar, fields_and_grid)
-
+            print(fields_and_grid, targetVar, 'get_transformation_parameters_reanalysis')
+            transform.get_transformation_parameters_reanalysis(targetVar, fields_and_grid)
 
 
 ########################################################################################################################
@@ -77,7 +76,7 @@ def common_fold_dependent():
     """
 
     # Define and create output path
-    pathOut = pathAux + 'STANDARDIZATION/VAR/'
+    pathOut = pathAux + 'TRANSFORMATION/VAR/'
     if not os.path.exists(pathOut):
         os.makedirs(pathOut)
 
@@ -86,17 +85,7 @@ def common_fold_dependent():
         print('train/test split', targetVar)
 
         # Reanalysis
-        if pseudoreality == False:
-            data_calib = read.lres_data(targetVar, 'var')['data']
-
-        # Model with pseudoreality
-        elif pseudoreality == True:
-            scene = scene_list[0]
-            aux = read.lres_data(targetVar, 'var', model=GCM_shortName, scene=scene)
-            dates = aux['times']
-            data = aux['data']
-            time_first, time_last = dates.index(calibration_first_date), dates.index(calibration_last_date) + 1
-            data_calib = data[time_first:time_last]
+        data_calib = read.lres_data(targetVar, 'var')['data']
 
         # Get days for training and testing and saves split data to files
         years = np.array([x.year for x in calibration_dates])
@@ -123,10 +112,10 @@ def common_fold_dependent():
             'saf',
         ):
         for targetVar in targetVars:
-            print(fields_and_grid, targetVar, 'standardize and split train/test')
+            print(fields_and_grid, targetVar, ' and split train/test')
 
             # Load standardized data and splits in training/testing
-            data_calib = np.load(pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/'+targetVar+'_reanalysis_standardized.npy')
+            data_calib = np.load(pathAux+'TRANSFORMATION/'+fields_and_grid.upper()+'/'+targetVar.upper()+'/reanalysis_transformed.npy')
             if np.where(np.isnan(data_calib))[0].size != 0:
                 exit('Predictors for calibration contain no-data and that is not allowed by the program')
             years = np.array([x.year for x in calibration_dates])
@@ -134,17 +123,14 @@ def common_fold_dependent():
             idates_train = np.array([i for i in range(years.size) if ((years[i]<testing_years[0])|(years[i]>testing_years[1]))])
             if idates_test.size > 0:
                 testing = data_calib[idates_test]
-                np.save(pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/' + targetVar + '_testing', testing)
+                np.save(pathAux+'TRANSFORMATION/'+fields_and_grid.upper()+'/' + targetVar + '_testing', testing)
             else:
                 print('testing period is null, testing.npy will not be generated')
             if idates_train.size > 0:
                 training = data_calib[idates_train]
-                np.save(pathAux+'STANDARDIZATION/'+fields_and_grid.upper()+'/' + targetVar + '_training', training)
+                np.save(pathAux+'TRANSFORMATION/'+fields_and_grid.upper()+'/' + targetVar + '_training', training)
             else:
                 print('training period is null, testing.npy will not be generated')
-
-    # Fit PCA to SAFs
-    ANA_lib.train_PCA()
 
     # Create elbow curve to help decide number of clusters. See elbow curve and set k_clusters at settings
     if k_clusters is None:

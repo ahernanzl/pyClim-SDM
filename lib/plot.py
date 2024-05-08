@@ -27,7 +27,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -895,14 +895,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                     pass
 
         if grid is None:
+            s = 25
             if pointSize is not None:
                 s = pointSize
-            elif pseudoreality == False:
-                # s = 1
-                # s = 10
-                s = 25
-            elif pseudoreality == True:
-                s = 10
             if palette == 'target_region':
                 s = .05
             X, Y = list(map(lons, lats))
@@ -937,10 +932,6 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     #
     #     if pointSize is not None:
     #         s = pointSize
-    #     elif pseudoreality == False:
-    #         s = 1
-    #     elif pseudoreality == True:
-    #         s = 10
     #     if palette == 'target_region':
     #         s = .05
     #

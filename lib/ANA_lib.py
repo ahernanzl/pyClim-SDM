@@ -26,49 +26,11 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
 import write
-
-########################################################################################################################
-def train_PCA():
-	"""
-	Train PCA of sinoptic analogy fields preserving n_components needed to explain exp_var_ratio_th (advanced_settings)
-	"""
-
-	# Define pathOut
-	pathOut = pathAux + 'PCA/'
-	try:
-		os.makedirs(pathOut)
-	except:
-		pass
-
-	# Get synoptic fields and weights
-	for targetVar in targetVars:
-		try:
-			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
-			saf_train = saf_train.astype('float32')
-			break
-		except:
-			pass
-
-	# Prepare data for PCA
-	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
-	saf_train = saf_train.reshape(ndays, -1)
-	W = W_saf[np.newaxis, :]
-	W = np.repeat(W, ndays, axis=0)
-	saf_train *= W
-
-	# Perform PCA
-	pca = PCA(exp_var_ratio_th)
-	pca.fit(saf_train)
-
-	# Save trained pca object
-	outfile = open(pathOut + 'pca', 'wb')
-	pickle.dump(pca, outfile)
-	outfile.close()
 
 
 ########################################################################################################################
@@ -91,7 +53,7 @@ def set_number_of_weather_types():
 	# Get synoptic fields and weights
 	for targetVar in targetVars:
 		try:
-			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetVar + '_training.npy')
+			saf_train = np.load(pathAux + 'TRANSFORMATION/SAF/' + targetVar + '_training.npy')
 			saf_train = saf_train.astype('float32')
 			break
 		except:
@@ -100,17 +62,6 @@ def set_number_of_weather_types():
 	# Prepare data for PCA
 	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
 	saf_train = saf_train.reshape(ndays, -1)
-	W = W_saf[np.newaxis, :]
-	W = np.repeat(W, ndays, axis=0)
-	saf_train *= W
-
-	# Load pca object
-	infile = open(pathAux + 'PCA/pca', 'rb')
-	pca = pickle.load(infile)
-	infile.close()
-
-	# Transform sat_train to PCA
-	saf_train = pca.transform(saf_train)
 
 	# Chose the number of clusters: k.
 	Nc = list(range(1, 10)) + list(range(10, 100, 10)) + list(range(100, 500, 50)) + list(range(500, 1000, 100)) + list(range(1000, 2000, 200))
@@ -175,7 +126,7 @@ def get_weather_types_centroids():
 	# Get synoptic fields and weights
 	for targetVar in targetVars:
 		try:
-			saf_train = np.load(pathAux + 'STANDARDIZATION/SAF/' + targetVar + '_training.npy')
+			saf_train = np.load(pathAux + 'TRANSFORMATION/SAF/' + targetVar + '_training.npy')
 			saf_train = saf_train.astype('float32')
 			break
 		except:
@@ -184,17 +135,6 @@ def get_weather_types_centroids():
 	# Prepare data for PCA
 	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
 	saf_train = saf_train.reshape(ndays, -1)
-	W = W_saf[np.newaxis, :]
-	W = np.repeat(W, ndays, axis=0)
-	saf_train *= W
-
-	# Load pca object
-	infile = open(pathAux + 'PCA/pca', 'rb')
-	pca = pickle.load(infile)
-	infile.close()
-
-	# Transform sat_train to PCA
-	saf_train = pca.transform(saf_train)
 
 	# Read number of clusters
 	k = k_clusters
@@ -329,24 +269,13 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 	w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
 
 	# Read synoptic analogy fields and centroids
-	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
+	pred = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
+	saf_train = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_training.npy')
 	centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
 
 	# Prepare data for PCA
 	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
 	saf_train = saf_train.reshape(ndays, -1)
-	W = W_saf[np.newaxis, :]
-	W = np.repeat(W, ndays, axis=0)
-	saf_train *= W
-
-	# Load pca object
-	infile = open(pathAux + 'PCA/pca', 'rb')
-	pca = pickle.load(infile)
-	infile.close()
-
-	# Transform sat_train to PCA
-	saf_train = pca.transform(saf_train)
 
 	# Read high resolution data and transform to int to save memory and to be homogeneous with downscale scene
 	if iproc == 0:
@@ -375,7 +304,7 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 		len_chunk.append(len(k_chunk[ichunk]))
 
 	# Create empty array to accumulate correlation coefficients
-	coef = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetVar]))
+	coef = np.zeros((len_chunk[iproc], hres_npoints[targetVar], pred.shape[1]))
 	intercept = np.zeros((len_chunk[iproc], hres_npoints[targetVar], 1))
 
 	# Go through k clusters
@@ -409,7 +338,7 @@ def coefficients(targetVar, methodName, mode, iproc=0, nproc=1):
 
 				# Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
 				# interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
-				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
+				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
 				regressor = RidgeCV()
 				regressor.fit(X, Y)
 				coef[ik, ipoint] = regressor.coef_
@@ -437,7 +366,8 @@ def coefficients_collect_chunks(targetVar, methodName, mode, nproc=1):
 	print(targetVar, methodName, 'cluster collect chunks', n_chunks)
 
 	# Create empty array and accumulate
-	coef=np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetVar]))
+	aux = np.load('../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/' + 'coef_ichunk_0.npy')
+	coef=np.zeros((0, hres_npoints[targetVar], aux.shape[-1]))
 	intercept=np.zeros((0, hres_npoints[targetVar], 1))
 	for ichunk in range(n_chunks):
 		path = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
@@ -484,24 +414,13 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 	w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
 
 	# Read pred, saf and centroids
-	pred = np.load(pathAux+'STANDARDIZATION/PRED/'+targetVar+'_training.npy')
-	saf_train = np.load(pathAux+'STANDARDIZATION/SAF/'+targetVar+'_training.npy')
+	pred = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
+	saf_train = np.load(pathAux+'TRANSFORMATION/SAF/'+targetVar+'_training.npy')
 	centroids = np.load(pathAux+'WEATHER_TYPES/centroids.npy')
 
 	# Prepare data for PCA
 	ndays, nsafs, nlats, nlons = saf_train.shape[0], saf_train.shape[1], saf_train.shape[2], saf_train.shape[3]
 	saf_train = saf_train.reshape(ndays, -1)
-	W = W_saf[np.newaxis, :]
-	W = np.repeat(W, ndays, axis=0)
-	saf_train *= W
-
-	# Load pca object
-	infile = open(pathAux + 'PCA/pca', 'rb')
-	pca = pickle.load(infile)
-	infile.close()
-
-	# Transform sat_train to PCA
-	saf_train = pca.transform(saf_train)
 
 	# Read high resolution data and transform to int to save memory
 	if iproc == 0:
@@ -532,7 +451,7 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 		len_chunk.append(len(k_chunk[ichunk]))
 
 	# Create empty array to accumulate correlation coefficients
-	R = np.zeros((len_chunk[iproc], hres_npoints[targetVar], n_preds_dict[targetVar]))
+	R = np.zeros((len_chunk[iproc], hres_npoints[targetVar], pred.shape[1]))
 
 	# Get dist_th
 	if th_metric == 'median':
@@ -575,8 +494,8 @@ def correlations(targetVar, methodName, mode, iproc=0, nproc=1, th_metric='media
 			else:
 				# Create predictors array of analog days to the cluster centroid, by selecting the nearest neighbour or by
 				# interpolating the 4 neighbouts, depending on the setting parameter "n_neighbours"
-				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode)
-				for ipred in range(n_preds_dict[targetVar]):
+				X = grids.interpolate_predictors(X, i_4nn[ipoint], j_4nn[ipoint], w_4nn[ipoint], interp_mode, targetVar)
+				for ipred in range(X.shape[1]):
 					if targetVar == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
 						R[ik, ipoint, ipred] = spearmanr(X[:, ipred], Y)[0]
 					else:
@@ -604,7 +523,8 @@ def correlations_collect_chunks(targetVar, methodName, mode, nproc=1):
 	print(targetVar, methodName, 'cluster collect chunks', n_chunks)
 
 	# Create empty array and accumulate
-	R = np.zeros((0, hres_npoints[targetVar], n_preds_dict[targetVar]))
+	aux = np.load('../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/' + 'ichunk_0.npy')
+	R = np.zeros((0, hres_npoints[targetVar], aux.shape[-1]))
 	for ichunk in range(n_chunks):
 		path = '../tmp/cluster_' + '_'.join(((targetVar, methodName))) + '/'
 		filename = path + 'ichunk_' + str(ichunk) + '.npy'

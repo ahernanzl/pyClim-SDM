@@ -28,7 +28,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -144,7 +144,7 @@ def bias_correction_renalysis(targetVar, methodName):
     hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
     hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
     write.netCDF(pathOut, targetVar + '_' + 'reanalysis_TESTING.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
-                 est_times, regular_grid=False)
+                 est_times, reanalysis_calendar, regular_grid=False)
 
 
 ########################################################################################################################
@@ -172,13 +172,13 @@ def bias_correction_allModels(targetVar, methodName):
     for model in model_list:
 
         # Check if model historical exists
-        if os.path.isfile(pathIn + targetVar+'_'+model + '_historical.nc'):
+        if os.path.isfile(pathIn + targetVar + '_' + model + '_historical.nc'):
 
             # Check if all scenes by model have already been corrected
             to_be_corrected = False
             for scene in scene_list:
-                if os.path.isfile(pathIn + targetVar+'_'+model + '_' + scene + '.nc') and \
-                        not os.path.isfile(pathOut + targetVar+'_'+model + '_' + scene + '.nc'):
+                if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc') and \
+                        not os.path.isfile(pathOut + targetVar + '_' + model + '_' + scene + '.nc'):
                     to_be_corrected = True
 
             if to_be_corrected == True or force_bias_correction == True:
@@ -219,6 +219,10 @@ def bias_correction_allModels(targetVar, methodName):
                     # Send new job
                     launch_jobs.biasCorrection(model, targetVar, methodName)
 
+            else:
+                print(targetVar, methodName, model, bc_sufix, 'already corrected')
+
+
     return iterable
 
 ########################################################################################################################
@@ -247,6 +251,7 @@ def bias_correction_oneModel(targetVar, methodName, model):
         idates = [i for i in range(len(aux['times'])) if
                   aux['times'][i].year in range(biasCorr_years[0], biasCorr_years[1] + 1)]
         mod_data = aux['data'][idates]
+        ref_dates = aux['times'][idates]
 
         # Go through all scenes
         for scene in scene_list:
@@ -260,10 +265,11 @@ def bias_correction_oneModel(targetVar, methodName, model):
                 aux = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
                 scene_dates = aux['times']
                 scene_data = aux['data']
+                calendar = aux['calendar']
                 del aux
 
                 # Correct bias for scene
-                scene_bc = MOS_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, targetVar, biasCorr_dates, scene_dates)
+                scene_bc = MOS_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, targetVar, ref_dates, scene_dates)
 
                 # Set units
                 units = predictands_units[targetVar]
@@ -272,7 +278,7 @@ def bias_correction_oneModel(targetVar, methodName, model):
                 hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
                 hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
                 write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + '.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
-                             scene_dates, regular_grid=False)
+                             scene_dates, calendar, regular_grid=False)
 
 
 ########################################################################################################################
@@ -319,7 +325,7 @@ def get_climdex_for_evaluation(targetVar, methodName):
         pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
         pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
-    if os.path.isfile(pathIn+targetVar+'_'+'reanalysis_TESTING.nc'):
+    if os.path.isfile(pathIn+targetVar+'_reanalysis_TESTING.nc'):
 
         # Read data
         d = postpro_lib.get_data_eval(targetVar, methodName)
@@ -328,7 +334,7 @@ def get_climdex_for_evaluation(targetVar, methodName):
 
         # Calculate all climdex
         for (data, filename) in ((obs, 'obs'), (est, 'est')):
-            postpro_lib.calculate_all_climdex(pathOut, filename, targetVar, data, times_scene, ref, times_ref)
+            postpro_lib.calculate_all_climdex(pathOut, filename, targetVar, data, times_scene, ref, times_ref, reanalysis_calendar)
 
 
 ########################################################################################################################
@@ -339,13 +345,10 @@ def get_climdex_allModels(targetVar, methodName):
     print('postprocess.calculate_climdex', targetVar, methodName)
 
     # Define and create paths
-    if pseudoreality == True:
-        path = '../results/'+experiment+'/pseudoreality_'+GCM_longName+'_'+RCM+'/'+targetVar.upper()+'/'+methodName+'/'
+    if apply_bc == False:
+        path = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/'
     else:
-        if apply_bc == False:
-            path = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/'
-        else:
-            path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
 
@@ -367,13 +370,13 @@ def get_climdex_allModels(targetVar, methodName):
             filename = filename.split('/')[-1]
             scene = filename.split('_')[2]
             model = filename.split('_')[3] + '_' + filename.split('_')[4]
-            if ((os.path.isfile(pathIn + targetVar+'_'+model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
+            if ((os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc')) and (not os.path.isfile(pathOut+filename))):
                 climdex_already_calculated = False
 
         if climdex_already_calculated == False or force_climdex_calculation == True:
 
             # Check if model historical exists
-            if os.path.isfile(pathIn + model + '_historical.nc'):
+            if os.path.isfile(pathIn + targetVar + '_' + model + '_historical.nc'):
                 if running_at_HPC == False:
                     if runInParallel_multiprocessing == False:
                         print(targetVar, methodName, model, 'calculating climdex')
@@ -422,13 +425,10 @@ def get_climdex_oneModel(targetVar, methodName, model):
     print('get_climdex_oneModel', targetVar, methodName, model)
 
     # Define and create paths
-    if pseudoreality == True:
-        path = '../results/'+experiment+'/pseudoreality_'+GCM_longName+'_'+RCM+'/'+targetVar.upper()+'/'+methodName+'/'
+    if apply_bc == False:
+        path = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/'
     else:
-        if apply_bc == False:
-            path = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/'
-        else:
-            path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
     try:
@@ -440,6 +440,7 @@ def get_climdex_oneModel(targetVar, methodName, model):
     aux = read.netCDF(pathIn, targetVar + '_' + model + '_historical.nc', targetVar)
     times_ref = aux['times']
     ref = aux['data']
+    calendar = aux['calendar']
     idates = [i for i in range(len(times_ref)) if
               times_ref[i].year in range(reference_years[0], reference_years[1] + 1)]
     times_ref = [times_ref[i] for i in idates]
@@ -454,13 +455,13 @@ def get_climdex_oneModel(targetVar, methodName, model):
         ref_clim, times_ref_clim = ref, times_ref
 
     # Calculate climdex for reference period
-    postpro_lib.calculate_all_climdex(pathOut, 'REFERENCE_' + model, targetVar, ref, times_ref, ref_clim, times_ref_clim)
+    postpro_lib.calculate_all_climdex(pathOut, 'REFERENCE_' + model, targetVar, ref, times_ref, ref_clim, times_ref_clim, calendar)
 
     # Go through all scenes
     for scene in scene_list:
 
         # Check if scene/model exists
-        if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc'):
+        if os.path.isfile(pathIn + targetVar + '_' +  model + '_' + scene + '.nc'):
             # Read scene data
             aux = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
             times = aux['times']
@@ -468,7 +469,7 @@ def get_climdex_oneModel(targetVar, methodName, model):
             del aux
 
             # Calculate climdex for scene
-            postpro_lib.calculate_all_climdex(pathOut, scene + '_' + model, targetVar, data, times, ref_clim, times_ref_clim)
+            postpro_lib.calculate_all_climdex(pathOut, scene + '_' + model, targetVar, data, times, ref_clim, times_ref_clim, calendar)
 
 
 
@@ -522,12 +523,12 @@ def nc2ascii():
 
                 # Daily data
                 pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
-                fileName = targetVar + '_' + model + '_' + scene
+                fileName = targetVar+'_'+model+'_'+scene
                 if os.path.isfile(pathIn + fileName +'.nc'):
                     nc = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
                     times = nc['times']
                     data = nc['data']
-                    data[np.isnan(data)] = -999
+                    data[np.isnan(data)] = fill_value
                     del nc
                     print('writing daily data to ASCCI file for', targetVar, methodName, bc_sufix, scene, model, '...')
                     # id = list(read.hres_metadata(targetVar).index.values)
@@ -552,13 +553,13 @@ def nc2ascii():
                 for climdex in climdex_names[targetVar]:
                     for season in season_dict:
                         if scene == 'TESTING':
-                            fileIn = '_'.join((targetVar, climdex, 'est', season))
+                            fileIn = '_'.join((targetVar,climdex, 'est', season))
                         else:
-                            fileIn = '_'.join((targetVar, climdex, scene, model, season))
-                        fileOut = '_'.join((targetVar, climdex, scene, model, season))
+                            fileIn = '_'.join((targetVar,climdex, scene, model, season))
+                        fileOut = '_'.join((targetVar,climdex, scene, model, season))
                         if os.path.isfile(pathIn + fileIn +'.nc'):
                             print('writing climdex to ASCCI file for', targetVar, climdex, methodName, bc_sufix, scene, model, '...')
-                            data = read.netCDF(pathIn, fileIn, climdex)['data']
+                            data = read.netCDF(pathIn, fileIn, targetVar+'_'+climdex)['data']
                             # id = list(read.hres_metadata(targetVar).index.values)
                             id = list(read.hres_metadata(targetVar)['id'].values)
                             times = np.array(years)

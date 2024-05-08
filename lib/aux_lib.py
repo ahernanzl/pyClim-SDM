@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -156,7 +156,9 @@ def join_kfolds(var, methodName, family, mode, fields, scene, model, units, hres
     data = np.concatenate((data_list[0], data_list[1], data_list[2], data_list[3], data_list[4]))
 
     # Save results and delete folds
-    write.netCDF(path, '_'.join((var, model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times, regular_grid=False)
+    write.netCDF(path, '_'.join((var, model, scene)) + '.nc', var, data, units, hres_lats, hres_lons, times,
+                 reanalysis_calendar, regular_grid=False)
+
     # os.system('rm ' + path + '*fold*')
     for ifold in range(5):
         os.remove(path + var + '_' + model + '_' + scene + '_fold' + str(ifold+1) + '.nc')
@@ -183,7 +185,7 @@ def prepare_hres_data_ascii2npy(targetVar):
     """
 
     filename = pathHres + targetVar + '_' + hresPeriodFilename[targetVar]
-    fill_value_txt = -999 # This is the value in the txt file, and this function convert it to np.nan for the .npy file
+    fill_value_txt = fill_value # This is the value in the txt file, and this function convert it to np.nan for the .npy file
 
     minYear = int(hresPeriodFilename[targetVar].split('-')[0][:4])
     maxYear = int(hresPeriodFilename[targetVar].split('-')[1][:4])
@@ -195,8 +197,6 @@ def prepare_hres_data_ascii2npy(targetVar):
     # ------------------------
     # read data
     # ------------------------
-    if pseudoreality == True:
-        exit('Do not run read.hres_data first time True for pseudoreality')
     num_lines = sum(1 for line in open(filename + '.txt'))
     lon_line=hres_npoints[targetVar]+1
     data=np.zeros((0))
@@ -246,3 +246,114 @@ def prepare_hres_data_ascii2npy(targetVar):
     data[data==fill_value_txt] = np.nan
     data = data[np.argsort(data[:, 0])]
     np.save(filename, data)
+
+
+########################################################################################################################
+def fillNans(data):
+    """This function fills Nans with interpolation. If two adjacent borders are completely empty it cannot be solved
+    Data shape: (ntimes, npreds, nlats, nlons
+    """
+
+    print('Filling Nans with interpolation')
+
+    # Fill Nans interpolation
+    data = np.swapaxes(data, 0, 1)
+
+    npreds = data.shape[0]
+    ntimes = data.shape[1]
+    nlats = data.shape[2]
+    nlons = data.shape[3]
+    times, lats, lons = range(ntimes), range(nlats), range(nlons)
+
+    for ipred in range(npreds):
+        if np.sum(np.isnan(data[ipred])) != 0:
+
+            # Fill corners
+            aux = np.where(np.isnan(data[ipred]))
+            idays_with_nan_in_corners = list(set([aux[0][i] for i in range(aux[0].size)
+                 if aux[1][i] == 0 or aux[1][i] == data[ipred].shape[-2] or
+                     aux[2][i] == 0 or aux[2][i] == data[ipred].shape[-1]]))
+
+            for iday in idays_with_nan_in_corners:
+                aux = data[ipred, iday]
+
+                # Fill top left corner 4 times, rotating array
+                for iRot in range(4):
+
+                    # Fill corner
+                    if np.isnan(aux[0, 0]):
+
+                        # Calculate delta_x
+                        iaux = np.array([i for i in range(aux.shape[1]) if not np.isnan(aux[0][i])])
+                        if iaux.size == 0:
+                            first_x = aux.shape[1] - 1
+                        else:
+                            first_x = min(iaux)
+                        if first_x == (aux.shape[1] - 1):
+                            delta_x = 0
+                        elif np.isnan(aux[0, first_x + 1]):
+                            delta_x = 0
+                        else:
+                            delta_x = aux[0, first_x] - aux[0, first_x + 1]
+
+                        # Calculate delta_y
+                        iaux = np.array([i for i in range(aux.shape[0]) if not np.isnan(aux[i][0])])
+                        if iaux.size == 0:
+                            first_y = aux.shape[0] - 1
+                        else:
+                            first_y = min(iaux)
+                        if first_y == (aux.shape[0] - 1):
+                            delta_y = 0
+                        elif np.isnan(aux[first_y + 1, 0]):
+                            delta_y = 0
+                        else:
+                            delta_y = aux[first_y, 0] - aux[first_y + 1, 0]
+                        value_1, value_2 = aux[0, first_x] + delta_x * first_x, aux[first_y, 0] + delta_y * first_y
+                        if np.isnan(value_1) and np.isnan(value_2):
+                            aux[0, 0] = np.nan
+                        elif np.isnan(value_1):
+                            aux[0, 0] = value_2
+                        elif np.isnan(value_2):
+                            aux[0, 0] = value_1
+                        else:
+                            aux[0, 0] = (value_1 + value_2) / 2
+
+                    iaux = np.array([i for i in range(aux.shape[1]) if (not np.isnan(aux[0][i])) and i != 0])
+                    if iaux.size == 0:
+                        first_x = aux.shape[1] -1
+                    else:
+                        first_x = min(iaux)
+                    if first_x != 1:
+                        for i in range(1, aux.shape[1]):
+                            if np.isnan(aux[0, i]):
+                                aux[0, i] = aux[0, 0] + i * ((aux[0, first_x] - aux[0, 0])/first_x)
+                            else:
+                                break
+                    iaux = np.array([i for i in range(aux.shape[0]) if (not np.isnan(aux[i][0])) and i != 0])
+                    if iaux.size == 0:
+                        first_y = aux.shape[0] -1
+                    else:
+                        first_y = min(iaux)
+                    if first_y != 1:
+                        for j in range(1, aux.shape[0]):
+                            if np.isnan(aux[j, 0]):
+                                aux[j, 0] = aux[0, 0] + j * ((aux[first_y, 0] - aux[0, 0])/first_y)
+                            else:
+                                break
+                    aux = np.rot90(aux, k=-1)
+                data[ipred, iday] = aux
+
+            da = xr.DataArray(data[ipred], coords={'time': times, 'y': np.sort(lats), 'x': np.sort(lons), },
+                              dims=["time", "y", "x", ])
+            da_x = da.interpolate_na(dim='x', method='linear').to_masked_array()
+            da_y = da.interpolate_na(dim='y', method='linear').to_masked_array()
+            data[ipred] = (da_x + da_y) / 2
+            del da_x, da_y
+
+    data = np.swapaxes(data, 0, 1)
+    if np.sum(np.where(np.isnan(data))) == 0:
+        filled = True
+    else:
+        filled = False
+
+    return data, filled

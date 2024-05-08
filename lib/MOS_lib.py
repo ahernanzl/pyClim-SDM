@@ -29,7 +29,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -56,8 +56,8 @@ def quantile_mapping(obs, hist, sce, targetVar):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -114,8 +114,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -225,8 +225,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]
@@ -313,17 +313,13 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             idatesYear = [i for i in range(len(sce_times)) if sce_times[i].year == yearsUnique[iYear]]
             mean_sce = np.nanmean(sce[idatesYear], axis=0)
             mean_sce_corrected = np.nanmean(sce_corrected[idatesYear], axis=0)
-
-            print(mean_sce, mean_obs, mean_sce_corrected , mean_hist)
-            print((mean_sce * mean_obs) / (mean_sce_corrected * mean_hist))
             factor_trend[idatesYear] = (mean_sce * mean_obs) / (mean_sce_corrected * mean_hist)
             iNotValid = np.where((mean_sce_corrected * mean_hist) == 0)[0]
             aux = factor_trend[idatesYear]
             aux[:, iNotValid] = 1
             factor_trend[idatesYear] = aux
-        sce_corrected *= factor_trend
 
-    # print(factor_trend)
+        sce_corrected *= factor_trend
 
     return sce_corrected
 
@@ -365,8 +361,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 100 == 0:
-            print(ipoint)
+        # if ipoint % 100 == 0:
+        #     print(ipoint)
 
         # Select data from one point
         obs_data = obs.T[ipoint]

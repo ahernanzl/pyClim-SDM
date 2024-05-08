@@ -26,14 +26,14 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
 import write
 
 ########################################################################################################################
-def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_ref):
+def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_ref, calendar):
     """
     Calculate all climdex/season and save them into files.
     """
@@ -52,63 +52,112 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
 
         # Get percentile calendars
         if climdex_name in ('TX90p', 'TN90p', 'T90p', 'WSDI', '90p_days'):
-            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90)
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 90, calendar)
         elif climdex_name in ('TX99p', 'TN99p', 'T99p', '99p_days'):
-            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 99)
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 99, calendar)
         elif climdex_name in ('TX95p', 'TN95p', 'T95p', '95p_days'):
-            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 95)
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 95, calendar)
         elif climdex_name in ('TX10p', 'TN10p', 'T10p', 'CSDI', '10p_days'):
-            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10)
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 10, calendar)
         elif climdex_name in ('TX1p', 'TN1p', 'T1p', '1p_days'):
-            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 1)
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 1, calendar)
         elif climdex_name in ('TX5p', 'TN5p', 'T5p', '5p_days'):
-            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 5)
-        elif climdex_name in ('R95p', 'R95pFRAC'):
-            # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
-            perc95Calendar = {}
+            percCalendar = get_perc_calendar(targetVar, times_ref, ref, 5, calendar)
+        elif climdex_name in ('R95p', 'R95pFRAC', 'R99p', 'R99pFRAC'):
+            p = int(climdex_name[1:3])
+            # Five values are to be calculated, one for each season.
+            percCalendar_aux = {}
             for season in season_dict:
-                aux = get_season(ref, times_ref, season)['data']
-                aux[aux < 1] = np.nan
-                perc95Calendar.update({season: np.repeat(np.nanpercentile(aux, 95, axis=0)[np.newaxis, :], 365, axis=0)})
-        elif climdex_name in ('R99p', 'R99pFRAC'):
-            # Five values are to be calculated, one for each season. With each value a calendar of 365 days is built
-            perc99Calendar = {}
-            for season in season_dict:
-                aux = get_season(ref, times_ref, season)['data']
-                aux[aux < 1] = np.nan
-                perc99Calendar.update({season: np.repeat(np.nanpercentile(aux, 99, axis=0)[np.newaxis, :], 365, axis=0)})
+                aux = get_season(ref, times_ref, season)
+                aux_times = aux['times']
+                aux_data = aux['data']
+                aux_data[aux_data < 1] = np.nan
+                all_days_calendar = []
+                for month in range(1, 13):
+                    for day in range(1, 32):
+                        for x in aux_times:
+                            if x.month == month and x.day == day and (month, day) not in all_days_calendar:
+                                all_days_calendar.append((month, day))
+                times_calendar = []
+
+                for month in range(1, 13):
+                    for day in range(1, 32):
+                        for x in aux_times:
+                            if len(times_calendar) == 0:
+                                times_calendar.append(x)
+                            else:
+                                if x.month==month and x.day==day:
+                                    to_be_added = True
+                                    for x2 in times_calendar:
+                                        if x.month==x2.month and x.day==x2.day:
+                                            to_be_added = False
+                                    if to_be_added == True:
+                                        times_calendar.append(x)
+                                        break
+
+                ndays_calendar = len(times_calendar)
+                percCalendar_aux.update({season: {'data': np.repeat(np.nanpercentile(aux_data, p, axis=0)[np.newaxis, :],
+                                                       ndays_calendar, axis=0), 'times': times_calendar}})
+                del times_calendar
         else:
-            percCalendar = np.zeros((365, ref.shape[1]))
+            # This calendar is not used
+            percCalendar = {'data': np.zeros((366, ref.shape[1])),
+                            'times': calibration_dates[:366]}
 
 
         # Select season
         for season in season_dict:
-            # season = 'JJA'
             aux = get_season(data, times, season)
             data_season = aux['data']
             times_season = aux['times']
-            times_percCalendar = [datetime.date(1981, 1, 1) + datetime.timedelta(days=i) for i in range(365)]
-            if climdex_name in ('R95p', 'R95pFRAC'):
-                percCalendar = perc95Calendar[season]
-            elif climdex_name in ('R99p', 'R99pFRAC'):
-                percCalendar = perc99Calendar[season]
-            aux = get_season(percCalendar, times_percCalendar, season)
-            percCalendar_season = aux['data']
-            times_percCalendar_seaon = aux['times']
+            if climdex_name in ('R95p', 'R95pFRAC', 'R99p', 'R99pFRAC'):
+                percCalendar = percCalendar_aux[season]
+            times_percCalendar = percCalendar['times']
+            data_percCalendar = percCalendar['data']
+            aux = get_season(data_percCalendar, times_percCalendar, season)
+            data_percCalendar_season = aux['data']
+            times_percCalendar_season = aux['times']
             del aux
 
+
             # Calculate climdex for obs and est
-            data_climdex = calculate_climdex(climdex_name, data_season, percCalendar_season,
-                                                  times_season, times_percCalendar_seaon)['data']
+            data_climdex = calculate_climdex(climdex_name, data_season, data_percCalendar_season,
+                                                  times_season, times_percCalendar_season)['data']
 
             # Save results
             # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
             times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
-            write.netCDF(pathOut, '_'.join((targetVar, climdex_name, filename, season))+'.nc', targetVar+'_'+climdex_name, data_climdex, '',
-                         hres_lats[targetVar], hres_lons[targetVar], times_years, regular_grid=False)
+
+            write.netCDF(pathOut, '_'.join((targetVar, climdex_name, filename, season))+'.nc',
+                         targetVar+'_'+climdex_name, data_climdex, '',
+                         hres_lats[targetVar], hres_lons[targetVar], times_years, calendar, regular_grid=False)
 
     print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
 
+########################################################################################################################
+def purge_days_different_calendars(data_year, ref, times_year, times_ref):
+
+    data_nDays, ref_nDays = data_year.shape[0], ref.shape[0]
+
+    # Remove days that exist only in one calendar
+    if data_nDays != ref_nDays:
+        all_days_ref = [(x.month, x.day) for x in times_ref]
+        all_days_year = [(x.month, x.day) for x in times_year]
+        idatesValid_ref = []
+        idatesValid_year = []
+        for month in range(1, 13):
+            for day in range(1, 32):
+                x = (month, day)
+                if x in all_days_ref and x in all_days_year:
+                    iaux = [i for i in range(ref_nDays) if times_ref[i].month == month and times_ref[i].day == day]
+                    # if len(iaux) > 0:
+                    idatesValid_ref.append(int(iaux[0]))
+                    iaux = [i for i in range(data_nDays) if times_year[i].month == month and times_year[i].day == day]
+                    # if len(iaux) > 0:
+                    idatesValid_year.append(int(iaux[0]))
+
+        data_year, ref = data_year[idatesValid_year], ref[idatesValid_ref]
+    return data_year, ref
 
 ########################################################################################################################
 def calculate_climdex(climdex_name, data, ref, times, times_ref):
@@ -223,24 +272,8 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
         times_results.append(year)
         data_year = data[[i for i in range(len(times)) if times[i].year == year]]
         times_year = [x for x in times if x.year == year]
-        data_nDays, ref_nDays = data_year.shape[0], ref.shape[0]
 
-        # Deal with leap years
-        if data_nDays == ref_nDays:
-            aux = 1*ref
-        elif data_nDays == ref_nDays + 1:
-            i_28feb = [times_ref.index(x) for x in times_ref if ((x.month == 2) and (x.day == 28))][0]
-            aux = 0*data_year
-            aux[:i_28feb+1] = ref[:i_28feb+1]
-            aux[i_28feb+1] = ref[i_28feb]
-            aux[i_28feb+1:] = ref[i_28feb:]
-        else:
-            exit(times_year, len(times_year), ref_nDays)
-
-        # # Remove days with nan
-        # iNans = np.unique(np.where(np.isnan(data_year))[0])
-        # data_year = np.delete(data_year, iNans, axis=0)
-        # aux = np.delete(aux, iNans, axis=0)
+        aux_ref = 1*ref
 
         # Calculate climdex for iyear
         if climdex_name in ('p1', 'p5', 'p10', 'p90', 'p95', 'p99'):
@@ -249,17 +282,23 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
                               'RSDSm', 'RLDSm', 'Em', 'EPm', 'PSLm', 'PSm', 'RUNOFFm', 'SOILMOISTUREm', 'm'):
             results.append(np.nanmean(data_year, axis=0))
         elif climdex_name in ('TX90p', 'TN90p', 'T90p', '90p_days'):
-            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(np.nanmean(100.*(data_year > aux_ref), axis=0))
         elif climdex_name in ('TX99p', 'TN99p', 'T99p', '99p_days'):
-            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(np.nanmean(100.*(data_year > aux_ref), axis=0))
         elif climdex_name in ('TX95p', 'TN95p', 'T95p', '95p_days'):
-            results.append(np.nanmean(100.*(data_year > aux), axis=0))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(np.nanmean(100.*(data_year > aux_ref), axis=0))
         elif climdex_name in ('TX10p', 'TN10p', 'T10p', '10p_days'):
-            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(np.nanmean(100.*(data_year < aux_ref), axis=0))
         elif climdex_name in ('TX1p', 'TN1p', 'T1p', '1p_days'):
-            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(np.nanmean(100.*(data_year < aux_ref), axis=0))
         elif climdex_name in ('TX5p', 'TN5p', 'T5p', '5p_days'):
-            results.append(np.nanmean(100.*(data_year < aux), axis=0))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(np.nanmean(100.*(data_year < aux_ref), axis=0))
         elif climdex_name in ('TXx', 'TNx', 'Tx', 'Ux', 'Vx', 'SFCWINDx', 'HUSSx',
                               'RSDSx', 'RLDSx', 'Ex', 'EPx', 'PSLx', 'PSx', 'RUNOFFx', 'SOILMOISTUREx','x'):
             results.append(np.nanmax(data_year, axis=0))
@@ -267,9 +306,11 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
                               'RSDSn', 'RLDSn', 'En', 'EPn', 'PSLn', 'PSn', 'RUNOFFn', 'SOILMOISTUREn', 'n'):
             results.append(np.nanmin(data_year, axis=0))
         elif climdex_name == 'WSDI':
-            results.append(get_spell_duration(data_year > aux, climdex_name))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(get_spell_duration(data_year > aux_ref, climdex_name))
         elif climdex_name == 'CSDI':
-            results.append(get_spell_duration(data_year < aux, climdex_name))
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            results.append(get_spell_duration(data_year < aux_ref, climdex_name))
         elif climdex_name == 'FD':
             results.append(np.nansum(data_year < 0, axis=0))
         elif climdex_name == 'SU':
@@ -295,13 +336,15 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
         elif climdex_name == 'CDD':
             results.append(get_spell_duration(data_year < 1, climdex_name))
         elif climdex_name in ('R95p', 'R99p'):
-            data_year[data_year < aux] = 0
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            data_year[data_year < aux_ref] = 0
             data_year[data_year < 1] = 0
             results.append(np.nansum(data_year, axis=0))
         elif climdex_name in ('R95pFRAC', 'R99pFRAC'):
             data_year[data_year < 1] = 0
             total = np.nansum(data_year, axis=0)
-            data_year[data_year < aux] = 0
+            data_year, aux_ref = purge_days_different_calendars(data_year, ref, times_year, times_ref)
+            data_year[data_year < aux_ref] = 0
             heavy = np.nansum(data_year, axis=0)
             total[total == 0] = -1
             heavy[total == -1] = 0
@@ -324,39 +367,56 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
 
 
 ########################################################################################################################
-def get_perc_calendar(targetVar, times, data, q):
+def get_perc_calendar(targetVar, times, data, q, calendar):
     """
     times: list
     data: numpy array (ntimes, npoints)
-    :return: percCalendar: numpy array (365, npoints)
+    :return: percCalendar: numpy array (max_ndays_year, npoints)
     """
 
     data = (100 * data).astype(predictands_codification[targetVar]['type'])
+    all_days_ref_calendar = [(x.month, x.day) for x in times]
+    aux = []
+    for month in range(1, 13):
+        for day in range(1, 32):
+            x = (month, day)
+            if x in all_days_ref_calendar and x not in aux:
+                aux.append(x)
+    all_days_ref_calendar = aux
+    del aux
+    nDays_ref_calendar = len(all_days_ref_calendar)
 
     # Create empty percCalendar
-    percCalendar = np.zeros((365, data.shape[1]))
+    percCalendar = np.zeros((nDays_ref_calendar, data.shape[1]))
 
-    # Create 5 days window
-    data5 = np.repeat(data[np.newaxis, :], 5, axis=0)
-    data5[0][:-2] = data[2:]
-    data5[1][:-1] = data[1:]
-    data5[3][1:] = data[:-1]
-    data5[4][2:] = data[:-2]
-    del(data)
-
-    # Create year dates
-    yearDates = [datetime.date(1981, 1, 1) + datetime.timedelta(days=i) for i in range(365)]
-
-    # For each day of the year
-    for idate in range(365):
-        # Select same day from all years and calculates percentile
-        idates = [i for i in range(len(times)) if ((times[i].month==yearDates[idate].month) and (times[i].day==yearDates[idate].day))]
-        auxData = np.swapaxes(np.swapaxes(data5, 0, 1)[idates], 0, 1).T.reshape(data5.shape[-1], -1).T
-        percCalendar[idate] = np.nanpercentile(auxData, q, axis=0)
+    # Fill each calendar day with the percentile of a moving window of 5 days
+    for iday in range(nDays_ref_calendar):
+        month, day = all_days_ref_calendar[iday][0], all_days_ref_calendar[iday][1]
+        idates = [i for i in range(len(times)) if times[i].month == month and times[i].day == day]
+        idates_window = []
+        for i in idates:
+            idates_window.append(max(0, i-2))
+            idates_window.append(max(0, i-1))
+            idates_window.append(i)
+            idates_window.append(min(len(times)-1, i+1))
+            idates_window.append(min(len(times)-1, i+2))
+        percCalendar[iday] = np.nanpercentile(data[idates_window], q, axis=0)
 
     percCalendar = percCalendar.astype('float64') / 100.
+    data = percCalendar
 
-    return percCalendar
+    times_calendar = []
+    for month in range(1, 13):
+        for day in range(1, 32):
+            x = (month, day)
+            if x in all_days_ref_calendar:
+                for x2 in times:
+                    if month==x2.month and day==x2.day and x2 not in times_calendar:
+                        times_calendar.append(x2)
+                        break
+
+
+    return {'data': data, 'times': times_calendar}
 
 
 ########################################################################################################################

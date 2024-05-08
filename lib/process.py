@@ -26,7 +26,7 @@ import precontrol
 import preprocess
 import process
 import read
-import standardization
+import transform
 import TF_lib
 import val_lib
 import WG_lib
@@ -83,11 +83,9 @@ def models(method_dict, scene, model):
 
     pathOut = '../results/'+experiment+'/'
 
-    if experiment == 'PSEUDOREALITY':
-        pathOut += 'pseudoreality_' + GCM_longName + '_' + RCM + '/'
 
     # Check if scene/model has already been processed
-    if os.path.isfile(pathOut + targetVar.upper() + '/' + methodName + '/daily_data/' + model + '_' + scene + '.nc')\
+    if os.path.isfile(pathOut + targetVar.upper() + '/' + methodName + '/daily_data/' + targetVar + '_' + model + '_' + scene + '.nc')\
             and force_downscaling == False:
         print('-------------------------------')
         print(targetVar, scene, model, methodName, 'Already processed')
