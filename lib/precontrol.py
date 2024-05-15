@@ -318,7 +318,7 @@ def GCMs_evaluation_historical():
                         idates = [i for i in range(len(scene_dates)) if scene_dates[i].year in years_aux]
                         sceneData = aux['data']
                         sceneData = sceneData[idates]
-                        scene_dates = scene_dates[idates]
+                        scene_dates = [scene_dates[i] for i in idates]
 
                         # if predName == targetVar:
                         #     n = n + 1
@@ -1007,9 +1007,6 @@ def GCMs_evaluation():
     """
 
     print('GCMs_evaluation...')
-    print(season_dict)
-
-    # GCMs_evaluation_historical()
 
     GCMs_evaluation_historical()
 
