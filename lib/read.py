@@ -288,6 +288,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF models files')
             print('Make sure your input_data/models directory contains the needed files.')
+            print('Make sure your models and reanalysis contain the exact same grid.')
             print('At least one direct predictors is needed, not only derived predictors.')
             exit()
 
