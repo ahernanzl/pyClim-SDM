@@ -329,7 +329,7 @@ def climdex(by_season=True):
 
 
                                 #-------------------- Bias maps    -----------------------------------------------------
-                                if activate_plot_climdexMaps == True:
+                                if activate_plot_climdexMaps == True and mean_obs.size != 1:
                                     if plotAllRegions == False or index == 0:
 
                                         palette = targetVar + '_' + climdex_name
