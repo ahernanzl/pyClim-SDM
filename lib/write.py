@@ -56,10 +56,17 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 	nc.createDimension(time_name, len(times))
 
 	if regular_grid == True:
-		nc.createDimension(lat_name, len(lats))
-		nc.createDimension(lon_name, len(lons))
+		try:
+			nc.createDimension(lat_name, len(lats))
+			nc.createDimension(lon_name, len(lons))
+		except:
+			nc.createDimension(lat_name, 1)
+			nc.createDimension(lon_name, 1)
 	else:
-		nc.createDimension('point', len(lats))
+		try:
+			nc.createDimension('point', len(lats))
+		except:
+			nc.createDimension('point', 1)
 
 	if level is not None:
 		nc.createDimension(level_name, 1)
@@ -88,7 +95,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 		point = nc.createVariable('point', 'i', 'point')
 		point.units = ' '
 		point.long_name = ""
-		point[:] = range(len(lats))
+		try:
+			point[:] = range(len(lats))
+		except:
+			point[:] = 0
 		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
 		ids = [str(i) for i in ids]
 		point.id_names = ids
