@@ -61,7 +61,6 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     # exit()
 
     # Define dimension names
-    time_name = 'time'
     if 'lat' in nc.variables:
         lat_name, lon_name = 'lat', 'lon'
     elif 'latitude' in nc.variables:
@@ -77,10 +76,16 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
         else:
             print('level_name not recognized')
             # exit()
-
-    calendar = nc.variables[time_name].calendar
-    units = nc.variables[time_name].units
-    times_num = nc.variables[time_name][:].data
+    try:
+        time_name = 'time'
+        calendar = nc.variables[time_name].calendar
+        units = nc.variables[time_name].units
+        times_num = nc.variables[time_name][:].data
+    except:
+        time_name = 'valid_time'
+        calendar = nc.variables[time_name].calendar
+        units = nc.variables[time_name].units
+        times_num = nc.variables[time_name][:].data
     times = num2date(times_num, units=units, calendar=calendar)
     # exit()
 

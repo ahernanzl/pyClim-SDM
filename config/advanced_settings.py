@@ -749,6 +749,8 @@ if 'nc' not in locals():
 
 if 'time' in nc.variables:
     reanalysis_calendar = nc.variables['time'].calendar
+elif 'valid_time' in nc.variables:
+    reanalysis_calendar = nc.variables['valid_time'].calendar
 else:
     print('ERROR: Variable time not found at reanalysis netCDF')
     exit()
