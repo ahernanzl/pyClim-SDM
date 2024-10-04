@@ -401,7 +401,7 @@ def train_point(targetVar, methodName, X, y, ipoint):
             regressor.fit(X_rainy_days, y_rainy_days)
 
         elif methodName == 'XGB':
-            regressor = XGBRegressor(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1)
+            regressor = XGBRegressor(n_estimators=100, max_depth=6, early_stopping_rounds=20, learning_rate=0.1, reg_lambda=0.05)
             X_train, X_valid, y_train, y_valid = train_test_split(X_rainy_days, y_rainy_days, test_size=0.2)
             regressor.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], verbose=0)
             history_reg = regressor.evals_result()
