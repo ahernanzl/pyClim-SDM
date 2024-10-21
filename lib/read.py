@@ -128,6 +128,11 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
     data = data.__array__()
     # data = np.frombuffer(data.getdata).reshape(data.shape)
 
+    # Force lats sorted from North to South if data is 2D (plus time dimension)
+    if (lats[0] < lats[-1]) and (np.ndim(data) > 2):
+        lats = np.flip(lats)
+        data = np.flip(data, axis=1)
+
     # Selects a specific gr defined at settings
     if grid is not None:
         if grid == 'ext':
@@ -136,16 +141,53 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
             grid_lats, grid_lons = saf_lats, saf_lons
         elif grid == 'pred':
             grid_lats, grid_lons = pred_lats, pred_lons
+
+        # Detect if model grid and reanalysis grid are the same
+        sameGrid = True
+        for lat in grid_lats:
+            for lon in grid_lons:
+                if (lat not in lats) or (lon not in lons):
+                    sameGrid = False
+                    break
+
+        # Bilinear interpolation
+        if sameGrid == False:
+            print('interpolating model to reanalysis grid...')
+            grid_nlats, grid_nlons = len(grid_lats), len(grid_lons)
+            aux = np.zeros((data.shape[0], grid_nlats, grid_nlons))
+            res_lats = abs(lats[1] - lats[0])
+            res_lons = abs(lons[1] - lons[0])
+            for grid_lat in grid_lats:
+                for grid_lon in grid_lons:
+                    grid_ilat, grid_ilon = list(grid_lats).index(grid_lat), list(grid_lons).index(grid_lon)
+
+                    latDown = max(lats[lats <= grid_lat])
+                    latUp = latDown + res_lats
+                    lonLeft = max(lons[lons <= grid_lon])
+                    lonRight = lonLeft + res_lons
+
+                    ilatUp = np.where(lats == latUp)[0]
+                    ilatDown = np.where(lats == latDown)[0]
+                    jlonLeft = np.where(lons == lonLeft)[0]
+                    jlonRight = np.where(lons == lonRight)[0]
+
+                    w1 = (grid_lat - latDown) * (lonRight - grid_lon) / (res_lats * res_lons)
+                    w2 = (grid_lat - latDown) * (grid_lon - lonLeft) / (res_lats * res_lons)
+                    w3 = (latUp - grid_lat) * (grid_lon - lonLeft) / (res_lats * res_lons)
+                    w4 = (latUp - grid_lat) * (lonRight - grid_lon) / (res_lats * res_lons)
+
+                    aux[:, grid_ilat, grid_ilon] = (w1 * data[:, ilatDown, jlonRight] + w2 * data[:, ilatDown, jlonLeft] + \
+                                                   w3 * data[:, ilatUp, jlonLeft] + w4 * data[:, ilatUp, jlonRight])[:][0]
+
+        data = 1 * aux
+        del aux
+
         ilats = [i for i in range(nlats) if lats[i] in grid_lats]
         ilons = [i for i in range(nlons) if lons[i] in grid_lons]
         lats, lons = lats[ilats], lons[ilons]
         data = data[:, ilats]
         data = data[:, :, ilons]
 
-    # Force lats sorted from North to South if data is 2D (plus time dimension)
-    if (lats[0] < lats[-1]) and (np.ndim(data) > 2):
-        lats = np.flip(lats)
-        data = np.flip(data, axis=1)
 
     # Get units
     try:
