@@ -42,7 +42,7 @@ def missing_data_check():
 
     print('missing_data_check...')
 
-    # # # Go through all target variables
+    # # # # Go through all target variables
     for targetVar in targetVars:
 
         # Define pathTmp
