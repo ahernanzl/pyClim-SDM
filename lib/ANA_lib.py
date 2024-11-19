@@ -45,8 +45,7 @@ def set_number_of_weather_types():
 	Some parameters of both MiniBatchKmeans and Kmeans might need to be tuned.
 	"""
 
-
-	print('weather_types: set number of clusters')
+	print('weather_types: set number of clusters') #
 	# Define clustering method
 	# clustering_method = 'Kmeans'
 	clustering_method = 'MiniBatchKmeans'
