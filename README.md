@@ -1,4 +1,7 @@
 # pyClim-SDM: Statistical Downscaling for Climate Change Projections with a Graphical User Interface  
+
+**Atention!** This repository has been moved to https://gitlab.aemet.es/aemc/scenarios/pyClim-SDM
+
  
 <br/><br/>
 ![](pyClim-SDM_demo.gif)
