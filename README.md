@@ -26,26 +26,26 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - **RAW**: no downscaling (nearest grid point).
 - **RAW-BIL**: no downscaling (bilinear interpolation).
 ### Model Output Statistics:
-- **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).
-- **DQM**: Detrended Quantile Mapping (Cannon *et al.*, 2015). Quantile adjustment over detrended series.
+- **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).  
+- **DQM**: Detrended Quantile Mapping (Cannon *et al.*, 2015). Quantile adjustment over detrended series.  
 - **QDM**: Quantile Delta Mapping in (Cannon *et al.*, 2015). Delta change over quantiles.
 - **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2017).
 ### Analogs / Weather Typing:
-- **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).
-- **ANA-LOC**: Same as ANA-SYN but using synoptic+local analogy. See Petisco de Lara, (2008a), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
-- **ANA-VAR**: Same as ANA-SYN but using the spatial pattern of the target variable itself.
+- **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).     
+-- **ANA-LOC**: Same as ANA-SYN but using synoptic+local analogy. See Petisco de Lara, (2008a), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).         
+-- **ANA-VAR**: Same as ANA-SYN but using the spatial pattern of the target variable itself.     
 ### Linear:
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
 - **MLR-ANA**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
 - **MLR-WT**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
-- **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential and **CUB** for cubic regression). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
+- **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential and **CUB** for cubic regression). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).   
 ### Machine Learning:
-- **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
-- **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).
-- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
+- **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).  
+- **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).  
+- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).   
 - **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
-- **ANN**: Artificial Neural Networks. Non-linear machine learning classification/regression. See García-Valero (2021) and Hernanz *et al.* (2021).
-- **CNN**: Convolutional Neural Networks. Non-linear machine learning classification/regression. 
+- **ANN**: Artificial Neural Networks. Non-linear machine learning classification/regression. See García-Valero (2021) and Hernanz *et al.* (2021).   
+- **DeepESD**: Convolutional Neural Networks. See Baño-Medina *et al*., (2022)
 ### Weather Generators:
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 - **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).
@@ -56,16 +56,28 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 
 pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
 
-In order to use pyClim-SDM, **python3** is required. pyClim-SDM makes use of the python libaries listed at 
+In order to use pyClim-SDM, **python3.10** is required. pyClim-SDM makes use of the python libaries listed at 
 requirements.txt. You can install them by following these steps: 
 - Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
-- Create a virtual environment: **conda create -n env_pyClim-SDM -y -c conda-forge absl-py=1.2.0 numpy=1.23.1 pandas=1.4.3 geopandas=0.7.0 geopy=2.2.0 matplotlib=3.5.2 mpi4py=3.1.3 netCDF4=1.6.0 scikit-learn=1.1.2 scipy=1.9.0 seaborn=0.11.2 Shapely=1.8.2 statsmodels=0.13.2 tensorflow=2.7.0 xarray=0.17.0 xgboost=1.5.1 basemap=1.3.3 xarray**
+- Create a virtual environment:
+  - basic installation: **conda create -n env_pyClim-SDM python=3.10.1 absl-py==1.0.0 Bottleneck=1.4.2 numpy=1.22.1 pandas=1.4.1 geopandas=0.10.2 geopy=2.2.0 matplotlib=3.5.1 mpi4py=3.1.3 netCDF4=1.5.8 scikit-learn=1.0.2 scipy=1.7.3 seaborn=0.11.2 shapely=1.8.1 statsmodels=0.13.2 tensorflow=2.7.0 xarray=2023.2.0 xgboost=1.5.1 cartopy=0.21.0 -y -c conda-forge**
+  - HPC installation: mpi4py=3.1.3 
+  - GPU: torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
+
+conda remove --name env_pyClim-SDM --all
+
+
+After installation:
 - Activate your environment: **conda activate env_pyClim-SDM**
+- Deactivate your environment: **conda deactivate**
+
 
 
 # References
- 
+
 - Amblar-Francés, P., Casado-Calle, M.J., Pastor-Saavedra, M.A., Ramos-Calzado, P., and Rodríguez-Camino, E. (2017). Guía de escenarios regionalizados de cambio climático sobre España a partir de los resultados del IPCC-AR5. Available at: https://www.aemet.es/documentos/es/conocermas/recursos_en_linea/publicaciones_y_estudios/publicaciones/Guia_escenarios_AR5/Guia_escenarios_AR5.pdf
+
+- Baño-Medina, J., Manzanas, R., Cimadevilla, E., Fernández, J., González-Abad, J., Cofiño, A. S., and Gutiérrez, J. M.: Downscaling multi-model climate projection ensembles with deep learning (DeepESD): contribution to CORDEX EUR-44, Geosci. Model Dev., 15, 6747–6758, https://doi.org/10.5194/gmd-15-6747-2022, 2022.
 
 - Benestad, R.E. (2021) A Norwegian approach to downscaling. Geoscientific Model Development Discussion (in review). https://doi.org/10.5194/gmd-2021-176. 
 
