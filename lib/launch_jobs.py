@@ -9,7 +9,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -19,6 +21,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -85,7 +88,8 @@ def cluster(targetVar, methodName, mode, cluster_option):
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
-    f.writelines('#SBATCH -p ' + HPC_partition + '\n')
+    if HPC_partition is not None:
+        f.writelines('#SBATCH -p ' + HPC_partition + '\n')
     f.writelines('#SBATCH -o ../job/%j.out\n')
     f.writelines('#SBATCH -e ../job/%j.err\n')
     f.writelines('#SBATCH -N 1\n')  # nodes requested
@@ -143,7 +147,8 @@ def training(targetVar, methodName, family, mode, fields):
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
-    f.writelines('#SBATCH -p ' + HPC_partition + '\n')
+    if HPC_partition is not None:
+        f.writelines('#SBATCH -p ' + HPC_partition + '\n')
     f.writelines('#SBATCH -o ../job/%j.out\n')
     f.writelines('#SBATCH -e ../job/%j.err\n')
     f.writelines('#SBATCH -N 1\n')  # nodes requested
@@ -207,7 +212,8 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
-    f.writelines('#SBATCH -p ' + HPC_partition + '\n')
+    if HPC_partition is not None:
+        f.writelines('#SBATCH -p ' + HPC_partition + '\n')
     f.writelines('#SBATCH -o ../job/%j.out\n')
     f.writelines('#SBATCH -e ../job/%j.err\n')
     f.writelines('#SBATCH -N 1\n')  # nodes requested
@@ -251,7 +257,8 @@ def climdex(model, targetVar, methodName):
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
-    f.writelines('#SBATCH -p ' + HPC_partition + '\n')
+    if HPC_partition is not None:
+        f.writelines('#SBATCH -p ' + HPC_partition + '\n')
     f.writelines('#SBATCH -o ../job/%j.out\n')
     f.writelines('#SBATCH -e ../job/%j.err\n')
     f.writelines('#SBATCH -N 1\n')  # nodes requested
@@ -294,7 +301,8 @@ def biasCorrection(model, targetVar, methodName):
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
-    f.writelines('#SBATCH -p ' + HPC_partition + '\n')
+    if HPC_partition is not None:
+        f.writelines('#SBATCH -p ' + HPC_partition + '\n')
     f.writelines('#SBATCH -o ../job/%j.out\n')
     f.writelines('#SBATCH -e ../job/%j.err\n')
     f.writelines('#SBATCH -N 1\n')  # nodes requested

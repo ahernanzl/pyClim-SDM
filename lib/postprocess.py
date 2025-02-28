@@ -10,7 +10,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -20,6 +22,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -484,8 +487,8 @@ def plot_results():
         grids.subregions(targetVar)
 
     if experiment == 'EVALUATION':
-        if activate_plot_annualCycle == True:
-            evaluate_methods.annual_cycle()
+        # if activate_plot_annualCycle == True:
+        #     evaluate_methods.annual_cycle()
         evaluate_methods.daily_data()
         evaluate_methods.monthly_data()
         evaluate_methods.climdex()

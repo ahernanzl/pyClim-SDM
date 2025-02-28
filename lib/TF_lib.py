@@ -1,7 +1,5 @@
 import sys
 
-import keras.layers
-
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -11,7 +9,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -21,6 +21,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib

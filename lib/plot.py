@@ -9,7 +9,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -19,6 +21,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -495,8 +498,9 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
 
 ########################################################################################################################
 def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], path=None, filename=None, title=None,
-        plot_library='Basemap',
-        regType=None, regName=None, colorbar_out=False, pointSize=None, grid=None, plot_lat_lon=True, marker='s'):
+        # plot_library='Basemap',
+        plot_library='Cartopy',
+        regType=None, regName=None, colorbar_out=False, pointSize=1., grid=None, plot_lat_lon=True, marker='s'):
     """
     This function is mainly designed to plot hres data as scatter points, but some arguments can be used to plot lres
     data as colormesh.
@@ -895,16 +899,13 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                     pass
 
         if grid is None:
-            s = 25
-            if pointSize is not None:
-                s = pointSize
             if palette == 'target_region':
                 s = .05
             X, Y = list(map(lons, lats))
             if irregular_bins == True:
-                map.scatter(X, Y, c=data, s=s, norm=norm, cmap=cmap, marker=marker)
+                map.scatter(X, Y, c=data, s=pointSize, norm=norm, cmap=cmap, marker=marker)
             else:
-                map.scatter(X, Y, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax, marker=marker)
+                map.scatter(X, Y, c=data, s=pointSize, cmap=cmap, vmin=vmin, vmax=vmax, marker=marker)
         elif grid is not None:
             lons, lats = np.meshgrid(lons, lats)
             if irregular_bins == True:
@@ -913,48 +914,55 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                 map.pcolormesh(lons, lats, data, cmap=cmap, vmin=vmin, vmax=vmax, latlon=True)
 
 
-    # elif plot_library == 'Cartopy':
-    #     # fig = plt.figure(figsize=(8, 6), dpi=300)
-    #     import cartopy.crs as ccrs
-    #     projection = ccrs.PlateCarree()
-    #     resolution = '50m'
-    #     ax = plt.axes(projection=projection)
-    #     ax.coastlines(resolution=resolution)
-    #
-    #     # ax.add_feature(cfeature.BORDERS, resolution=resolution, edgecolor="k")
-    #     # country_borders = cfeature.NaturalEarthFeature(
-    #     #     category='cultural',
-    #     #     name='‘admin_0_boundary_lines_land',
-    #     #     scale='110m',
-    #     #     facecolor='none')
-    #     # ax.add_feature(country_borders, edgecolor='gray')
-    #     # ax.add_feature(Cartopy.feature.OCEAN, zorder=100, color='w')
-    #
-    #     if pointSize is not None:
-    #         s = pointSize
-    #     if palette == 'target_region':
-    #         s = .05
-    #
-    #     plt.xlim((lonmin, lonMax))
-    #     plt.ylim((latmin, latMax))
-    #     if irregular_bins == True:
-    #         plt.scatter(lons, lats, c=data, s=s, norm=norm, cmap=cmap, transform=projection)
-    #     else:
-    #         plt.scatter(lons, lats, c=data, s=s, cmap=cmap, vmin=vmin, vmax=vmax, transform=projection)
+    elif plot_library == 'Cartopy':
+        # fig = plt.figure(figsize=(8, 6), dpi=300)
+        projection = ccrs.PlateCarree()
+        resolution = '50m'
+        ax = plt.axes(projection=projection)
+        ax.coastlines(resolution=resolution)
+
+        plt.xlim((lonmin, lonMax))
+        plt.ylim((latmin, latMax))
+        if grid is None:
+            if palette == 'target_region':
+                s = .05
+            if irregular_bins == True:
+                pcm = plt.scatter(lons, lats, c=data, s=pointSize, norm=norm, cmap=cmap, transform=projection, marker=marker)
+            else:
+                pcm = plt.scatter(lons, lats, c=data, s=pointSize, cmap=cmap, vmin=vmin, vmax=vmax, transform=projection, marker=marker)
+        else:
+            X, Y = np.meshgrid(lons, lats)
+            if irregular_bins == True:
+                pcm = ax.pcolormesh(X, Y, data, norm=norm, cmap=cmap, shading="auto")
+            else:
+                pcm = ax.pcolormesh(X, Y, data, vmin=vmin, vmax=vmax, cmap=cmap, shading="auto")
 
     else:
         print('plot_library', plot_library, 'not implemented')
 
     # Plot map
     if colorbar_out == False:
-        # fraction, pad = 0.027, 0.04
-        if irregular_bins == True:
-            # cbar = plt.colorbar(extend=ext, ticks=bounds, fraction=fraction, pad=pad)
-            cbar = plt.colorbar(extend=ext, ticks=bounds)
-        else:
-            # cbar = plt.colorbar(extend=ext, fraction=fraction, pad=pad)
-            cbar = plt.colorbar(extend=ext)
-        cbar.set_label(label=units, rotation=0)
+
+        if plot_library == 'Basemap':
+            # fraction, pad = 0.027, 0.04
+            if irregular_bins == True:
+                # cbar = plt.colorbar(extend=ext, ticks=bounds, fraction=fraction, pad=pad)
+                cbar = plt.colorbar(extend=ext, ticks=bounds)
+            else:
+                # cbar = plt.colorbar(extend=ext, fraction=fraction, pad=pad)
+                cbar = plt.colorbar(extend=ext)
+            cbar.set_label(label=units, rotation=0)
+
+        elif plot_library == 'Cartopy':
+            # fraction, pad = 0.027, 0.04
+            if irregular_bins == True:
+                # cbar = plt.colorbar(extend=ext, ticks=bounds, fraction=fraction, pad=pad)
+                cbar = plt.colorbar(pcm, ax=ax, extend=ext, ticks=bounds)
+            else:
+                # cbar = plt.colorbar(extend=ext, fraction=fraction, pad=pad)
+                cbar = plt.colorbar(pcm, ax=ax, extend=ext)
+            cbar.set_label(label=units, rotation=0)
+
 
     # Load region polygon
     if regType == 'PROV':
@@ -994,6 +1002,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
         filecbar = path + '/' + filename + '_colorbar.png'
         fig = plt.figure()
         ax = fig.add_axes([0.05, 0.80, 0.9, .02])
+
 
         if irregular_bins == True:
             cb = mpl.colorbar.ColorbarBase(ax, orientation='horizontal', cmap=cmap, norm=norm, ticks=bounds, extend=ext)

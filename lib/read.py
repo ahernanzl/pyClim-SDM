@@ -9,7 +9,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -19,6 +21,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -734,14 +737,14 @@ def hres_metadata(targetVar, GCM_local=None, RCM_local=None, pathIn=None):
     npMaster = np.loadtxt(dataPath + targetVar + '_hres_metadata.txt', dtype='str')
     if npMaster.ndim == 1:
         try:
-            df = pd.DataFrame({'id': npMaster[0], 'lons': npMaster[1].astype(np.float), 'lats': npMaster[2].astype(np.float), 'h': npMaster[3].astype(np.float)}, index=[0])
+            df = pd.DataFrame({'id': npMaster[0], 'lons': npMaster[1].astype(float), 'lats': npMaster[2].astype(float), 'h': npMaster[3].astype(float)}, index=[0])
         except:
-            df = pd.DataFrame({'id': npMaster[0], 'lons': npMaster[1].astype(np.float), 'lats': npMaster[2].astype(np.float)}, index=[0])
+            df = pd.DataFrame({'id': npMaster[0], 'lons': npMaster[1].astype(float), 'lats': npMaster[2].astype(float)}, index=[0])
     else:
         try:
-            df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(np.float), 'lats': npMaster[:, 2].astype(np.float), 'h': npMaster[:, 3].astype(np.float)})
+            df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(float), 'lats': npMaster[:, 2].astype(float), 'h': npMaster[:, 3].astype(float)})
         except:
-            df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(np.float), 'lats': npMaster[:, 2].astype(np.float)})
+            df = pd.DataFrame({'id': npMaster[:, 0], 'lons': npMaster[:, 1].astype(float), 'lats': npMaster[:, 2].astype(float)})
     # df['id'] = df['id'].astype(int)
     # df.set_index("id", inplace=True)
 

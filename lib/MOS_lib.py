@@ -11,7 +11,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -21,6 +23,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -82,6 +85,7 @@ def quantile_mapping(obs, hist, sce, targetVar):
 
             # Add correction
             sce_corrected.T[ipoint][ivalid] = sce_data + corr
+
 
     return sce_corrected
 
@@ -175,7 +179,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
 ########################################################################################################################
 def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05, censor_tail=99.9,
-                           force_preserve_mean_change=True):
+                           force_preserve_mean_change=True, max_delta=5):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
     Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
@@ -196,6 +200,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
     * censor_tail: extreme values of the upper tail are truncated so deltas correspond to the selected percentile
     * force_preserve_mean_change: if True, data are forced to preserve the relative change in the mean value (only for
                 multiplicative variables)
+    * max_delta: maximum delta allowed for relative adjustement to avoid artifacts
 
     Adapted from https://github.com/pacificclimate/ClimDown
 
@@ -250,8 +255,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             sce_data = sce_data[ivalid]
             sce_times_ipoint = list(np.array(sce_times)[ivalid])
 
-            # For multiplicative correction
-            if bc_mode_dict[targetVar] == 'rel':
+            # For precipitation
+            if bc_mode_dict[targetVar] == 'rel' and targetVar == 'pr':
 
                 # Multiply hist, sce by a factor so artifacted high deltas for TF methods are avoided
                 aux = 1*hist_data; aux[aux<=th] = np.nan; m1 = np.nanmin(aux)
@@ -274,6 +279,9 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             # For multiplicative correction
             if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
+                delta[delta > max_delta] = 1
+                delta[np.isnan(delta)] = 1
+                delta[np.isinf(delta)] = 1
                 sceCorr_data = np.percentile(obs_data, p) * delta
 
                 # Set drizzle back to zero
@@ -305,6 +313,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
 
         # Calculate mean obs and mean hist
         mean_obs = np.nanmean(obs_data)
+        if bc_mode_dict[targetVar] == 'rel' and targetVar == 'pr':
+            hist_data *= factor_TF
         mean_hist = np.nanmean(hist_data)
 
         # Compute and apply the needed factor

@@ -8,7 +8,9 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -18,6 +20,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -240,7 +243,9 @@ def prepare_hres_data_ascii2npy(targetVar):
     for ICHUNK in range(CHUNK):
         print('ICHUNK', ICHUNK, '/', CHUNK)
         data = np.append(data, np.load(tmp + 'CHUNK' + str(ICHUNK) + '.npy'))
+        # data = np.append(data, (np.load(tmp + 'CHUNK' + str(ICHUNK) + '.npy') * 100).astype(int))
         os.system('rm ' + tmp + 'CHUNK' + str(ICHUNK) + '.npy')
+    # data /= 100
 
     data = data.reshape(-1, lon_line)
     data[data==fill_value_txt] = np.nan
