@@ -250,8 +250,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             sce_data = sce_data[ivalid]
             sce_times_ipoint = list(np.array(sce_times)[ivalid])
 
-            # For multiplicative correction
-            if bc_mode_dict[targetVar] == 'rel':
+            # For precipitation
+            if bc_mode_dict[targetVar] == 'rel' and targetVar == 'pr':
 
                 # Multiply hist, sce by a factor so artifacted high deltas for TF methods are avoided
                 aux = 1*hist_data; aux[aux<=th] = np.nan; m1 = np.nanmin(aux)
