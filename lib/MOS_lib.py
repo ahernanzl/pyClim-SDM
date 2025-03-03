@@ -175,7 +175,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
 ########################################################################################################################
 def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05, censor_tail=99.9,
-                           force_preserve_mean_change=True):
+                           force_preserve_mean_change=True, max_delta=5):
     """
     Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
     Additive or multiplicative correction for each targetVar, configurable at advanced_settings.py
@@ -184,7 +184,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             mean value over the quantile. Default: 99.9
     Multiplicative variables do not preserve the relative change in the mean value, specially if it is not calculated
             using the whole period but by years. Data can be forced to preserve just by removing the bias corrected
-            trend and adding the raw trend (in multiplicative terms and only for multiplicative variables), as in 
+            trend and adding the raw trend (in multiplicative terms and only for multiplicative variables), as in
             Pierce et al, 2015.
 
     Args:
@@ -196,6 +196,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
     * censor_tail: extreme values of the upper tail are truncated so deltas correspond to the selected percentile
     * force_preserve_mean_change: if True, data are forced to preserve the relative change in the mean value (only for
                 multiplicative variables)
+    * max_delta: maximum delta allowed for relative adjustement to avoid artifacts
 
     Adapted from https://github.com/pacificclimate/ClimDown
 
@@ -203,8 +204,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
     Do Methods Preserve Changes in Quantiles and Extremes?. J. Climate, 28, 6938–6959,
     https://doi.org/10.1175/JCLI-D-14-00754.1
 
-    Pierce, D. W., Cayan, D. R., Maurer, E. P., Abatzoglou, J. T., & Hegewisch, K. C. (2015). Improved Bias Correction 
-    Techniques for Hydrological Simulations of Climate Change, Journal of Hydrometeorology, 16(6), 2421-2442. 
+    Pierce, D. W., Cayan, D. R., Maurer, E. P., Abatzoglou, J. T., & Hegewisch, K. C. (2015). Improved Bias Correction
+    Techniques for Hydrological Simulations of Climate Change, Journal of Hydrometeorology, 16(6), 2421-2442.
     doi: https://doi.org/10.1175/JHM-D-14-0236.1
 
     Vrac, M., Noël, T., and Vautard, R. (2016), Bias correction of precipitation through Singularity Stochastic Removal:
@@ -274,6 +275,9 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
             # For multiplicative correction
             if bc_mode_dict[targetVar] == 'rel':
                 delta = sce_data / np.percentile(hist_data, p)
+                delta[delta > max_delta] = 1
+                delta[np.isnan(delta)] = 1
+                delta[np.isinf(delta)] = 1
                 sceCorr_data = np.percentile(obs_data, p) * delta
 
                 # Set drizzle back to zero
@@ -305,6 +309,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
 
         # Calculate mean obs and mean hist
         mean_obs = np.nanmean(obs_data)
+        if bc_mode_dict[targetVar] == 'rel' and targetVar == 'pr':
+            hist_data *= factor_TF
         mean_hist = np.nanmean(hist_data)
 
         # Compute and apply the needed factor
