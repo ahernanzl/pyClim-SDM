@@ -6,6 +6,13 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -487,8 +494,8 @@ def plot_results():
         grids.subregions(targetVar)
 
     if experiment == 'EVALUATION':
-        # if activate_plot_annualCycle == True:
-        #     evaluate_methods.annual_cycle()
+        if activate_plot_annualCycle == True:
+            evaluate_methods.annual_cycle()
         evaluate_methods.daily_data()
         evaluate_methods.monthly_data()
         evaluate_methods.climdex()

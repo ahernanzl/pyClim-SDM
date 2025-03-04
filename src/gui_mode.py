@@ -2966,10 +2966,10 @@ class selectionWindow():
 
     def __init__(self):
 
-        # Welcome message
-        run, self.showWelcomeMessage = welcomeMessage().get()
-        if run == False:
-            exit()
+        # # Welcome message
+        # run, self.showWelcomeMessage = welcomeMessage().get()
+        # if run == False:
+        #     exit()
 
         # Root menu
         root = tk.Tk()
@@ -3398,7 +3398,7 @@ def write_settings_file(showWelcomeMessage, experiment,
     f = open('../config/settings.py', "w")
 
     # Write new settings
-    f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
+    # f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
     f.write("experiment = '" + str(experiment) + "'\n")
     # f.write("hres_type = '" + str(hres_type) + "'\n")
     f.write("targetVars = " + str(targetVars) + "\n")

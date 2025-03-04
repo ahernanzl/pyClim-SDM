@@ -5,6 +5,13 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -144,6 +151,8 @@ def training(targetVar, methodName, family, mode, fields):
         n = 128
     if methodName[:3] == 'GLM':
         n = 128
+    if methodName == 'DeepESD':
+        n = 1
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
@@ -161,6 +170,8 @@ def training(targetVar, methodName, family, mode, fields):
         f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/TF_lib.py $1 $2 $3 $4 $5 $6\n')
     elif family == 'WG':
         f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/WG_lib.py $1 $2 $3 $4 $5 $6\n')
+    elif family == 'DL':
+        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/DeepESD_lib.py $1 $2 $3 $4 $5 $6\n')
     f.writelines('duration=$SECONDS\n')
     f.writelines('hours=$(($duration/3600))\n')
     f.writelines('duration=$(($duration%3600))\n')
@@ -209,6 +220,8 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
         n = 128
     if methodName[:3] == 'GLM':
         n = 128
+    if methodName == 'DeepESD':
+        n = 1
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')
@@ -222,7 +235,10 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
     f.writelines('#SBATCH --mem=' + str(mem) + '\n')
     # f.writelines('# SBATCH --exclusive\n')
     f.writelines('SECONDS=0\n')
-    f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/down_scene_$3.py $1 $2 $3 $4 $5 $6 $7 $8\n')
+    if methodName == 'DeepESD':
+        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/down_scene_$2.py $1 $2 $3 $4 $5 $6 $7 $8\n')
+    else:
+        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/down_scene_$3.py $1 $2 $3 $4 $5 $6 $7 $8\n')
     f.writelines('duration=$SECONDS\n')
     f.writelines('hours=$(($duration/3600))\n')
     f.writelines('duration=$(($duration%3600))\n')

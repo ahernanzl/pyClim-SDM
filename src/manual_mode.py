@@ -18,7 +18,6 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
-
 def main():
 
     #---------------------- INITIAL CHECKS ---------------------------------------------------------------------------------
@@ -31,7 +30,7 @@ def main():
     # precontrol.missing_data_check()
     # precontrol.predictors_correlation()
     # precontrol.GCMs_evaluation()
-# docker run --rm -it --gpus all nvidia/cuda:11.6.2-devel-ubuntu20.04 bash
+
     #-------------------- experiment = EVALUATION / PROJECTIONS ------------------------------------------------------
     # preprocess.preprocess()
     # preprocess.train_methods()

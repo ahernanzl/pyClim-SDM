@@ -7,6 +7,13 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -47,15 +54,6 @@ def downscale(targetVar, methodName, family, mode, fields, scene, model):
     It previously divides a scene in nproc chunks and processes the chunk number iproc in parallel.
     The result is saved as npy file (each chunk is one file).
     """
-
-    sys.path.append('../deep4downscaling/')
-    import deep.loss as deep_loss
-    import deep.train as deep_train
-    import deep.models as deep_models
-    import deep.pred as deep_pred
-    import deep.utils as deep_utils
-    import torch
-    from torch.utils.data import DataLoader, random_split
 
     device = ('cuda' if torch.cuda.is_available() else 'cpu')
 

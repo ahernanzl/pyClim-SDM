@@ -1,4 +1,4 @@
-showWelcomeMessage = True # For graphical mode
+# showWelcomeMessage = True # For graphical mode
 
 
 ########################################       EXPERIMENT      #########################################################

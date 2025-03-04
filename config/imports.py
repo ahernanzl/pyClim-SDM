@@ -75,9 +75,18 @@ from statsmodels.distributions.empirical_distribution import ECDF
 import xarray as xr
 from geopy.distance import distance as dist
 import cartopy.crs as ccrs
-
+import torch
+from torch.utils.data import DataLoader, random_split
 
 sys.path.append('../')
+
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
