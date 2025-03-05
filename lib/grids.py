@@ -312,7 +312,9 @@ def subregions(targetVar):
                     # subDir = (regType.upper() + '/' + regName.upper().replace(' ', '_') + '/').replace(',', '')
                     subDir = regType.upper() + '/' + regName.upper().replace(' ', '_').replace(',', '').replace('/', '_').replace('(', '').replace(')', '') + '/'
                     ipoints = [i for i in range(int(df_association.shape[0])) if str(df_association[regType][i]) == regName]
-                    df_reg = df_reg.append({'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}, ignore_index=True)
+                    new_row = pd.DataFrame(
+                        [{'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}])
+                    df_reg = pd.concat([df_reg, new_row], ignore_index=True)
 
             df_reg.to_csv(pathOutReg + 'regions.csv')
 
@@ -343,5 +345,7 @@ def subregions(targetVar):
             # subDir = (regType.upper() + '/' + regName.upper().replace(' ', '_') + '/').replace(',', '')
             subDir = regType.upper() + '/' + regName.upper().replace(' ', '_').replace(',', '').replace('/', '_').replace('(', '').replace(')', '') + '/'
             ipoints = [i for i in range(int(df_association.shape[0])) if str(df_association[regType][i]) == regName]
-            df_reg = df_reg.append({'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}, ignore_index=True)
+            new_row = pd.DataFrame([{'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}])
+            df_reg = pd.concat([df_reg, new_row], ignore_index=True)
+
         df_reg.to_csv(pathOutReg + 'regions.csv')
