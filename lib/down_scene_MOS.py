@@ -58,6 +58,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Read data and converts obs to uint16 or int16 to save memory
         obs = read.hres_data(targetVar, period='training')['data']
+        obs = (100 * obs).astype(predictands_codification[targetVar]['type'])
         i_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/i_4nn.npy')
         j_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/j_4nn.npy')
         w_4nn = np.load(pathAux+'ASSOCIATION/'+targetVar.upper()+'_'+interp_mode+'/w_4nn.npy')
@@ -149,7 +150,7 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             est[:, ipoint_local_index] = MOS_lib.scaled_distribution_mapping(Y_train, X_train, X_test, targetVar)[:, 0]
 
     # Undo converssion
-    est = est.astype('float64')
+    est = est.astype('float64') / 100.
 
     # Saves results
     np.save(pathOut + 'ichunk_' + str(ichunk) + '.npy', est)
