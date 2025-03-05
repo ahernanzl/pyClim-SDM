@@ -58,7 +58,7 @@ In order to use pyClim-SDM, **python3.10** is required. pyClim-SDM makes use of 
 requirements.txt. You can install them by following these steps: 
 - Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
 - Create a virtual environment:
-  - basic installation: **conda create -n env_pyClim-SDM python=3.10 absl-py=1.0.0 Bottleneck=1.4.2 numpy=1.23.5 pandas=1.4.1 geopandas=0.10.2 geopy=2.2.0 matplotlib=3.5.1 netCDF4=1.5.8 scikit-learn=1.0.2 scipy=1.15.2 seaborn=0.11.2 shapely=1.8.1.post1 statsmodels=0.13.2 tensorflow=2.12.0 xarray=2023.2.0 xgboost=1.6.1 cartopy=0.21.0 torchvision torchaudio pytorch -y -c conda-forge**
+  - basic installation: **conda create -n env_pyClim-SDM python=3.10 absl-py=2.1.0 Bottleneck=1.4.2 numpy=1.26.4 pandas=2.2.3 geopandas=1.0.1 geopy=2.4.1 matplotlib=3.10.1 netCDF4=1.6.0 scikit-learn=1.6.1 scipy=1.15.2 seaborn=0.13.2 shapely=2.0.6 statsmodels=0.14.4 tensorflow=2.17.0 xarray=2025.1.2 xgboost=2.1.4 cartopy=0.24.0 torchvision==0.14.1 torchaudio==2.5.1 pytorch==2.5.1 -y -c conda-forge**
   - HPC additional libraries: mpi4py 
   - GPU additional libraries: pytorch-cuda -c pytorch -c nvidia
 After installation:
