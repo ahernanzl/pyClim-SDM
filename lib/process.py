@@ -138,7 +138,7 @@ def models(method_dict, scene, model):
                         emptyFileErr = True
                         f = open(filename, 'r')
                         for line in f.readlines():
-                            if 'INFO' not in line:
+                            if ('INFO' not in line) and ('WARNING' not in line) and ('cuda' not in line):
                                 emptyFileErr = False
                                 break
                         # if filesize != 0:

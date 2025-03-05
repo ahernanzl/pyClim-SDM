@@ -1234,12 +1234,13 @@ class frameMethodsClass(tk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+        irow += 3; icol -= 1
 
         # Linear methods
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -1249,7 +1250,8 @@ class frameMethodsClass(tk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); irow += 1; icol-=2
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); icol+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
+        icol -= 2; irow += 1
 
         # Machine Learning
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -3342,7 +3344,9 @@ class selectionWindow():
                 # exit()
 
                 # Write settings file
-                write_settings_file(self.showWelcomeMessage, self.experiment,
+                write_settings_file(
+                                    # self.showWelcomeMessage,
+                                    self.experiment,
                                     # self.hres_type,
                                     self.targetVars, self.steps, self.methods,
                                     self.calibration_years, self.single_split_testing_years, self.split_mode,
@@ -3378,7 +3382,9 @@ class selectionWindow():
 
 
 ########################################################################################################################
-def write_settings_file(showWelcomeMessage, experiment,
+def write_settings_file(
+                                # showWelcomeMessage,
+                                experiment,
                                 # hres_type,
                                 targetVars, steps, methods,
                                 calibration_years, single_split_testing_years, split_mode,

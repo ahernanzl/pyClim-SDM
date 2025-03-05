@@ -31,14 +31,12 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - **QDM**: Quantile Delta Mapping in (Cannon *et al.*, 2015). Delta change over quantiles.
 - **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2017).
 ### Analogs / Weather Typing:
-- **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).     
--- **ANA-LOC**: Same as ANA-SYN but using synoptic+local analogy. See Petisco de Lara, (2008a), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).         
--- **ANA-VAR**: Same as ANA-SYN but using the spatial pattern of the target variable itself.     
+- **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).      
 ### Linear:
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
 - **MLR-ANA**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
 - **MLR-WT**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
-- **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential and **CUB** for cubic regression). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).   
+- **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).   
 ### Machine Learning:
 - **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).  
 - **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).  
@@ -53,14 +51,14 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 
 
 # Installation
-
+conda create -n prueba_matplotlib_2 python=3.10 matplotlib=3.5.1 -y -c conda-forge
 pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
 
 In order to use pyClim-SDM, **python3.10** is required. pyClim-SDM makes use of the python libaries listed at 
 requirements.txt. You can install them by following these steps: 
 - Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
 - Create a virtual environment:
-  - basic installation: **conda create -n env_pyClim-SDM python=3.10.3 absl-py=1.0.0 Bottleneck=1.4.2 numpy=1.23.5 pandas=1.4.1 geopandas=0.10.2 geopy=2.2.0 matplotlib=3.5.1 netCDF4=1.5.8 scikit-learn=1.0.2 scipy=1.15.2 seaborn=0.11.2 shapely=1.8.1.post1 statsmodels=0.13.2 tensorflow=2.12.0 xarray=2023.2.0 xgboost=1.6.1 cartopy=0.21.0 torchvision torchaudio pytorch -y -c conda-forge**
+  - basic installation: **conda create -n env_pyClim-SDM python=3.10 absl-py=1.0.0 Bottleneck=1.4.2 numpy=1.23.5 pandas=1.4.1 geopandas=0.10.2 geopy=2.2.0 matplotlib=3.5.1 netCDF4=1.5.8 scikit-learn=1.0.2 scipy=1.15.2 seaborn=0.11.2 shapely=1.8.1.post1 statsmodels=0.13.2 tensorflow=2.12.0 xarray=2023.2.0 xgboost=1.6.1 cartopy=0.21.0 torchvision torchaudio pytorch -y -c conda-forge**
   - HPC additional libraries: mpi4py 
   - GPU additional libraries: pytorch-cuda -c pytorch -c nvidia
 After installation:
