@@ -208,6 +208,8 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
         n = 80
     elif family == 'MOS':
         n = 80
+    elif family == 'RAW':
+        n = 1
     if methodName == 'XGB':
         n = 80
     elif methodName == 'RF' and targetVar != 'pr':
