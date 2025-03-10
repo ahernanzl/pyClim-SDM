@@ -221,7 +221,8 @@ def prepare_hres_data_ascii2npy(targetVar):
 
         # Checks all lines has the same lengh
         if len(line) != lon_line:
-            exit(line)
+            print('npoints data:', len(line), 'npoints metadata:', lon_line)
+            exit('hres_data and hres_metadata are inconsistent. Different number of points. Check your input_data/hres/ files')
 
         year = int(str(int(float(line[0])))[:4])
         if year in range(minYear, maxYear+1):
