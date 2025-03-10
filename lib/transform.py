@@ -1,4 +1,7 @@
 import sys
+
+import numpy as np
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -47,6 +50,8 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
     """
     Calculates mean and standard deviation for reanalysis and models and all predictors, using the reference period.
     A transformation using PCAs is used if selected by the user.
+    For spred (predictors over the synoptic domain, used for DeepESD), the standardization is made for the whole
+    domain, not pointwise, by using the mean and std value for the whole spatial domain
     """
 
     if (fields_and_grid=='pred' and predsType_targetVars_dict[targetVar]=='pca') or fields_and_grid == 'saf':
@@ -89,8 +94,22 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
         ref_data, filled = aux[0], aux[1]
 
     # Calculates mean and standard deviation and saves them to files.
-    mean = np.nanmean(ref_data, axis=0)
-    std = np.nanstd(ref_data, axis=0)
+    if fields_and_grid == 'spred':
+        total_mean = np.nanmean(ref_data, axis=(0, 2, 3))
+        total_std = np.nanstd(ref_data, axis=(0, 2, 3))
+        mean = total_mean[:, np.newaxis, np.newaxis]
+        mean = np.repeat(mean, saf_nlats, axis=1)
+        mean = np.repeat(mean, saf_nlons, axis=2)
+        std = total_std[:, np.newaxis, np.newaxis]
+        std = np.repeat(std, saf_nlats, axis=1)
+        std = np.repeat(std, saf_nlons, axis=2)
+        for ipred in range(ref_data.shape[1]):
+            mean[ipred] = total_mean[ipred]
+            std[ipred] = total_std[ipred]
+    else:
+        mean = np.nanmean(ref_data, axis=0)
+        std = np.nanstd(ref_data, axis=0)
+
     np.save(pathOut+'reanalysis_mean', mean)
     np.save(pathOut+'reanalysis_std', std)
 
@@ -138,7 +157,9 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
 
 ########################################################################################################################
 def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
-
+    """For spred (predictors over the synoptic domain, used for DeepESD), the standardization is made for the whole
+    domain, not pointwise, by using the mean and std value for the whole spatial domain
+    """
     print('get_transformation_parameters_oneModel', targetVar, fields_and_grid, model)
 
     if fields_and_grid == 'pred':
@@ -166,8 +187,22 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
         data, filled = aux[0], aux[1]
 
     # Calculates mean and standard deviation and saves them to files
-    mean = np.nanmean(data, axis=0)
-    std = np.nanstd(data, axis=0)
+    if fields_and_grid == 'spred':
+        total_mean = np.nanmean(data, axis=(0, 2, 3))
+        total_std = np.nanstd(data, axis=(0, 2, 3))
+        mean = total_mean[:, np.newaxis, np.newaxis]
+        mean = np.repeat(mean, saf_nlats, axis=1)
+        mean = np.repeat(mean, saf_nlons, axis=2)
+        std = total_std[:, np.newaxis, np.newaxis]
+        std = np.repeat(std, saf_nlats, axis=1)
+        std = np.repeat(std, saf_nlons, axis=2)
+        for ipred in range(data.shape[1]):
+            mean[ipred] = total_mean[ipred]
+            std[ipred] = total_std[ipred]
+    else:
+        mean = np.nanmean(data, axis=0)
+        std = np.nanstd(data, axis=0)
+
 
     return {'mean': mean, 'std': std}
 
