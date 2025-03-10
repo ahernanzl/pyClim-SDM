@@ -48,6 +48,7 @@ import absl.logging
 absl.logging.set_verbosity(absl.logging.ERROR)
 import tensorflow as tf
 from tensorflow import keras
+import keras.layers
 from tensorflow.keras import layers, models
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import load_model
@@ -69,17 +70,30 @@ import random
 import subprocess
 import platform
 import geopandas as gpd
-from geopy.distance import distance as dist
 from shapely.geometry import Point, Polygon
 from statsmodels.distributions.empirical_distribution import ECDF
 import xarray as xr
+from geopy.distance import distance as dist
+import cartopy.crs as ccrs
+import torch
+from torch.utils.data import DataLoader, random_split
 
+sys.path.append('../')
+
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
 
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -89,6 +103,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib

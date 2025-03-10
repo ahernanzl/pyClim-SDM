@@ -4,11 +4,20 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -18,6 +27,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -211,7 +221,8 @@ def prepare_hres_data_ascii2npy(targetVar):
 
         # Checks all lines has the same lengh
         if len(line) != lon_line:
-            exit(line)
+            print('npoints data:', len(line), 'npoints metadata:', lon_line)
+            exit('hres_data and hres_metadata are inconsistent. Different number of points. Check your input_data/hres/ files')
 
         year = int(str(int(float(line[0])))[:4])
         if year in range(minYear, maxYear+1):
@@ -240,7 +251,9 @@ def prepare_hres_data_ascii2npy(targetVar):
     for ICHUNK in range(CHUNK):
         print('ICHUNK', ICHUNK, '/', CHUNK)
         data = np.append(data, np.load(tmp + 'CHUNK' + str(ICHUNK) + '.npy'))
+        # data = np.append(data, (np.load(tmp + 'CHUNK' + str(ICHUNK) + '.npy') * 100).astype(int))
         os.system('rm ' + tmp + 'CHUNK' + str(ICHUNK) + '.npy')
+    # data /= 100
 
     data = data.reshape(-1, lon_line)
     data[data==fill_value_txt] = np.nan

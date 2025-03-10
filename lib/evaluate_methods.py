@@ -4,11 +4,20 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -18,6 +27,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -163,68 +173,68 @@ def daily_data(by_season=True):
         # val_lib.daily_boxplots('wasserstein-distance', by_season)
 
 
-    if activate_plot_spatialCorrelation == True:
-        # Spatial correlation of the daily patterns, boxplots of all methods together
-        val_lib.daily_spatial_correlation_boxplots()
-
-
-    if activate_plot_QQ_continuous_dichotomous == True:
-        # Go through all methods
-        for method_dict in methods:
-            targetVar, methodName = method_dict['var'], method_dict['methodName']
-
-            # Read data
-            d = postpro_lib.get_data_eval(targetVar, methodName)
-            ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
-            del d
-
-            # Read regions csv
-            df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
-
-            # Go through all regions
-            for index, row in df_reg.iterrows():
-                if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
-                    regType, regName, subDir = row['regType'], row['regName'], row['subDir']
-                    iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
-                    npoints = len(iaux)
-                    print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
-
-                    # Create pathOut
-                    if plotAllRegions == False:
-                        pathOut = pathFigures
-                    else:
-                        pathOut = pathFigures + 'daily_data/' + targetVar.upper() + '/' + subDir
-                        if not os.path.exists(pathOut):
-                            os.makedirs(pathOut)
-
-                    # Select region
-                    if regType == typeCompleteRegion:
-                        obs_reg = obs
-                        est_reg = est
-                    else:
-                        obs_reg = obs[:, iaux]
-                        est_reg = est[:, iaux]
-
-                    # Select season
-                    for season in season_dict:
-                        if season == annualName or by_season == True:
-                            print('season', season)
-                            if season == season_dict[annualName]:
-                                obs_reg_season = obs_reg
-                                est_reg_season = est_reg
-                                times = times_scene
-                            else:
-                                obs_reg_season = postpro_lib.get_season(obs_reg, times_scene, season)['data']
-                                aux = postpro_lib.get_season(est_reg, times_scene, season)
-                                est_reg_season = aux['data']
-                                times = aux['times']
-
-                            # Validation of daily data
-                            val_lib.QQplot(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
-                            if regType == typeCompleteRegion:
-                                val_lib.continuous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
-                                if targetVar == 'pr':
-                                    val_lib.dichotomous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
+    # if activate_plot_spatialCorrelation == True:
+    #     # Spatial correlation of the daily patterns, boxplots of all methods together
+    #     val_lib.daily_spatial_correlation_boxplots()
+    #
+    #
+    # if activate_plot_QQ_continuous_dichotomous == True:
+    #     # Go through all methods
+    #     for method_dict in methods:
+    #         targetVar, methodName = method_dict['var'], method_dict['methodName']
+    #
+    #         # Read data
+    #         d = postpro_lib.get_data_eval(targetVar, methodName)
+    #         ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+    #         del d
+    #
+    #         # Read regions csv
+    #         df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
+    #
+    #         # Go through all regions
+    #         for index, row in df_reg.iterrows():
+    #             if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+    #                 regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+    #                 iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+    #                 npoints = len(iaux)
+    #                 print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+    #
+    #                 # Create pathOut
+    #                 if plotAllRegions == False:
+    #                     pathOut = pathFigures
+    #                 else:
+    #                     pathOut = pathFigures + 'daily_data/' + targetVar.upper() + '/' + subDir
+    #                     if not os.path.exists(pathOut):
+    #                         os.makedirs(pathOut)
+    #
+    #                 # Select region
+    #                 if regType == typeCompleteRegion:
+    #                     obs_reg = obs
+    #                     est_reg = est
+    #                 else:
+    #                     obs_reg = obs[:, iaux]
+    #                     est_reg = est[:, iaux]
+    #
+    #                 # Select season
+    #                 for season in season_dict:
+    #                     if season == annualName or by_season == True:
+    #                         print('season', season)
+    #                         if season == season_dict[annualName]:
+    #                             obs_reg_season = obs_reg
+    #                             est_reg_season = est_reg
+    #                             times = times_scene
+    #                         else:
+    #                             obs_reg_season = postpro_lib.get_season(obs_reg, times_scene, season)['data']
+    #                             aux = postpro_lib.get_season(est_reg, times_scene, season)
+    #                             est_reg_season = aux['data']
+    #                             times = aux['times']
+    #
+    #                         # Validation of daily data
+    #                         val_lib.QQplot(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
+    #                         if regType == typeCompleteRegion:
+    #                             val_lib.continuous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
+    #                             if targetVar == 'pr':
+    #                                 val_lib.dichotomous(targetVar, methodName, obs_reg_season, est_reg_season, pathOut, season)
 
 
 ########################################################################################################################

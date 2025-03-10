@@ -4,11 +4,20 @@ from imports import *
 from settings import *
 from advanced_settings import *
 
+sys.path.append('../deep4downscaling/')
+import deep.loss as deep_loss
+import deep.train as deep_train
+import deep.models as deep_models
+import deep.pred as deep_pred
+import deep.utils as deep_utils
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
+import DeepESD_lib
 import down_scene_ANA
+import down_scene_DeepESD
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -18,6 +27,7 @@ import down_point
 import evaluate_methods
 import grids
 import launch_jobs
+import launch_jobs_GPU
 import MOS_lib
 import plot
 import postpro_lib
@@ -302,7 +312,9 @@ def subregions(targetVar):
                     # subDir = (regType.upper() + '/' + regName.upper().replace(' ', '_') + '/').replace(',', '')
                     subDir = regType.upper() + '/' + regName.upper().replace(' ', '_').replace(',', '').replace('/', '_').replace('(', '').replace(')', '') + '/'
                     ipoints = [i for i in range(int(df_association.shape[0])) if str(df_association[regType][i]) == regName]
-                    df_reg = df_reg.append({'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}, ignore_index=True)
+                    new_row = pd.DataFrame(
+                        [{'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}])
+                    df_reg = pd.concat([df_reg, new_row], ignore_index=True)
 
             df_reg.to_csv(pathOutReg + 'regions.csv')
 
@@ -333,5 +345,7 @@ def subregions(targetVar):
             # subDir = (regType.upper() + '/' + regName.upper().replace(' ', '_') + '/').replace(',', '')
             subDir = regType.upper() + '/' + regName.upper().replace(' ', '_').replace(',', '').replace('/', '_').replace('(', '').replace(')', '') + '/'
             ipoints = [i for i in range(int(df_association.shape[0])) if str(df_association[regType][i]) == regName]
-            df_reg = df_reg.append({'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}, ignore_index=True)
+            new_row = pd.DataFrame([{'regType': regType, 'regName': regName, 'subDir': subDir, 'ipoints': ipoints}])
+            df_reg = pd.concat([df_reg, new_row], ignore_index=True)
+
         df_reg.to_csv(pathOutReg + 'regions.csv')
