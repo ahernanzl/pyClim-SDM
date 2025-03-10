@@ -16,10 +16,12 @@ if os.path.isfile('../private/private_settings.py'):
     from private_settings import *
 else:
     running_at_HPC, HPC_partition = False, 'enterPartitionName'
+    running_at_GPU = False
+
 if running_at_HPC == True:
     from mpi4py import MPI
-if running_at_HPC == False:
-    from mpl_toolkits.basemap import Basemap
+
+
 
 # ########################################  MULTIPROCESSING   ##########################################################
 nCPUs_multiprocessing = 1
@@ -288,7 +290,7 @@ recalibrating_when_missing_preds = True
 # When using the whole grid, they have more information as inputs, but that consumes more memory
 # Furthermore, when using the whole grid, a missing value affects all points, so more problems related to missing data
 # will arise.
-convolutional_methods = ['CNN', ]
+convolutional_methods = ['CNN', 'DeepESD']
 
 # The following Transfer Function methods will be replaced by a MLR where predictos lie out of the training range
 # This is done for all targetVars except for precipitation
@@ -569,10 +571,11 @@ families_modes_and_fields = {
     'GLM-CUB': ['TF', 'PP', 'pred'],
     'SVM': ['TF', 'PP', 'pred'],
     'LS-SVM': ['TF', 'PP', 'pred'],
-    'RF': ['TF', 'PP', 'pred+var'],
-    'XGB': ['TF', 'PP', 'pred+var'],
+    'RF': ['TF', 'PP', 'pred'],
+    'XGB': ['TF', 'PP', 'pred'],
     'ANN': ['TF', 'PP', 'pred'],
     'CNN': ['TF', 'PP', 'spred'],
+    'DeepESD': ['DL', 'PP', 'spred'],
     'WG-PDF': ['WG', 'PP', 'var'],
     'WG-NMM': ['WG', 'PP', 'var'],
 }
@@ -711,24 +714,24 @@ for targetVar in targetVars:
     aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt', dtype='str')
     if aux_hres_metadata.ndim == 1:
         hres_npoints.update({targetVar: 1})
-        hres_lats.update({targetVar: aux_hres_metadata[2].astype(np.float)})
-        hres_lons.update({targetVar: aux_hres_metadata[1].astype(np.float)})
+        hres_lats.update({targetVar: aux_hres_metadata[2].astype(float)})
+        hres_lons.update({targetVar: aux_hres_metadata[1].astype(float)})
     else:
         hres_npoints.update({targetVar: aux_hres_metadata.shape[0]})
-        hres_lats.update({targetVar: aux_hres_metadata[:, 2].astype(np.float)})
-        hres_lons.update({targetVar: aux_hres_metadata[:, 1].astype(np.float)})
+        hres_lats.update({targetVar: aux_hres_metadata[:, 2].astype(float)})
+        hres_lons.update({targetVar: aux_hres_metadata[:, 1].astype(float)})
 
 hres_lats_all, hres_lons_all = [], []
 for targetVar in all_possible_targetVars:
     try:
         aux_hres_metadata = np.loadtxt(pathHres + targetVar + '_hres_metadata.txt', dtype='str')
         if aux_hres_metadata.ndim == 1:
-            hres_lats_all.append(aux_hres_metadata[2].astype(np.float))
-            hres_lons_all.append(aux_hres_metadata[1].astype(np.float))
+            hres_lats_all.append(aux_hres_metadata[2].astype(float))
+            hres_lons_all.append(aux_hres_metadata[1].astype(float))
         else:
             for i in range(len(aux_hres_metadata[:, 2])):
-                hres_lats_all.append(aux_hres_metadata[i, 2].astype(np.float))
-                hres_lons_all.append(aux_hres_metadata[i, 1].astype(np.float))
+                hres_lats_all.append(aux_hres_metadata[i, 2].astype(float))
+                hres_lons_all.append(aux_hres_metadata[i, 1].astype(float))
     except:
         pass
 hres_lats_all = np.asarray(hres_lats_all)
@@ -737,6 +740,7 @@ hres_lons_all = np.asarray(hres_lons_all)
 # Modify saf_lat_up, saf_lat_down, saf_lon_left and saf_lon_right forcing to exist in the netCDF files
 for file in os.listdir('../input_data/reanalysis/'):
     if file.endswith(".nc"):
+        nc = Dataset('../input_data/reanalysis/' + file)
         try:
             nc = Dataset('../input_data/reanalysis/'+file)
             break
@@ -1159,6 +1163,7 @@ methods_colors = {
     'ANN-sklearn': 'magenta',
     'ANN': 'magenta',
     'CNN': 'magenta',
+    'DeepESD': 'magenta',
     'WG-PDF': 'g',
     'WG-NMM': 'g',
 }
@@ -1192,6 +1197,7 @@ methods_linestyles = {
     'ANN-sklearn': '-',
     'ANN': '--',
     'CNN': ':',
+    'DeepESD': '-.',
     'WG-PDF': '-',
     'WG-NMM': '--',
 }

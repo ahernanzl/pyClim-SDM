@@ -1,4 +1,4 @@
-showWelcomeMessage = True # For graphical mode
+# showWelcomeMessage = True # For graphical mode
 
 
 ########################################       EXPERIMENT      #########################################################
@@ -6,6 +6,9 @@ showWelcomeMessage = True # For graphical mode
 # experiment = 'PRECONTROL'
 experiment = 'EVALUATION'
 # experiment = 'PROJECTIONS'
+
+# hres_type = 'Stations'
+# hres_type = 'Grid'
 
 ####################################################################################################################
 #                                        targetVars                                                                   #
@@ -59,6 +62,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         'WG-PDF',
     ],
     'tasmin': [
@@ -86,6 +90,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         'WG-PDF',
     ],
     'tas': [
@@ -113,6 +118,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         'WG-PDF',
     ],
     'pr': [
@@ -140,6 +146,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         # 'WG-PDF',
         # 'WG-NMM',
     ],

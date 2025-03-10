@@ -372,8 +372,25 @@ class tabSteps(tk.Frame):
             irow -= nrows
 
 
+        # irow += (nrows + 1)
+        # icol -= 1
+        #
+        # frameHresType = Frame(tabSteps)
+        # frameHresType.grid(sticky="W", column=icol, row=irow, padx=10, pady=50)
+        # Label(frameHresType, text="Select your high resolution data type:").grid(sticky="W", column=icol, row=irow, pady=10, columnspan=2); irow+=1
+        #
+        # self.hres_type = tk.StringVar()
+        # self.hres_type.set(hres_type)
+        # self.radio_stations = Radiobutton(frameHresType, text='Stations', variable=self.hres_type, value="Stations", takefocus=False)
+        # self.radio_stations.grid(sticky="W", column=icol, row=irow, padx=1, columnspan=1); icol += 1
+        # self.radio_grid = Radiobutton(frameHresType, text='Grid', variable=self.hres_type, value="Grid", takefocus=False)
+        # self.radio_grid.grid(sticky="W", column=icol, row=irow, padx=1, columnspan=1)
+        # irow += 1
+
     def get(self):
-        return self.experiment, self.chk_dict, self.all_steps
+        return (self.experiment,
+                # self.hres_type,
+                self.chk_dict, self.all_steps)
 
 
 
@@ -1147,6 +1164,8 @@ class frameMethodsClass(tk.Frame):
             disabled_methods = ['MLR', 'MLR-ANA', 'MLR-WT']
         else:
             disabled_methods = ['GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
+            if targetVar not in ['tasmax', 'tasmin', 'tas', 'pr']:
+                disabled_methods.append('DeepESD')
             gaussian_variables = ['tasmax', 'tasmin', 'tas', 'uas', 'vas', 'psl', 'ps', ]
             if (targetVar == 'myTargetVar' and isGaussian != True):
                 disabled_methods.append('PSDM')
@@ -1215,12 +1234,13 @@ class frameMethodsClass(tk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
+        irow += 3; icol -= 1
 
         # Linear methods
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -1230,7 +1250,8 @@ class frameMethodsClass(tk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); irow += 1; icol-=2
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); icol+=1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
+        icol -= 2; irow += 1
 
         # Machine Learning
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -1240,7 +1261,8 @@ class frameMethodsClass(tk.Frame):
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'XGB', 'TF', 'PP', 'pred', 'eXtreme Gradient Boost', icol, irow); icol += 1; irow -= 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
 
         # Weather Generators
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
@@ -2946,10 +2968,10 @@ class selectionWindow():
 
     def __init__(self):
 
-        # Welcome message
-        run, self.showWelcomeMessage = welcomeMessage().get()
-        if run == False:
-            exit()
+        # # Welcome message
+        # run, self.showWelcomeMessage = welcomeMessage().get()
+        # if run == False:
+        #     exit()
 
         # Root menu
         root = tk.Tk()
@@ -2967,7 +2989,9 @@ class selectionWindow():
 
 
         # Tab: run
-        self.experiment_chk, self.steps_dict, self.all_steps = tabSteps(notebook, root).get()
+        (self.experiment_chk,
+         # self.hres_type_chk,
+         self.steps_dict, self.all_steps) = tabSteps(notebook, root).get()
 
         # Tab: models
         self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
@@ -3052,6 +3076,9 @@ class selectionWindow():
             for step in self.all_steps[self.experiment]:
                 if self.steps_dict[self.experiment][step].get() == True:
                     self.steps.append(step)
+
+            # # Get hres type
+            # self.hres_type = self.hres_type_chk.get()
 
             # TargetVars
             self.targetVars = []
@@ -3317,7 +3344,11 @@ class selectionWindow():
                 # exit()
 
                 # Write settings file
-                write_settings_file(self.showWelcomeMessage, self.experiment, self.targetVars, self.steps, self.methods,
+                write_settings_file(
+                                    # self.showWelcomeMessage,
+                                    self.experiment,
+                                    # self.hres_type,
+                                    self.targetVars, self.steps, self.methods,
                                     self.calibration_years, self.single_split_testing_years, self.split_mode,
                                     self.reference_years, self.reanalysisName,
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
@@ -3351,7 +3382,11 @@ class selectionWindow():
 
 
 ########################################################################################################################
-def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, methods,
+def write_settings_file(
+                                # showWelcomeMessage,
+                                experiment,
+                                # hres_type,
+                                targetVars, steps, methods,
                                 calibration_years, single_split_testing_years, split_mode,
                                 reference_years, reanalysisName,
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
@@ -3369,8 +3404,9 @@ def write_settings_file(showWelcomeMessage, experiment, targetVars, steps, metho
     f = open('../config/settings.py', "w")
 
     # Write new settings
-    f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
+    # f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
     f.write("experiment = '" + str(experiment) + "'\n")
+    # f.write("hres_type = '" + str(hres_type) + "'\n")
     f.write("targetVars = " + str(targetVars) + "\n")
     f.write("methods = " + str(methods) + "\n")
     f.write("calibration_years = (" + str(calibration_years[0]) + ", " + str(calibration_years[1]) + ")\n")
