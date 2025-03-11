@@ -54,7 +54,7 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
     domain, not pointwise, by using the mean and std value for the whole spatial domain
     """
 
-    if (fields_and_grid=='pred' and predsType_targetVars_dict[targetVar]=='pca') or fields_and_grid == 'saf':
+    if fields_and_grid in ('spred-pca', 'saf'):
         perform_pca = True
     else:
         perform_pca = False
@@ -66,7 +66,7 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
         field, grid = 'pred', 'pred'
     elif fields_and_grid == 'saf':
         field, grid = 'saf', 'saf'
-    elif fields_and_grid == 'spred':
+    elif fields_and_grid in ('spred', 'spred-pca',):
         field, grid = 'pred', 'saf'
     else:
         print('wrong fields_and_grid')
@@ -93,8 +93,12 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
         aux = aux_lib.fillNans(ref_data)
         ref_data, filled = aux[0], aux[1]
 
-    # Calculates mean and standard deviation and saves them to files.
-    if fields_and_grid == 'spred':
+    # Calculates mean and standard deviation and saves them to files. For local predictors standardization is made
+    # pointwise. Otherwise the total mean and std are used
+    if fields_and_grid == 'pred':
+        mean = np.nanmean(ref_data, axis=0)
+        std = np.nanstd(ref_data, axis=0)
+    else:
         total_mean = np.nanmean(ref_data, axis=(0, 2, 3))
         total_std = np.nanstd(ref_data, axis=(0, 2, 3))
         mean = total_mean[:, np.newaxis, np.newaxis]
@@ -106,9 +110,6 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
         for ipred in range(ref_data.shape[1]):
             mean[ipred] = total_mean[ipred]
             std[ipred] = total_std[ipred]
-    else:
-        mean = np.nanmean(ref_data, axis=0)
-        std = np.nanstd(ref_data, axis=0)
 
     np.save(pathOut+'reanalysis_mean', mean)
     np.save(pathOut+'reanalysis_std', std)
@@ -166,7 +167,7 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
         field, grid = 'pred', 'pred'
     elif fields_and_grid == 'saf':
         field, grid = 'saf', 'saf'
-    elif fields_and_grid == 'spred':
+    elif fields_and_grid in ('spred', 'spred-pca',):
         field, grid = 'pred', 'saf'
     else:
         print('wrong fields_and_grid')
@@ -186,8 +187,12 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
         aux = aux_lib.fillNans(data)
         data, filled = aux[0], aux[1]
 
-    # Calculates mean and standard deviation and saves them to files
-    if fields_and_grid == 'spred':
+    # Calculates mean and standard deviation and saves them to files. For local predictors standardization is made
+    #  pointwise. Otherwise the total mean and std are used
+    if fields_and_grid == 'pred':
+        mean = np.nanmean(data, axis=0)
+        std = np.nanstd(data, axis=0)
+    else:
         total_mean = np.nanmean(data, axis=(0, 2, 3))
         total_std = np.nanstd(data, axis=(0, 2, 3))
         mean = total_mean[:, np.newaxis, np.newaxis]
@@ -199,9 +204,6 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
         for ipred in range(data.shape[1]):
             mean[ipred] = total_mean[ipred]
             std[ipred] = total_std[ipred]
-    else:
-        mean = np.nanmean(data, axis=0)
-        std = np.nanstd(data, axis=0)
 
 
     return {'mean': mean, 'std': std}
@@ -222,7 +224,7 @@ def transform(targetVar, data, model, fields_and_grid):
         aux = aux_lib.fillNans(data)
         data, filled = aux[0], aux[1]
 
-    if (fields_and_grid=='pred' and predsType_targetVars_dict[targetVar]=='pca') or fields_and_grid == 'saf':
+    if fields_and_grid in ('spred-pca', 'saf'):
         perform_pca = True
     else:
         perform_pca = False

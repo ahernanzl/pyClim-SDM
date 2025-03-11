@@ -74,6 +74,7 @@ def common():
             'saf',
             'pred',
             'spred',
+            'spred-pca',
         ):
         for targetVar in targetVars:
             print(fields_and_grid, targetVar, 'get_transformation_parameters_reanalysis')
@@ -121,6 +122,7 @@ def common_fold_dependent():
     for fields_and_grid in (
             'pred',
             'spred',
+            'spred-pca',
             'saf',
         ):
         for targetVar in targetVars:
