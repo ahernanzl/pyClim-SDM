@@ -78,7 +78,10 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
 
         # Read X_train
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
+            if predsType_targetVars_dict[targetVar]=='pca':
+                pred_calib = np.load(pathAux+'TRANSFORMATION/SPRED-PCA/'+targetVar+'_training.npy')
+            else:
+                pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'spred' in fields:
@@ -101,7 +104,10 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
         if scene == 'TESTING':
             scene_dates = testing_dates
             if 'pred' in fields:
-                pred_scene = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_testing.npy')
+                if predsType_targetVars_dict[targetVar]=='pca':
+                    pred_scene = np.load(pathAux+'TRANSFORMATION/SPRED-PCA/'+targetVar+'_testing.npy')
+                else:
+                    pred_scene = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_testing.npy')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'spred' in fields:
@@ -135,8 +141,12 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
-                pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
+                if predsType_targetVars_dict[targetVar]=='pca':
+                    pred_scene = read.lres_data(targetVar, field='pred', grid='saf', model=model, scene=scene)['data'][idates]
+                    pred_scene = transform.transform(targetVar, pred_scene, model, 'spred-pca')
+                else:
+                    pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
+                    pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'spred' in fields:

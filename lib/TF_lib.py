@@ -62,7 +62,10 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
 
         # Load data (X_train)
         if 'pred' in fields:
-            pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
+            if predsType_targetVars_dict[targetVar]=='pca':
+                pred_calib = np.load(pathAux+'TRANSFORMATION/SPRED-PCA/'+targetVar+'_training.npy')
+            else:
+                pred_calib = np.load(pathAux+'TRANSFORMATION/PRED/'+targetVar+'_training.npy')
             pred_calib = pred_calib.astype('float32')
             X_train = pred_calib
         if 'spred' in fields:
