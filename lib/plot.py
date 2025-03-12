@@ -86,7 +86,7 @@ def feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
         importances = estimator.feature_importances_
         std = np.std(estimator.feature_importances_, axis=0)
     feature_names = [x for x in preds_dict[targetVar]]
-    feature_names.append(targetVar)
+    # feature_names.append(targetVar)
     forest_importances = pd.Series(importances, index=feature_names)
 
     fig, ax = plt.subplots()
@@ -248,7 +248,6 @@ def hyperparameters_epochs_nEstimators_featureImportances(estimator, targetVar, 
 
     if methodName in ('RF', 'XGB'):
         feature_importances(estimator, targetVar, methodName, ipoint, estimatorType)
-
     if methodName in ('SVM', 'LS-SVM', 'RF'):
         hyperparameters(estimator, targetVar, methodName, ipoint, estimatorType)
     elif methodName in ('ANN', 'CNN', ):
