@@ -82,9 +82,8 @@ def train(targetVar, methodName, family, mode, fields):
     X_train = X_train[valid]
     y_train = y_train[valid]
 
-    if targetVar in ('tasmax', 'tasmin', 'tas'):
-        loss_function = deep_loss.MseLoss(ignore_nans=True)
-    elif targetVar == 'pr':
+
+    if targetVar == 'pr':
         asym_path = pathAux + 'DeepESD/ASYM/'
         os.makedirs(asym_path, exist_ok=True)
         loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path)
@@ -98,7 +97,7 @@ def train(targetVar, methodName, family, mode, fields):
             loss_function.compute_parameters(data=y_train_ds, var_target=targetVar)
         loss_function.prepare_parameters(device=device)
     else:
-        exit('Variable ' + targetVar + ' not implemented for DeepESD')
+        loss_function = deep_loss.MseLoss(ignore_nans=True)
 
     # Create Dataset
     train_dataset = deep_utils.StandardDataset(x=X_train, y=y_train)

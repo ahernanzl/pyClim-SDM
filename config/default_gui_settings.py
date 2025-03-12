@@ -175,6 +175,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         'WG-PDF',
     ],
     'vas': [
@@ -202,6 +203,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         'WG-PDF',
     ],
     'sfcWind': [
@@ -228,6 +230,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'hurs': [
         'RAW',
@@ -253,6 +256,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'huss': [
         'RAW',
@@ -278,6 +282,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'clt': [
         'RAW',
@@ -303,6 +308,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'rsds': [
         'RAW',
@@ -328,6 +334,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'rlds': [
         'RAW',
@@ -353,6 +360,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'evspsbl': [
         'RAW',
@@ -378,6 +386,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'evspsblpot': [
         'RAW',
@@ -403,6 +412,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'psl': [
         'RAW',
@@ -428,6 +438,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'ps': [
         'RAW',
@@ -453,6 +464,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'mrro': [
         'RAW',
@@ -478,6 +490,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'mrso': [
         'RAW',
@@ -503,6 +516,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
     ],
     'myTargetVar': [
         'RAW',
@@ -529,6 +543,7 @@ methods = {
         # 'XGB',
         # 'ANN',
         # 'CNN',
+        # 'DeepESD',
         # 'WG-PDF',
     ],
 }
