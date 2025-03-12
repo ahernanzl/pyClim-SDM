@@ -125,7 +125,7 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
     special_value = int(100 * predictands_codification[targetVar]['special_value'])
     for ipoint in points_chunk[ichunk]:
         ipoint_local_index = points_chunk[ichunk].index(ipoint)
-        if ipoint_local_index % 1 == 0:
+        if ipoint_local_index % 1 == 0 and plot_hyperparameters_epochs_nEstimators_featureImportances == False:
             print('--------------------')
             print('ichunk:	', ichunk, '/', n_chunks)
             print('training', targetVar, methodName, round(100*ipoint_local_index/npoints_ichunk, 2), '%')
@@ -157,6 +157,12 @@ def train_chunk(targetVar, methodName, family, mode, fields, iproc=0, nproc=1):
                 pickle.dump(clf, open(pathOut + 'clf_'+str(ipoint), 'wb'))
             except:
                 clf.save(pathOut + 'clf_'+str(ipoint) + '.h5')
+
+    if plot_hyperparameters_epochs_nEstimators_featureImportances == True:
+        print('Process finished without saving trained model.')
+        print('See hyperparameters at aux/TRAINED_MODELS/ and your method and variable.')
+        print('In order to train your model, set plot_hyperparameters_epochs_nEstimators_featureImportances to False')
+        print('at config/advanced_settings.py')
 
 ########################################################################################################################
 def fit_and_prevent_constant_output(model, X, y, ipoint):

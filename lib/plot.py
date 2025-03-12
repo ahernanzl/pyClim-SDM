@@ -229,7 +229,7 @@ def nEstimators(estimator, targetVar, methodName, ipoint, estimatorType, history
         print('Invalid metric', metric, 'not used to compile the model.')
         exit()
     plt.plot([x/factor for x in history["validation_1"][metric]])
-    plt.axvline(estimator.best_ntree_limit, color="gray", label="Optimal tree number")
+    plt.axvline(estimator.best_iteration, color="gray", label="Optimal tree number")
     plt.title(metric + ' ' + str(ipoint))
     plt.ylabel(metric)
     plt.xlabel('n_estimators')
