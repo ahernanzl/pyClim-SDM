@@ -1162,6 +1162,8 @@ class frameMethodsClass(tk.Frame):
         self.chk_list = []
         if targetVar == 'pr':
             disabled_methods = ['MLR', 'MLR-ANA', 'MLR-WT']
+        elif targetVar in ('tasmax', 'tasmin', 'tas'):
+            disabled_methods = ['ANA-SYN-1NN', 'ANA-SYN-kNN', 'ANA-SYN-rand', 'GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
         else:
             disabled_methods = ['GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
             gaussian_variables = ['tasmax', 'tasmin', 'tas', 'uas', 'vas', 'psl', 'ps', ]
