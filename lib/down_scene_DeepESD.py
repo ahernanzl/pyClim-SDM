@@ -108,10 +108,11 @@ def downscale(targetVar, methodName, family, mode, fields, scene, model):
     # Load trained model
     model_name = 'DeepESD-' + targetVar
     pathModel = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/'
-    if targetVar in ('tasmax', 'tasmin', 'tas'):
-        model_deep = deep_models.DeepESDtas(x_shape=X_test.shape, y_shape=y_shape, filters_last_conv=1, stochastic=False)
-    elif targetVar == 'pr':
+    if targetVar == 'pr':
         model_deep = deep_models.DeepESDpr(x_shape=X_test.shape, y_shape=y_shape, filters_last_conv=1, stochastic=False)
+    else:
+        model_deep = deep_models.DeepESDtas(x_shape=X_test.shape, y_shape=y_shape, filters_last_conv=1, stochastic=False)
+
     model_deep.load_state_dict(torch.load(f'{pathModel}/{model_name}.pt'))
 
     # Create template

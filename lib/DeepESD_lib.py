@@ -119,10 +119,11 @@ def train(targetVar, methodName, family, mode, fields):
 
     model_name = 'DeepESD-' + targetVar
 
-    if targetVar in ('tasmax', 'tasmin', 'tas'):
-        model = deep_models.DeepESDtas(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1, stochastic=False)
-    elif targetVar == 'pr':
+    if targetVar == 'pr':
         model = deep_models.DeepESDpr(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1, stochastic=False)
+    else:
+        model = deep_models.DeepESDtas(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1,
+                                       stochastic=False)
 
     num_epochs = 10000
     patience_early_stopping = 20
