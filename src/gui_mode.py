@@ -1164,8 +1164,6 @@ class frameMethodsClass(tk.Frame):
             disabled_methods = ['MLR', 'MLR-ANA', 'MLR-WT']
         else:
             disabled_methods = ['GLM-LIN', 'GLM-EXP', 'GLM-CUB', 'WG-NMM']
-            if targetVar not in ['tasmax', 'tasmin', 'tas', 'pr']:
-                disabled_methods.append('DeepESD')
             gaussian_variables = ['tasmax', 'tasmin', 'tas', 'uas', 'vas', 'psl', 'ps', ]
             if (targetVar == 'myTargetVar' and isGaussian != True):
                 disabled_methods.append('PSDM')
