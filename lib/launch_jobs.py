@@ -152,7 +152,7 @@ def training(targetVar, methodName, family, mode, fields):
     if methodName[:3] == 'GLM':
         n = 128
     if methodName == 'DeepESD':
-        n = 1
+        n, mem = 1, 25000
 
     f = open(job_file, 'w')
     f.writelines('#!/bin/bash\n')

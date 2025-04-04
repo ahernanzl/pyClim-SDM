@@ -86,7 +86,7 @@ def train(targetVar, methodName, family, mode, fields):
     if targetVar == 'pr':
         asym_path = pathAux + 'DeepESD/ASYM/'
         os.makedirs(asym_path, exist_ok=True)
-        loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path)
+        loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path, asym_weight=3, cdf_pow=10)
         if loss_function.parameters_exist():
             loss_function.load_parameters()
         else:

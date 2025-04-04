@@ -309,16 +309,23 @@ def get_climdex():
         fields = method_dict['fields']
 
         if experiment == 'EVALUATION':
-            get_climdex_for_evaluation(targetVar, methodName)
+            if runInParallel_multiprocessing == True:
+                iterable.append([targetVar, methodName])
+            else:
+                get_climdex_for_evaluation(targetVar, methodName)
         else:
             aux = get_climdex_allModels(targetVar, methodName)
             for x in aux:
                 iterable.append(x)
 
     # Parallel processing
-    if runInParallel_multiprocessing == True and experiment != 'EVALUATION':
-        with Pool(processes=nCPUs_multiprocessing) as pool:
-            pool.starmap(get_climdex_oneModel, iterable)
+    if runInParallel_multiprocessing == True:
+        if experiment == 'EVALUATION':
+            with Pool(processes=nCPUs_multiprocessing) as pool:
+                pool.starmap(get_climdex_for_evaluation, iterable)
+        else:
+            with Pool(processes=nCPUs_multiprocessing) as pool:
+                pool.starmap(get_climdex_oneModel, iterable)
 
 ########################################################################################################################
 def get_climdex_for_evaluation(targetVar, methodName):

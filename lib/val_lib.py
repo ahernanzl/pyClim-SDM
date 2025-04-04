@@ -194,171 +194,189 @@ def daily_boxplots(metric, by_season):
     :param by_season: boolean
     """
 
+    calculate = True
+    plot = True
+
     vars = []
     for method in methods:
         var = method['var']
         if var not in vars:
             vars.append(var)
 
-    # Go through all variables
-    for targetVar in targetVars:
-        nmethods = len([x for x in methods if x['var'] == targetVar])
+    if calculate == True:
+        # Go through all variables
+        for targetVar in targetVars:
+            nmethods = len([x for x in methods if x['var'] == targetVar])
 
-        # Go through all methods
-        imethod = 0
-        for method_dict in methods:
-            var = method_dict['var']
-            if var == targetVar:
-                methodName = method_dict['methodName']
-                print(var, methodName, metric)
+            # Go through all methods
+            imethod = 0
+            for method_dict in methods:
+                var = method_dict['var']
+                if var == targetVar:
+                    methodName = method_dict['methodName']
+                    print(var, methodName, metric)
 
-                # Read data
-                d = postpro_lib.get_data_eval(var, methodName)
-                ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
-                del d
+                    pathOutData = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/metrics/'
+                    already_done = True
 
-                # Select season
-                for season in season_dict:
-                    if season == annualName or by_season == True:
-                        if season == season_dict[annualName]:
-                            obs_season = obs
-                            est_season = est
-                            times = times_scene
-                        else:
-                            obs_season = postpro_lib.get_season(obs, times_scene, season)['data']
-                            aux = postpro_lib.get_season(est, times_scene, season)
-                            est_season = aux['data']
-                            times = aux['times']
-                        # not_valid_obs = np.where(np.isnan(obs_season))[0]
-                        # not_valid_est = np.where(np.isnan(est_season))[0]
-                        # ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_est)]
-                        # obs_season = obs_season[ivalid]
-                        # est_season = est_season[ivalid]
-                        matrix = np.zeros((hres_npoints[targetVar], ))
-                        if metric == 'correlation':
-                            for ipoint in range(hres_npoints[targetVar]):
-                                X = obs_season[:, ipoint]
-                                Y = est_season[:, ipoint]
-                                try:
-                                    if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
-                                        r = round(spearmanr(X, Y)[0], 3)
-                                    else:
-                                        r = round(pearsonr(X, Y)[0], 3)
-                                except:
-                                    r = np.nan
-                                # if np.isnan(r) == True:
-                                #     r = 0
-                                matrix[ipoint] = r
-                        elif metric == 'variance':
-                            obs_var = np.nanvar(obs_season, axis=0)
-                            est_var = np.nanvar(est_season, axis=0)
-                            th = zero_division_th[targetVar]
-                            est_var[est_var < th] = 0
-                            obs_var[obs_var < th] = np.nan
-                            bias = 100 * (est_var - obs_var) / obs_var
-                            bias[(np.isnan(obs_var)) * (est_var == 0)] = 0
-                            bias[np.isinf(bias)] = np.nan
-                            matrix[:] = bias
-                        elif metric == 'rmse':
-                            matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
-                        elif metric == 'wasserstein-distance':
-                            for ipoint in range(hres_npoints[targetVar]):
-                                X = obs_season[:, ipoint]
-                                Y = est_season[:, ipoint]
-                                try:
-                                    w = wasserstein_distance(X, Y)
-                                except:
-                                    w = np.inf
-                                if ipoint % 100 == 0:
-                                    print(ipoint, w)
-                                matrix[ipoint] = w
-                        np.save('../tmp/'+targetVar+'_'+methodName+'_'+season+'_' +metric, matrix)
-                imethod += 1
+                    # Select season
+                    for season in season_dict:
+                        if season == annualName or by_season == True:
+                            if not os.path.isfile(pathOutData + season+'_' +metric + '.npy'):
+                                already_done = False
 
+                    if already_done == False:
+                        # Read data
+                        d = postpro_lib.get_data_eval(var, methodName)
+                        ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+                        del d
 
-    # Select season
-    for season in season_dict:
-        if season == annualName or by_season == True:
-            for targetVar in vars:
-            # for targetVar in ('pcp', ):
-                nmethods = len([x for x in methods if x['var'] == targetVar])
-                # Read regions csv
-                df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() +'/regions.csv')
-                matrix = np.zeros((hres_npoints[targetVar], nmethods))
-                imethod = 0
-                names = []
-                for method_dict in methods:
-                    var = method_dict['var']
-                    if var == targetVar:
-                        methodName = method_dict['methodName']
-                        names.append(methodName)
-                        print(metric, season, var, methodName)
-                        matrix[:, imethod] = np.load('../tmp/' + targetVar + '_' + methodName + '_' + season + '_'+metric+'.npy')
-                        imethod += 1
+                        # Select season
+                        for season in season_dict:
+                            if season == annualName or by_season == True:
+                                os.makedirs(pathOutData, exist_ok=True)
 
-                # Go through all regions
-                for index, row in df_reg.iterrows():
-                    if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
-                        regType, regName, subDir = row['regType'], row['regName'], row['subDir']
-                        iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
-                        npoints = len(iaux)
-                        print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
-                        matrix_region = matrix[iaux]
-
-                        # Deal with nans
-                        mask = ~np.isnan(matrix_region)
-                        matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
-
-                        # Create pathOut
-                        if plotAllRegions == False:
-                            pathOut = pathFigures
-                        else:
-                            path = pathFigures + 'daily_'+metric+'/' + targetVar.upper() + '/'
-                            pathOut = path + subDir
-                        if not os.path.exists(pathOut):
-                            os.makedirs(pathOut)
+                                if season == season_dict[annualName]:
+                                    obs_season = obs
+                                    est_season = est
+                                    times = times_scene
+                                else:
+                                    obs_season = postpro_lib.get_season(obs, times_scene, season)['data']
+                                    aux = postpro_lib.get_season(est, times_scene, season)
+                                    est_season = aux['data']
+                                    times = aux['times']
+                                # not_valid_obs = np.where(np.isnan(obs_season))[0]
+                                # not_valid_est = np.where(np.isnan(est_season))[0]
+                                # ivalid = [i for i in range(len(times)) if (i not in not_valid_obs) and (i not in not_valid_est)]
+                                # obs_season = obs_season[ivalid]
+                                # est_season = est_season[ivalid]
+                                matrix = np.zeros((hres_npoints[targetVar], ))
+                                if metric == 'correlation':
+                                    for ipoint in range(hres_npoints[targetVar]):
+                                        X = obs_season[:, ipoint]
+                                        Y = est_season[:, ipoint]
+                                        try:
+                                            if var == 'pr' or (targetVar == myTargetVar and myTargetVarIsGaussian == False):
+                                                r = round(spearmanr(X, Y)[0], 3)
+                                            else:
+                                                r = round(pearsonr(X, Y)[0], 3)
+                                        except:
+                                            r = np.nan
+                                        # if np.isnan(r) == True:
+                                        #     r = 0
+                                        matrix[ipoint] = r
+                                elif metric == 'variance':
+                                    obs_var = np.nanvar(obs_season, axis=0)
+                                    est_var = np.nanvar(est_season, axis=0)
+                                    th = zero_division_th[targetVar]
+                                    est_var[est_var < th] = 0
+                                    obs_var[obs_var < th] = np.nan
+                                    bias = 100 * (est_var - obs_var) / obs_var
+                                    bias[(np.isnan(obs_var)) * (est_var == 0)] = 0
+                                    bias[np.isinf(bias)] = np.nan
+                                    matrix[:] = bias
+                                elif metric == 'rmse':
+                                    matrix = np.round(np.sqrt(np.nanmean((est_season - obs_season) ** 2, axis=0)), 2)
+                                elif metric == 'wasserstein-distance':
+                                    for ipoint in range(hres_npoints[targetVar]):
+                                        X = obs_season[:, ipoint]
+                                        Y = est_season[:, ipoint]
+                                        try:
+                                            w = wasserstein_distance(X, Y)
+                                        except:
+                                            w = np.inf
+                                        matrix[ipoint] = w
+                                np.save(pathOutData + season+'_' +metric, matrix)
+                    imethod += 1
 
 
-                        fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
-                        medianprops = dict(color="black")
-                        g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
-                        # fill with colors
-                        i = 0
-                        color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
-                        for patch in g['boxes']:
-                            patch.set_facecolor(color[i])
-                            i += 1
+    if plot == True:
+        # Select season
+        for season in season_dict:
+            if season == annualName or by_season == True:
+                for targetVar in vars:
+                # for targetVar in ('pcp', ):
+                    nmethods = len([x for x in methods if x['var'] == targetVar])
+                    # Read regions csv
+                    df_reg = pd.read_csv(pathAux + 'ASSOCIATION/' + targetVar.upper() +'/regions.csv')
+                    matrix = np.zeros((hres_npoints[targetVar], nmethods))
+                    imethod = 0
+                    names = []
+                    for method_dict in methods:
+                        var = method_dict['var']
+                        if var == targetVar:
+                            methodName = method_dict['methodName']
+                            names.append(methodName)
+                            print(metric, season, var, methodName)
+                            pathInData = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/metrics/'
 
-                        if metric == 'correlation':
-                            units = ''
-                            # title = ' '.join((targetVar, metric, season))
-                            title = targetVar
-                            plt.ylim((0, 1))
-                        elif metric == 'variance':
-                            units = '%'
-                            # title = ' '.join((targetVar, 'bias', metric, season))
-                            title = targetVar
-                        elif metric == 'rmse':
-                            units = predictands_units[targetVar]
-                            # title = ' '.join((targetVar, metric, season))
-                            title = targetVar
-                        elif metric == 'wasserstein-distance':
-                            units = ''
-                            # title = ' '.join((targetVar, metric, season))
-                            title = targetVar
-                        plt.title(title, fontsize=20)
-                        # plt.title(title)
-                        plt.ylabel(units, rotation=90)
-                        ax.set_xticklabels(names, rotation=90)
-                        if metric == 'variance':
-                            plt.hlines(y=0, xmin=-1, xmax=nmethods+1, linestyles='--', color='grey')
-                        else:
-                            plt.hlines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
-                        # plt.show()
-                        # exit()
-                        plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, metric+'Boxplot', targetVar, 'None', 'all',
-                                                        season))+ '.png', bbox_inches='tight')
-                        plt.close()
+                            matrix[:, imethod] = np.load(pathInData + season+'_' +metric + '.npy')
+                            imethod += 1
+
+                    # Go through all regions
+                    for index, row in df_reg.iterrows():
+                        if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+                            regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+                            iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+                            npoints = len(iaux)
+                            print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+                            matrix_region = matrix[iaux]
+
+                            # Deal with nans
+                            mask = ~np.isnan(matrix_region)
+                            matrix_region = [d[m] for d, m in zip(matrix_region.T, mask.T)]
+
+                            # Create pathOut
+                            if plotAllRegions == False:
+                                pathOut = pathFigures
+                            else:
+                                path = pathFigures + 'daily_'+metric+'/' + targetVar.upper() + '/'
+                                pathOut = path + subDir
+                            if not os.path.exists(pathOut):
+                                os.makedirs(pathOut)
+
+
+                            fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
+                            medianprops = dict(color="black")
+                            g = ax.boxplot(matrix_region, showfliers=False, patch_artist=True, medianprops=medianprops)
+                            # fill with colors
+                            i = 0
+                            color = [methods_colors[x['methodName']] for x in methods if x['var'] == targetVar]
+                            for patch in g['boxes']:
+                                patch.set_facecolor(color[i])
+                                i += 1
+
+                            if metric == 'correlation':
+                                units = ''
+                                # title = ' '.join((targetVar, metric, season))
+                                title = targetVar
+                                plt.ylim((0, 1))
+                            elif metric == 'variance':
+                                units = '%'
+                                # title = ' '.join((targetVar, 'bias', metric, season))
+                                title = targetVar
+                            elif metric == 'rmse':
+                                units = predictands_units[targetVar]
+                                # title = ' '.join((targetVar, metric, season))
+                                title = targetVar
+                            elif metric == 'wasserstein-distance':
+                                units = ''
+                                # title = ' '.join((targetVar, metric, season))
+                                title = targetVar
+                            title = metric
+                            plt.title(title, fontsize=20)
+                            # plt.title(title)
+                            plt.ylabel(units, rotation=90)
+                            ax.set_xticklabels(names, rotation=90)
+                            if metric == 'variance':
+                                plt.hlines(y=0, xmin=-1, xmax=nmethods+1, linestyles='--', color='grey')
+                            else:
+                                plt.hlines(y=0.5, xmin=-1, xmax=nmethods+1, linewidth=0)
+                            # plt.show()
+                            # exit()
+                            plt.savefig(pathOut + '_'.join(('EVALUATION'+bc_sufix, metric+'Boxplot', targetVar, 'None', 'all',
+                                                            season))+ '.png', bbox_inches='tight')
+                            plt.close()
 
 
 ########################################################################################################################

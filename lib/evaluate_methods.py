@@ -171,13 +171,151 @@ def daily_data(by_season=True):
         val_lib.daily_boxplots('variance', by_season)
         # # Wasserstein distance (similarity between distributions)
         # val_lib.daily_boxplots('wasserstein-distance', by_season)
-
-
     # if activate_plot_spatialCorrelation == True:
     #     # Spatial correlation of the daily patterns, boxplots of all methods together
     #     val_lib.daily_spatial_correlation_boxplots()
+
+    # # --------------- HISTOGRAMS ---------------------------
+    # for method_dict in methods:
+    #     targetVar, methodName = method_dict['var'], method_dict['methodName']
+    #     d = postpro_lib.get_data_eval(targetVar, methodName)
+    #     ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+    #     del d
+    #     df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
+    #     for index, row in df_reg.iterrows():
+    #         if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+    #             regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+    #             iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+    #             npoints = len(iaux)
+    #             print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+    #             pathOut = pathFigures + 'histograms/'+methodName+'/'
+    #             os.makedirs(pathOut, exist_ok=True)
+    #             if regType == typeCompleteRegion:
+    #                 obs_reg = obs
+    #                 est_reg = est
+    #             else:
+    #                 obs_reg = obs[:, iaux]
+    #                 est_reg = est[:, iaux]
+    #             for season in season_dict:
+    #                 if season == annualName or by_season == True:
+    #                     print('season', season)
+    #                     if season == season_dict[annualName]:
+    #                         obs_reg_season = obs_reg
+    #                         est_reg_season = est_reg
+    #                         times = times_scene
+    #                     else:
+    #                         obs_reg_season = postpro_lib.get_season(obs_reg, times_scene, season)['data']
+    #                         aux = postpro_lib.get_season(est_reg, times_scene, season)
+    #                         est_reg_season = aux['data']
+    #                         times = aux['times']
     #
+    #                     for ipoint in range(obs_reg_season.shape[1]):
+    #                         if ipoint % 500 == 0:
+    #                             print(methodName, season, ipoint)
+    #                             obs_reg_season_ipoint = obs_reg_season[:, ipoint]
+    #                             est_reg_season_ipoint = est_reg_season[:, ipoint]
     #
+    #                             bins = np.arange(min(min(obs_reg_season_ipoint), min(est_reg_season_ipoint)),
+    #                                              max(max(obs_reg_season_ipoint), max(est_reg_season_ipoint)) + 1, 0.5)
+    #                             plt.hist(obs_reg_season_ipoint, bins=bins, alpha=0.5, label='Truth', density=True)
+    #                             plt.hist(est_reg_season_ipoint, bins=bins, alpha=0.5, label='Pred', density=True)
+    #                             plt.legend()
+    #                             plt.yscale('log')
+    #                             plt.xlabel('Valor')
+    #                             plt.ylabel('Frecuencia')
+    #                             plt.title(' '.join((methodName, season, str(ipoint))))
+    #                             # plt.show()
+    #                             # exit()
+    #                             plt.savefig(pathOut + '_'.join((methodName, season, str(ipoint))))
+    #                             plt.close()
+
+
+    # # --------------- CDFs ---------------------------
+    # from statsmodels.distributions.empirical_distribution import ECDF
+    # for method_dict in methods:
+    #     targetVar, methodName = method_dict['var'], method_dict['methodName']
+    #     d = postpro_lib.get_data_eval(targetVar, methodName)
+    #     ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+    #     del d
+    #     df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
+    #     for index, row in df_reg.iterrows():
+    #         if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+    #             regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+    #             iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+    #             npoints = len(iaux)
+    #             print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+    #             pathOut = pathFigures + 'CDFs/'+methodName+'/'
+    #             os.makedirs(pathOut, exist_ok=True)
+    #             if regType == typeCompleteRegion:
+    #                 obs_reg = obs
+    #                 est_reg = est
+    #             else:
+    #                 obs_reg = obs[:, iaux]
+    #                 est_reg = est[:, iaux]
+    #             for season in season_dict:
+    #                 if season == annualName or by_season == True:
+    #                     print('season', season)
+    #                     if season == season_dict[annualName]:
+    #                         obs_reg_season = obs_reg
+    #                         est_reg_season = est_reg
+    #                         times = times_scene
+    #                     else:
+    #                         obs_reg_season = postpro_lib.get_season(obs_reg, times_scene, season)['data']
+    #                         aux = postpro_lib.get_season(est_reg, times_scene, season)
+    #                         est_reg_season = aux['data']
+    #                         times = aux['times']
+    #
+    #                     for ipoint in range(obs_reg_season.shape[1]):
+    #                         if ipoint % 500 == 0:
+    #                             print(methodName, season, ipoint)
+    #                             obs_reg_season_ipoint = obs_reg_season[:, ipoint]
+    #                             est_reg_season_ipoint = est_reg_season[:, ipoint]
+    #
+    #                             ecdf1 = ECDF(obs_reg_season_ipoint)
+    #                             ecdf2 = ECDF(est_reg_season_ipoint)
+    #
+    #                             # Graficar las CDFs empíricas
+    #                             plt.step(ecdf1.x, ecdf1.y, label='Truth', alpha=.5, linewidth=2, marker='o')
+    #                             plt.step(ecdf2.x, ecdf2.y, label='Pred', alpha=.5, linewidth=2, marker='o')
+    #                             plt.legend()
+    #                             plt.xlabel('Valor')
+    #                             plt.ylabel('CDF')
+    #                             plt.title(' '.join((methodName, season, str(ipoint))))
+    #                             # plt.show()
+    #                             # exit()
+    #                             plt.savefig(pathOut + '_'.join((methodName, season, str(ipoint))))
+    #                             plt.close()
+
+
+
+    # # --------------- CASE STUDIES ---------------------------
+    # for method_dict in methods:
+    #     targetVar, methodName = method_dict['var'], method_dict['methodName']
+    #     d = postpro_lib.get_data_eval(targetVar, methodName)
+    #     ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+    #     del d
+    #     df_reg = pd.read_csv(pathAux+'ASSOCIATION/'+targetVar.upper()+'/regions.csv')
+    #     for index, row in df_reg.iterrows():
+    #         if plotAllRegions == True or ((plotAllRegions == False) and (index == 0)):
+    #             regType, regName, subDir = row['regType'], row['regName'], row['subDir']
+    #             iaux = [int(x) for x in row['ipoints'][1:-1].split(', ')]
+    #             npoints = len(iaux)
+    #             print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
+    #             pathOut = pathFigures + 'CASE_STUDIES/'
+    #             os.makedirs(pathOut, exist_ok=True)
+    #             idays = np.argsort(np.max(obs, axis=1))[::-1]
+    #
+    #             print('-----------------------')
+    #             n_case_studies = 10
+    #             for iday in idays[:n_case_studies]:
+    #                 time_i, obs_i, est_i = times_scene[iday], obs[iday], est[iday]
+    #                 print(methodName, iday, np.max(obs_i), np.max(est_i))
+    #                 plot.map(targetVar, obs_i, 'pr_daily', path=pathOut,
+    #                          filename=str(iday)+'_OBS', title=str(time_i)+'\nOBS')
+    #                 plot.map(targetVar, est_i, 'pr_daily', path=pathOut,
+    #                          filename=str(iday)+'_'+methodName.replace(',', '-'),
+    #                          title=str(time_i)+'\n'+methodName.replace(',', '-'))
+
     # if activate_plot_QQ_continuous_dichotomous == True:
     #     # Go through all methods
     #     for method_dict in methods:
