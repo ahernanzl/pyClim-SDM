@@ -320,7 +320,6 @@ def train_point(targetVar, methodName, X, y, ipoint):
         # Classifier pcp
         if methodName[:3] == 'GLM':
             classifier = LogisticRegressionCV(cv=3, max_iter=1000)
-            classifier = CalibratedClassifierCV(classifier, cv=5)
             classifier.fit(X, 1*israiny)
 
         elif methodName == 'SVM':
