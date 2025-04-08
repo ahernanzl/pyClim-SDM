@@ -260,8 +260,8 @@ class Asym(nn.Module):
             raise ValueError("Both 'asym_weight' and 'cdf_pow' must be either provided together or omitted together.")
         if (weight_list is not None and perc_list is None) or (weight_list is None and perc_list is not None):
             raise ValueError("Both 'weight_list' and 'perc_list' must be either provided together or omitted together.")
-        if not (asym_weight is not None and cdf_pow is not None) or not (weight_list is not None and perc_list is not None):
-            raise ValueError("At least on pair 'asym_weight'/'cdf_pow' or 'weight_list'/'perc_list'  must be provided")
+        if not (asym_weight is not None and cdf_pow is not None) and not (weight_list is not None and perc_list is not None):
+            raise ValueError("At least one pair 'asym_weight'/'cdf_pow' or 'weight_list'/'perc_list'  must be provided")
 
         # If asym_weight or cdf_pow are provided, ensure that weight_list and perc_list are None and asym_weight is
         # positive
