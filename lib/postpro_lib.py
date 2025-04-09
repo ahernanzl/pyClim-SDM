@@ -506,6 +506,8 @@ def get_data_eval(targetVar, methodName):
 
     special_value = predictands_codification[targetVar]['special_value']
     obs[obs==special_value] = np.nan
+    est[est==special_value] = np.nan
+    est[est==fill_value] = np.nan
     aux = read.hres_data(targetVar, period='reference')
     ref = aux['data']
     times_ref = aux['times']

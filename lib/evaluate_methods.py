@@ -73,6 +73,7 @@ def annual_cycle():
                 ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
                 del d
 
+
                 nYears = 1 + times_scene[-1].year - times_scene[0].year
 
                 # Calculate monthly data
