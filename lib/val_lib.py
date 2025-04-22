@@ -217,13 +217,14 @@ def daily_boxplots(metric, by_season):
                     print(var, methodName, metric)
 
                     pathOutData = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/metrics/'
-                    already_done = True
 
-                    # Select season
-                    for season in season_dict:
-                        if season == annualName or by_season == True:
-                            if not os.path.isfile(pathOutData + season+'_' +metric + '.npy'):
-                                already_done = False
+                    # # Select season
+                    # already_done = True
+                    # for season in season_dict:
+                    #     if season == annualName or by_season == True:
+                    #         if not os.path.isfile(pathOutData + season+'_' +metric + '.npy'):
+                    #             already_done = False
+                    already_done = False
 
                     if already_done == False:
                         # Read data
