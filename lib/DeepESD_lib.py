@@ -81,6 +81,7 @@ def train(targetVar, methodName, family, mode, fields):
     valid = [i for i in range(y_train.shape[0]) if (i not in invalid_y) and (i not in invalid_X)]
     X_train = X_train[valid]
     y_train = y_train[valid]
+    training_dates_valid = [training_dates[i] for i in valid]
 
 
     if targetVar == 'pr':
@@ -91,8 +92,8 @@ def train(targetVar, methodName, family, mode, fields):
             loss_function.load_parameters()
         else:
             y_train_ds = xr.Dataset(
-                {"pr": (["time", "point"], y_train)},
-                coords={"time": training_dates, "point": range(y_train.shape[1])}
+                {targetVar: (["time", "point"], y_train)},
+                coords={"time": training_dates_valid, "point": range(y_train.shape[1])}
             )
             loss_function.compute_parameters(data=y_train_ds, var_target=targetVar)
         loss_function.prepare_parameters(device=device)

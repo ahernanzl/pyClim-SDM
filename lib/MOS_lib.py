@@ -233,6 +233,7 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
+    sce, hist = 100*sce, 100*hist
     sce_corrected = 1*sce
 
     # Go through all points
@@ -250,7 +251,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
         sce_auxPlot = 1*sce_data
 
         # Remove missing data from obs and hist
-        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        # obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        obs_data = obs_data[abs(obs_data - 100*predictands_codification[targetVar]['special_value']) > 1]
         hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
@@ -374,6 +376,7 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
+    sce, hist = 100*sce, 100*hist
     sce_corrected = 1*sce
 
     # Go through all points
@@ -387,7 +390,8 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        # obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        obs_data = obs_data[abs(obs_data - 100*predictands_codification[targetVar]['special_value']) > 1]
         hist_data = hist_data[np.isnan(hist_data) == False]
 
         # Select valid data from sce
