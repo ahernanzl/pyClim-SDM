@@ -62,6 +62,7 @@ def quantile_mapping(obs, hist, sce, targetVar):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
+    sce, hist = 100*sce, 100*hist
     sce_corrected = 1*sce
 
     # Go through all points
@@ -75,7 +76,8 @@ def quantile_mapping(obs, hist, sce, targetVar):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        # obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        obs_data = obs_data[abs(obs_data - 100*predictands_codification[targetVar]['special_value']) > 1]
         hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
@@ -121,6 +123,7 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
 
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
+    sce, hist = 100*sce, 100*hist
     sce_corrected = 1*sce
 
     # Go through all points
@@ -134,7 +137,8 @@ def detrended_quantile_mapping(obs, hist, sce, targetVar, th=0.05):
         sce_data = sce.T[ipoint]
 
         # Remove missing data from obs and hist
-        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        # obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        obs_data = obs_data[abs(obs_data - 100*predictands_codification[targetVar]['special_value']) > 1]
         hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
