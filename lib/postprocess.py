@@ -145,7 +145,7 @@ def bias_correction_renalysis(targetVar, methodName):
         sce = est_data[idates_sce]
 
         # Correct bias for ifold
-        scene_bc[idates_sce] = MOS_lib.biasCorrect_as_postprocess(obs, mod, sce, targetVar, obs_times[idates_ref], est_times[idates_sce])
+        scene_bc[idates_sce] = MOS_lib.biasCorrect_as_postprocess(100*obs, mod, sce, targetVar, obs_times[idates_ref], est_times[idates_sce]) / 100.
 
     # Set units
     units = predictands_units[targetVar]
@@ -279,7 +279,7 @@ def bias_correction_oneModel(targetVar, methodName, model):
                 del aux
 
                 # Correct bias for scene
-                scene_bc = MOS_lib.biasCorrect_as_postprocess(obs_data, mod_data, scene_data, targetVar, ref_dates, scene_dates)
+                scene_bc = MOS_lib.biasCorrect_as_postprocess(100*obs_data, mod_data, scene_data, targetVar, ref_dates, scene_dates) / 100.
 
                 # Set units
                 units = predictands_units[targetVar]
