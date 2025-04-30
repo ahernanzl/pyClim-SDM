@@ -325,10 +325,10 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
         nYears = len(yearsUnique)
 
         # Calculate mean obs and mean hist
-        mean_obs = np.nanmean(obs_data)
+        mean_obs = np.nanmean(obs, axis=0)
         if bc_mode_dict[targetVar] == 'rel' and targetVar == 'pr':
             hist_data *= factor_TF
-        mean_hist = np.nanmean(hist_data)
+        mean_hist = np.nanmean(hist, axis=0)
 
         # Compute and apply the needed factor
         factor_trend = np.ones((sce_corrected.shape))

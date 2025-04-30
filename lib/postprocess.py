@@ -127,16 +127,27 @@ def bias_correction_renalysis(targetVar, methodName):
     # print('obs', obs_data.shape, obs_times[0], obs_times[-1])
     # print('est', est_data.shape, est_times[0], est_times[-1])
 
+
+    nfolds = 5
+    block = nyears // nfolds
+    rest = nyears % nfolds
+    blocks = [block, block, block, block, block, ]
+    for i in range(rest):
+        blocks[i] += 1
+
     fold_years = []
-    fold_years.append(all_years[0: int(nyears/2)])
-    fold_years.append([x for x in all_years if x not in fold_years[0]])
+    i = 0
+    for ifold in range(nfolds):
+        fold_years.append(all_years[i: i+blocks[ifold]])
+        i += blocks[ifold]
 
     # Empty array for results
     scene_bc = np.zeros(est_data.shape)
 
-    # Go through the two folds
-    for ifold in [0, 1]:
-        print('bias_correcting reanalysis', methodName, bc_sufix, testing_years, ifold+1, '/ 2')
+    # Go through the n folds
+    nfolds = 5
+    for ifold in range(nfolds):
+        print('bias_correcting reanalysis', methodName, bc_sufix, testing_years, ifold+1, '/', nfolds)
         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year in fold_years[ifold]]
         idates_ref = [i for i in range(len(obs_times)) if obs_times[i].year not in fold_years[ifold]]
         # print(ifold, len(idates_ref), len(idates_sce))
@@ -145,7 +156,9 @@ def bias_correction_renalysis(targetVar, methodName):
         sce = est_data[idates_sce]
 
         # Correct bias for ifold
-        scene_bc[idates_sce] = MOS_lib.biasCorrect_as_postprocess(100*obs, mod, sce, targetVar, obs_times[idates_ref], est_times[idates_sce]) / 100.
+        scene_bc[idates_sce] = MOS_lib.biasCorrect_as_postprocess(
+            (100*obs).astype(predictands_codification[targetVar]['type']),
+            mod, sce, targetVar, obs_times[idates_ref], est_times[idates_sce])/100.
 
     # Set units
     units = predictands_units[targetVar]
