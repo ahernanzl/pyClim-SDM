@@ -325,8 +325,8 @@ def quantile_delta_mapping(obs, hist, sce, targetVar, sce_times, default_th=0.05
         nYears = len(yearsUnique)
 
         # Calculate mean obs and mean hist
-        obs_aux = 1*obs
-        obs_aux = obs_aux[abs(obs_aux - 100*predictands_codification[targetVar]['special_value']) > 1]
+        obs_aux = 1*obs.astype(float)
+        obs_aux[abs(obs_aux - 100*predictands_codification[targetVar]['special_value']) < 1] = np.nan
         mean_obs = np.nanmean(obs_aux, axis=0)
         if bc_mode_dict[targetVar] == 'rel' and targetVar == 'pr':
             hist_data *= factor_TF
