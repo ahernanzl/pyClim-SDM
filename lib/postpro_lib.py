@@ -133,6 +133,7 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
             # Calculate climdex for obs and est
             data_climdex = calculate_climdex(climdex_name, data_season, data_percCalendar_season,
                                                   times_season, times_percCalendar_season)['data']
+            data_climdex[data_climdex==fill_value] = np.nan
 
             # Save results
             # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
