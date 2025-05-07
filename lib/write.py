@@ -115,8 +115,8 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 		longitude = nc.createVariable(lon_name, 'f4', 'point')
 		var = nc.createVariable(varName, 'f4', (time_name, 'point'))
 
-	var.fill_value = fill_value
-	data[np.isnan(data)] = fill_value
+	# var.fill_value = fill_value
+	# data[np.isnan(data)] = fill_value
 
 	latitude.units = 'degrees_north'
 	latitude.long_name = "latitude"

@@ -133,10 +133,8 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
             # Calculate climdex for obs and est
             data_climdex = calculate_climdex(climdex_name, data_season, data_percCalendar_season,
                                                   times_season, times_percCalendar_season)['data']
-            data_climdex[data_climdex==fill_value] = np.nan
 
             # Save results
-            # np.save(pathOut+'_'.join((climdex_name, filename, season)), data_climdex)
             times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
 
             write.netCDF(pathOut, '_'.join((targetVar, climdex_name, filename, season))+'.nc',
@@ -505,15 +503,21 @@ def get_data_eval(targetVar, methodName):
     est = read.netCDF(pathIn, targetVar + '_' + 'reanalysis_TESTING.nc', targetVar)['data']
     del aux
 
-    special_value = predictands_codification[targetVar]['special_value']
-    obs[obs==special_value] = np.nan
-    est[est==special_value] = np.nan
-    est[est==fill_value] = np.nan
     aux = read.hres_data(targetVar, period='reference')
     ref = aux['data']
     times_ref = aux['times']
 
+    special_value = predictands_codification[targetVar]['special_value']
+
+    obs[obs==special_value] = np.nan
+    obs[obs==float(fill_value)] = np.nan
+    est[est==special_value] = np.nan
+    est[est==float(fill_value)] = np.nan
+    ref[ref == special_value] = np.nan
+    ref[ref == float(fill_value)] = np.nan
+
     return {'ref': ref, 'times_ref': times_ref, 'obs': obs, 'est': est, 'times_scene': times_scene}
+
 
 
 ########################################################################################################################
