@@ -185,10 +185,6 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
             periodFilename = sspPeriodFilename
         # Read dates (can be different for different calendars)
         path = '../input_data/models/'
-        # ncVar = modNames[targetVar]
-        # modelName, modelRun = model.split('_')[0], model.split('_')[1]
-        # filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
-        # aux = read.netCDF(path, filename, ncVar)
         aux = read.lres_data(targetVar, 'var', grid='pred', model=model, scene=scene)
         scene_dates = np.ndarray.tolist(aux['times'])
         calendar = aux['calendar']
