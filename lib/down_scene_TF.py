@@ -136,8 +136,22 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             # Read dates (can be different for different calendars)
             ncVar = modNames[targetVar]
             modelName, modelRun = model.split('_')[0], model.split('_')[1]
-            scene_dates = read.netCDF('../input_data/models/', ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename+ '.nc',
-                            ncVar)['times']
+
+            for pred in preds_dict[targetVar]:
+                if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
+                    level = int(pred[-4:])
+                elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
+                    level = int(pred[-3:])
+                else:
+                    level = None
+                try:
+                    scene_dates = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)['times']
+                    break
+                except:
+                    pass
+
+            # scene_dates = read.netCDF('../input_data/models/', ncVar + '_' + modelName + '_' + scene +'_'+ modelRun + '_'+periodFilename+ '.nc',
+            #                 ncVar)['times']
             idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
