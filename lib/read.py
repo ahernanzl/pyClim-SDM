@@ -327,9 +327,9 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         exit()
 
     # Define dates
-    calendarDefined = False
     if model == 'reanalysis':
         dates = calibration_dates
+        calendar = reanalysis_calendar
     else:
         datesDefined = False
         for pred in preds_dict[targetVar]:
@@ -339,16 +339,15 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 level = int(pred[-3:])
             else:
                 level = None
-            try:
-                aux = np.ndarray.tolist(
-                    read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene))
-                dates = aux['times']
-                calendar = aux['calendar']
-                datesDefined = True
-                calendarDefined = True
-                break
-            except:
-                pass
+            # try:
+            aux = np.ndarray.tolist(
+                read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene))
+            dates = aux['times']
+            calendar = aux['calendar']
+            datesDefined = True
+            break
+            # except:
+            #     pass
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF models files')
             print('Make sure your input_data/models directory contains the needed files.')
@@ -725,10 +724,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         dates = list(np.asarray(dates)[idates])
         data = data[idates]
 
-    if calendarDefined == True:
-        return {'data': data, 'times': dates, 'calendar': calendar}
-    else:
-        return {'data': data, 'times': dates}
+    return {'data': data, 'times': dates, 'calendar': calendar}
 
 
 ########################################################################################################################

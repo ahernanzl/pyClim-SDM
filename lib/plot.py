@@ -843,6 +843,12 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             lonmin = np.min(lons) - 10
             lonMax = np.max(lons) + 20
 
+        else:
+            latmin = np.min(lats) - 2
+            latMax = np.max(lats) + 2
+            lonmin = np.min(lons) - 2
+            lonMax = np.max(lons) + 2
+
     elif grid is not None:
         # Read lats lons
         if grid == 'ext':
