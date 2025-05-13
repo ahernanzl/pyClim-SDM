@@ -327,6 +327,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         exit()
 
     # Define dates
+    calendarDefined = False
     if model == 'reanalysis':
         dates = calibration_dates
     else:
@@ -339,9 +340,12 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             else:
                 level = None
             try:
-                dates = np.ndarray.tolist(
-                    read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)['times'])
+                aux = np.ndarray.tolist(
+                    read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene))
+                dates = aux['times']
+                calendar = aux['calendar']
                 datesDefined = True
+                calendarDefined = True
                 break
             except:
                 pass
@@ -721,7 +725,10 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         dates = list(np.asarray(dates)[idates])
         data = data[idates]
 
-    return {'data': data, 'times': dates}
+    if calendarDefined == True:
+        return {'data': data, 'times': dates, 'calendar': calendar}
+    else:
+        return {'data': data, 'times': dates}
 
 
 ########################################################################################################################
