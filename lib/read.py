@@ -339,15 +339,14 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 level = int(pred[-3:])
             else:
                 level = None
-            # try:
-            aux = np.ndarray.tolist(
-                read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene))
-            dates = aux['times']
-            calendar = aux['calendar']
-            datesDefined = True
-            break
-            # except:
-            #     pass
+            try:
+                aux = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)
+                dates = np.ndarray.tolist(aux['times'])
+                calendar = aux['calendar']
+                datesDefined = True
+                break
+            except:
+                pass
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF models files')
             print('Make sure your input_data/models directory contains the needed files.')
