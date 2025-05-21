@@ -51,7 +51,6 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 
 
 # Installation
-conda create -n prueba_matplotlib_2 python=3.10 matplotlib=3.5.1 -y -c conda-forge
 pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
 
 In order to use pyClim-SDM, **python3.10** is required. pyClim-SDM makes use of the python libaries listed at 
