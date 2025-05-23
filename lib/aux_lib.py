@@ -216,7 +216,10 @@ def prepare_hres_data_ascii2npy(targetVar):
     f = open(filename + '.txt', 'r')
     for i in range(num_lines):
         line = f.readline()
-        line = line.split(' ')
+        if ';' in line:
+            line = line.split(';')
+        else:
+            line = line.split(' ')
         line = [item for item in line if item!='']
 
         # Checks all lines has the same lengh
