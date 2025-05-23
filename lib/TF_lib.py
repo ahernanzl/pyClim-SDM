@@ -220,6 +220,7 @@ def train_point(targetVar, methodName, X, y, ipoint):
     # For precipitation trains classier+regression, but for temperature only regression
     if targetVar != 'pr':
 
+
         # Regressor
         if methodName == 'MLR':
             regressor = RidgeCV(cv=3)
