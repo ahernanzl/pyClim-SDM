@@ -585,7 +585,7 @@ reaNames = {'ua': 'u', 'va': 'v', 'ta': 't', 'zg': 'z', 'hus': 'q', 'hur': 'r', 
             'tasmax': 'mx2t', 'tasmin': 'mn2t', 'tas': 't2m',
             'pr': 'tp', 'uas': 'u10', 'vas': 'v10', 'sfcWind': 'ws',
             'hurs': '-', 'huss': '-', 'clt': 'tcc',
-            'rsds': 'issrd', 'rlds': 'istrd',
+            'rsds': 'ssrd', 'rlds': 'strd',
             'evspsbl': 'e', 'evspsblpot': '-',
             'mrro': 'ro', 'mrso': 'swvl1',
             'myTargetVar': 'fwi'}
