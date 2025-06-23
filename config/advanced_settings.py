@@ -337,7 +337,7 @@ for targetVar in targetVars:
     if os.path.isfile(pathHres + targetVar + '_hres_metadata.txt'):
         files_with_data = []
         for file in os.listdir(pathHres):
-            if file.endswith(".txt") and file.startswith(targetVar) and file!=targetVar + '_hres_metadata.txt':
+            if file.endswith(".txt") and file.startswith(targetVar+'_') and file!=targetVar + '_hres_metadata.txt':
                 newHresPeriodFilename = file.replace(targetVar, '').replace('_', '').replace('.txt', '')
                 hresPeriodFilename.update({targetVar: newHresPeriodFilename})
                 files_with_data.append(file)
