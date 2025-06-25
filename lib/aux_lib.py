@@ -265,7 +265,7 @@ def prepare_hres_data_ascii2npy(targetVar):
 
 
 ########################################################################################################################
-def fillNans(data):
+def fillNans_interpolation(data):
     """This function fills Nans with interpolation. If two adjacent borders are completely empty it cannot be solved
     Data shape: (ntimes, npreds, nlats, nlons
     """
@@ -372,4 +372,24 @@ def fillNans(data):
     else:
         filled = False
 
-    return data, filled
+    if filled == False:
+        print('filling NaN borders with nearest')
+
+        time, channel, lat, lon = data.shape
+
+        for t in range(time):
+            for c in range(channel):
+                slice_2d = data[t, c]  # shape (lat, lon)
+
+                mask = np.isnan(slice_2d)
+                coords_valid = np.array(np.nonzero(~mask)).T
+                values_valid = slice_2d[~mask]
+                coords_nan = np.array(np.nonzero(mask)).T
+                filled = slice_2d.copy()
+                if len(coords_nan) != 0:
+                    tree = cKDTree(coords_valid)
+                    _, idxs = tree.query(coords_nan, k=1)
+                    nearest_values = values_valid[idxs]
+                    filled[mask] = nearest_values
+                data[t, c] = filled
+    return data
