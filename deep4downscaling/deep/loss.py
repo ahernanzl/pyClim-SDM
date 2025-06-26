@@ -2,7 +2,9 @@
 This module contains loss functions for training deep learning
 downscaling models.
 
-Author: Jose González-Abad
+Authors:
+    Jose González-Abad
+    Alfonso Hernanz
 """
 
 import os
@@ -182,7 +184,7 @@ class NLLBerGammaLoss(nn.Module):
                             shape * torch.log(scale + epsilon) -
                             torch.lgamma(shape + epsilon) -
                             target / (scale + epsilon))
-        
+
         loss = -torch.mean(noRainCase + rainCase)
         return loss
 
@@ -200,9 +202,10 @@ class Asym(nn.Module):
     Notes
     -----
     This loss function relies on gamma distribution fitted for each gridpoint in the
-    spatial domain. This class provides all the methods require to fit these 
+    spatial domain. This class provides all the methods require to fit these
     distributions to the data.
-    The level of asymmetry can be adjusted by the pairs (asym_weight/cdf_pow) or (weight_list/perc_list), but not both.
+
+    The level of asymmetry can be adjusted by the pairs asym_weight and cdf_pow.
 
     Parameters
     ----------
@@ -210,7 +213,7 @@ class Asym(nn.Module):
         Whether to allow the loss function to ignore nans in the
         target domain.
 
-    asym_weight : positive float, optional
+    asym_weight : float, optional
         Weight for the asymmetric term at the loss function relative to the MAE term.
         Default value: 1 (as in Doury et al., 2024)
 
@@ -218,18 +221,6 @@ class Asym(nn.Module):
         Pow for the CDF at the asymmetric term of the loss function.
         Default value: 2 (as in Doury et al., 2024)
         Higher values make a bigger differentiation between the weight for high/low percentiles
-
-    weight_list : list of positive floats, optional
-        Weights for each range of percentiles at the asymmetric term of the loss function.
-        By default, the asymmetric term is defined by asym_weight and cdf_pow. In order to use weight_list and
-        perc_list instead, define asym_weight and cdf_pow as None.
-
-    perc_list : list of floats between 0-100, optional
-        List of percentiles to apply the weight_list at the asymmetric term of the loss function.
-        By default, the asymmetric term is defined by asym_weight and cdf_pow. In order to use weight_list and
-        perc_list instead, define asym_weight and cdf_pow as None.
-        From 0 to the firs percentile defined, the weight will be 0. From the first percentile to the next one, the
-        weight will be the first element of weight_list, and so on.
 
     asym_path : str
         Path to the folder to save the fitted distributions.
@@ -249,49 +240,26 @@ class Asym(nn.Module):
     """
 
     def __init__(self, ignore_nans: bool, asym_path: str,
-                 asym_weight: float=1.0, cdf_pow: float=2.0,
-                 weight_list: list=None, perc_list: list=None,
-                 appendix: str=None) -> None:
+                 asym_weight: float = 1.0, cdf_pow: float = 2.0,
+                 appendix: str = None) -> None:
         super(Asym, self).__init__()
 
-        # Check if asym_weight and cdf_pow are both None or both provided, and the same for weight_list/perc_list,
-        # and also that at least one pair is provided
-        if (asym_weight is not None and cdf_pow is None) or (asym_weight is None and cdf_pow is not None):
-            raise ValueError("Both 'asym_weight' and 'cdf_pow' must be either provided together or omitted together.")
-        if (weight_list is not None and perc_list is None) or (weight_list is None and perc_list is not None):
-            raise ValueError("Both 'weight_list' and 'perc_list' must be either provided together or omitted together.")
-        if not (asym_weight is not None and cdf_pow is not None) and not (weight_list is not None and perc_list is not None):
-            raise ValueError("At least one pair 'asym_weight'/'cdf_pow' or 'weight_list'/'perc_list'  must be provided")
+        # Ensure that asym_weight and cdf_pow are numeric values
+        if not isinstance(asym_weight, (int, float)):
+            raise ValueError("'asym_weight' must be a numeric value.")
+        if not isinstance(cdf_pow, (int, float)):
+            raise ValueError("'cdf_pow' must be a numeric value.")
 
-        # If asym_weight or cdf_pow are provided, ensure that weight_list and perc_list are None and asym_weight is
-        # positive
-        if asym_weight is not None or cdf_pow is not None:
-            if weight_list is not None or perc_list is not None:
-                raise ValueError(
-                    "If 'perc_list' or 'weight_list' are provided, 'cdf_pow' and 'asym_weight' must be None.")
-            if asym_weight < 0:
-                raise ValueError("'asym_weight' must be positive.")
-
-        # If weight_list or perc_list are provided, ensure that asym_weight and cdf_pow are None, perc_list and
-        # weight_list are of the same length, all weights in weight_list are positive and all percentiles in perc_list
-        # are between 0 and 100
-        if weight_list is not None or perc_list is not None:
-            if asym_weight is not None or cdf_pow is not None:
-                raise ValueError(
-                    "If 'weight_list' or 'perc_list' are provided, 'asym_weight' and 'cdf_pow' must be None.")
-            if len(weight_list) != len(perc_list):
-                raise ValueError("'weight_list' and 'perc_list' must have the same length.")
-            if any(w < 0 for w in weight_list):
-                raise ValueError("All elements in 'weight_list' must be positive.")
-            if any(p < 0 or p > 100 for p in perc_list):
-                raise ValueError("All elements in 'perc_list' must be between 0 and 100.")
+        # Convert to float if needed and check positiveness
+        asym_weight = float(asym_weight)
+        cdf_pow = float(cdf_pow)
+        if asym_weight < 0 or cdf_pow < 0:
+            raise ValueError("'asym_weight' and 'cdf_pow' must be positive.")
 
         self.ignore_nans = ignore_nans
         self.asym_path = asym_path
         self.asym_weight = asym_weight
         self.cdf_pow = cdf_pow
-        self.weight_list = weight_list
-        self.perc_list = perc_list
         self.appendix = appendix
 
     def parameters_exist(self):
@@ -341,7 +309,7 @@ class Asym(nn.Module):
         1D np.ndarray.
 
         Parameters
-        ----------      
+        ----------
         x : np.ndarray
             1D np.ndarray containing the precipitation values across time
             for a specific gridpoint.
@@ -362,7 +330,7 @@ class Asym(nn.Module):
             try: # Compute dist.
                 fit_shape, fit_loc, fit_scale = scipy.stats.gamma.fit(x)
             except: # If its not possible return nan
-                fit_shape, fit_loc, fit_scale = np.nan, np.nan, np.nan 
+                fit_shape, fit_loc, fit_scale = np.nan, np.nan, np.nan
             return fit_shape, fit_loc, fit_scale
 
     def compute_parameters(self, data: xr.Dataset, var_target: str):
@@ -372,7 +340,7 @@ class Asym(nn.Module):
         the parameters of a fitted gamma distribution for the wet days.
 
         Parameters
-        ----------      
+        ----------
         data : xr.Dataset
             Dataset containing the variable used as target in the model. It is
             important to provide it in the same way as it will be provided
@@ -396,7 +364,7 @@ class Asym(nn.Module):
 
         # Compute yearly mean
         gamma_params = np.nanmean(np.stack(gamma_params), axis=0)
-        
+
         self.shape = gamma_params[0, :]
         self.scale = gamma_params[2, :]
         self.loc = gamma_params[1, :]
@@ -473,13 +441,13 @@ class Asym(nn.Module):
             self.loc[torch.isnan(self.loc)] = 0
 
     def compute_cdf(self, data: torch.Tensor) -> torch.Tensor:
-    
+
         """
         Compute the value of the cumulative distribution function (CDF) for
         the data.
 
         Parameters
-        ----------      
+        ----------
         data : torch.Tensor
             Data (from the target dataset) to compute the CDF for.
         """
@@ -520,25 +488,9 @@ class Asym(nn.Module):
             target = target[~nans_idx]
             cdfs = cdfs[~nans_idx]
 
-        # Using asym_weight and cdf_pow
-        if self.asym_weight is not None:
-            loss_mae = torch.mean(torch.abs(target - output))
-            loss_asym = torch.mean((cdfs ** self.cdf_pow) * torch.max(torch.tensor(0.0), target - output))
-            loss = loss_mae + self.asym_weight * loss_asym
-
-        # Using weight_list and perc_list
-        else:
-            loss = []
-            for i in range(len(self.weight_list)):
-                w_i, p_min, p_max = self.weight_list[i], self.perc_list[i] / 100, 1
-                if len(self.weight_list) > i + 1:
-                    p_max = self.perc_list[i + 1] / 100
-                cdf_i = torch.clone(cdfs)
-                cdf_i[cdf_i < p_min] = 0
-                cdf_i[cdf_i > p_max] = 0
-                loss_i = torch.mean(
-                    torch.abs(target - output) + (cdf_i * w_i) * torch.max(torch.tensor(0.0), target - output))
-                loss.append(loss_i)
-            loss = torch.mean(torch.stack(loss))
+        # Compute the loss
+        loss_mae = torch.mean(torch.abs(target - output))
+        loss_asym = torch.mean((cdfs ** self.cdf_pow) * torch.max(torch.tensor(0.0), target - output))
+        loss = loss_mae + self.asym_weight * loss_asym
 
         return loss

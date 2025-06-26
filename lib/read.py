@@ -339,19 +339,36 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 level = int(pred[-3:])
             else:
                 level = None
-            try:
+
+            if level is not None:
+                pred += str(level)
+            if scene in ('historical', 'HISTORICAL'):
+                periodFilename = historicalPeriodFilename
+            else:
+                periodFilename = sspPeriodFilename
+            pathIn = '../input_data/models/'
+            if pred in targetVars:
+                ncVar = modNames[pred]
+            else:
+                for aux_level in all_levels:
+                    pred = pred.replace(str(aux_level), '')
+                ncVar = modNames[predName]
+            modelName, modelRun = model.split('_')[0], model.split('_')[1]
+            filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
+
+            if os.path.isfile(pathIn + filename):
                 aux = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)
                 dates = aux['times']
                 calendar = aux['calendar']
                 datesDefined = True
                 break
-            except:
-                pass
+
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF models files')
             print('Make sure your input_data/models directory contains the needed files.')
             print('Make sure your models and reanalysis contain the exact same grid. See https://github.com/ahernanzl/pyClim-SDM/issues/43#issuecomment-2238445818')
             print('At least one direct predictors is needed, not only derived predictors.')
+            print('Make sure your model files are named properly')
             exit()
 
     ndates = len(dates)
@@ -376,17 +393,30 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 pass
         if datesDefined == False:
             for ipred in range(len(all_preds.keys())):
-                try:
-                    ncName = list(all_preds.keys())[ipred]
-                    aux_times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)[
-                        'times']
-                    datesDefined = True
-                    break
-                except:
-                    pass
+                ncName = list(all_preds.keys())[ipred]
+
+                if level is not None:
+                    pred += str(level)
+
+                if model == 'reanalysis':
+                    pathIn = '../input_data/reanalysis/'
+                    if pred in targetVars:
+                        ncVar = reaNames[predName]
+                    else:
+                        for aux_level in all_levels:
+                            pred = pred.replace(str(aux_level), '')
+                        ncVar = reaNames[pred]
+                    filename = ncVar + '_' + reanalysisName + '_' + reanalysisPeriodFilename + '.nc'
+                    if os.path.isfile(pathIn + filename):
+                        aux_times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)[
+                            'times']
+                        datesDefined = True
+                        break
+
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF reanalysis files')
             print('At least one direct predictors is needed, not only derived predictors.')
+            print('Make sure your reanalysis files are named properly')
             exit()
 
         years = list(set([x.year for x in dates]))

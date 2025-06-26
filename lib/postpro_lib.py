@@ -614,7 +614,8 @@ def figures_projections(lan='EN'):
         # Define and create paths
         path = '../results/PROJECTIONS'+bc_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
         pathIn = path + 'climdex/'
-        pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
+        # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
+        pathRaw = '../results/PROJECTIONS/' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
         pathOut = path + 'climdex/figures/'
 
         try:
@@ -721,9 +722,9 @@ def figures_projections(lan='EN'):
                         raw_ssp_dict = get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_name, season, pathRaw, iaux)
 
                         # Evolution figures of mean trend in the whole region vs RAW
-                        if activate_plot_evolTrendRaw == True:
+                        if activate_plot_trendPreservation == True:
                             if (regType == typeCompleteRegion):
-                                trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local,
+                                trendPreservation(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local,
                                           ylim_dict[climdex_name], ylabel_dict[climdex_name], season, targetVar, methodName,
                                           regType, regName, xlabel)
 
@@ -751,10 +752,10 @@ def figures_projections(lan='EN'):
 
 
 ########################################################################################################################
-def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel,
+def trendPreservation(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_local, ssp_years_local, ylim, ylabel,
               season, targetVar, methodName, regType, regName, xlabel, add_historical=True):
 
-    print('evolTrendRaw', methodName, targetVar, climdex_name, season)
+    print('trendPreservation', methodName, targetVar, climdex_name, season)
     for scene in collections.OrderedDict(sorted(ssp_dict.items())).keys():
         if scene != 'historical':
             ssp_dict_scene = ssp_dict[scene]
@@ -874,7 +875,7 @@ def trend_raw(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, hist_years_
             plt.legend()
             # plt.show()
             # exit()
-            filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTrendRaw', targetVar, climdex_name, methodName+'-'+scene, season))
+            filename = '_'.join(('PROJECTIONS'+bc_sufix, 'trendPreservation', targetVar, climdex_name, methodName+'-'+scene, season))
             # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
             if (plotAllRegions == False):
                 # plt.title(methodName, fontsize=title_size)

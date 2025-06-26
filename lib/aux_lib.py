@@ -49,6 +49,14 @@ def initial_checks():
     Check for living jobs and kill them (optional)
     """
 
+    # Check input data folders
+    if not os.path.isdir("../input_data/reanalysis"):
+        exit("../input_data/reanalysis directory not found")
+    if not os.path.isdir("../input_data/hres"):
+        exit("../input_data/hres directory not found")
+    if not os.path.isdir("../input_data/models"):
+        exit("../input_data/models directory not found")
+
     # Create needed paths
     if not os.path.exists('../job/'):
         os.makedirs('../job/')

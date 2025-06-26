@@ -2790,7 +2790,7 @@ class tabFigures(tk.Frame):
                                          'multimodel ensemble mean (mean change). Absolute anomaly for tmax/tmin and '
                                          'relative anomaly for pcp.',
             'PROJECTIONS_spreadChangeMap': 'Standard deviation in the anomaly given by the multimodel ensemble (spread).',
-            'PROJECTIONS_evolTrendRaw': 'Evolution graph, by one method vs. raw models, of one variable by the '
+            'PROJECTIONS_trendPreservation': 'Evolution graph, by one method vs. raw models, of one variable by the '
                                         'multimodel ensemble (the central line represents 50th percentile and the '
                                         'shaded area represents IQR), in the form of anomaly with respect to the '
                                         'reference period (absolute anomaly for tmax/tmin and relative anomaly for pcp).'
