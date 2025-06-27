@@ -1,14 +1,9 @@
-# showWelcomeMessage = True # For graphical mode
-
 
 ########################################       EXPERIMENT      #########################################################
 # Select your current experiment type
 # experiment = 'PRECONTROL'
 experiment = 'EVALUATION'
 # experiment = 'PROJECTIONS'
-
-# hres_type = 'Stations'
-# hres_type = 'Grid'
 
 ####################################################################################################################
 #                                        targetVars                                                                   #
@@ -556,16 +551,6 @@ methods = {
 calibration_years = (1979, 2020)
 single_split_testing_years = (2006, 2020)
 
-# Activate one of the following training/testing split options
-# split_mode  = 'all_training'
-# split_mode = 'all_testing'
-split_mode = 'single_split'
-# split_mode = 'fold1'
-# split_mode = 'fold2'
-# split_mode = 'fold3'
-# split_mode = 'fold4'
-# split_mode = 'fold5' # This last fold will automatically join the 5 folds
-
 # Reference: for standardization and future signal of change. The choice of the reference period is constrained by
 # availability of reanalysis, historical GCMs and hres data.
 reference_years = (1979, 2005)
@@ -601,27 +586,6 @@ modNames = {'ua': 'ua', 'va': 'va', 'ta': 'ta', 'zg': 'zg', 'hus': 'hus', 'hur':
             'evspsbl': 'evspsbl', 'evspsblpot': 'evspsblpot',
             'mrro': 'mrro', 'mrso': 'mrso',
             'myTargetVar': 'fwi'}
-
-predsType_targetVars_dict = {
-    'tasmax': 'local',
-    'tasmin': 'local',
-    'tas': 'local',
-    'pr': 'local',
-    'uas': 'local',
-    'vas': 'local',
-    'sfcWind': 'local',
-    'hurs': 'local',
-    'huss': 'local',
-    'clt': 'local',
-    'rsds': 'local',
-    'rlds': 'local',
-    'evspsbl': 'local',
-    'evspsblpot': 'local',
-    'psl': 'local',
-    'ps': 'local',
-    'mrro': 'local',
-    'mrso': 'local',
-}
 
 preds_targetVars_dict = {
     'tasmax': [
@@ -2684,37 +2648,8 @@ climdex_names = {
     }
 
 
-###################################     Seasons           #################################################
-# Season values can be adapted, but once they have been set do not change, because they are used both for filenames
-# and for titles in figures. Never change keys of dictionary, that is what the program uses internally. Just change
-# the values of the dictionary
-# inverse_seasonNames = ['ANUAL',
-#                        'INVIERNO', 'INVIERNO', 'PRIMAVERA',
-#                        'PRIMAVERA', 'PRIMAVERA', 'VERANO',
-#                        'VERANO', 'VERANO', 'OTOÑO',
-#                        'OTOÑO',  'OTOÑO',  'INVIERNO']
-inverse_seasonNames = ['ANNUAL',
-                       'DJF', 'DJF', 'MAM',
-                       'MAM', 'MAM', 'JJA',
-                       'JJA', 'JJA', 'SON',
-                       'SON',  'SON',  'DJF']
-# inverse_seasonNames = ['ANNUAL',
-#                        'DRY', 'DRY', 'DRY', 'DRY',
-#                        'dry2wet',
-#                        'WET', 'WET', 'WET', 'WET', 'WET',
-#                        'wet2dry',  'wet2dry']
-
-
-###################################     Bias correction   #################################################
-apply_bc = True    # Apply bias correction after downscaling
-apply_bc_bySeason = True # Apply bias correction customized for each season after downcaling
-
-# bc_method = 'QM'
-# bc_method = 'DQM'
-bc_method = 'QDM'
-# bc_method = 'PSDM'
-
-
+##################################     bias correction           #################################################
+apply_bc = True
 
 ###################################     myTargetVar           #################################################
 myTargetVarName = 'fwi'

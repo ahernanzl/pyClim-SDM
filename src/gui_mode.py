@@ -167,231 +167,184 @@ def CreateToolTip(widget, text):
 
 
 ########################################################################################################################
-class welcomeMessage(tk.Frame):
-    """This function displays a welcome message which can be enabled for next runs"""
-
-    def __init__(self):
-        if showWelcomeMessage == True:
-            root = tk.Tk()
-            root.title("Welcome to pyClim-SDM")
-
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
-            totalW, totalH = 1280, 620
-            if (screen_width < totalW) or (screen_height < totalH):
-                print('Your screen resolution is too small. ')
-                print('Please change your screen resolution to the minimum required resolution: w='+str(totalW)+' and h='+str(totalH)+'.')
-                print(
-                    'If not possible, you can use pyClim-SDM without graphical user interface by editing config/manual_settings.py')
-                print('and src/manual_mode.py, and running the last one.')
-                exit()
-
-            welcomeWinW, welcomeWinH = 900, 600
-            root.minsize(welcomeWinW, welcomeWinH)
-            root.maxsize(welcomeWinW, welcomeWinH)
-            offset = int((totalW-welcomeWinW)/2)
-            root.geometry(str(welcomeWinW)+'x'+str(welcomeWinH)+'+'+str(offset)+'+50')
-
-            # frameLogo
-            frameLogo = Frame(root)
-            frameLogo.grid(column=0, row=0, padx=0)
-
-            # Logo
-            Label(root, text='', borderwidth=0, background=None).grid(sticky="SE", column=0, row=0, pady=0)
-            w = 800
-            img = Image.open("../doc/pyClim-SDM_logo.png")
-            h = int(w * img.height / img.width)
-            try:
-                img = img.resize((w, h), Image.Resampling.LANCZOS)
-            except:
-                img = img.resize((w, h), Image.ANTIALIAS)
-            img = ImageTk.PhotoImage(img)
-            canvas = Canvas(frameLogo, width=w, height=h)
-            canvas.create_image(0, 0, anchor=NW, image=img)
-            canvas.grid(column=0, row=1, padx=0, pady=0)
-
-            # frameMsg
-            frameMsg = Frame(root)
-            frameMsg.grid(sticky="W", column=0, row=1, padx=150, pady=0)
-
-            dontShowAgain_local = tk.BooleanVar()
-            l = Label(frameMsg,
-                text="Welcome to pyClim-SDM. Please, create an input_data directory following the structure and \n"
-                     "format indicated in the input_data_template, where example datasets have been included.\n",
-            )
-            l.pack(padx=20, pady=0, fill='both')
-            c = Checkbutton(frameMsg, text="Do not show this dialog again", variable=dontShowAgain_local)
-            c.pack(padx=10, pady=10)
-            self.run = False
-            def run():
-                self.run = True
-                root.destroy()
-            b = Button(frameMsg, text="Ok", command=run)
-            b.pack(padx=20, pady=10)
-            b.mainloop()
-
-            self.showWelcomeMessage_new = not dontShowAgain_local.get()
-        else:
-            self.run = True
-            self.showWelcomeMessage_new = False
-
-    def get(self):
-        return self.run, self.showWelcomeMessage_new
-
-
-########################################################################################################################
 class tabSteps(tk.Frame):
 
     def __init__(self, notebook, root):
 
         tabSteps = tk.Frame(notebook)
         notebook.add(tabSteps, text='Experiment and Steps')
+
+        # frameSteps
+        frameSteps = Frame(tabSteps)
+        frameSteps.grid(sticky="W", column=0, row=0, padx=80, pady=10, rowspan=2)
+
+        # frameDates
+        frameDates = Frame(tabSteps)
+        frameDates.grid(sticky="W", column=1, row=0, padx=80, pady=10)
+
+        # frameBiasCorrection
+        frameBiasCorrection = Frame(tabSteps)
+        frameBiasCorrection.grid(sticky="W", column=1, row=1, padx=80, pady=10)
+
+
         self.chk_dict = {}
         self.rdbuts = []
         self.chk_only_for_experiment = []
         self.steps_ordered = []
-        self.exp_ordered = []
 
-        irow = 0
-        tk.Label(tabSteps, text="").grid(column=0, row=irow, padx=50)
-        tk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=1
-
-        # frameExplanation
-        frameExplanation = Frame(tabSteps)
-        frameExplanation.grid(sticky="W", column=1, row=irow, padx=10, pady=10, columnspan=10)
-        icol, irow = 0, 0
-        explanation = 'Before running the different steps, select the methods and predictors to be used. For the GCMs evaluation, the selected predictors will be analyzed.\n' \
-                      'Do not run a step before the previous steps have finished succesfully. When working at an HPC, wait for previous jobs to finish. Steps "Train methods", \n' \
-                      '"Downscale", "Bias correcion" and "Calculate climdex" are prepared to be done as jobs, in parallel.\n'
-        tk.Label(frameExplanation, text=explanation).grid(sticky="W", column=icol, row=irow, padx=30, pady=20, columnspan=4)
-
-        tk.Label(tabSteps, text="").grid(column=1, row=irow, pady=10); irow+=5
+        irow = 0; icol = 0
 
         # Experiment
-        icol = 1
-        tk.Label(tabSteps, text="Select experiment:").grid(sticky="E", column=icol, row=irow, padx=10, pady=15); icol+=1
-        self.experiment = StringVar()
-        experiments = {'PRECONTROL': 'Evaluation of predictors and GCMs previous to dowscaling',
-                       'EVALUATION': 'Evaluate methods using a reanalysis over a historical period',
-                       'PROJECTIONS': 'Apply methods to dowscale climate projections'}
-        for exp in experiments:
-            c = Radiobutton(tabSteps, text=exp, variable=self.experiment, value=exp,
-                            command=lambda: switch_steps(self.experiment.get(), steps, self.steps_ordered,
-                            self.exp_ordered, self.chk_only_for_experiment), takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow, padx=30); icol+=1
-            CreateToolTip(c, experiments[exp])
-            self.experiment.set(experiment)
 
-        irow += 2
-        icol = 1
+        tk.Label(frameSteps, text="Select steps and experiment:").grid(sticky="E", column=icol, row=irow, padx=50, pady=50); irow+=1
+        # tk.Label(frameSteps, text="").grid(column=icol, row=irow, pady=5); irow+=1
 
-        # Steps definition
-        tk.Label(tabSteps, text="Select steps:").grid(sticky="E", column=icol, row=irow, padx=10); irow+=1
-
-        steps = {'PRECONTROL': {
-                 'check_var_units': {'text': 'Check units', 'info':  'Check units for all variables from reanalysis and GCMs.',},
-                 'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
+        steps_before = {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
                                                                    'resolution grid, calculation of derived predictors, \n'
                                                                    'standardization of predictors, training/testing split \n'
                                                                    'and weather types clustering.'},
-                 'missing_data_check': {'text': 'Missing data check', 'info':  'Check for missing data in predictors by GCMs.',},
-                 'predictors_correlation': {'text': 'Predictors correlation', 'info': 'Test the strength of the\n'
-                                                                      'predictors/predictand relationships.'},
-                 'GCMs_evaluation': {'text': 'GCMs evaluation', 'info': 'Test the reliability of GCMs in a historical period\n'
-                                                                            'comparing them with a reanalysis, and also the\n'
-                                                                            'uncertainty in the future.'},},
-
-                 'EVALUATION': {
-                 'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
-                                                                   'resolution grid, calculation of derived predictors, \n'
-                                                                   'standardization of predictors, training/testing split \n'
-                                                                   'and weather types clustering.'},
-                'train_methods': {'text': 'Train methods', 'info': 'Train of all selected methods. \n'
+                'train_methods': {'text': 'Training', 'info': 'Train of all selected methods. \n'
                                                                    'If you are working in a HPC, you can assign different \n'
                                                                    'configuration (number of nodes, memory, etc) to each \n'
                                                                    'method by editing the lib/launch_jobs.py file.'},
-                'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
-                                                           'working in a HPC, you can assign different configuration \n'
-                                                           '(number of nodes, memory, etc) to each method by editing the \n'
-                                                           'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
-                                                           'results/ directory.'},
-                'bias_correction': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
-                'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
-                'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
-                                                                 'A different set of figures will be generated depending on the \n'
-                                                                 'selected experiment (EVALUATION / PROJECTIONS).'},
-                 'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'}},
+                }
 
-                 'PROJECTIONS': {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
-                                                                   'resolution grid, calculation of derived predictors, \n'
-                                                                   'standardization of predictors, training/testing split \n'
-                                                                   'and weather types clustering.'},
-                'train_methods': {'text': 'Train methods', 'info': 'Train of all selected methods. \n'
-                                                                   'If you are working in a HPC, you can assign different \n'
-                                                                   'configuration (number of nodes, memory, etc) to each \n'
-                                                                   'method by editing the lib/launch_jobs.py file.'},
-                'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
-                                                           'working in a HPC, you can assign different configuration \n'
-                                                           '(number of nodes, memory, etc) to each method by editing the \n'
-                                                           'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
-                                                           'results/ directory.'},
-                'bias_correction': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
-                'calculate_climdex': {'text': 'Calculate climdex', 'info': 'Calculate all selected climdex.'},
-                'plot_results': {'text': 'Plot results', 'info': 'Generate figures and storage them in results/figures/. \n'
-                                                                 'A different set of figures will be generated depending on the \n'
-                                                                 'selected experiment (EVALUATION / PROJECTIONS).'},
-                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'}}}
 
-        self.all_steps = steps
+        self.steps_before = steps_before
 
         # Create steps_ordered
-        for exp_name in (experiments):
-            for step in steps[exp_name]:
-                self.steps_ordered.append(step)
-                self.exp_ordered.append(exp_name)
+        for step in steps_before:
+            self.steps_ordered.append(step)
 
         # Steps check buttons
-        irow -= 1
-        for exp_name in (experiments):
-            nrows = 0
-            icol +=1
-            aux_dict = {}
-            for step in steps[exp_name]:
-                checked = tk.BooleanVar()
-                c = Checkbutton(tabSteps, text=steps[exp_name][step]['text'], variable=checked, takefocus=False)
-                c.grid(sticky="W", column=icol, row=irow, padx=50); irow+=1
-                CreateToolTip(c, steps[exp_name][step]['info'])
-                aux_dict.update({step: checked})
-                self.chk_only_for_experiment.append(c)
-                if exp_name == experiment:
-                    c.config(state='normal')
-                else:
-                    c.config(state='disabled')
-                nrows += 1
-            self.chk_dict.update({exp_name: aux_dict})
-            irow -= nrows
+        for step in steps_before:
+            checked = tk.BooleanVar()
+            c = Checkbutton(frameSteps, text=steps_before[step]['text'], variable=checked, takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=50); irow+=1
+            # CreateToolTip(c, steps_before[step]['info'])
+            self.chk_dict.update({step: checked})
+
+        tk.Label(frameSteps, text="").grid(column=icol, row=irow, pady=0); irow+=1
+        self.experiment = StringVar()
+        experiments = {
+           'EVALUATION': '(Reanalysis)',
+           'PROJECTIONS': '(Global Climate Models)',
+        }
+
+        irow += 1
+        for exp in experiments:
+            c = Radiobutton(frameSteps, text=exp+' '+experiments[exp], variable=self.experiment, value=exp,
+                            command=lambda: switch_steps(self.experiment.get(), steps, self.steps_ordered,
+                            self.exp_ordered, self.chk_only_for_experiment), takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=50)
+            # CreateToolTip(c, experiments[exp])
+            self.experiment.set(experiment)
+            irow += 1
+        tk.Label(frameSteps, text="").grid(column=icol, row=irow, pady=0); irow+=1
+        irow += 1
+
+        steps_after = {'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
+                                                           'working in a HPC, you can assign different configuration \n'
+                                                           '(number of nodes, memory, etc) to each method by editing the \n'
+                                                           'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
+                                                           'results/ directory.'},
+                # 'bias_correction': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
+                'calculate_climdex': {'text': 'Calculate climate indices', 'info': 'Calculate all selected climdex.'},
+                'plot_results': {'text': 'Generate figures', 'info': 'Generate figures and storage them in results/figures/. \n'
+                                                                 'A different set of figures will be generated depending on the \n'
+                                                                 'selected experiment (EVALUATION / PROJECTIONS).'},
+                 'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'},
+        }
+
+        self.steps_after = steps_after
+
+        # Create steps_ordered
+        for step in steps_after:
+            self.steps_ordered.append(step)
+
+        # Steps check buttons
+        for step in steps_after:
+            checked = tk.BooleanVar()
+            c = Checkbutton(frameSteps, text=steps_after[step]['text'], variable=checked, takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=50); irow+=1
+            # CreateToolTip(c, steps_after[step]['info'])
+            self.chk_dict.update({step: checked})
+
+        self.all_steps = {}
+        for step in self.steps_before:
+            self.all_steps.update({step: self.steps_before[step]})
+        for step in self.steps_after:
+            self.all_steps.update({step: self.steps_after[step]})
 
 
-        # irow += (nrows + 1)
-        # icol -= 1
-        #
-        # frameHresType = Frame(tabSteps)
-        # frameHresType.grid(sticky="W", column=icol, row=irow, padx=10, pady=50)
-        # Label(frameHresType, text="Select your high resolution data type:").grid(sticky="W", column=icol, row=irow, pady=10, columnspan=2); irow+=1
-        #
-        # self.hres_type = tk.StringVar()
-        # self.hres_type.set(hres_type)
-        # self.radio_stations = Radiobutton(frameHresType, text='Stations', variable=self.hres_type, value="Stations", takefocus=False)
-        # self.radio_stations.grid(sticky="W", column=icol, row=irow, padx=1, columnspan=1); icol += 1
-        # self.radio_grid = Radiobutton(frameHresType, text='Grid', variable=self.hres_type, value="Grid", takefocus=False)
-        # self.radio_grid.grid(sticky="W", column=icol, row=irow, padx=1, columnspan=1)
-        # irow += 1
+        icol = 0; irow = 0
+
+        tk.Label(frameDates, text="Select your dates:").grid(sticky="W", column=icol, row=irow, padx=50, pady=50, columnspan=100); irow+=1
+        tk.Label(frameDates, text="The calibration period needs to be available for reanalysis and hres data.").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
+        tk.Label(frameDates, text="The reference period needs to be available for reanalysis, hres data and models historical simulations.").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
+        tk.Label(frameDates, text="The testing period is the part of the calibration period reserved for testing (not used for training).").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
+        tk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
+
+        # Years
+        for (text, var, info) in [
+            ('Calibration years:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
+                                                'which then can be split for training and testing'),
+            ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
+                                            'The choice of the reference period is constrained by availability of \n'
+                                            'reanalysis, historical GCMs and hres data.'),
+            ('Testing years:', testing_years, 'Years for testing (not used during the training)'),
+            ]:
+
+            lab = tk.Label(frameDates, text=text)
+            CreateToolTip(lab, info)
+            lab.grid(sticky="E", column=icol, row=irow, padx=8); icol+=1
+
+            firstYear, lastYear = var[0], var[1]
+            firstYear_var = tk.StringVar()
+            firstYear_Entry = ttk.Entry(frameDates, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
+            firstYear_Entry.insert(END, firstYear)
+            firstYear_Entry.grid(sticky="W", column=icol, row=irow); icol+=1
+            Label(frameDates, text='-').grid(sticky="E", column=icol, row=irow, padx=3); icol+=1
+            lastYear_var = tk.StringVar()
+            lastYear_Entry = ttk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
+            lastYear_Entry.insert(END, lastYear)
+            lastYear_Entry.grid(sticky="W", column=icol, row=irow)
+            irow+=1; icol-=1
+
+            if text == 'Calibration years:':
+                self.calibration_years = (firstYear_var, lastYear_var)
+            elif text == 'Reference years:':
+                self.reference_years = (firstYear_var, lastYear_var)
+            elif text == 'Testing years:':
+                self.single_split_testing_years = (firstYear_var, lastYear_var)
+            icol -= 2
+
+
+        # Bias correction
+
+        irow = 0; icol = 0
+        self.bc_option = StringVar()
+        bc_options = {
+            'No': 'Do not apply bias correction after downscaling.',
+            'Yes': 'Apply bias correction after downscaling.',
+        }
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=30, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
+        if apply_bc == False:
+            last_bc_opt = 'No'
+        else:
+            last_bc_opt = 'Yes'
+        for bc_opt in bc_options:
+            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, command=lambda: switch_bc_method(self.bc_option.get(), bc_mehods_bt), takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
+            self.bc_option.set(last_bc_opt)
+        icol+=1; irow-=3
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0); icol+=1
 
     def get(self):
-        return (self.experiment,
-                # self.hres_type,
-                self.chk_dict, self.all_steps)
-
+        return (self.experiment, self.chk_dict, self.all_steps,
+                self.calibration_years, self.reference_years, self.single_split_testing_years,
+                self.bc_option)
 
 
 ########################################################################################################################
@@ -678,209 +631,6 @@ class tabDomain(tk.Frame):
 
 
 
-########################################################################################################################
-class tabDates(tk.Frame):
-
-    def __init__(self, notebook):
-        tabDates = tk.Frame(notebook)
-        notebook.add(tabDates, text='Dates')
-        padx = 100
-
-        # frameDates
-        frameDates = Frame(tabDates)
-        frameDates.grid(sticky="W", column=0, row=0, padx=padx, pady=10)
-
-        # frameSplitMode
-        frameSplitMode = Frame(tabDates)
-        frameSplitMode.grid(sticky="W", column=0, row=1, padx=padx, pady=10)
-
-        # frameBiasCorrection
-        frameBiasCorrection = Frame(tabDates)
-        frameBiasCorrection.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
-
-        # frameSeasons
-        frameSeasons = Frame(tabDates)
-        frameSeasons.grid(sticky="W", column=1, row=1, padx=padx, pady=10, rowspan=2)
-
-
-        icol, irow = 0, 0
-        tk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50, pady=10, columnspan=100); irow+=1
-        tk.Label(frameDates, text="").grid(sticky="W", column=icol, row=irow, padx=50); icol += 1
-
-        # Years
-        for (text, var, info) in [
-            ('Calibration years:', calibration_years, 'Longest period available by both reanalysis and hres data, \n'
-                                                'which then can be split for training and testing'),
-            ('Reference years:', reference_years, 'For standardization and as reference climatology. \n'
-                                            'The choice of the reference period is constrained by availability of \n'
-                                            'reanalysis, historical GCMs and hres data.'),
-            ]:
-
-            lab = tk.Label(frameDates, text=text)
-            CreateToolTip(lab, info)
-            lab.grid(sticky="E", column=icol, row=irow, padx=8); icol+=1
-
-            firstYear, lastYear = var[0], var[1]
-            firstYear_var = tk.StringVar()
-            firstYear_Entry = ttk.Entry(frameDates, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
-            firstYear_Entry.insert(END, firstYear)
-            firstYear_Entry.grid(sticky="W", column=icol, row=irow); icol+=1
-            Label(frameDates, text='-').grid(sticky="E", column=icol, row=irow, padx=3); icol+=1
-            lastYear_var = tk.StringVar()
-            lastYear_Entry = ttk.Entry(frameDates, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
-            lastYear_Entry.insert(END, lastYear)
-            lastYear_Entry.grid(sticky="W", column=icol, row=irow)
-            irow+=1; icol-=1
-
-            if text == 'Calibration years:':
-                self.calibration_years = (firstYear_var, lastYear_var)
-            elif text == 'Reference years:':
-                self.reference_years = (firstYear_var, lastYear_var)
-            icol -= 2
-
-
-
-        entriesW = 17
-
-        # Bias correction
-        irow, icol = 0, 0
-        self.bc_option = StringVar()
-        bc_options = {
-            'No': 'Do not apply bias correction after downscaling.',
-            'Yes': 'Apply bias correction after downscaling.',
-            'By season': 'Apply a customized bias correction after downscaling for each season.',
-        }
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=30, columnspan=3); irow+=1
-        Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
-        if apply_bc == False:
-            last_bc_opt = 'No'
-        elif apply_bc_bySeason == False:
-            last_bc_opt = 'Yes'
-        else:
-            last_bc_opt = 'By season'
-        for bc_opt in bc_options:
-            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, command=lambda: switch_bc_method(self.bc_option.get(), bc_mehods_bt), takefocus=False)
-            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
-            self.bc_option.set(last_bc_opt)
-        icol+=1; irow-=3
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0); icol+=1
-        Label(frameBiasCorrection, text='Method:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
-        bc_methods = {
-            'QM': 'Quantile Mapping',
-            'DQM': 'Detrended Quantile Mapping',
-            'QDM': 'Quantile Delta Mapping',
-            'PSDM': '(Parametric) Scaled Distribution Mapping',
-        }
-        self.bc_method = StringVar()
-        bc_mehods_bt = []
-        for bc_meth in bc_methods:
-            c1 = Radiobutton(frameBiasCorrection, text=bc_meth, variable=self.bc_method, value=bc_meth, takefocus=False)
-            c1.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
-            CreateToolTip(c1, bc_methods[bc_meth])
-            self.bc_method.set(bc_method)
-            bc_mehods_bt.append(c1)
-        switch_bc_method(last_bc_opt, bc_mehods_bt)
-
-
-        # Train/test split
-        self.split_mode = StringVar()
-        irow, icol = 0, 0
-        Label(frameSplitMode, text='Define how to split the calibration period for training/testing:')\
-            .grid(sticky="W", column=icol, row=irow, columnspan=10, padx=30, pady=10); irow += 1; icol+=2
-
-        def add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol):
-
-            c = Radiobutton(frameSplitMode, text=str(text), variable=self.split_mode, value=split_modeName,
-                            command=lambda: switch_splitMode(split_modeName, self.dict_buttons), takefocus=False)
-
-            c.grid(sticky="W", column=icol, row=irow)
-            CreateToolTip(c, info)
-            self.split_mode.set(split_mode)
-
-            if split_modeName in ('single_split', ):
-                icol+=2
-                firstYear, lastYear = years[0], years[1]
-                firstYear_var = tk.StringVar()
-                firstYearTesting_Entry = ttk.Entry(frameSplitMode, textvariable=firstYear_var, width=6, justify='right', takefocus=False)
-                firstYearTesting_Entry.insert(END, firstYear)
-                if split_modeName != split_mode:
-                    firstYearTesting_Entry.config(state='disabled')
-                firstYearTesting_Entry.grid(sticky="E", column=icol, row=irow);
-                icol += 1
-                Label(frameSplitMode, text='-').grid(column=icol, row=irow);
-                icol += 1
-                lastYear_var = tk.StringVar()
-                lastYearTesting_Entry = ttk.Entry(frameSplitMode, textvariable=lastYear_var, width=6, justify='right', takefocus=False)
-                lastYearTesting_Entry.insert(END, lastYear)
-                if split_modeName != split_mode:
-                    lastYearTesting_Entry.config(state='disabled')
-                lastYearTesting_Entry.grid(sticky="W", column=icol, row=irow)
-                self.testing_years_dict.update({split_modeName: (firstYear_var, lastYear_var)})
-                self.dict_buttons.update({split_modeName: [c, firstYearTesting_Entry, lastYearTesting_Entry]})
-                icol -= 4
-            # else:
-            #     self.dict_buttons.update({split_modeName: [c, None, None]})
-
-
-        self.testing_years_dict = {}
-
-        self.dict_buttons = {}
-
-        for (text, split_modeName, years, info) in [
-            ('All training', 'all_training', None, 'The whole calibration period is used for training'),
-            ('All testing', 'all_testing', None, 'The whole calibration period is used for testing'),
-            ('Testing years', 'single_split', single_split_testing_years, 'Single train/test split'),
-            ('k-fold 1/5', 'fold1', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 2/5', 'fold2', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 3/5', 'fold3', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 4/5', 'fold4', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ('k-fold 5/5', 'fold5', None, 'When downscaling k-fold 5/5, the five k-folds will be authomatically joined'),
-            ]:
-
-            add_splitMode_button_and_years(text, split_modeName, years, info, irow, icol)
-
-            irow+=1
-
-
-        # season_dict
-        self.seasons = []
-        def add_season(xMonth, text, seasonName, irow, icol):
-            monthsVar = tk.StringVar()
-            Label(frameSeasons, text=text).grid(sticky="E", column=icol, row=irow, padx=10); icol+=1
-            seasonName_Entry = ttk.Entry(frameSeasons, textvariable=monthsVar, width=10, justify='right',
-                                        takefocus=False)
-            seasonName_Entry.insert(END, seasonName)
-            seasonName_Entry.grid(sticky="E", column=icol, row=irow)
-            self.seasons.append(monthsVar)
-            icol -= 1
-
-        icol, irow = 0, 0
-        Label(frameSeasons, text='Define season names:').grid(sticky="W", column=icol, row=irow, padx=10, pady=(35, 15), columnspan=5); irow+=1
-        for (xMonth, text, seasonName) in [
-            (0, 'All year:', inverse_seasonNames[0]),
-            (1, 'Jan:', inverse_seasonNames[1]),
-            (2, 'Feb:', inverse_seasonNames[2]),
-            (3, 'Mar:', inverse_seasonNames[3]),
-            (4, 'Apr:', inverse_seasonNames[4]),
-            (5, 'May:', inverse_seasonNames[5]),
-            (6, 'Jun:', inverse_seasonNames[6]),
-            (7, 'Jul:', inverse_seasonNames[7]),
-            (8, 'Aug:', inverse_seasonNames[8]),
-            (9, 'Sep:', inverse_seasonNames[9]),
-            (10, 'Oct:', inverse_seasonNames[10]),
-            (11, 'Nov:', inverse_seasonNames[11]),
-            (12, 'Dec:', inverse_seasonNames[12]),
-            ]:
-            add_season(xMonth, text, seasonName, irow, icol)
-            irow += 1
-
-
-
-    def get(self):
-        return self.calibration_years, self.reference_years, self.bc_option, \
-               self.bc_method, self.testing_years_dict, self.split_mode, self.seasons
-
-
 
 ########################################################################################################################
 class framePredictorsClass(tk.Frame):
@@ -999,42 +749,8 @@ class framePredictorsClass(tk.Frame):
         irow += 3
         tk.Label(root, text='').grid(column=icol, row=irow, pady=5)
 
-        if targetVar != 'SAFs':
-            irow+=1; icol-=8
-
-            # framePredictorsType
-            framePredictorsType = Frame(root)
-            framePredictorsType.grid(sticky="W", column=icol, row=irow, padx=padx, pady=0, columnspan=10)
-
-            predsType_options = {
-                'local': ['Local predictors', 'Predictors are interpolated from the four nearest neightbors.'],
-                'pca': ['PCAs', 'Predictors are transformed with spatial Principal Component Analysis.'],
-            }
-
-            try:
-                if predsType_targetVars_dict[targetVar] == 'local':
-                    last_type = 'local'
-                elif predsType_targetVars_dict[targetVar] == 'pca':
-                    last_type = 'pca'
-                else:
-                    print('Invalid option for type or predictors. Forced to \'local\'')
-                    last_type = 'local'
-            except:
-                last_type = 'local'
-
-            self.predictorsType_option = StringVar()
-            for predsType_opt in predsType_options:
-                c5 = Radiobutton(framePredictorsType, text=predsType_options[predsType_opt][0], variable=self.predictorsType_option, value=predsType_opt, takefocus=False)
-                c5.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); icol+=1
-                CreateToolTip(c5, predsType_options[predsType_opt][1])
-                self.predictorsType_option.set(last_type)
-
-
     def get(self):
-        try:
-            return self.preds, self.predictorsType_option
-        except:
-            return self.preds
+        return self.preds
 
 
 ########################################################################################################################
@@ -1214,61 +930,61 @@ class frameMethodsClass(tk.Frame):
         buttonWidth = 8
         icol, irow = 0, 0
         tk.Label(root, text="").grid(column=icol, row=irow, padx=20, pady=0); icol += 1; irow += 1
-        tk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
+        tk.Label(root, text='Methods') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 2
 
         # Raw
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1; icol -= 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
+        tk.Label(root, text="Interpolation:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW', 'RAW', 'RAW', 'var', 'No downscaling, nearest gridpoint', icol, irow); icol += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RAW-BIL', 'RAW', 'RAW', 'var', 'No downscaling, bilinear interpolation', icol, irow); irow += 1
 
-        # Model Output Statistics
-        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        tk.Label(root, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol += 1; irow -= 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol -= 1; irow += 1
+        # # Model Output Statistics
+        # tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
+        # tk.Label(root, text="Model Output Statistics:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QM', 'MOS', 'MOS', 'var', 'Quantile Mapping', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DQM', 'MOS', 'MOS', 'var', 'Detrended Quantile Mapping', icol, irow); icol += 1; irow -= 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'QDM', 'MOS', 'MOS', 'var', 'Quantile Delta Mapping', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'PSDM', 'MOS', 'MOS', 'var', '(Parametric) Scaled Distribution Mapping', icol, irow); icol -= 1; irow += 1
 
         # Analogs / Weather Typing
-        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
         tk.Label(root, text="Analogs / Weather Typing:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-ANA', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Analogs', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); irow += 1; icol-=2
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-1NN', 'ANA', 'PP', 'saf', 'Nearest neighbour based on synoptic fields', icol, irow); irow+=1;
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-kNN', 'ANA', 'PP', 'saf', 'k nearest neighbours based on synoptic fields', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-SYN-rand', 'ANA', 'PP', 'saf', 'Random neighbour based on synoptic fields', icol, irow);  irow-=2; icol+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-1NN', 'ANA', 'PP', 'pred+saf', 'Nearest neighbour based on combined synoptic and local analogies', icol, irow); irow+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-kNN', 'ANA', 'PP', 'pred+saf', 'k nearest neighbours based on combined synoptic and local analogies', icol, irow); irow+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-LOC-rand', 'ANA', 'PP', 'pred+saf', 'Random neighbour based on combined synoptic and local analogies', icol, irow); irow-=2; icol+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-1NN', 'ANA', 'PP', 'pcp', 'Nearest neighbour based on precipitation pattern', icol, irow); irow+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-kNN', 'ANA', 'PP', 'pcp', 'k nearest neighbours based on precipitation pattern', icol, irow); irow+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANA-VAR-rand', 'ANA', 'PP', 'pcp', 'Random neighbour based on precipitation pattern', icol, irow); irow+=1; icol-=2
-        irow += 3; icol -= 1
 
         # Linear methods
-        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        tk.Label(root, text="Linear methods:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); icol += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-ANA', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Analogs', icol, irow); icol += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR-WT', 'ANA', 'PP', 'pred+saf', 'Multiple Linear Regression based on Weather Typing', icol, irow); irow += 1; icol-=2
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); icol+=1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
+        tk.Label(root, text="Linear Regression:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'MLR', 'TF', 'PP', 'pred', 'Multiple Linear Regression', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-LIN', 'TF', 'PP', 'pred', 'Generalized Linear Model (linear)', icol, irow); irow+=1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-EXP', 'TF', 'PP', 'pred', 'Generalized Linear Model (exponential)', icol, irow); icol+=1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GLM-CUB', 'TF', 'PP', 'pred', 'Generalized Linear Model (cubic)', icol, irow); irow+=1; icol-=2
-        icol -= 2; irow += 1
-
-        # Machine Learning
-        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
-        tk.Label(root, text="Machine Learning:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol += 1; irow -= 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'XGB', 'TF', 'PP', 'pred', 'eXtreme Gradient Boost', icol, irow); icol += 1; irow -= 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
-        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); icol -= 2; irow += 1
 
         # Weather Generators
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
         tk.Label(root, text="Weather Generators:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=4); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); icol += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol -= 1; irow+=1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-PDF', 'WG', 'WG', 'var', 'Weather generator from downscaled PDF', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'WG-NMM', 'WG', 'WG', 'var', 'Weather generator Non-homogeneous Markov Model', icol, irow); icol -= 1; irow+=1
+
+        # Machine Learning
+        tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 2
+        tk.Label(root, text="Machine Learning:").grid(sticky="W", column=icol, row=irow, padx=30, columnspan=3); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'SVM', 'TF', 'PP', 'pred', 'Support Vector Machine', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'LS-SVM', 'TF', 'PP', 'pred', 'Least Square Support Vector Machine', icol, irow); icol += 1; irow -= 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'RF', 'TF', 'PP', 'pred', 'Random Forest', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'XGB', 'TF', 'PP', 'pred', 'eXtreme Gradient Boost', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
 
         # Select/deselect all
         # tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -1323,18 +1039,18 @@ class frameClimdexClass(tk.Frame):
                 'TXm': 'Mean value of daily maximum temperature',
                 'TXx': 'Maximum value of daily maximum temperature',
                 'TXn': 'Minimum value of daily maximum temperature',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
-                'TX99p': 'Percentage of days when TX > 99th percentile',
-                'TX95p': 'Percentage of days when TX > 95th percentile',
-                'TX90p': 'Percentage of days when TX > 90th percentile',
-                'TX10p': 'Percentage of days when TX < 10th percentile',
-                'TX5p': 'Percentage of days when TX < 5th percentile',
-                'TX1p': 'Percentage of days when TX < 1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
+                # 'TX99p': 'Percentage of days when TX > 99th percentile',
+                # 'TX95p': 'Percentage of days when TX > 95th percentile',
+                # 'TX90p': 'Percentage of days when TX > 90th percentile',
+                # 'TX10p': 'Percentage of days when TX < 10th percentile',
+                # 'TX5p': 'Percentage of days when TX < 5th percentile',
+                # 'TX1p': 'Percentage of days when TX < 1st percentile',
                 'SU': 'Number of summer days',
                 'ID': 'Number of icing days',
                 'WSDI': 'Warm spell duration index',
@@ -1343,18 +1059,18 @@ class frameClimdexClass(tk.Frame):
                 'TNm': 'Mean value of daily minimum temperature',
                 'TNx': 'Maximum value of daily minimum temperature',
                 'TNn': 'Minimum value of daily minimum temperature',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
-                'TN99p': 'Percentage of days when TN > 99th percentile',
-                'TN95p': 'Percentage of days when TN > 95th percentile',
-                'TN90p': 'Percentage of days when TN > 90th percentile',
-                'TN10p': 'Percentage of days when TN < 10th percentile',
-                'TN5p': 'Percentage of days when TN < 5th percentile',
-                'TN1p': 'Percentage of days when TN < 1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
+                # 'TN99p': 'Percentage of days when TN > 99th percentile',
+                # 'TN95p': 'Percentage of days when TN > 95th percentile',
+                # 'TN90p': 'Percentage of days when TN > 90th percentile',
+                # 'TN10p': 'Percentage of days when TN < 10th percentile',
+                # 'TN5p': 'Percentage of days when TN < 5th percentile',
+                # 'TN1p': 'Percentage of days when TN < 1st percentile',
                 'FD': 'Number of frost days',
                 'TR': 'Number of tropical nights',
                 'CSDI': 'Cold spell duration index',
@@ -1363,18 +1079,18 @@ class frameClimdexClass(tk.Frame):
                 'Tm': 'Mean value of daily mean temperature',
                 'Tx': 'Maximum value of daily mean temperature',
                 'Tn': 'Minimum value of daily mean temperature',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
-                'T99p': 'Percentage of days when T > 99th percentile',
-                'T95p': 'Percentage of days when T > 95th percentile',
-                'T90p': 'Percentage of days when T > 90th percentile',
-                'T10p': 'Percentage of days when T < 10th percentile',
-                'T5p': 'Percentage of days when T < 5th percentile',
-                'T1p': 'Percentage of days when T < 1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
+                # 'T99p': 'Percentage of days when T > 99th percentile',
+                # 'T95p': 'Percentage of days when T > 95th percentile',
+                # 'T90p': 'Percentage of days when T > 90th percentile',
+                # 'T10p': 'Percentage of days when T < 10th percentile',
+                # 'T5p': 'Percentage of days when T < 5th percentile',
+                # 'T1p': 'Percentage of days when T < 1st percentile',
             },
             'pr': {
                 'Pm': 'Mean precipitation amount',
@@ -1385,12 +1101,12 @@ class frameClimdexClass(tk.Frame):
                 'Rx5day': 'Maximum consecutive 5-day precipitation',
                 'R10mm': 'Number of days when PRCP ≥ 10mm',
                 'R20mm': 'Number of days when PRCP ≥ 20mm',
-                'p95': '95th percentile',
+                # 'p95': '95th percentile',
                 'R95p': 'Total PRCP when RR > 95th percentile (total precipitation on very wet days)',
-                'R95pFRAC': 'Fraction of total PRCP when RR > 95th percentile (fraction of total precipitation on very wet days)',
-                'p99': '99th percentile',
+                # 'R95pFRAC': 'Fraction of total PRCP when RR > 95th percentile (fraction of total precipitation on very wet days)',
+                # 'p99': '99th percentile',
                 'R99p': 'Total PRCP when RR > 99th percentile (total precipitation on very wet days)',
-                'R99pFRAC': 'Fraction of total PRCP when RR > 99th percentile (fraction of total precipitation on very wet days)',
+                # 'R99pFRAC': 'Fraction of total PRCP when RR > 99th percentile (fraction of total precipitation on very wet days)',
                 'CDD': 'Maximum length of dry spell',
                 'CWD': 'Maximum length of wet spell',
             },
@@ -1412,12 +1128,12 @@ class frameClimdexClass(tk.Frame):
             'huss': {
                 'HUSSm': 'Mean specific humidity',
                 'HUSSx': 'Maximum specific humidity',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'clt': {
                 'CLTm': 'Mean cloud cover',
@@ -1426,121 +1142,122 @@ class frameClimdexClass(tk.Frame):
                 'RSDSm': 'Mean Surface Downwelling Shortwave Radiation',
                 'RSDSx': 'Maximum Surface Downwelling Shortwave Radiation',
                 'RSDSn': 'Minimum Surface Downwelling Shortwave Radiation',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'rlds': {
                 'RLDSm': 'Mean Surface Downwelling Longwave Radiation',
                 'RLDSx': 'Maximum Surface Downwelling Longwave Radiation',
                 'RLDSn': 'Minimum Surface Downwelling Longwave Radiation',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'evspsbl': {
                 'Em': 'Evaporation',
                 'Ex': 'Evaporation',
                 'En': 'Evaporation',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'evspsblpot': {
                 'EPm': 'Potential Evaporation',
                 'EPx': 'Potential Evaporation',
                 'EPn': 'Potential Evaporation',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'psl': {
                 'PSLm': 'Sea Level Pressure',
                 'PSLx': 'Sea Level Pressure',
                 'PSLn': 'Sea Level Pressure',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'ps': {
                 'PSm': 'Surface Pressure',
                 'PSx': 'Surface Pressure',
                 'PSn': 'Surface Pressure',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'mrro': {
                 'RUNOFFm': 'Mean Runoff',
                 'RUNOFFx': 'Maximum Runoff',
                 'RUNOFFn': 'Minimum Runoff',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'mrso': {
                 'SOILMOISTUREm': 'Mean Soil Water Content',
                 'SOILMOISTUREx': 'Maximum Soil Water Content',
                 'SOILMOISTUREn': 'Minimum Soil Water Content',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
             },
             'myTargetVar': {
                 'm': 'Mean value',
                 'x': 'Maximum value',
                 'n': 'Minimum value',
-                'p99': '99th percentile',
-                'p95': '95th percentile',
-                'p90': '90th percentile',
-                'p10': '10th percentile',
-                'p5': '5th percentile',
-                'p1': '1st percentile',
-                '99p_days': 'Percentage of days over the 99th percentile',
-                '95p_days': 'Percentage of days over the 95th percentile',
-                '90p_days': 'Percentage of days over the 90th percentile',
-                '10p_days': 'Percentage of days under the 10th percentile',
-                '5p_days': 'Percentage of days under the 5th percentile',
-                '1p_days': 'Percentage of days under the 1st percentile',
+                # 'p99': '99th percentile',
+                # 'p95': '95th percentile',
+                # 'p90': '90th percentile',
+                # 'p10': '10th percentile',
+                # 'p5': '5th percentile',
+                # 'p1': '1st percentile',
+                # '99p_days': 'Percentage of days over the 99th percentile',
+                # '95p_days': 'Percentage of days over the 95th percentile',
+                # '90p_days': 'Percentage of days over the 90th percentile',
+                # '10p_days': 'Percentage of days under the 10th percentile',
+                # '5p_days': 'Percentage of days under the 5th percentile',
+                # '1p_days': 'Percentage of days under the 1st percentile',
             },
         }
 
         irow, icol = 0, 0
 
         tk.Label(root, text="").grid(column=icol, row=irow, padx=30, pady=0); icol += 1; irow += 1
-        tk.Label(root, text='Climdex') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
+        tk.Label(root, text='Climate Indices') .grid(sticky="W", column=icol, row=irow, padx=20, pady=(10, 10), columnspan=3); irow += 1
 
         nrows = 1
         colJumps = 0
         for climdex in climdex_dict[targetVar]:
             add_to_chk_list(self.chk_list, targetVar, climdex, climdex_dict[targetVar][climdex], icol, irow); irow += 1; nrows += 1
-            if nrows == 17:
+            if nrows == 9:
+            # if nrows == 17:
                 icol += 1; irow -= nrows; nrows = 1; irow += 1; colJumps += 1
-        irow = 18; icol -= colJumps
+        irow = 10; icol -= colJumps
 
         # Select/deselect all
         tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, pady=0); irow += 1
@@ -2968,11 +2685,6 @@ class selectionWindow():
 
     def __init__(self):
 
-        # # Welcome message
-        # run, self.showWelcomeMessage = welcomeMessage().get()
-        # if run == False:
-        #     exit()
-
         # Root menu
         root = tk.Tk()
         for file in os.listdir('../doc/'):
@@ -2987,19 +2699,16 @@ class selectionWindow():
         notebook = ttk.Notebook(root, width=rootW, height=rootH)
         notebook.pack(expand=1, fill="both")
 
-
-        # Tab: run
+        # Tab: steps
         (self.experiment_chk,
          # self.hres_type_chk,
-         self.steps_dict, self.all_steps) = tabSteps(notebook, root).get()
+         self.steps_dict, self.all_steps,
+            self.calibration_years_chk, self.reference_years_chk, self.single_split_testing_years_chk,
+            self.bc_option_chk) = tabSteps(notebook, root).get()
 
         # Tab: models
         self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
             self.reanalysisName_var_chk = tabModelsAndScenes(notebook).get()
-
-        # Tab: dates
-        self.calibration_years_chk, self.reference_years_chk, self.bc_option_chk, \
-            self.bc_method_chk, self.testing_years_dict_chk, self.split_mode_chk, self.seasons_chk = tabDates(notebook).get()
 
         # Tab: domain
         self.grid_res_var_chk, self.saf_lat_up_var_chk, self.saf_lon_left_var_chk, self.saf_lon_right_var_chk, \
@@ -3073,12 +2782,11 @@ class selectionWindow():
             # Read experiment and steps
             self.experiment = self.experiment_chk.get()
             self.steps = []
-            for step in self.all_steps[self.experiment]:
-                if self.steps_dict[self.experiment][step].get() == True:
+            for step in self.all_steps:
+                if self.steps_dict[step].get() == True:
                     self.steps.append(step)
-
-            # # Get hres type
-            # self.hres_type = self.hres_type_chk.get()
+            if self.bc_option_chk.get() == True:
+                self.steps.append('bias_correction')
 
             # TargetVars
             self.targetVars = []
@@ -3097,16 +2805,14 @@ class selectionWindow():
             # Force to select at least one pred
             self.selected_all_preds = []
             self.preds_targetVars_dict = {}
-            self.predsType_targetVars_dict = {}
             for x in self.targetVars_dict:
                 aux = []
-                for pred in self.targetVars_dict[x]['preds'][0]:
-                    if self.targetVars_dict[x]['preds'][0][pred].get() == True:
+                for pred in self.targetVars_dict[x]['preds']:
+                    if self.targetVars_dict[x]['preds'][pred].get() == True:
                         self.selected_all_preds.append(pred)
                         aux.append(pred)
                 if len(aux) != 0:
                     self.preds_targetVars_dict.update({x: aux})
-                    self.predsType_targetVars_dict.update({x: self.targetVars_dict[x]['preds'][1].get()})
             if self.all_checks_ok == True:
                 if len(self.selected_all_preds) == 0:
                     self.all_checks_ok = False
@@ -3158,17 +2864,6 @@ class selectionWindow():
                 if len(aux) != 0:
                     self.methods.update({targetVar: aux})
 
-            # seasons
-            if self.all_checks_ok == True:
-                self.inverse_seasonNames = []
-                for i in range(13):
-                    seasonName = self.seasons_chk[i].get()
-                    self.inverse_seasonNames.append(seasonName)
-                    if seasonName == '':
-                        self.all_checks_ok = False
-                        messagebox.showerror("pyClim-SDM", "Month "+str(i)+" has no season defined.\n"
-                                                           "Please, modify your selection.")
-
             # myTargetVar
             if self.all_checks_ok == True:
                 if 'myTargetVar' in self.targetVars:
@@ -3181,22 +2876,6 @@ class selectionWindow():
                         self.all_checks_ok = True
 
 
-            # myTargetVar bc method
-            if self.all_checks_ok == True:
-                if 'myTargetVar' in self.targetVars and self.bc_option_chk.get() != 'No' and self.bc_method_chk.get() == 'PSDM':
-                    self.all_checks_ok = False
-                    messagebox.showerror("pyClim-SDM", "PSDM not allowed as bias correction method when using a user defined target variable")
-                else:
-                    self.all_checks_ok = True
-
-
-            # # Force at least one step
-            # if self.all_checks_ok == True:
-            #     if len(self.steps) == 0:
-            #         self.all_checks_ok = False
-            #         messagebox.showerror("pyClim-SDM",  "At least one step must be selected")
-            #     else:
-            #         self.all_checks_ok = True
 
             # Force all checks ok
             if self.all_checks_ok == True:
@@ -3214,12 +2893,9 @@ class selectionWindow():
                 # Years
                 self.calibration_years = (self.calibration_years_chk[0].get(), self.calibration_years_chk[1].get())
                 self.reference_years = (self.reference_years_chk[0].get(), self.reference_years_chk[1].get())
-
-                # split_mode and testing years
-                self.split_mode = self.split_mode_chk.get()
                 self.single_split_testing_years = (
-                    self.testing_years_dict_chk['single_split'][0].get(),
-                    self.testing_years_dict_chk['single_split'][1].get())
+                    self.single_split_testing_years_chk[0].get(),
+                    self.single_split_testing_years_chk[1].get())
 
                 # grid_res
                 self.grid_res = self.grid_res_var_chk.get()
@@ -3273,13 +2949,9 @@ class selectionWindow():
                 # Bias correction
                 self.bc_option_str = self.bc_option_chk.get()
                 if self.bc_option_str == 'No':
-                    self.apply_bc, self.apply_bc_bySeason = False, False
+                    self.apply_bc = False
                 elif self.bc_option_str == 'Yes':
-                    self.apply_bc, self.apply_bc_bySeason = True, False
-                elif self.bc_option_str == 'By season':
-                    self.apply_bc, self.apply_bc_bySeason = True, True
-                self.bc_method = self.bc_method_chk.get()
-
+                    self.apply_bc = True
 
                 if 'myTargetVar' in self.targetVars:
                     info = self.targetVars_dict['myTargetVar']['info']
@@ -3317,8 +2989,8 @@ class selectionWindow():
                 # print(self.methods)
                 # print(self.calibration_years)
                 # print(self.single_split_testing_years)
-                # print(self.split_mode)
                 # print(self.reference_years)
+                # print(self.apply_bc)
                 # print(self.reanalysisName)
                 # print(self.grid_res)
                 # print(self.saf_lat_up)
@@ -3328,13 +3000,10 @@ class selectionWindow():
                 # print(self.reaNames)
                 # print(self.modNames)
                 # print(self.preds_targetVars_dict)
-                # print(self.predsType_targetVars_dict)
                 # print(self.saf_list)
                 # print(self.scene_names_list)
                 # print(self.model_names_list)
                 # print(self.climdex_names)
-                # print(self.apply_bc, self.apply_bc_bySeason, self.bc_method)
-                #
                 # print(self.myTargetVarName)
                 # print(self.myTargetVarMinAllowed)
                 # print(self.myTargetVarMaxAllowed)
@@ -3345,16 +3014,13 @@ class selectionWindow():
 
                 # Write settings file
                 write_settings_file(
-                                    # self.showWelcomeMessage,
                                     self.experiment,
-                                    # self.hres_type,
-                                    self.targetVars, self.steps, self.methods,
-                                    self.calibration_years, self.single_split_testing_years, self.split_mode,
-                                    self.reference_years, self.reanalysisName,
+                                    self.targetVars, self.methods,
+                                    self.calibration_years, self.single_split_testing_years,
+                                    self.reference_years, self.apply_bc, self.reanalysisName,
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
-                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.predsType_targetVars_dict, self.saf_list,
+                                    self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
-                                    self.apply_bc, self.apply_bc_bySeason, self.inverse_seasonNames, self.bc_method,
                                     self.myTargetVarName, self.myTargetVarMinAllowed, self.myTargetVarMaxAllowed,
                                     self.myTargetVarUnits, self.myTargetVarIsAdditive,
                                     # self.myTargetVarIsGaussian
@@ -3383,16 +3049,13 @@ class selectionWindow():
 
 ########################################################################################################################
 def write_settings_file(
-                                # showWelcomeMessage,
                                 experiment,
-                                # hres_type,
-                                targetVars, steps, methods,
-                                calibration_years, single_split_testing_years, split_mode,
-                                reference_years, reanalysisName,
+                                targetVars, methods,
+                                calibration_years, single_split_testing_years,
+                                reference_years, apply_bc, reanalysisName,
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
-                                reaNames, modNames, preds_targetVars_dict, predsType_targetVars_dict, saf_list,
+                                reaNames, modNames, preds_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
-                                apply_bc, apply_bc_bySeason, inverse_seasonNames, bc_method,
                                 myTargetVarName, myTargetVarMinAllowed, myTargetVarMaxAllowed,
                                 myTargetVarUnits, myTargetVarIsAdditive,
                                 # myTargetVarIsGaussian
@@ -3404,15 +3067,13 @@ def write_settings_file(
     f = open('../config/settings.py', "w")
 
     # Write new settings
-    # f.write("showWelcomeMessage = " + str(showWelcomeMessage) + "\n")
     f.write("experiment = '" + str(experiment) + "'\n")
-    # f.write("hres_type = '" + str(hres_type) + "'\n")
     f.write("targetVars = " + str(targetVars) + "\n")
     f.write("methods = " + str(methods) + "\n")
     f.write("calibration_years = (" + str(calibration_years[0]) + ", " + str(calibration_years[1]) + ")\n")
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
-    f.write("split_mode = '" + str(split_mode) + "'\n")
     f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
+    f.write("apply_bc = " + str(apply_bc) + "\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
@@ -3422,15 +3083,10 @@ def write_settings_file(
     f.write("reaNames = " + str(reaNames) + "\n")
     f.write("modNames = " + str(modNames) + "\n")
     f.write("preds_targetVars_dict = " + str(preds_targetVars_dict) + "\n")
-    f.write("predsType_targetVars_dict = " + str(predsType_targetVars_dict) + "\n")
     f.write("saf_list = " + str(saf_list) + "\n")
     f.write("scene_names_list = " + str(scene_names_list) + "\n")
     f.write("model_names_list = " + str(model_names_list) + "\n")
     f.write("climdex_names = " + str(climdex_names) + "\n")
-    f.write("inverse_seasonNames = " + str(inverse_seasonNames) + "\n")
-    f.write("apply_bc = " + str(apply_bc) + "\n")
-    f.write("apply_bc_bySeason = " + str(apply_bc_bySeason) + "\n")
-    f.write("bc_method = '" + str(bc_method) + "'\n")
 
     f.write("myTargetVarName = '" + str(myTargetVarName) + "'\n")
     f.write("myTargetVarMinAllowed = " + str(myTargetVarMinAllowed) + "\n")
@@ -3464,16 +3120,8 @@ def write_tmpMain_file(steps):
     # Steps
     f.write("    aux_lib.initial_checks()\n")
 
-    if 'check_var_units' in steps:
-        f.write("    aux_lib.check_var_units()\n")
     if 'preprocess' in steps:
         f.write("    preprocess.preprocess()\n")
-    if 'missing_data_check' in steps:
-        f.write("    precontrol.missing_data_check()\n")
-    if 'predictors_correlation' in steps:
-        f.write("    precontrol.predictors_correlation()\n")
-    if 'GCMs_evaluation' in steps:
-        f.write("    precontrol.GCMs_evaluation()\n")
     if 'train_methods' in steps:
         f.write("    preprocess.train_methods()\n")
     if 'downscale' in steps:

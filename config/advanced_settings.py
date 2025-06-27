@@ -310,7 +310,19 @@ elif experiment == 'PROJECTIONS':
     reference_climatology_from_observations = False
 
 
+###################################     Bias correction   #################################################
+if apply_bc == True:
+    # Set to False if the bias correction must be made for the whole year
+    apply_bc_bySeason = True
+else:
+    apply_bc_bySeason = False
+
 # Controls the path name for bias corrected outputs
+# bc_method = 'QM'
+# bc_method = 'DQM'
+bc_method = 'QDM'
+# bc_method = 'PSDM'
+
 if apply_bc_bySeason == True:
     apply_bc = True
 if apply_bc == False:
@@ -319,6 +331,28 @@ else:
     bc_sufix = '-BC-' + bc_method
     if apply_bc_bySeason == True:
         bc_sufix += '-s'
+
+
+predsType_targetVars_dict = {
+    'tasmax': 'pca',
+    'tasmin': 'pca',
+    'tas': 'pca',
+    'pr': 'pca',
+    'uas': 'pca',
+    'vas': 'pca',
+    'sfcWind': 'pca',
+    'hurs': 'pca',
+    'huss': 'pca',
+    'clt': 'pca',
+    'rsds': 'pca',
+    'rlds': 'pca',
+    'evspsbl': 'pca',
+    'evspsblpot': 'pca',
+    'psl': 'pca',
+    'ps': 'pca',
+    'mrro': 'pca',
+    'mrso': 'pca',
+}
 
 
 #############################################  GRIDS  ##################################################################
@@ -350,6 +384,18 @@ for targetVar in targetVars:
         if targetVar not in aux:
             aux.append(targetVar)
 targetVars = aux
+
+
+########################################       SPLIT MODE      ##############################################################
+# Activate one of the following training/testing split options
+# split_mode  = 'all_training'
+# split_mode = 'all_testing'
+split_mode = 'single_split'
+# split_mode = 'fold1'
+# split_mode = 'fold2'
+# split_mode = 'fold3'
+# split_mode = 'fold4'
+# split_mode = 'fold5' # This last fold will automatically join the 5 folds
 
 ########################################       DATES      ##############################################################
 # Detect reanalysisPeriodFilename
@@ -605,7 +651,30 @@ if myTargetVar in targetVars:
             print('PSDM not allowed when using a non gaussian myTargetVar')
             exit()
 
+
 ###################################     Seasons           #################################################
+
+###################################     Seasons           #################################################
+# Season values can be adapted, but once they have been set do not change, because they are used both for filenames
+# and for titles in figures. Never change keys of dictionary, that is what the program uses internally. Just change
+# the values of the dictionary
+# inverse_seasonNames = ['ANUAL',
+#                        'INVIERNO', 'INVIERNO', 'PRIMAVERA',
+#                        'PRIMAVERA', 'PRIMAVERA', 'VERANO',
+#                        'VERANO', 'VERANO', 'OTOÑO',
+#                        'OTOÑO',  'OTOÑO',  'INVIERNO']
+inverse_seasonNames = ['ANNUAL',
+                       'DJF', 'DJF', 'MAM',
+                       'MAM', 'MAM', 'JJA',
+                       'JJA', 'JJA', 'SON',
+                       'SON',  'SON',  'DJF']
+# inverse_seasonNames = ['ANNUAL',
+#                        'DRY', 'DRY', 'DRY', 'DRY',
+#                        'dry2wet',
+#                        'WET', 'WET', 'WET', 'WET', 'WET',
+#                        'wet2dry',  'wet2dry']
+
+
 seasonNames = []
 for seasonName in inverse_seasonNames:
     if seasonName not in seasonNames:
