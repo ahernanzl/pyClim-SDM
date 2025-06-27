@@ -94,8 +94,8 @@ def switch_steps(exp, steps, steps_ordered, exp_ordered, chk_only_for_experiment
 
 
 ########################################################################################################################
-def switch_bc_method(bc_opt, bc_mehods_bt):
-    for object in bc_mehods_bt:
+def switch_bc_method(bc_opt, bc_methods_bt):
+    for object in bc_methods_bt:
         if bc_opt == 'No':
             object["state"] = "disabled"
         else:
@@ -334,8 +334,9 @@ class tabSteps(tk.Frame):
             last_bc_opt = 'No'
         else:
             last_bc_opt = 'Yes'
+        bc_methods_bt= []
         for bc_opt in bc_options:
-            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, command=lambda: switch_bc_method(self.bc_option.get(), bc_mehods_bt), takefocus=False)
+            c = Radiobutton(frameBiasCorrection, text=bc_opt, variable=self.bc_option, value=bc_opt, command=lambda: switch_bc_method(self.bc_option.get(), bc_methods_bt), takefocus=False)
             c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
             self.bc_option.set(last_bc_opt)
         icol+=1; irow-=3
