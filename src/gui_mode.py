@@ -2785,7 +2785,7 @@ class selectionWindow():
             for step in self.all_steps:
                 if self.steps_dict[step].get() == True:
                     self.steps.append(step)
-            if self.bc_option_chk.get() == True:
+            if self.bc_option_chk.get() == 'Yes':
                 self.steps.append('bias_correction')
 
             # TargetVars
@@ -3126,8 +3126,8 @@ def write_tmpMain_file(steps):
         f.write("    preprocess.train_methods()\n")
     if 'downscale' in steps:
         f.write("    process.downscale()\n")
-    if 'bias_correction' in steps:
-        f.write("    postprocess.bias_correction()\n")
+        if 'bias_correction' in steps:
+            f.write("    postprocess.bias_correction()\n")
     if 'calculate_climdex' in steps:
         f.write("    postprocess.get_climdex()\n")
     if 'plot_results' in steps:
