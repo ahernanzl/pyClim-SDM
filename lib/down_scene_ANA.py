@@ -117,15 +117,13 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
                 years = ssp_years
 
             # Read dates (can be different for different calendars)
-            aux = read.lres_data(targetVar, 'var', model=model, scene=scene)
-            scene_dates = aux['times']
+            scene_dates, calendar, datesDefined = aux_lib.retrieve_model_dates(targetVar, scene, model)
             idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
                 pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
-                del aux
             if 'saf' in fields:
                 saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
                 saf_scene = transform.transform(targetVar, saf_scene, model, 'saf')
