@@ -301,6 +301,17 @@ for methodName in convolutional_methods:
             'methods_to_extrapolate_with_MLR at advanced_settings.\nBoth options are not compatible.')
         exit()
 
+# DeepESD precipitation asym loss parameters.
+# Default values:
+#   - deep4downscaling: asym_weight=1, cdf_pow=2
+#   - pyClim-SDM: asym_weight=3, cdf_pow=10
+# relative weight of the asymetric term (compared to the MAE term)
+asym_weight=3
+# the weight of each error is multiplied by this pow of its percentile on the distribution. Thus, cdf_pow=0 means the
+# same weight (1) for all values, and the larger the cdf_pow the bigger the difference between low and high percentiles
+cdf_pow=10
+
+
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the
 # climdex (projections), set to False. This parameter is used in postporcess.get_climdex_oneModel
@@ -332,7 +343,7 @@ else:
     if apply_bc_bySeason == True:
         bc_sufix += '-s'
 
-
+# Set to pca or local in order to apply EOF predictors or local predictors
 predsType_targetVars_dict = {
     'tasmax': 'pca',
     'tasmin': 'pca',
@@ -663,6 +674,7 @@ if myTargetVar in targetVars:
 #                        'PRIMAVERA', 'PRIMAVERA', 'VERANO',
 #                        'VERANO', 'VERANO', 'OTOÑO',
 #                        'OTOÑO',  'OTOÑO',  'INVIERNO']
+# Give a label to annual and then to each of the 12 months. Months with the same label will be grouped on a season
 inverse_seasonNames = ['ANNUAL',
                        'DJF', 'DJF', 'MAM',
                        'MAM', 'MAM', 'JJA',

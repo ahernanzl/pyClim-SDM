@@ -23,32 +23,28 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 # Methods
 
 ### Raw:
-- **RAW**: no downscaling (nearest grid point).
 - **RAW-BIL**: no downscaling (bilinear interpolation).
-### Model Output Statistics:
-- **QM**: Empirical Quantile Mapping (Themeßl *et al*., 2011).  
-- **DQM**: Detrended Quantile Mapping (Cannon *et al.*, 2015). Quantile adjustment over detrended series.  
-- **QDM**: Quantile Delta Mapping in (Cannon *et al.*, 2015). Delta change over quantiles.
-- **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek *et al.*, 2017).
 ### Analogs / Weather Typing:
-- **ANA-SYN**: Analog based on synoptic analogy. **1NN**: Nearest analog, **kNN**: k-nearest analogs, **rand**: random analog from Probability Density Function. See Hernanz *et al.* (2021).      
+- **MLR-ANA**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
+- **ANA-SYN-1NN**: Analog based on synoptic analogy. Nearest analogSee Hernanz *et al.* (2021).      
 ### Linear:
 - **MLR**: multiple linear regression. See Amblar-Francés *et al*., (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).
-- **MLR-ANA**: multiple linear regression based on analogs. See Petisco de Lara (2008b), Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021).
-- **MLR-WT**: multiple linear regression based on weather types. Similar to ANA-MLR but using precalibrated relationships for each weather type.
 - **GLM**: Generalized Linear Model. Logistic + MLR (**LIN**), or over transformed data (**EXP** for exponential). See Amblar-Francés *et al*. (2017) and Hernanz *et al.* (2021). Based on SDSM (Wilby *et al.*, 2002).   
-### Machine Learning:
-- **SVM**: Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).  
-- **LS-SVM**: Least Square Support Vector Machine. Non-linear machine learning classification/regression. See Hernanz *et al.* (2021).  
-- **RF**: Random Forest. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).   
-- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
-- **ANN**: Artificial Neural Networks. Non-linear machine learning classification/regression. See García-Valero (2021) and Hernanz *et al.* (2021).   
-- **DeepESD**: Convolutional Neural Networks. See Baño-Medina *et al*., (2022)
 ### Weather Generators:
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
-- **WG-NMM**: Non-homogeneous Markov Model. Non-parametric Weather Generator based on a first-order two-state (wet/dry) Markov chain. Both the transition probabilities and the empirical distributions used for the intensity are conditioned on the precipitation given by the reanalysis/models. See Richardson (1981).
+### Machine Learning:
+- **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
+- **DeepESD**: Convolutional Neural Networks. See Baño-Medina *et al*., (2022)
 
 
+# How to use
+- Download and install pyClim-SDM (see Installation section)
+- Prepare your input data (see Input data section)
+- Run pyClim-SDM:
+  - cd src
+  - python gui_mode.py
+A graphical window will open. Make your selection and press the Run button. The graphical window will close and 
+pyClim-SDM will start the process in the terminal, where information messages will be shown.
 
 # Installation
 pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
@@ -66,6 +62,29 @@ After installation:
 - Activate your environment: **conda activate env_pyClim-SDM**
 - Deactivate your environment: **conda deactivate**
 
+# Input data
+Three types of datasets are needed:
+hres: high-resolution observations. 
+reanalysis: predictors from a reanalysis
+models: predictors from GCMs
+Do not split years, prepare your files only with complete years.
+
+## Format:
+- hres format (high-resolution observations):
+  One row per date. The first column corresponds to the date yyyymmdd, and the other rows (as many as target points) contain data (if observations come from a regular 2D grid, they need to be flattened to a 1D list of points). Missing data must be coded as -999.
+  - Temperature (tas/tasmax/tasmin) in degrees
+  - Precipitation (pr) in mm
+  - Wind (uas/vas/sfcWind) in m/s
+  - Relative humidity (hurs) in %
+  - Specific humidity (huss) dimensionless
+  - Cloud cover (clt) in %
+  - Radiation (shortwave rsds and longwave rlds) in W/m2
+  - Evaporation (evspsbl) and potential evaporation (evspsblpot) in kg m-2 s-1
+  - Sea level and surface pressure (psl and ps) in Pa
+  - Total runoff (mrro) in kg m-2 s-1
+  - Soil water content (mrso) in kg m-2
+  - Reanalysis and models format (low resolution predictors for calibration and downscaling): One netCDF file per variable, models and scene, with all pressure levels, in a regular 2D grid.
+  Filenames: filenames are composed of specific fields separated by ‘_’, so the use of this symbol inside a field (the reanalysis name, for example) must be avoided.
 
 
 # References
