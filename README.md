@@ -69,7 +69,7 @@ reanalysis: predictors from a reanalysis
 models: predictors from GCMs
 Do not split years, prepare your files only with complete years.
 
-## Format:
+Format:
 - hres format (high-resolution observations):
   One row per date. The first column corresponds to the date yyyymmdd, and the other rows (as many as target points) contain data (if observations come from a regular 2D grid, they need to be flattened to a 1D list of points). Missing data must be coded as -999.
   - Temperature (tas/tasmax/tasmin) in degrees
@@ -83,8 +83,8 @@ Do not split years, prepare your files only with complete years.
   - Sea level and surface pressure (psl and ps) in Pa
   - Total runoff (mrro) in kg m-2 s-1
   - Soil water content (mrso) in kg m-2
-  - Reanalysis and models format (low resolution predictors for calibration and downscaling): One netCDF file per variable, models and scene, with all pressure levels, in a regular 2D grid.
-  Filenames: filenames are composed of specific fields separated by ‘_’, so the use of this symbol inside a field (the reanalysis name, for example) must be avoided.
+- Reanalysis and models format (low resolution predictors for calibration and downscaling): One netCDF file per variable, models and scene, with all pressure levels, in a regular 2D grid.
+Filenames: filenames are composed of specific fields separated by ‘_’, so the use of this symbol inside a field (the reanalysis name, for example) must be avoided.
 
 
 # References
