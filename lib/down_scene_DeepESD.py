@@ -78,15 +78,13 @@ def downscale(targetVar, methodName, family, mode, fields, scene, model):
             years = ssp_years
 
         # Read dates (can be different for different calendars)
-        aux = read.lres_data(targetVar, 'var', model=model, scene=scene)
-        scene_dates = aux['times']
+        scene_dates, calendar, datesDefined = aux_lib.retrieve_model_dates(targetVar, scene, model)
         idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
         scene_dates = list(np.array(scene_dates)[idates])
         scene_ndates = len(scene_dates)
         X_test = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=scene)['data'][idates]
         X_test = transform.transform(targetVar, X_test, model, 'spred')
         X_test = X_test.astype('float32')
-        del aux
 
     # Remove days with Nans
     invalid_X = list(set(np.where(np.isnan(X_test))[0]))
