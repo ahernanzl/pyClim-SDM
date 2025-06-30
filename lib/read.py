@@ -331,37 +331,7 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         dates = calibration_dates
         calendar = reanalysis_calendar
     else:
-        datesDefined = False
-        for pred in preds_dict[targetVar]:
-            if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
-                level = int(pred[-4:])
-            elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
-                level = int(pred[-3:])
-            else:
-                level = None
-
-            if level is not None:
-                pred += str(level)
-            if scene in ('historical', 'HISTORICAL'):
-                periodFilename = historicalPeriodFilename
-            else:
-                periodFilename = sspPeriodFilename
-            pathIn = '../input_data/models/'
-            if pred in targetVars:
-                ncVar = modNames[pred]
-            else:
-                for aux_level in all_levels:
-                    pred = pred.replace(str(aux_level), '')
-                ncVar = modNames[predName]
-            modelName, modelRun = model.split('_')[0], model.split('_')[1]
-            filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
-
-            if os.path.isfile(pathIn + filename):
-                aux = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)
-                dates = aux['times']
-                calendar = aux['calendar']
-                datesDefined = True
-                break
+        dates, calendar, datesDefined = aux_lib.retrieve_model_dates(targetVar, scene, model)
 
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF models files')

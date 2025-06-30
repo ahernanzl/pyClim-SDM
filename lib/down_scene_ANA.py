@@ -286,10 +286,8 @@ def collect_chunks(targetVar, methodName, family, mode, fields, scene, model, n_
         else:
             periodFilename = sspPeriodFilename
         # Read dates (can be different for different calendars)
-        path = '../input_data/models/'
-        aux = read.lres_data(targetVar, 'var', grid='pred', model=model, scene=scene)
-        scene_dates = np.ndarray.tolist(aux['times'])
-        calendar = aux['calendar']
+        scene_dates, calendar, datesDefined = aux_lib.retrieve_model_dates(targetVar, scene, model)
+        scene_dates = np.ndarray.tolist(scene_dates)
 
     # Save to file
     pathOut = '../results/'+experiment+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
