@@ -425,7 +425,7 @@ def retrieve_model_dates(targetVar, scene, model):
         else:
             for aux_level in all_levels:
                 pred = pred.replace(str(aux_level), '')
-            ncVar = modNames[predName]
+            ncVar = modNames[pred]
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
         filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
 

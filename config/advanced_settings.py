@@ -519,8 +519,7 @@ if split_mode == 'single_split':
         dates_forced = True
 
 if dates_forced == True:
-    a = input(
-        "Read the modifications applied to your selection (explained above) and press 'c' to continue, or any other key to cancel:")
+    a = input("Read the modifications applied to your selection (explained above) and press 'c' to continue, or any other key to cancel:")
     if a != 'c':
         print('Process canceled.')
         exit()
