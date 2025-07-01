@@ -1,4 +1,7 @@
 import sys
+
+import numpy as np
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -534,8 +537,10 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
     for scene in scene_list:
         # if scene != 'historical':
         if scene == 'historical':
+            sceneYears = list(dict.fromkeys(np.array([x.year for x in historical_dates])))
             nYears = n_histYears
         else:
+            sceneYears = list(dict.fromkeys(np.array([x.year for x in ssp_dates])))
             nYears = n_sspYears
         models = []
         all_data = np.zeros((0, nYears, npoints))
@@ -544,9 +549,12 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
             # Check if scene/model exists
             if os.path.isfile(pathIn + fileIn):
                 # Read data and select region
-                data = read.netCDF(pathIn, fileIn, targetVar+'_'+climdex_name)['data'][:, iaux]
+                aux = read.netCDF(pathIn, fileIn, targetVar+'_'+climdex_name)
+                data = aux['data'][:, iaux]
+                yearsModel = list(dict.fromkeys(np.array([x.year for x in aux['times']])))
+                nYearsModel = len(yearsModel)
                 ref = read.netCDF(pathIn, '_'.join((targetVar, climdex_name, 'REFERENCE', model, season))+'.nc', targetVar+'_'+climdex_name)['data'][:, iaux]
-                ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYears, axis=0)
+                ref_mean = np.repeat(np.mean(ref, axis=0)[np.newaxis, :], nYearsModel, axis=0)
 
                 # # Plot reference mean maps for climdex control, to detect possible errors
                 # if (regType == typeCompleteRegion) and (plotAllRegions == True):
@@ -572,9 +580,15 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
                     exit()
                 del data, ref, ref_mean
 
+                # Some models do not have all years and these lines deal with it
+                change_aux = np.zeros((nYears, npoints))
+                change_aux[:] = np.nan
+                ivalid = [i for i in range(nYears) if sceneYears[i] in yearsModel]
+                change_aux[ivalid] = change
+
                 # Accumulate results
                 models.append(model)
-                all_data = np.append(all_data, change[np.newaxis, :, :], axis=0)
+                all_data = np.append(all_data, change_aux[np.newaxis, :, :], axis=0)
 
         # Acumulate results
         ssp_dict.update({scene: {'models': models, 'data': all_data}})
