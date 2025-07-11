@@ -1121,6 +1121,90 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                     plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
                              filename=filename, title=title)
 
+########################################################################################################################
+def convert_to_2D(pathIn, pathOut, fileName, nc_varName, data_type, years=None, decimal_lat_lon=3):
+    """
+    pyClim-SDM works with observations as stations (1D), but sometimes those 1D points come from a regular 2D grid,
+    If that is the case, this function converts a netCDF file with points to a regular 2D grid
+    data_type: 'daily_data' or 'climdex'
+    if data_type=='climdex', times are taken from years
+    """
+
+    print(pathIn, fileName, 'convert_to_2D...')
+
+    os.makedirs(pathOut, exist_ok=True)
+
+    def is_equally_spaced(arr, tol=10**(-decimal_lat_lon)):
+        """Checks that values of a 1D array are equally spaced (for lats and lons) allowing spaces"""
+        arr = np.asarray(arr)
+        if len(arr) < 2:
+            return True, None
+        diffs = np.diff(np.sort(arr))
+        step_min = np.min(diffs[np.abs(diffs) > tol])
+        ratios = diffs / step_min
+        is_multiple = np.all(np.abs(ratios - np.round(ratios)) < tol)
+        return is_multiple
+
+    # Open input file
+    with (Dataset(pathIn+fileName, 'r') as file):
+        var = file.variables[nc_varName]
+        lon = np.round(file.variables['lon'][:], decimals=decimal_lat_lon)  # Longitude values
+        lat = np.round(file.variables['lat'][:], decimals=decimal_lat_lon)  # Latitude values
+        time = file.variables['time'][:]  # Time values
+        lat_unique = np.sort(np.unique(lat))  # Unique latitudes
+        lon_unique = np.sort(np.unique(lon))  # Unique longitudes
+
+        # Check that lats and lons correspond to a regular grid
+        if (is_equally_spaced(lat_unique) == False) or (is_equally_spaced(lon_unique) == False):
+            print('ERROR: your data cannot be converted to 2D lat/lon regular grid, latitudes and longitudes '
+                  'correspond to sparse stations.')
+            exit()
+
+        # Create a new NetCDF file for writing
+        with Dataset(pathOut+fileName, 'w') as ncfile:
+
+            # Create dimensions for time, latitude, and longitude
+            ncfile.createDimension('time', None)
+            ncfile.createDimension('lat', len(lat_unique))
+            ncfile.createDimension('lon', len(lon_unique))
+
+            # Create variables for target variable, latitude, longitude, and time
+            var_var = ncfile.createVariable(nc_varName, 'f4', dimensions=('time', 'lat', 'lon'))
+            lat_var = ncfile.createVariable('lat', 'f4', dimensions=('lat',))
+            lon_var = ncfile.createVariable('lon', 'f4', dimensions=('lon',))
+            time_var = ncfile.createVariable('time', 'f4', dimensions=('time',))
+
+            # Store data in variables
+            lat_var[:] = lat_unique
+            lon_var[:] = lon_unique
+            if data_type == 'daily_data':
+                time_var[:] = time
+            elif data_type == 'climdex':
+                calendar = file.variables['time'].calendar
+                units = file.variables['time'].units
+                years_datetime = [datetime.datetime(x, 1, 1, 12, 0) for x in years]
+                years_num = date2num(years_datetime, units=units, calendar=calendar)
+                time_var[:] = years_num
+            else:
+                print('ERROR: data_type', data_type, 'not recognized')
+                exit()
+
+            # Process data for each time step and write it to the NetCDF file
+            for i in range(len(time)):
+                df = pd.DataFrame({nc_varName: var[i, :], 'longitude': lon, 'latitude': lat})
+                var_var[i, :, :] = df.pivot(index='latitude', columns='longitude', values=nc_varName).reindex(index=lat_unique, columns=lon_unique).values
+
+            # Copy global attributes and variable-specific attributes from the input to the output file
+            ncfile.setncatts(file.__dict__)  # Copy global attributes
+            ncfile.variables['time'].setncatts(file.variables['time'].__dict__)
+            ncfile.variables['lat'].setncatts(file.variables['lat'].__dict__)
+            ncfile.variables['lon'].setncatts(file.variables['lon'].__dict__)
+            ncfile.variables[nc_varName].setncatts(file.variables[nc_varName].__dict__)
+
+            # Ensure all data is written to the file
+            ncfile.sync()
+
+
 
 ########################################################################################################################
 def format_web_AEMET():

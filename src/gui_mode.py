@@ -253,7 +253,9 @@ class tabSteps(tk.Frame):
                 'plot_results': {'text': 'Generate figures', 'info': 'Generate figures and storage them in results/figures/. \n'
                                                                  'A different set of figures will be generated depending on the \n'
                                                                  'selected experiment (EVALUATION / PROJECTIONS).'},
-                 'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'},
+               'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'},
+               'nc1D_to_nc2D': {'text': 'Convert (if your observations come from a regular grid) binary 1D files to binary 2D files', 'info': 'Convert (if your observations come from a regular grid) binary 1D files to binary 2D files.'},
+
         }
 
         self.steps_after = steps_after
@@ -3135,6 +3137,10 @@ def write_tmpMain_file(steps):
         f.write("    postprocess.plot_results()\n")
     if 'nc2ascii' in steps:
         f.write("    postprocess.nc2ascii()\n")
+    if 'nc1D_to_nc2D' in steps:
+        f.write("    postprocess.nc1D_to_nc2D()\n")
+
+
 
     f.write("\n")
     f.write("if __name__ == '__main__':\n")

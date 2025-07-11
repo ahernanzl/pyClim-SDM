@@ -603,6 +603,69 @@ def nc2ascii():
                                 os.makedirs(pathOut)
                             np.savetxt(pathOut+fileOut+'.dat', data, fmt=['%.i'] + ['%.2f'] * (len(id) - 1), delimiter=';', header=header)
 
+
+########################################################################################################################
+def nc1D_to_nc2D():
+
+    """
+    netCDFs 1D to netCDFs 2D if observations correspond to a lat/lon regular grid.
+    """
+
+
+    for method_dict in methods:
+        targetVar, methodName = method_dict['var'], method_dict['methodName']
+        for scene in scene_list:
+            if scene == 'TESTING':
+                years = [i for i in range(testing_years[0], testing_years[-1]+1)]
+            elif scene == 'historical':
+                years = [i for i in range(historical_years[0], historical_years[-1]+1)]
+            else:
+                years = [i for i in range(ssp_years[0], ssp_years[-1]+1)]
+
+            for model in model_list:
+
+                # Daily data
+                pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+                fileName = targetVar+'_'+model+'_'+scene+'.nc'
+                pathOut = '../results/'+experiment+bc_sufix+'_2D/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+
+                # Check if file exists and has not been processed yet
+                if os.path.isfile(pathIn + fileName):
+                    if os.path.isfile(pathOut + fileName) and force_2D == False:
+                            print(pathOut + fileName, 'already converted to 2D')
+                    else:
+                        postpro_lib.convert_to_2D(pathIn, pathOut, fileName, targetVar, 'daily_data')
+                else:
+                    print(pathIn + fileName, 'does not exist')
+
+                # Climdex
+                pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'                # fileName = targetVar+'_'+model+'_'+scene+'.nc'
+                pathOut = '../results/'+experiment+bc_sufix+'_2D/'+targetVar.upper()+'/'+methodName+'/climdex/'
+
+                for climdex in climdex_names[targetVar]:
+                    for season in season_dict:
+                        filenames = []
+                        if scene == 'TESTING':
+                            filenames.append('_'.join((targetVar,climdex, 'obs', season))+'.nc')
+                            filenames.append('_'.join((targetVar,climdex, 'est', season))+'.nc')
+                        else:
+                            if scene == scene_list[0]:
+                                filenames.append('_'.join((targetVar,climdex, 'REFERENCE', model, season))+'.nc')
+                            filenames.append('_'.join((targetVar,climdex, scene, model, season))+'.nc')
+
+                        for fileName in filenames:
+
+                            # Check if file exists and has not been processed yet
+                            if os.path.isfile(pathIn + fileName):
+                                if os.path.isfile(pathOut + fileName) and force_2D == False:
+                                    print(pathOut + fileName, 'already converted to 2D')
+                                else:
+                                    postpro_lib.convert_to_2D(pathIn, pathOut, fileName, targetVar + '_' + climdex, 'climdex', years)
+                            else:
+                                print(pathIn + fileName, 'does not exist')
+
+
+
 ########################################################################################################################
 if __name__ == "__main__":
     nproc = MPI.COMM_WORLD.Get_size()  # Size of communicator

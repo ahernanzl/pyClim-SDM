@@ -405,6 +405,7 @@ def fillNans_interpolation(data):
 ########################################################################################################################
 def retrieve_model_dates(targetVar, scene, model):
     datesDefined = False
+    dates, calendar = None, None
     for pred in preds_dict[targetVar]:
         if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
             level = int(pred[-4:])
