@@ -51,6 +51,7 @@ pyClim-SDM will start the process in the terminal, where information messages wi
 pyClim-SDM has an integrated dynamic map viewer. After having generated downscaled data for experiment PROJECTIONS (with or without bias correction), launch the map viewer by:
  - cd map_viewer
  - python app.py
+
 Open an internet browser and enter the following url: 127.0.0.1/8050
 
 
