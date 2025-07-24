@@ -565,7 +565,7 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
                 #     plt.close()
 
 
-                biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                biasMode = bias_units_and_palette[targetVar + '_' + climdex_name]['biasMode']
                 if biasMode == 'abs':
                     change = data - ref_mean
                 elif biasMode == 'rel':
@@ -576,7 +576,7 @@ def get_data_projections(n_histYears, n_sspYears, npoints, targetVar, climdex_na
                     change[(ref_mean == 0) * (data == 0)] = 0
                     change[np.isinf(change)] = np.nan
                 else:
-                    print(targetVar + '_' + climdex_name + 'not defined at units_and_biasMode_climdex (advanced_settings)')
+                    print(targetVar + '_' + climdex_name + 'not defined at bias_units_and_palette (advanced_settings)')
                     exit()
                 del data, ref, ref_mean
 
@@ -782,8 +782,8 @@ def trendPreservation(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, his
             linestyle = methods_linestyles[methodName]
             title_size = 28
             try:
-                sign_ylabel = units_and_biasMode_climdex[targetVar+'_'+climdex_name]['units']
-                if units_and_biasMode_climdex[targetVar+'_'+climdex_name]['biasMode'] == 'rel':
+                sign_ylabel = bias_units_and_palette[targetVar+'_'+climdex_name]['units']
+                if bias_units_and_palette[targetVar+'_'+climdex_name]['biasMode'] == 'rel':
                     sign_ylabel = '%'
             except:
                 sign_ylabel = ''
@@ -835,8 +835,8 @@ def trendPreservation(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, his
             linestyle = methods_linestyles[methodName]
             title_size = 28
             try:
-                sign_ylabel = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['units']
-                if units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode'] == 'rel':
+                sign_ylabel = bias_units_and_palette[targetVar + '_' + climdex_name]['units']
+                if bias_units_and_palette[targetVar + '_' + climdex_name]['biasMode'] == 'rel':
                     sign_ylabel = '%'
             except:
                 sign_ylabel = ''
@@ -1122,7 +1122,7 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                              filename=filename, title=title)
 
 ########################################################################################################################
-def convert_to_2D(pathIn, pathOut, fileName, nc_varName, data_type, years=None, decimal_lat_lon=3):
+def convert_to_2D(pathIn, pathOut, fileName, nc_varName, data_type, years=None, decimals=5):
     """
     pyClim-SDM works with observations as stations (1D), but sometimes those 1D points come from a regular 2D grid,
     If that is the case, this function converts a netCDF file with points to a regular 2D grid
@@ -1134,12 +1134,12 @@ def convert_to_2D(pathIn, pathOut, fileName, nc_varName, data_type, years=None, 
 
     os.makedirs(pathOut, exist_ok=True)
 
-    def is_equally_spaced(arr, tol=10**(-decimal_lat_lon)):
+    def is_equally_spaced(arr, tol=10**(-decimals)):
         """Checks that values of a 1D array are equally spaced (for lats and lons) allowing spaces"""
         arr = np.asarray(arr)
         if len(arr) < 2:
             return True, None
-        diffs = np.diff(np.sort(arr))
+        diffs = np.round(np.diff(np.sort(arr)), decimals=decimals)
         step_min = np.min(diffs[np.abs(diffs) > tol])
         ratios = diffs / step_min
         is_multiple = np.all(np.abs(ratios - np.round(ratios)) < tol)
@@ -1148,8 +1148,8 @@ def convert_to_2D(pathIn, pathOut, fileName, nc_varName, data_type, years=None, 
     # Open input file
     with (Dataset(pathIn+fileName, 'r') as file):
         var = file.variables[nc_varName]
-        lon = np.round(file.variables['lon'][:], decimals=decimal_lat_lon)  # Longitude values
-        lat = np.round(file.variables['lat'][:], decimals=decimal_lat_lon)  # Latitude values
+        lon = np.round(file.variables['lon'][:], decimals=decimals)  # Longitude values
+        lat = np.round(file.variables['lat'][:], decimals=decimals)  # Latitude values
         time = file.variables['time'][:]  # Time values
         lat_unique = np.sort(np.unique(lat))  # Unique latitudes
         lon_unique = np.sort(np.unique(lon))  # Unique longitudes

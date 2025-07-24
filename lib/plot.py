@@ -852,9 +852,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     elif grid is not None:
         # Read lats lons
         if grid == 'ext':
-            lats, lons, grid_res_local = ext_lats, ext_lons, ext_grid_res
+            lats, lons, grid_res_local = ext_lats, ext_lons, grid_res
         elif grid == 'saf':
-            lats, lons, grid_res_local = saf_lats, saf_lons, saf_grid_res
+            lats, lons, grid_res_local = saf_lats, saf_lons, grid_res
         elif grid == 'pred':
             lats, lons, grid_res_local = pred_lats, pred_lons, grid_res
 

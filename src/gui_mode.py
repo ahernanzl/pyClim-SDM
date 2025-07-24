@@ -254,7 +254,7 @@ class tabSteps(tk.Frame):
                                                                  'A different set of figures will be generated depending on the \n'
                                                                  'selected experiment (EVALUATION / PROJECTIONS).'},
                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'},
-               'nc1D_to_nc2D': {'text': 'Convert (if your observations come from a regular grid) binary 1D files to binary 2D files', 'info': 'Convert (if your observations come from a regular grid) binary 1D files to binary 2D files.'},
+               'nc1D_to_nc2D': {'text': 'Convert binary 1D files to binary 2D files (only if your observations come from a regular grid)', 'info': 'Convert binary 1D files to binary 2D files (only if your observations come from a regular grid)'},
 
         }
 

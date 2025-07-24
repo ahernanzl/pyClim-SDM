@@ -66,8 +66,8 @@ def missing_data_check():
         npreds = len(preds)
         nscenes = len(scene_list)
         nmodels = len(model_list)
-        nlats = pred_nlats
-        nlons = pred_nlons
+        nlats = saf_nlats
+        nlons = saf_nlons
         PERC_NAN = np.zeros((npreds, nscenes, nmodels, nlats, nlons))
 
         # Go through all predictors, scenes and models
@@ -79,7 +79,7 @@ def missing_data_check():
                 for model in model_list:
 
                     # Read data
-                    data = read.lres_data(targetVar, 'pred', model=model, scene=sceneName, predName=predName)['data']
+                    data = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=sceneName, predName=predName)['data']
 
                     # Calculate percentaje of nans
                     perc_nan = 100 * np.count_nonzero(np.isnan(data), axis=0)[0] / data.shape[0]
@@ -91,7 +91,7 @@ def missing_data_check():
                         filename = '_'.join((experiment, 'nansMap', targetVar, predName,
                                              model.replace('_', '-') + '-' + sceneName, 'None'))
                         title = ' '.join((predName, model, sceneName, 'pertentage of NANs'))
-                        plot.map(targetVar, perc_nan, 'perc_nan', grid='pred', path=pathOut, filename=filename,
+                        plot.map(targetVar, perc_nan, 'perc_nan', grid='saf', path=pathOut, filename=filename,
                                  title=title)
 
                     imodel += 1

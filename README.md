@@ -18,6 +18,7 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - bias correction of downscaled climate projections.
 - post-processing: ETCCDI extreme climate indices (Karl *et al*., 1999; https://www.climdex.org/learn/indices/).
 - visualization of downscaled projections and evaluation metrics.
+- integrated dynamic map viewer
 
 
 # Methods
@@ -46,6 +47,13 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 A graphical window will open. Make your selection and press the Run button. The graphical window will close and 
 pyClim-SDM will start the process in the terminal, where information messages will be shown.
 
+# Map viewer
+pyClim-SDM has an integrated dynamic map viewer. After having generated downscaled data for experiment PROJECTIONS (with or without bias correction), launch the map viewer by:
+ - cd map_viewer
+ - python app.py
+Open an internet browser and enter the following url: 127.0.0.1/8050
+
+
 # Installation
 pyClim-SDM has been originally designed for **Linux** and might present problems over a different OS.
 
@@ -55,12 +63,13 @@ In order to use pyClim-SDM, **python3.10** is required. pyClim-SDM makes use of 
 requirements.txt. You can install them by following these steps: 
 - Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
 - Create a virtual environment:
-  - basic installation: **conda create -n env_pyClim-SDM python=3.10 absl-py=2.1.0 Bottleneck=1.4.2 numpy=1.26.4 pandas=2.2.3 geopandas=1.0.1 geopy=2.4.1 matplotlib=3.10.1 netCDF4=1.6.0 scikit-learn=1.6.1 scipy=1.15.2 seaborn=0.13.2 shapely=2.0.6 statsmodels=0.14.4 tensorflow=2.17.0 xarray=2025.1.2 xgboost=2.1.4 cartopy=0.24.0 torchvision==0.14.1 torchaudio==2.5.1 pytorch==2.5.1 -y -c conda-forge**
+  - basic installation: **conda create -n env_pyClim-SDM python=3.10 absl-py=2.1.0 Bottleneck=1.4.2 numpy=1.26.4 pandas=2.2.3 geopandas=1.0.1 geopy=2.4.1 matplotlib=3.10.1 netCDF4=1.6.0 scikit-learn=1.6.1 scipy=1.15.2 seaborn=0.13.2 shapely=2.0.6 statsmodels=0.14.4 tensorflow=2.17.0 xarray=2025.1.2 xgboost=2.1.4 cartopy=0.24.0 torchvision=0.14.1 torchaudio=2.5.1 pytorch=2.5.1 dash=2.10.2 dash_bootstrap_components=1.7.1 plotly=5.6.0 -y -c conda-forge**
   - HPC additional libraries: mpi4py 
   - GPU additional libraries: pytorch-cuda -c pytorch -c nvidia
 After installation:
 - Activate your environment: **conda activate env_pyClim-SDM**
 - Deactivate your environment: **conda deactivate**
+**Warning**: if the basic installation fails, try it without specifying the libraries versions.
 
 # Input data
 Three types of datasets are needed:

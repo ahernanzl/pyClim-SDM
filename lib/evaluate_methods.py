@@ -465,7 +465,7 @@ def climdex(by_season=True):
                                 mean_est = np.nanmean(est_climdex, axis=0)
 
 
-                                biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                                biasMode = bias_units_and_palette[targetVar + '_' + climdex_name]['biasMode']
                                 if biasMode == 'abs':
                                     bias = mean_est - mean_obs
                                 elif biasMode == 'rel':

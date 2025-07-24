@@ -567,9 +567,9 @@ def climdex_boxplots(by_season):
                             obs = np.nanmean(read.netCDF(pathIn, '_'.join((targetVar, climdex_name, 'obs', season))+'.nc', targetVar+'_'+climdex_name)['data'], axis=0)
                             est = np.nanmean(read.netCDF(pathIn, '_'.join((targetVar, climdex_name, 'est', season))+'.nc', targetVar+'_'+climdex_name)['data'], axis=0)
 
-                            biasMode = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['biasMode']
+                            biasMode = bias_units_and_palette[targetVar + '_' + climdex_name]['biasMode']
                             if biasMode == 'abs':
-                                units = units_and_biasMode_climdex[targetVar + '_' + climdex_name]['units']
+                                units = bias_units_and_palette[targetVar + '_' + climdex_name]['units']
                                 bias = est - obs
                             elif biasMode == 'rel':
                                 units = '%'
