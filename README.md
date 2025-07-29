@@ -1,7 +1,7 @@
 # pyClim-SDM: Statistical Downscaling for Climate Change Projections with a Graphical User Interface  
 
 <br/><br/>
-![](doc/video_gui_cut.gif)
+![](doc/pyClim-SDM_demo.gif)
 <br/><br/>
 
 **Institution:** Spanish Meteorological Agency (AEMET)
