@@ -2,6 +2,7 @@
 
 <br/><br/>
 ![](doc/video_gui_cut.gif)
+<br/>
 ![](doc/video_app_cut_cut.gif)
 <br/><br/>
 
