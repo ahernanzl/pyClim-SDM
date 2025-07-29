@@ -2,7 +2,6 @@
 
 <br/><br/>
 ![](doc/video_gui_cut.gif)
-![](doc/video_app_cut_cut.gif)
 <br/><br/>
 
 **Institution:** Spanish Meteorological Agency (AEMET)
