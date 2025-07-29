@@ -80,17 +80,17 @@ def switch_splitMode(split_modeName, dict):
     #         object["state"] = 'disabled'
 
 
-########################################################################################################################
-def switch_steps(exp, steps, steps_ordered, exp_ordered, chk_only_for_experiment):
-    """To enable/disable steps depending on the experiment"""
-
-    for i in range(len(chk_only_for_experiment)):
-        object = chk_only_for_experiment[i]
-        step = steps_ordered[i]
-        if step in steps[exp] and exp == exp_ordered[i]:
-            object["state"] = "normal"
-        else:
-            object["state"] = "disabled"
+# ########################################################################################################################
+# def switch_steps(exp, steps, steps_ordered, exp_ordered, chk_only_for_experiment):
+#     """To enable/disable steps depending on the experiment"""
+#
+#     for i in range(len(chk_only_for_experiment)):
+#         object = chk_only_for_experiment[i]
+#         step = steps_ordered[i]
+#         if step in steps[exp] and exp == exp_ordered[i]:
+#             object["state"] = "normal"
+#         else:
+#             object["state"] = "disabled"
 
 
 ########################################################################################################################
@@ -174,17 +174,19 @@ class tabSteps(tk.Frame):
         tabSteps = tk.Frame(notebook)
         notebook.add(tabSteps, text='Experiment and Steps')
 
+        padx = 80
+
         # frameSteps
         frameSteps = Frame(tabSteps)
-        frameSteps.grid(sticky="W", column=0, row=0, padx=80, pady=10, rowspan=2)
+        frameSteps.grid(sticky="W", column=0, row=0, padx=padx, pady=10, rowspan=2)
 
         # frameDates
         frameDates = Frame(tabSteps)
-        frameDates.grid(sticky="W", column=1, row=0, padx=80, pady=10)
+        frameDates.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
 
         # frameBiasCorrection
         frameBiasCorrection = Frame(tabSteps)
-        frameBiasCorrection.grid(sticky="W", column=1, row=1, padx=80, pady=10)
+        frameBiasCorrection.grid(sticky="W", column=1, row=1, padx=padx, pady=10)
 
 
         self.chk_dict = {}
@@ -233,9 +235,7 @@ class tabSteps(tk.Frame):
 
         irow += 1
         for exp in experiments:
-            c = Radiobutton(frameSteps, text=exp+' '+experiments[exp], variable=self.experiment, value=exp,
-                            command=lambda: switch_steps(self.experiment.get(), steps, self.steps_ordered,
-                            self.exp_ordered, self.chk_only_for_experiment), takefocus=False)
+            c = Radiobutton(frameSteps, text=exp+' '+experiments[exp], variable=self.experiment, value=exp, takefocus=False)
             c.grid(sticky="W", column=icol, row=irow, padx=50)
             # CreateToolTip(c, experiments[exp])
             self.experiment.set(experiment)
@@ -254,7 +254,7 @@ class tabSteps(tk.Frame):
                                                                  'A different set of figures will be generated depending on the \n'
                                                                  'selected experiment (EVALUATION / PROJECTIONS).'},
                'nc2ascii': {'text': 'Convert binary files to ASCII', 'info': 'Convert binary files to ASCII.'},
-               'nc1D_to_nc2D': {'text': 'Convert binary 1D files to binary 2D files (only if your observations come from a regular grid)', 'info': 'Convert binary 1D files to binary 2D files (only if your observations come from a regular grid)'},
+               'nc1D_to_nc2D': {'text': 'Convert binary 1D files to binary 2D files', 'info': 'Only if your observations come from a regular grid'},
 
         }
 

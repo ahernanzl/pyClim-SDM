@@ -13,7 +13,7 @@ def create_layout():
         html.Div([
             html.Div([
                 html.Label("Method"),
-                dcc.Dropdown(id="method-select", value=None, clearable=False),
+                dcc.Dropdown(id="method-select", value=None, clearable=False, style={"fontSize": "12px"}),
             ], style={"width": "12%", "padding": "0 5px"}),
 
             html.Div([
@@ -22,7 +22,8 @@ def create_layout():
                     id="model-select",
                     options=[{"label": m, "value": m} for m in ["ENSEMBLE MEAN"] + model_list],
                     value=None,
-                    clearable=False
+                    clearable=False,
+                    style={"fontSize": "12px"}
                 )
             ], style={"width": "12%", "padding": "0 5px"}),
 
@@ -32,13 +33,14 @@ def create_layout():
                     id="var-select",
                     options=[{"label": v, "value": v} for v in targetVars],
                     value=targetVars[0] if targetVars else None,
-                    clearable=False
+                    clearable=False,
+                    style={"fontSize": "12px"}
                 )
             ], style={"width": "12%", "padding": "0 5px"}),
 
             html.Div([
                 html.Label("Climate Index"),
-                dcc.Dropdown(id="climdex-select", value=None, clearable=False),
+                dcc.Dropdown(id="climdex-select", value=None, clearable=False, style={"fontSize": "12px"}),
             ], style={"width": "12%", "padding": "0 5px"}),
 
             html.Div([
@@ -47,13 +49,14 @@ def create_layout():
                     id="scene-select",
                     options=[{"label": s, "value": s} for s in scene_list],
                     value=scene_list[0] if scene_list else None,
-                    clearable=False
+                    clearable=False,
+                    style={"fontSize": "12px"}
                 )
             ], style={"width": "12%", "padding": "0 5px"}),
 
             html.Div([
                 html.Label("Season"),
-                dcc.Dropdown(id="season-select", value=None, clearable=False),
+                dcc.Dropdown(id="season-select", value=None, clearable=False, style={"fontSize": "12px"}),
             ], style={"width": "12%", "padding": "0 5px"}),
 
             html.Div([
@@ -67,7 +70,8 @@ def create_layout():
                         {"label": "Change (1991-2010)", "value": "Change_1991_2010"},
                     ],
                     value="Value",
-                    clearable=False
+                    clearable=False,
+                    style={"fontSize": "12px"}
                 )
             ], style={"width": "12%", "padding": "0 5px"}),
 

@@ -117,7 +117,7 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 
 	# var.fill_value = fill_value
 	# data[np.isnan(data)] = fill_value
-	data[data==fill_value]=np.nan
+	# data[data==fill_value]=np.nan
 
 	latitude.units = 'degrees_north'
 	latitude.long_name = "latitude"

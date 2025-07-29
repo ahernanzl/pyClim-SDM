@@ -156,86 +156,89 @@ def register_callbacks(app):
         """
         if not all([var, method, climdex_name, scene, model, season]):
             return go.Figure()
+        try:
+            base = os.path.join(data_path, var.upper(), method, "climdex")
 
-        base = os.path.join(data_path, var.upper(), method, "climdex")
+            # Load scene data and years
+            data_scene = load_models(base, var, climdex_name, model, scene, season)
+            years_scene = get_years(base, var, climdex_name, model, scene, season)
 
-        # Load scene data and years
-        data_scene = load_models(base, var, climdex_name, model, scene, season)
-        years_scene = get_years(base, var, climdex_name, model, scene, season)
+            # Load historical reference if needed
+            if display_mode.startswith('Change_'):
+                data_hist = load_models(base, var, climdex_name, model, 'historical', season)
+                years_hist = get_years(base, var, climdex_name, model, 'historical', season)
 
-        # Load historical reference if needed
-        if display_mode.startswith('Change_'):
-            data_hist = load_models(base, var, climdex_name, model, 'historical', season)
-            years_hist = get_years(base, var, climdex_name, model, 'historical', season)
+            # Get bias_mode
+            bias_mode = 'abs'
+            if var+'_'+climdex_name in bias_units_and_palette:
+                bias_mode = bias_units_and_palette[var+'_'+climdex_name]['biasMode']
 
-        # Get bias_mode
-        bias_mode = 'abs'
-        if var+'_'+climdex_name in bias_units_and_palette:
-            bias_mode = bias_units_and_palette[var+'_'+climdex_name]['biasMode']
+            # Get units
+            units_and_palette_dict = bias_units_and_palette if display_mode.startswith(
+                "Change_") else absolute_units_and_palette
+            units = units_and_palette_dict.get(var + '_' + climdex_name, {}).get("units", "")
 
-        # Get units
-        units_and_palette_dict = bias_units_and_palette if display_mode.startswith(
-            "Change_") else absolute_units_and_palette
-        units = units_and_palette_dict.get(var + '_' + climdex_name, {}).get("units", "")
+            # Add model data to traces and all_anomalies
+            traces = []
+            all_anomalies = []
+            for model in data_scene:
+                data_scene_model = data_scene[model]
+                if display_mode.startswith("Change_"):
+                    data_hist_model = data_hist[model]
+                    ref_start, ref_end = map(int, display_mode.replace("Change_", "").split("_"))
+                    ref_mask = (years_hist >= ref_start) & (years_hist <= ref_end)
+                    ref_mask_xr = xr.DataArray(ref_mask, coords={"time": data_hist_model["time"]}, dims="time")
+                    ref_mask_expanded = ref_mask_xr.broadcast_like(data_hist_model)
+                    ref_data = data_hist_model.where(ref_mask_expanded)
+                    ref_mean = ref_data.mean(dim="time")
+                    anomaly = apply_change_mode(data_scene_model, ref_mean, bias_mode)
+                else:
+                    anomaly = data_scene_model
 
-        # Add model data to traces and all_anomalies
-        traces = []
-        all_anomalies = []
-        for model in data_scene:
-            data_scene_model = data_scene[model]
-            if display_mode.startswith("Change_"):
-                data_hist_model = data_hist[model]
-                ref_start, ref_end = map(int, display_mode.replace("Change_", "").split("_"))
-                ref_mask = (years_hist >= ref_start) & (years_hist <= ref_end)
-                ref_mask_xr = xr.DataArray(ref_mask, coords={"time": data_hist_model["time"]}, dims="time")
-                ref_mask_expanded = ref_mask_xr.broadcast_like(data_hist_model)
-                ref_data = data_hist_model.where(ref_mask_expanded)
-                ref_mean = ref_data.mean(dim="time")
-                anomaly = apply_change_mode(data_scene_model, ref_mean, bias_mode)
+                # Compute spatial mean
+                anomaly_spatial_mean = anomaly.mean(dim=[d for d in anomaly.dims if d != "time"])
+                all_anomalies.append(anomaly_spatial_mean)
+                traces.append(go.Scatter(x=years_scene, y=anomaly_spatial_mean.values, mode='lines', name=model))
+
+            # Ensemble mean, min and max
+            if len(all_anomalies) > 1:
+                combined = xr.concat(all_anomalies, dim="model")
+                mean = combined.mean(dim="model")
+                min_ = combined.min(dim="model")
+                max_ = combined.max(dim="model")
+                traces.append(go.Scatter(x=years_scene, y=mean.values, mode='lines', name="ENSEMBLE MEAN",
+                                         line=dict(width=4, color='black')))
+                traces.append(go.Scatter(x=years_scene, y=min_.values, mode='lines', name="Min",
+                                         line=dict(width=0), showlegend=False, hoverinfo='skip'))
+                traces.append(go.Scatter(x=years_scene, y=max_.values, mode='lines', name="Max",
+                                         fill='tonexty', line=dict(width=0),
+                                         fillcolor='rgba(0,0,0,0.2)', showlegend=False, hoverinfo='skip'))
+
+            # Define y_title
+            if display_mode == 'Value':
+                y_title = var + '_' + climdex_name + ' (' + units + ')'
             else:
-                anomaly = data_scene_model
+                y_title = var + '_' + climdex_name + ' change (' + units + ')'
 
-            # Compute spatial mean
-            anomaly_spatial_mean = anomaly.mean(dim=[d for d in anomaly.dims if d != "time"])
-            all_anomalies.append(anomaly_spatial_mean)
-            traces.append(go.Scatter(x=years_scene, y=anomaly_spatial_mean.values, mode='lines', name=model))
+            # Create figure
+            fig = go.Figure(data=traces)
+            fig.update_layout(
+                            # title="Spatial average evolution",
+                            xaxis_title="Year", yaxis_title=y_title,
+                              # legend=dict(
+                              #     x=0.01,
+                              #     y=0.99,
+                              #     bgcolor='rgba(255,255,255,0.7)',
+                              #     bordercolor='gray',
+                              #     borderwidth=1
+                              # ),
+                              showlegend=False,
+                              margin=dict(t=30, r=10, b=30, l=40)
+                              )
+            return fig
+        except:
+            return go.Figure()
 
-        # Ensemble mean, min and max
-        if len(all_anomalies) > 1:
-            combined = xr.concat(all_anomalies, dim="model")
-            mean = combined.mean(dim="model")
-            min_ = combined.min(dim="model")
-            max_ = combined.max(dim="model")
-            traces.append(go.Scatter(x=years_scene, y=mean.values, mode='lines', name="ENSEMBLE MEAN",
-                                     line=dict(width=4, color='black')))
-            traces.append(go.Scatter(x=years_scene, y=min_.values, mode='lines', name="Min",
-                                     line=dict(width=0), showlegend=False, hoverinfo='skip'))
-            traces.append(go.Scatter(x=years_scene, y=max_.values, mode='lines', name="Max",
-                                     fill='tonexty', line=dict(width=0),
-                                     fillcolor='rgba(0,0,0,0.2)', showlegend=False, hoverinfo='skip'))
-
-        # Define y_title
-        if display_mode == 'Value':
-            y_title = var + '_' + climdex_name + ' (' + units + ')'
-        else:
-            y_title = var + '_' + climdex_name + ' change (' + units + ')'
-
-        # Create figure
-        fig = go.Figure(data=traces)
-        fig.update_layout(
-                        # title="Spatial average evolution",
-                        xaxis_title="Year", yaxis_title=y_title,
-                          # legend=dict(
-                          #     x=0.01,
-                          #     y=0.99,
-                          #     bgcolor='rgba(255,255,255,0.7)',
-                          #     bordercolor='gray',
-                          #     borderwidth=1
-                          # ),
-                          showlegend=False,
-                          margin=dict(t=30, r=10, b=30, l=40)
-                          )
-        return fig
 
     @app.callback(
         Output("vmin-vmax-container", "style"),
@@ -296,171 +299,173 @@ def register_callbacks(app):
         """
         if not all([var, method, climdex_name, model, scene, season]) or period_index is None:
             return go.Figure()
+        try:
+            base = os.path.join(data_path, var.upper(), method, "climdex")
 
-        base = os.path.join(data_path, var.upper(), method, "climdex")
+            # Load scene data, years and periods
+            data_scene = load_models(base, var, climdex_name, model, scene, season)
+            years_scene = get_years(base, var, climdex_name, model, scene, season)
+            periods, _ = generate_dynamic_periods(years_scene.min(), years_scene.max())
+            lats, lons = get_lat_lon(base, var, climdex_name, model, scene, season)
 
-        # Load scene data, years and periods
-        data_scene = load_models(base, var, climdex_name, model, scene, season)
-        years_scene = get_years(base, var, climdex_name, model, scene, season)
-        periods, _ = generate_dynamic_periods(years_scene.min(), years_scene.max())
-        lats, lons = get_lat_lon(base, var, climdex_name, model, scene, season)
+            # Load historical reference if needed
+            if display_mode.startswith('Change_'):
+                data_hist = load_models(base, var, climdex_name, model, 'historical', season)
+                years_hist = get_years(base, var, climdex_name, model, 'historical', season)
 
-        # Load historical reference if needed
-        if display_mode.startswith('Change_'):
-            data_hist = load_models(base, var, climdex_name, model, 'historical', season)
-            years_hist = get_years(base, var, climdex_name, model, 'historical', season)
-
-        # Get bias_mode
-        bias_mode = 'abs'
-        if var+'_'+climdex_name in bias_units_and_palette:
-            bias_mode = bias_units_and_palette[var+'_'+climdex_name]['biasMode']
-
-
-        # Add model data all_anomalies
-        all_anomalies = []
-        for model in data_scene:
-            data_scene_model = data_scene[model]
-            sce_start, sce_end = periods[period_index]
-            sce_mask = (years_scene >= sce_start) & (years_scene <= sce_end)
-            sce_mask_xr = xr.DataArray(sce_mask, coords={"time": data_scene_model["time"]}, dims="time")
-            sce_mask_expanded = sce_mask_xr.broadcast_like(data_scene_model)
-            data_scene_model = data_scene_model.where(sce_mask_expanded)
-
-            if display_mode.startswith("Change_"):
-                data_hist_model = data_hist[model]
-                ref_start, ref_end = map(int, display_mode.replace("Change_", "").split("_"))
-                ref_mask = (years_hist >= ref_start) & (years_hist <= ref_end)
-                ref_mask_xr = xr.DataArray(ref_mask, coords={"time": data_hist_model["time"]}, dims="time")
-                ref_mask_expanded = ref_mask_xr.broadcast_like(data_hist_model)
-                ref_data = data_hist_model.where(ref_mask_expanded)
-                ref_mean = ref_data.mean(dim="time")
-                anomaly = apply_change_mode(data_scene_model, ref_mean, bias_mode)
-            else:
-                anomaly = data_scene_model
-
-            # Compute temporal mean
-            anomaly_temporal_mean = anomaly.mean(dim="time")
-            all_anomalies.append(anomaly_temporal_mean)
-
-        # Convert all_anomalies list to field xarray
-        combined = xr.concat(all_anomalies, dim="model")
-        field_mean = combined.mean(dim="model")
-        field_min = combined.min(dim="model")
-        field_max = combined.max(dim="model")
-
-        # Reassign lat/lon as coordinates if working with point data
-        if is_grid==False:
-            field_mean = field_mean.assign_coords(
-                lat=("point", lats),
-                lon=("point", lons)
-            )
-            field_min = field_min.assign_coords(
-                lat=("point", lats),
-                lon=("point", lons)
-            )
-            field_max = field_max.assign_coords(
-                lat=("point", lats),
-                lon=("point", lons)
-            )
-
-        # Define custom_data for hovertemplate
-        custom_data = np.stack([field_min.values.flatten(), field_max.values.flatten()], axis=-1)
-
-        # Define limits
-        lon_min = float(np.min(field_mean["lon"])) - 12
-        lon_max = float(np.max(field_mean["lon"])) + 5
-        lat_min = float(np.min(field_mean["lat"])) - 3
-        lat_max = float(np.max(field_mean["lat"])) + 1
-
-        # Get units, cmap, vmin and vmax
-        units_and_palette_dict = bias_units_and_palette if display_mode.startswith(
-            "Change_") else absolute_units_and_palette
-        cbar_title={"text": f"{units_and_palette_dict.get(var + '_' + climdex_name, {}).get('units', '')}"}
-        cmap=units_and_palette_dict.get(var + '_' + climdex_name, {}).get('cmap', '')
-        if vmin is None and vmax is None:
-            vmin=units_and_palette_dict.get(var + '_' + climdex_name, {}).get('vmin', '')
-            vmax=units_and_palette_dict.get(var + '_' + climdex_name, {}).get('vmax', '')
+            # Get bias_mode
+            bias_mode = 'abs'
+            if var+'_'+climdex_name in bias_units_and_palette:
+                bias_mode = bias_units_and_palette[var+'_'+climdex_name]['biasMode']
 
 
-        # Define projection_type
-        projection_type = 'equirectangular'
-        # projection_type = 'mercator'
+            # Add model data all_anomalies
+            all_anomalies = []
+            for model in data_scene:
+                data_scene_model = data_scene[model]
+                sce_start, sce_end = periods[period_index]
+                sce_mask = (years_scene >= sce_start) & (years_scene <= sce_end)
+                sce_mask_xr = xr.DataArray(sce_mask, coords={"time": data_scene_model["time"]}, dims="time")
+                sce_mask_expanded = sce_mask_xr.broadcast_like(data_scene_model)
+                data_scene_model = data_scene_model.where(sce_mask_expanded)
 
-        # Plot depending on grid or points
-        if is_grid==True:
-            fig = go.Figure(data=go.Heatmap(
-                z=field_mean.values,
-                x=field_mean["lon"].values,
-                y=field_mean["lat"].values,
-                colorscale=cmap,
-                colorbar=dict(title=cbar_title, len=0.35, y=0.75, x=0.01),
-                zmin=vmin,
-                zmax=vmax,
-                customdata=custom_data.reshape(field_mean.values.shape + (2,)),
-                hovertemplate=(
-                    'lon: %{x}<br>'
-                    'lat: %{y}<br>'
-                    'max: %{customdata[1]:.2f}<br>'
-                    'mean: %{z:.2f}<br>'
-                    'min: %{customdata[0]:.2f}<extra></extra>')
-            ))
-            fig.update_layout(
-                geo=dict(
-                    projection=dict(type=projection_type),
-                    showcountries=True,
-                    showcoastlines=True,
-                    showland=True,
-                    showocean=True,
-                    landcolor="rgb(240, 240, 240)",
-                    oceancolor="rgb(200, 230, 255)",
-                    lonaxis=dict(range=[lon_min, lon_max]),
-                    lataxis=dict(range=[lat_min, lat_max]),
-                ),
-                margin=dict(l=0, r=0, t=0, b=0),
-                xaxis=dict(range=[lon_min, lon_max], visible=False),
-                yaxis=dict(range=[lat_min, lat_max], visible=False),
-                dragmode="pan",
-            )
-            return fig
-        # For points, we must have coords 'lat' and 'lon'
-        else:
-            fig = go.Figure(data=go.Scattergeo(
-                lon=field_mean["lon"].values,
-                lat=field_mean["lat"].values,
-                text=np.round(field_mean.values, 2),
-                customdata=custom_data.reshape(field_mean.values.shape + (2,)),
-                hovertemplate=(
-                    'lon: %{lon}<br>'
-                    'lat: %{lat}<br>'
-                    'max: %{customdata[1]:.2f}<br>'
-                    'mean: %{text:.2f}<br>'
-                    'min: %{customdata[0]:.2f}<extra></extra>'),
-                marker=dict(
-                    size=8,
-                    color=field_mean.values,
+                if display_mode.startswith("Change_"):
+                    data_hist_model = data_hist[model]
+                    ref_start, ref_end = map(int, display_mode.replace("Change_", "").split("_"))
+                    ref_mask = (years_hist >= ref_start) & (years_hist <= ref_end)
+                    ref_mask_xr = xr.DataArray(ref_mask, coords={"time": data_hist_model["time"]}, dims="time")
+                    ref_mask_expanded = ref_mask_xr.broadcast_like(data_hist_model)
+                    ref_data = data_hist_model.where(ref_mask_expanded)
+                    ref_mean = ref_data.mean(dim="time")
+                    anomaly = apply_change_mode(data_scene_model, ref_mean, bias_mode)
+                else:
+                    anomaly = data_scene_model
+
+                # Compute temporal mean
+                anomaly_temporal_mean = anomaly.mean(dim="time")
+                all_anomalies.append(anomaly_temporal_mean)
+
+            # Convert all_anomalies list to field xarray
+            combined = xr.concat(all_anomalies, dim="model")
+            field_mean = combined.mean(dim="model")
+            field_min = combined.min(dim="model")
+            field_max = combined.max(dim="model")
+
+            # Reassign lat/lon as coordinates if working with point data
+            if is_grid==False:
+                field_mean = field_mean.assign_coords(
+                    lat=("point", lats),
+                    lon=("point", lons)
+                )
+                field_min = field_min.assign_coords(
+                    lat=("point", lats),
+                    lon=("point", lons)
+                )
+                field_max = field_max.assign_coords(
+                    lat=("point", lats),
+                    lon=("point", lons)
+                )
+
+            # Define custom_data for hovertemplate
+            custom_data = np.stack([field_min.values.flatten(), field_max.values.flatten()], axis=-1)
+
+            # Define limits
+            lon_min = float(np.min(field_mean["lon"])) - 12
+            lon_max = float(np.max(field_mean["lon"])) + 5
+            lat_min = float(np.min(field_mean["lat"])) - 3
+            lat_max = float(np.max(field_mean["lat"])) + 1
+
+            # Get units, cmap, vmin and vmax
+            units_and_palette_dict = bias_units_and_palette if display_mode.startswith(
+                "Change_") else absolute_units_and_palette
+            cbar_title={"text": f"{units_and_palette_dict.get(var + '_' + climdex_name, {}).get('units', '')}"}
+            cmap=units_and_palette_dict.get(var + '_' + climdex_name, {}).get('cmap', '')
+            if vmin is None and vmax is None:
+                vmin=units_and_palette_dict.get(var + '_' + climdex_name, {}).get('vmin', '')
+                vmax=units_and_palette_dict.get(var + '_' + climdex_name, {}).get('vmax', '')
+
+
+            # Define projection_type
+            projection_type = 'equirectangular'
+            # projection_type = 'mercator'
+
+            # Plot depending on grid or points
+            if is_grid==True:
+                fig = go.Figure(data=go.Heatmap(
+                    z=field_mean.values,
+                    x=field_mean["lon"].values,
+                    y=field_mean["lat"].values,
                     colorscale=cmap,
-                    cmin=vmin,
-                    cmax=vmax,
                     colorbar=dict(title=cbar_title, len=0.35, y=0.75, x=0.01),
-                ),
-                mode="markers"
-            ))
-            fig.update_layout(
-                geo=dict(
-                    projection=dict(type=projection_type),
-                    showcountries=True,
-                    showcoastlines=True,
-                    showland=True,
-                    showocean=True,
-                    landcolor="rgb(240, 240, 240)",
-                    oceancolor="rgb(200, 230, 255)",
-                    lonaxis=dict(range=[lon_min, lon_max]),
-                    lataxis=dict(range=[lat_min, lat_max]),
-                ),
-                margin=dict(l=0, r=0, t=0, b=0),
-                xaxis=dict(range=[lon_min, lon_max], visible=False),
-                yaxis=dict(range=[lat_min, lat_max], visible=False),
-                dragmode="pan",
-            )
-            return fig
+                    zmin=vmin,
+                    zmax=vmax,
+                    customdata=custom_data.reshape(field_mean.values.shape + (2,)),
+                    hovertemplate=(
+                        'lon: %{x}<br>'
+                        'lat: %{y}<br>'
+                        'max: %{customdata[1]:.2f}<br>'
+                        'mean: %{z:.2f}<br>'
+                        'min: %{customdata[0]:.2f}<extra></extra>')
+                ))
+                fig.update_layout(
+                    geo=dict(
+                        projection=dict(type=projection_type),
+                        showcountries=True,
+                        showcoastlines=True,
+                        showland=True,
+                        showocean=True,
+                        landcolor="rgb(240, 240, 240)",
+                        oceancolor="rgb(200, 230, 255)",
+                        lonaxis=dict(range=[lon_min, lon_max]),
+                        lataxis=dict(range=[lat_min, lat_max]),
+                    ),
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    xaxis=dict(range=[lon_min, lon_max], visible=False),
+                    yaxis=dict(range=[lat_min, lat_max], visible=False),
+                    dragmode="pan",
+                )
+                return fig
+            # For points, we must have coords 'lat' and 'lon'
+            else:
+                fig = go.Figure(data=go.Scattergeo(
+                    lon=field_mean["lon"].values,
+                    lat=field_mean["lat"].values,
+                    text=np.round(field_mean.values, 2),
+                    customdata=custom_data.reshape(field_mean.values.shape + (2,)),
+                    hovertemplate=(
+                        'lon: %{lon}<br>'
+                        'lat: %{lat}<br>'
+                        'max: %{customdata[1]:.2f}<br>'
+                        'mean: %{text:.2f}<br>'
+                        'min: %{customdata[0]:.2f}<extra></extra>'),
+                    marker=dict(
+                        size=8,
+                        color=field_mean.values,
+                        colorscale=cmap,
+                        cmin=vmin,
+                        cmax=vmax,
+                        colorbar=dict(title=cbar_title, len=0.35, y=0.75, x=0.01),
+                    ),
+                    mode="markers"
+                ))
+                fig.update_layout(
+                    geo=dict(
+                        projection=dict(type=projection_type),
+                        showcountries=True,
+                        showcoastlines=True,
+                        showland=True,
+                        showocean=True,
+                        landcolor="rgb(240, 240, 240)",
+                        oceancolor="rgb(200, 230, 255)",
+                        lonaxis=dict(range=[lon_min, lon_max]),
+                        lataxis=dict(range=[lat_min, lat_max]),
+                    ),
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    xaxis=dict(range=[lon_min, lon_max], visible=False),
+                    yaxis=dict(range=[lat_min, lat_max], visible=False),
+                    dragmode="pan",
+                )
+                return fig
+        except:
+            return go.Figure()
 
