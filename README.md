@@ -66,13 +66,14 @@ In order to use pyClim-SDM, **python3.10** is required. pyClim-SDM makes use of 
 requirements.txt. You can install them by following these steps: 
 - Install Miniconda 3 (6Gb aprox. needed): https://docs.conda.io/en/latest/miniconda.html
 - Create a virtual environment:
+  - conda update -n base -c defaults conda
   - basic installation: **conda create -n env_pyClim-SDM python=3.10 absl-py=2.1.0 Bottleneck=1.4.2 numpy=1.26.4 pandas=2.2.3 geopandas=1.0.1 geopy=2.4.1 matplotlib=3.10.1 netCDF4=1.6.0 scikit-learn=1.6.1 scipy=1.15.2 seaborn=0.13.2 shapely=2.0.6 statsmodels=0.14.4 tensorflow=2.17.0 xarray=2025.1.2 xgboost=2.1.4 cartopy=0.24.0 torchvision=0.14.1 torchaudio=2.5.1 pytorch=2.5.1 dash=2.10.2 dash_bootstrap_components=1.7.1 plotly=5.6.0 -y -c conda-forge**
   - HPC additional libraries: mpi4py 
   - GPU additional libraries: pytorch-cuda -c pytorch -c nvidia
 After installation:
 - Activate your environment: **conda activate env_pyClim-SDM**
 - Deactivate your environment: **conda deactivate**
-**Warning**: if the basic installation fails, try it without specifying the libraries versions.
+**Warning**: Alternatively, if the basic installation fails, you can try **conda create -f environment.yml**
 
 # Input data
 Three types of datasets are needed:
@@ -130,3 +131,13 @@ Filenames: filenames are composed of specific fields separated by ‘_’, so th
 - Wilby, R., Dawson, C. and Barrow, E.M. (2002). SDSM—a decision support tool for the assessment of regional climate change impacts. Environmental Modelling & Software, 17, 145–157. https://doi.org/10.1016/S1364-8152(01)00060-3
 
 
+
+# pyClim-SDM has been used for the following studies:
+
+- Sandel, B., Merow, C., Serra‐Diaz, J. M., & Svenning, J. C. (2025). Disequilibrium in plant distributions: Challenges and approaches for species distribution models. Journal of Ecology, 113(4), 782-794.
+
+- Hernanz, A., Correa, C., Domínguez, M., Rodríguez‐Guisado, E., & Rodríguez‐Camino, E. (2023). Comparison of machine learning statistical downscaling and regional climate models for temperature, precipitation, wind speed, humidity and radiation over Europe under present conditions. International Journal of Climatology, 43(13), 6065-6082.
+
+- Andimuthu, R., Lakshminarayanan, B., Ramaswamy, M., & Joseph, K. (2024). Multivariate drought risk assessment of tropical river basin in South India under SSP scenarios. Theoretical and Applied Climatology, 155(7), 6843-6861.
+
+- Hassan, M., Ejaz, Z., Abbas, S., Mahmood, R., Chishtie, F. A., Shi, X., ... & Naqvi, S. A. A. (2025). Projected climate regime over Pakistan and its implications for hydrology in the Hunza River Basin using CMIP6 GCMs. Climate Dynamics, 63(7), 285.

@@ -198,7 +198,7 @@ class tabSteps(tk.Frame):
 
         # Experiment
 
-        tk.Label(frameSteps, text="Select steps and experiment:").grid(sticky="E", column=icol, row=irow, padx=50, pady=50); irow+=1
+        tk.Label(frameSteps, text="Select steps and experiment:").grid(sticky="NE", column=icol, row=irow, padx=50, pady=50); irow+=1
         # tk.Label(frameSteps, text="").grid(column=icol, row=irow, pady=5); irow+=1
 
         steps_before = {'preprocess': {'text': 'Preprocess', 'info':  'Association between target points and the low \n'
@@ -281,7 +281,8 @@ class tabSteps(tk.Frame):
 
         icol = 0; irow = 0
 
-        tk.Label(frameDates, text="Select your dates:").grid(sticky="W", column=icol, row=irow, padx=50, pady=50, columnspan=100); irow+=1
+        tk.Label(frameDates, text="").grid(sticky="NW", column=icol, row=irow, padx=50, pady=6, columnspan=100); irow+=1
+        tk.Label(frameDates, text="Select your dates:").grid(sticky="NW", column=icol, row=irow, padx=50, pady=50, columnspan=100); irow+=1
         tk.Label(frameDates, text="The calibration period needs to be available for reanalysis and hres data.").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
         tk.Label(frameDates, text="The reference period needs to be available for reanalysis, hres data and models historical simulations.").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
         tk.Label(frameDates, text="The testing period is the part of the calibration period reserved for testing (not used for training).").grid(sticky="W", column=icol, row=irow, padx=0, pady=0, columnspan=100); irow+=1
@@ -330,7 +331,7 @@ class tabSteps(tk.Frame):
             'No': 'Do not apply bias correction after downscaling.',
             'Yes': 'Apply bias correction after downscaling.',
         }
-        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=30, columnspan=3); irow+=1
+        Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=15, columnspan=3); irow+=1
         Label(frameBiasCorrection, text='Bias correction:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
         if apply_bc == False:
             last_bc_opt = 'No'

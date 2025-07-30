@@ -1,0 +1,31 @@
+name: env_pyClim-SDM
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - absl-py
+  - bottleneck
+  - numpy
+  - pandas
+  - geopandas
+  - geopy
+  - matplotlib
+  - netcdf4
+  - scikit-learn
+  - scipy
+  - seaborn
+  - shapely
+  - statsmodels
+  - xarray
+  - xgboost
+  - cartopy
+  - pytorch
+  - torchvision
+  - torchaudio
+  - dash
+  - plotly
+  - pip:
+      - dash-bootstrap-components
+      - tensorflow-cpu
