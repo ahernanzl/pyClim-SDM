@@ -67,7 +67,7 @@ def create_layout():
                         {"label": "Value", "value": "Value"},
                         {"label": "Change (1961-1990)", "value": "Change_1961_1990"},
                         {"label": "Change (1971-2000)", "value": "Change_1971_2000"},
-                        {"label": "Change (1991-2010)", "value": "Change_1991_2010"},
+                        {"label": "Change (1981-2010)", "value": "Change_1981_2010"},
                     ],
                     value="Value",
                     clearable=False,
