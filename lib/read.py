@@ -189,8 +189,8 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
 
                         aux[:, grid_ilat, grid_ilon] = (w1 * data[:, ilatDown, jlonRight] + w2 * data[:, ilatDown, jlonLeft] + \
                                                        w3 * data[:, ilatUp, jlonLeft] + w4 * data[:, ilatUp, jlonRight])[:][0]
-                        data = 1 * aux
-                        del aux
+                data = 1 * aux
+                del aux
             except:
                 print('Make sure your models netCDF files contain a large enough spatial domain over your high resolution domain')
                 exit()
