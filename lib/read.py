@@ -190,16 +190,17 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
                         aux[:, grid_ilat, grid_ilon] = (w1 * data[:, ilatDown, jlonRight] + w2 * data[:, ilatDown, jlonLeft] + \
                                                        w3 * data[:, ilatUp, jlonLeft] + w4 * data[:, ilatUp, jlonRight])[:][0]
                 data = 1 * aux
+                lats, lons = grid_lats, grid_lons
                 del aux
             except:
                 print('Make sure your models netCDF files contain a large enough spatial domain over your high resolution domain')
                 exit()
-
-        ilats = [i for i in range(nlats) if lats[i] in grid_lats]
-        ilons = [i for i in range(nlons) if lons[i] in grid_lons]
-        lats, lons = lats[ilats], lons[ilons]
-        data = data[:, ilats]
-        data = data[:, :, ilons]
+        else:
+            ilats = [i for i in range(nlats) if lats[i] in grid_lats]
+            ilons = [i for i in range(nlons) if lons[i] in grid_lons]
+            lats, lons = lats[ilats], lons[ilons]
+            data = data[:, ilats]
+            data = data[:, :, ilons]
 
 
     # Get units
