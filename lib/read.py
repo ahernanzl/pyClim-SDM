@@ -196,8 +196,8 @@ def netCDF(dataPath, filename, nc_variable, grid=None, level=None):
                 print('Make sure your models netCDF files contain a large enough spatial domain over your high resolution domain')
                 exit()
         else:
-            ilats = [i for i in range(nlats) if lats[i] in grid_lats]
-            ilons = [i for i in range(nlons) if lons[i] in grid_lons]
+            ilats = [i for i in range(len(lats)) if lats[i] in grid_lats]
+            ilons = [i for i in range(len(lons)) if lons[i] in grid_lons]
             lats, lons = lats[ilats], lons[ilons]
             data = data[:, ilats]
             data = data[:, :, ilons]
