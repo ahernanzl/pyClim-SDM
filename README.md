@@ -38,7 +38,7 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 ### Machine Learning:
 - **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
 - **DeepESD**: Convolutional Neural Networks. See Baño-Medina *et al*., (2022)
-
+- **GAN-DeepESD**: Generative Adversarial Network base on DeepESD
 
 # How to use
 - Download and install pyClim-SDM (see Installation section)
