@@ -177,7 +177,7 @@ def train(targetVar, methodName, family, mode, fields):
     optimizer_D = torch.optim.Adam(model_D.parameters(), lr=learning_rate)
 
 
-    loop_return_dict = deep_train.adversarial_training_loop(targetVar, generator=model_G, discriminator=model_D,
+    loop_return_dict = deep_train.standard_cgan_training_loop(targetVar, generator=model_G, discriminator=model_D,
                           gen_name=model_name, disc_name=model_name_D,
                           model_path=pathOut,
                           device=device, num_epochs=num_epochs,
