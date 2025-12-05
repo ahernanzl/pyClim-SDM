@@ -249,8 +249,8 @@ def rmse(target: xr.Dataset, pred: xr.Dataset,
     metric = ((pred - target) ** 2).mean('time') ** (1/2)
     return metric
 
-def rmse_wet(target: xr.Dataset, pred: xr.Dataset,
-             var_target: str, season: str=None) -> xr.Dataset:
+def rmse_wet(target: xr.Dataset, pred: xr.Dataset, var_target: str,
+             threshold: float=1., season: str=None) -> xr.Dataset:
 
     """
     Compute the root mean square error between the target and
@@ -267,6 +267,9 @@ def rmse_wet(target: xr.Dataset, pred: xr.Dataset,
     var_target : str
         Target variable.
 
+    threshold : float
+        Wet day threshold [0,+inf]
+
     season : str
         Season to filter. If passes as None, no filtering is
         applied.
@@ -279,8 +282,8 @@ def rmse_wet(target: xr.Dataset, pred: xr.Dataset,
     target = _filter_by_season(target, season)
     pred = _filter_by_season(pred, season)
     
-    target = target.where(target[var_target] >= 1)
-    pred = pred.where(pred[var_target] >= 1)
+    target = target.where(target[var_target] >= threshold)
+    pred = pred.where(pred[var_target] >= threshold)
 
     metric = ((pred - target) ** 2).mean('time') ** (1/2)
     return metric

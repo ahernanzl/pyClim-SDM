@@ -15,9 +15,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -214,10 +216,26 @@ def train_methods():
             else:
                 # Serial processing
                 if running_at_HPC == False:
-                    if runInParallel_multiprocessing == False:
-                        DeepESD_lib.train(targetVar, methodName, family, mode, fields)
-                    else:
-                        iterable_DL.append([targetVar, methodName, family, mode, fields])
+                #     if runInParallel_multiprocessing == False:
+                    DL_lib.train(targetVar, methodName, family, mode, fields)
+                    # else:
+                    #     iterable_DL.append([targetVar, methodName, family, mode, fields])
+
+                # Parallel processing
+                elif running_at_HPC == True:
+                    launch_jobs.training(targetVar, methodName, family, mode, fields)
+
+        if family == 'GAN':
+
+            if running_at_GPU == True:
+                launch_jobs_GPU.training(targetVar, methodName, family, mode, fields)
+            else:
+                # Serial processing
+                if running_at_HPC == False:
+                #     if runInParallel_multiprocessing == False:
+                    GAN_lib.train(targetVar, methodName, family, mode, fields)
+                    # else:
+                    #     iterable_DL.append([targetVar, methodName, family, mode, fields])
 
                 # Parallel processing
                 elif running_at_HPC == True:
@@ -241,11 +259,11 @@ def train_methods():
             with Pool(processes=nCPUs_multiprocessing) as pool:
                 pool.starmap(TF_lib.train_chunk, iterable)
 
-    # Parallel processing of DL
-    if runInParallel_multiprocessing == True:
-        for x in iterable_DL:
-            iterable = []
-            for iproc in range(nCPUs_multiprocessing):
-                iterable.append([x[0], x[1], x[2], x[3], x[4], iproc, nCPUs_multiprocessing])
-            with Pool(processes=nCPUs_multiprocessing) as pool:
-                pool.starmap(DeepESD_lib.train, iterable)
+    # # Parallel processing of DL
+    # if runInParallel_multiprocessing == True:
+    #     for x in iterable_DL:
+    #         iterable = []
+    #         for iproc in range(nCPUs_multiprocessing):
+    #             iterable.append([x[0], x[1], x[2], x[3], x[4], iproc, nCPUs_multiprocessing])
+    #         with Pool(processes=nCPUs_multiprocessing) as pool:
+    #             pool.starmap(DL_lib.train, iterable)

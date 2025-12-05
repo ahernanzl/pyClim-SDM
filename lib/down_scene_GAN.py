@@ -18,9 +18,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -104,7 +106,7 @@ def downscale(targetVar, methodName, family, mode, fields, scene, model):
     y_shape = (X_test.shape[0], hres_npoints[targetVar])
 
     # Load trained model
-    model_name = 'DeepESD-' + targetVar
+    model_name = methodName + '-' + targetVar
     pathModel = pathAux + 'TRAINED_MODELS/' + targetVar.upper() + '/' + methodName + '/'
     if targetVar == 'pr':
         model_deep = deep_models.DeepESDpr(x_shape=X_test.shape, y_shape=y_shape, filters_last_conv=1, stochastic=False)
@@ -125,6 +127,10 @@ def downscale(targetVar, methodName, family, mode, fields, scene, model):
 
     # Corvert to numpy array
     y_pred = y_pred[targetVar].values
+
+    # y_mean = np.load(pathAux+'TRANSFORMATION/Y/'+targetVar+'_mean.npy')
+    # y_std = np.load(pathAux+'TRANSFORMATION/Y/'+targetVar+'_std.npy')
+    # y_pred = y_pred * y_std + y_mean
 
     est = np.zeros((scene_ndates, hres_npoints[targetVar]))
     est[:] = np.nan

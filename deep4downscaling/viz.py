@@ -13,9 +13,9 @@ from matplotlib.colors import ListedColormap
 import cartopy.crs as ccrs
 import math
 
-def simple_map_plot(data: xr.Dataset, var_to_plot: str, output_path: str,
+def simple_map_plot(data: xr.Dataset, var_to_plot: str, output_path: str=None,
                     colorbar: str='coolwarm', vlimits: tuple=(None, None),
-                    num_levels: int=20,
+                    num_levels: int=20, central_longitude: int=0,
                     coord_names: dict={'lat': 'lat',
                                        'lon': 'lon'}) -> None:
 
@@ -34,7 +34,8 @@ def simple_map_plot(data: xr.Dataset, var_to_plot: str, output_path: str,
         ignore this parameter.
 
     output_path : str
-        Path inidicating where to save the resulting image (pdf)
+        Path inidicating where to save the resulting image (pdf). If it is not
+        provided the plot will be returned interactively.
 
     colorbar : str, optional
         Colorbar to use in the plot (inherited from matplotlib)
@@ -45,6 +46,10 @@ def simple_map_plot(data: xr.Dataset, var_to_plot: str, output_path: str,
 
     num_levels : int, optional
         The amount of levels to use in the colorbar. By default is 20.
+
+    central_longitude : int, optional
+        Central longitude for the map projection. Default is 0, which works well
+        for most regions like Europe.
 
     coord_names : dict, optional
         Dictionary with mappings of the name of the spatial dimensions.
@@ -62,7 +67,7 @@ def simple_map_plot(data: xr.Dataset, var_to_plot: str, output_path: str,
     discrete_cmap = ListedColormap(continuous_cmap(np.linspace(0, 1, num_levels)))    
 
     plt.figure(figsize=(8, 8))
-    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
 
     if None in vlimits:
         cs = ax.pcolormesh(data[coord_names['lon']], data[coord_names['lat']],
@@ -78,10 +83,14 @@ def simple_map_plot(data: xr.Dataset, var_to_plot: str, output_path: str,
     plt.colorbar(cs, ax=ax, orientation='horizontal')
 
     plt.title(var_to_plot)
-    plt.savefig(output_path, bbox_inches='tight')
-    plt.close()
 
-def simple_map_plot_stations(data: xr.Dataset, var_to_plot: str, output_path: str,
+    if output_path:
+        plt.savefig(output_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+
+def simple_map_plot_stations(data: xr.Dataset, var_to_plot: str, output_path: str=None,
                              colorbar: str='coolwarm', vlimits: tuple=(None, None),
                              num_levels: int=20, point_size: int=30,
                              point_linewidth: float=0.5,
@@ -104,7 +113,8 @@ def simple_map_plot_stations(data: xr.Dataset, var_to_plot: str, output_path: st
         ignore this parameter.
 
     output_path : str
-        Path inidicating where to save the resulting image (pdf)
+        Path inidicating where to save the resulting image (pdf). If it is not
+        provided the plot will be returned interactively.
 
     colorbar : str, optional
         Colorbar to use in the plot (inherited from matplotlib)
@@ -157,12 +167,16 @@ def simple_map_plot_stations(data: xr.Dataset, var_to_plot: str, output_path: st
     plt.colorbar(cs, ax=ax, orientation='horizontal')
 
     plt.title(var_to_plot)
-    plt.savefig(output_path, bbox_inches='tight')
-    plt.close()
+    
+    if output_path:
+        plt.savefig(output_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
 
-def multiple_map_plot(data: xr.Dataset, output_path: str,
+def multiple_map_plot(data: xr.Dataset, output_path: str=None,
                       colorbar: str='coolwarm', vlimits: tuple=(None, None),
-                      num_levels: int=20,
+                      num_levels: int=20, central_longitude: int=0,
                       coord_names: dict={'lat': 'lat',
                                          'lon': 'lon'}) -> None:           
 
@@ -176,7 +190,8 @@ def multiple_map_plot(data: xr.Dataset, output_path: str,
         dimensions. otherwise this function will show an error.
 
     output_path : str
-        Path inidicating where to save the resulting image (pdf)
+        Path inidicating where to save the resulting image (pdf). If it is not
+        provided the plot will be returned interactively.
 
     colorbar : str, optional
         Colorbar to use in the plot (inherited from matplotlib)
@@ -187,6 +202,10 @@ def multiple_map_plot(data: xr.Dataset, output_path: str,
 
     num_levels : int, optional
         The amount of levels to use in the colorbar. By default is 20.
+
+    central_longitude : int, optional
+        Central longitude for the map projection. Default is 0, which works well
+        for most regions like Europe.
 
     coord_names : dict, optional
         Dictionary with mappings of the name of the spatial dimensions.
@@ -202,18 +221,21 @@ def multiple_map_plot(data: xr.Dataset, output_path: str,
 
     num_variables = len(data.keys())
 
-    if num_variables % 2 == 1:
-        num_rows, num_cols = math.ceil(num_variables/2), math.floor(num_variables/2)
+    if num_variables == 1:
+        print('Warning: For single variable datasets, consider using simple_map_plot instead')
+        num_rows, num_cols = 1,1
+    elif num_variables == 3:
+        num_rows, num_cols = 2,2
     else:
-        num_rows, num_cols = num_variables // 2, 2
+        num_cols = 2
+        num_rows = math.ceil(num_variables/num_cols)
 
     fig = plt.figure(figsize=(20, 20))
 
-    plot_counter = 1
-    for idx, var_to_plot in enumerate(data.keys()):
+    for plot_counter, var_to_plot in enumerate(data.keys(), start=1):
         
         ax = fig.add_subplot(num_rows, num_cols, plot_counter,
-                             projection=ccrs.PlateCarree())
+                             projection=ccrs.PlateCarree(central_longitude=central_longitude))
 
         data_to_plot = data[var_to_plot]
 
@@ -235,8 +257,9 @@ def multiple_map_plot(data: xr.Dataset, output_path: str,
         ax_cb = divider.new_horizontal(size='5%', pad=0.1, axes_class=plt.Axes)
         fig.add_axes(ax_cb)
         plt.colorbar(cs, cax=ax_cb, orientation='vertical')
-
-        plot_counter = plot_counter+1
     
-    plt.savefig(output_path, bbox_inches='tight')
-    plt.close()
+    if output_path:
+        plt.savefig(output_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()

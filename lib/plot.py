@@ -16,9 +16,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -332,7 +334,7 @@ def area_of_study():
     # exit()
 
     # Save image
-    pathOut = '../results/Figures/'
+    pathOut = pathFigures
     filename = 'area_of_study.png'
 
     try:
@@ -430,7 +432,7 @@ def spatial_domains():
     # exit()
 
     # Save image
-    pathOut = '../results/Figures/'
+    pathOut = pathFigures
     filename = 'spatial_domains.png'
 
     try:
@@ -551,6 +553,11 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     dict = {}
 
 
+    # dict.update({'tasmax_gan': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
+    #                           'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
+    # dict.update({'pr_gan': {'units': 'mm', 'bounds': np.linspace(0, 30, 13), 'cmap': 'terrain_r', 'vmin': None,
+    #                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    #
 
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
@@ -878,7 +885,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
         cmap = plt.get_cmap(cmap)
     else:
         cmap = LinearSegmentedColormap.from_list('my_list', c, N=n_bin)
-    if palette in ('pr_Pm', 'pr_PRCPTOT', 'pr_SDII', 'pr_p95', 'pr_R95p', 'pr_R01'):
+    if palette in ('pr_Pm', 'pr_PRCPTOT', 'pr_SDII', 'pr_p95', 'pr_R95p', 'pr_R01', 'pr_gan'):
         cmap = truncate_colormap(cmap, .3)
 
     # Define map

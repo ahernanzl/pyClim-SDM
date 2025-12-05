@@ -184,7 +184,7 @@ class NLLBerGammaLoss(nn.Module):
                             shape * torch.log(scale + epsilon) -
                             torch.lgamma(shape + epsilon) -
                             target / (scale + epsilon))
-
+        
         loss = -torch.mean(noRainCase + rainCase)
         return loss
 
@@ -202,7 +202,7 @@ class Asym(nn.Module):
     Notes
     -----
     This loss function relies on gamma distribution fitted for each gridpoint in the
-    spatial domain. This class provides all the methods require to fit these
+    spatial domain. This class provides all the methods require to fit these 
     distributions to the data.
 
     The level of asymmetry can be adjusted by the pairs asym_weight and cdf_pow.
@@ -249,7 +249,7 @@ class Asym(nn.Module):
             raise ValueError("'asym_weight' must be a numeric value.")
         if not isinstance(cdf_pow, (int, float)):
             raise ValueError("'cdf_pow' must be a numeric value.")
-
+            
         # Convert to float if needed and check positiveness
         asym_weight = float(asym_weight)
         cdf_pow = float(cdf_pow)
@@ -309,7 +309,7 @@ class Asym(nn.Module):
         1D np.ndarray.
 
         Parameters
-        ----------
+        ----------      
         x : np.ndarray
             1D np.ndarray containing the precipitation values across time
             for a specific gridpoint.
@@ -330,7 +330,7 @@ class Asym(nn.Module):
             try: # Compute dist.
                 fit_shape, fit_loc, fit_scale = scipy.stats.gamma.fit(x)
             except: # If its not possible return nan
-                fit_shape, fit_loc, fit_scale = np.nan, np.nan, np.nan
+                fit_shape, fit_loc, fit_scale = np.nan, np.nan, np.nan 
             return fit_shape, fit_loc, fit_scale
 
     def compute_parameters(self, data: xr.Dataset, var_target: str):
@@ -340,7 +340,7 @@ class Asym(nn.Module):
         the parameters of a fitted gamma distribution for the wet days.
 
         Parameters
-        ----------
+        ----------      
         data : xr.Dataset
             Dataset containing the variable used as target in the model. It is
             important to provide it in the same way as it will be provided
@@ -364,7 +364,7 @@ class Asym(nn.Module):
 
         # Compute yearly mean
         gamma_params = np.nanmean(np.stack(gamma_params), axis=0)
-
+        
         self.shape = gamma_params[0, :]
         self.scale = gamma_params[2, :]
         self.loc = gamma_params[1, :]
@@ -441,13 +441,13 @@ class Asym(nn.Module):
             self.loc[torch.isnan(self.loc)] = 0
 
     def compute_cdf(self, data: torch.Tensor) -> torch.Tensor:
-
+    
         """
         Compute the value of the cumulative distribution function (CDF) for
         the data.
 
         Parameters
-        ----------
+        ----------      
         data : torch.Tensor
             Data (from the target dataset) to compute the CDF for.
         """

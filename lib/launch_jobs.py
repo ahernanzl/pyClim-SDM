@@ -16,9 +16,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -151,7 +153,7 @@ def training(targetVar, methodName, family, mode, fields):
         n = 128
     if methodName[:3] == 'GLM':
         n = 128
-    if methodName == 'DeepESD':
+    if family in ('DL', 'GAN'):
         n, mem = 1, 25000
 
     f = open(job_file, 'w')
@@ -171,7 +173,9 @@ def training(targetVar, methodName, family, mode, fields):
     elif family == 'WG':
         f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/WG_lib.py $1 $2 $3 $4 $5 $6\n')
     elif family == 'DL':
-        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/DeepESD_lib.py $1 $2 $3 $4 $5 $6\n')
+        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/DL_lib.py $1 $2 $3 $4 $5 $6\n')
+    elif family == 'GAN':
+        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/GAN_lib.py $1 $2 $3 $4 $5 $6\n')
     f.writelines('duration=$SECONDS\n')
     f.writelines('hours=$(($duration/3600))\n')
     f.writelines('duration=$(($duration%3600))\n')
@@ -224,7 +228,7 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
         n = 128
     if methodName[:3] == 'GLM':
         n = 128
-    if methodName == 'DeepESD':
+    if family in ('DL', 'GAN'):
         n = 1
 
     f = open(job_file, 'w')
@@ -239,10 +243,7 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
     f.writelines('#SBATCH --mem=' + str(mem) + '\n')
     # f.writelines('# SBATCH --exclusive\n')
     f.writelines('SECONDS=0\n')
-    if methodName == 'DeepESD':
-        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/down_scene_$2.py $1 $2 $3 $4 $5 $6 $7 $8\n')
-    else:
-        f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/down_scene_$3.py $1 $2 $3 $4 $5 $6 $7 $8\n')
+    f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/down_scene_$3.py $1 $2 $3 $4 $5 $6 $7 $8\n')
     f.writelines('duration=$SECONDS\n')
     f.writelines('hours=$(($duration/3600))\n')
     f.writelines('duration=$(($duration%3600))\n')

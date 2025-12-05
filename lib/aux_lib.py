@@ -15,9 +15,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -437,3 +439,104 @@ def retrieve_model_dates(targetVar, scene, model):
             datesDefined = True
             break
     return dates, calendar, datesDefined
+
+########################################################################################################################
+def adjust_dimensions_for_UNET(X, Y=None, n_levels=4*4, xmin=16,
+                               hX_orig=None, wX_orig=None, nPointsY_orig=None,
+                               hX_adj=None, wX_adj=None, nPointsY_adj=None,
+                               revert_change=False):
+    """
+    Adjust dimensions of X and Y for compatibility with UNet.
+
+    - If revert_change == False → Expand X (bilinear interpolation) and Y (padding) to adjusted dimensions.
+    - If revert_change == True  → Reduce X and Y back to original dimensions.
+
+    Requirements:
+      - hX_adj >= max(hX, xmin)
+      - wX_adj >= max(wX, xmin)
+      - hX_adj * wX_adj * n_levels >= y_nPoints
+      - hX_adj and wX_adj are powers of 2.
+      - Y_adj = hX_adj * wX_adj * n_levels
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Input array of shape (batch, channels, height, width)
+    Y : np.ndarray or None
+        Target array of shape (batch, points)
+    n_levels : int
+        Number of UNet levels
+    xmin : int
+        Minimum allowed size for X dimensions
+    revert_change : bool
+        If True, revert from adjusted to original dimensions
+
+    Returns
+    -------
+    tuple
+        If revert_change == False → (X_adj, Y_adj, hX_adj, wX_adj, nPointsY_adj)
+        If revert_change == True  → (X_reverted, Y_reverted)
+    """
+    # --------------------------------------------------------------------------------
+    # Direct modification (original → adjusted)
+    # --------------------------------------------------------------------------------
+    if not revert_change:
+        if hX_orig is None or wX_orig is None or nPointsY_orig is None:
+            raise ValueError("For direct modification, hX_orig, wX_orig and nPointsY_orig must be provided.")
+
+        # Determine adjusted dimensions for X
+        hX_adj = max(hX_orig, xmin)
+        wX_adj = max(wX_orig, xmin)
+
+        # Round to next power of 2
+        def next_pow2(x):
+            return 1 if x == 0 else 2 ** math.ceil(math.log2(x))
+
+        hX_adj = next_pow2(hX_adj)
+        wX_adj = next_pow2(wX_adj)
+
+        # Ensure hX_adj * wX_adj * n_levels >= nPointsY_orig
+        while hX_adj * wX_adj * n_levels < nPointsY_orig:
+            # Expand smallest dimension first
+            if hX_adj <= wX_adj:
+                hX_adj *= 2
+            else:
+                wX_adj *= 2
+
+        nPointsY_adj = hX_adj * wX_adj * n_levels
+
+        # Interpolate X (bilinear)
+        X_torch = torch.from_numpy(X).float()
+        X_adj = F.interpolate(X_torch, size=(hX_adj, wX_adj), mode='bilinear', align_corners=False).numpy()
+
+        # Pad Y if needed
+        if Y is not None:
+            Y_adj = np.zeros((Y.shape[0], nPointsY_adj), dtype=Y.dtype)
+            Y_adj[:, :Y.shape[1]] = Y
+        else:
+            Y_adj = None
+
+        return X_adj, Y_adj, hX_orig, wX_orig, nPointsY_orig,hX_adj, wX_adj, nPointsY_adj
+
+    # --------------------------------------------------------------------------------
+    # Inverse modification (adjusted → original)
+    # --------------------------------------------------------------------------------
+    else:
+        if hX_adj is None or wX_adj is None or nPointsY_adj is None:
+            raise ValueError("For inverse modification, hX_adj, wX_adj and nPointsY_adj must be provided.")
+        if hX_orig is None or wX_orig is None or nPointsY_orig is None:
+            raise ValueError("Original dimensions (hX_orig, wX_orig, nPointsY_orig) must be provided to revert.")
+
+        # Interpolate X back
+        X_torch = torch.from_numpy(X).float()
+        X_reverted = F.interpolate(X_torch, size=(hX_orig, wX_orig), mode='bilinear', align_corners=False).numpy()
+
+        # Truncate Y if needed
+        if Y is not None:
+            Y_reverted = Y[:, :nPointsY_orig]
+        else:
+            Y_reverted = None
+
+        return X_reverted, Y_reverted
+
+

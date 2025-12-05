@@ -15,9 +15,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -67,7 +69,9 @@ def reanalisys(method_dict, scene, model):
                 down_scene_TF.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
                 down_scene_TF.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'DL':
-                down_scene_DeepESD.downscale(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_DL.downscale(targetVar, methodName, family, mode, fields, scene, model)
+            elif family == 'GAN':
+                down_scene_GAN.downscale(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'RAW':
                 down_scene_RAW.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
                 down_scene_RAW.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
@@ -116,7 +120,9 @@ def models(method_dict, scene, model):
                 down_scene_TF.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
                 down_scene_TF.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'DL':
-                down_scene_DeepESD.downscale(targetVar, methodName, family, mode, fields, scene, model)
+                down_scene_DL.downscale(targetVar, methodName, family, mode, fields, scene, model)
+            elif family == 'GAN':
+                down_scene_GAN.downscale(targetVar, methodName, family, mode, fields, scene, model)
             elif family == 'RAW':
                 down_scene_RAW.downscale_chunk(targetVar, methodName, family, mode, fields, scene, model)
                 down_scene_RAW.collect_chunks(targetVar, methodName, family, mode, fields, scene, model)

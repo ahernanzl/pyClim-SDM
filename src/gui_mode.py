@@ -525,7 +525,7 @@ class tabDomain(tk.Frame):
         # safGrid
         tk.Label(frameDomain, text="").grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=100); irow+=1
         padx, pady, width = 2, 2, 5
-        lab = Label(frameDomain, text='Spatial domain for weather types, PCA and DeepESD\n'
+        lab = Label(frameDomain, text='Spatial domain for weather types, PCA and Deep Learning\n'
                                      '(lat up, lat down, lon left and long right):', justify=LEFT)
         lab.grid(sticky="W", column=icol, row=irow, padx=10, pady=2, columnspan=20); irow+=1
 
@@ -989,6 +989,9 @@ class frameMethodsClass(tk.Frame):
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'ANN', 'TF', 'PP', 'pred', 'Artificial Neural Network', icol, irow); irow += 1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'UNET', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
+        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GAN-DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GAN-UNET', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
 
         # Select/deselect all
         # tk.Label(root, text="").grid(sticky="W", column=icol, row=irow, padx=30); irow += 1
@@ -2507,6 +2510,8 @@ class tabFigures(tk.Frame):
                                     'represents 50th percentile and the shaded area represents IQR), in the form of '
                                     'anomaly with respect to the reference period (absolute anomaly for tmax/tmin and '
                                     'relative anomaly for pcp).',
+            'PROJECTIONS_modelChangeMap': 'Anomaly in a future period with respect to a reference period for a single '
+                                           'model. Absolute anomaly for tmax/tmin and relative anomaly for pcp.',
             'PROJECTIONS_meanChangeMap': 'Anomaly in a future period with respect to a reference period given by the '
                                          'multimodel ensemble mean (mean change). Absolute anomaly for tmax/tmin and '
                                          'relative anomaly for pcp.',
@@ -2553,7 +2558,7 @@ class tabFigures(tk.Frame):
 
                             # season
                             seasons = []
-                            for file in os.listdir('../results/Figures/'):
+                            for file in os.listdir(pathFigures):
                                 if file.endswith(".png") and \
                                         file.split('_')[0] == self.fields[0] \
                                         and file.split('_')[1] == self.fields[1] \
@@ -2581,7 +2586,7 @@ class tabFigures(tk.Frame):
 
                         # method_model_scene
                         method_model_scenes = []
-                        for file in os.listdir('../results/Figures/'):
+                        for file in os.listdir(pathFigures):
                             if file.endswith(".png") and \
                                     file.split('_')[0] == self.fields[0] \
                                     and file.split('_')[1] == self.fields[1] \
@@ -2601,7 +2606,7 @@ class tabFigures(tk.Frame):
 
                     # climdex_pred
                     climdex_preds = []
-                    for file in os.listdir('../results/Figures/'):
+                    for file in os.listdir(pathFigures):
                         if file.endswith(".png") and file.split('_')[0] == self.fields[0] and \
                                 file.split('_')[1] == self.fields[1] and \
                                 file.split('_')[2] == self.fields[2] and file.split('_')[3] not in climdex_preds:
@@ -2617,7 +2622,7 @@ class tabFigures(tk.Frame):
 
                 # var
                 vars = []
-                for file in os.listdir('../results/Figures/'):
+                for file in os.listdir(pathFigures):
                     if file.endswith(".png") and file.split('_')[0] == self.fields[0] and \
                             file.split('_')[1] == self.fields[1] and file.split('_')[2] not in vars:
                         vars.append(file.split('_')[2])
@@ -2632,7 +2637,7 @@ class tabFigures(tk.Frame):
 
             # figType
             figTypes = []
-            for file in os.listdir('../results/Figures/'):
+            for file in os.listdir(pathFigures):
                 if file.endswith(".png") and file.split('_')[0] == self.fields[0] and file.split('_')[1] not in figTypes:
                     figTypes.append(file.split('_')[1])
 
@@ -2647,9 +2652,9 @@ class tabFigures(tk.Frame):
 
         # experiment
         experiments = []
-        if not os.path.exists('../results/Figures/'):
-            os.makedirs('../results/Figures/')
-        for file in os.listdir('../results/Figures/'):
+        if not os.path.exists(pathFigures):
+            os.makedirs(pathFigures)
+        for file in os.listdir(pathFigures):
             if file.endswith(".png") and file.split('_')[0] not in experiments:
                 experiments.append(file.split('_')[0])
 

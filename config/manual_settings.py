@@ -58,6 +58,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         'WG-PDF',
     ],
     'tasmin': [
@@ -86,6 +87,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         'WG-PDF',
     ],
     'tas': [
@@ -114,6 +116,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         'WG-PDF',
     ],
     'pr': [
@@ -142,6 +145,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         # 'WG-PDF',
         # 'WG-NMM',
     ],
@@ -171,6 +175,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         'WG-PDF',
     ],
     'vas': [
@@ -199,6 +204,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         'WG-PDF',
     ],
     'sfcWind': [
@@ -226,6 +232,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'hurs': [
         'RAW',
@@ -252,6 +259,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'huss': [
         'RAW',
@@ -278,6 +286,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'clt': [
         'RAW',
@@ -304,6 +313,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'rsds': [
         'RAW',
@@ -330,6 +340,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'rlds': [
         'RAW',
@@ -356,6 +367,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'evspsbl': [
         'RAW',
@@ -382,6 +394,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'evspsblpot': [
         'RAW',
@@ -408,6 +421,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'psl': [
         'RAW',
@@ -434,6 +448,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'ps': [
         'RAW',
@@ -460,6 +475,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'mrro': [
         'RAW',
@@ -486,6 +502,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'mrso': [
         'RAW',
@@ -512,6 +529,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
     ],
     'myTargetVar': [
         'RAW',
@@ -539,6 +557,7 @@ methods = {
         # 'ANN',
         # 'CNN',
         # 'DeepESD',
+        # 'GAN-DeepESD',
         # 'WG-PDF',
     ],
 }

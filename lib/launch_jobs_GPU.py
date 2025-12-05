@@ -16,9 +16,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -65,7 +67,7 @@ def training(targetVar, methodName, family, mode, fields):
     job_file = '../lib/job.sh'
 
     # Define number of cores and memory
-    n = 256
+    n = 1
     mem = 250000
 
     f = open(job_file, 'w')
@@ -73,7 +75,8 @@ def training(targetVar, methodName, family, mode, fields):
     f.write('#SBATCH -o ../job/%j.out\n')
     f.write('#SBATCH -e ../job/%j.err\n')
     f.write('#SBATCH --qos=ng\n')
-    f.write('#SBATCH --gpus=1\n')
+    # f.write('#SBATCH --gpus=1\n')
+    f.write('#SBATCH --gres=gpu:1\n')
     f.write('#SBATCH -t 2880\n')
     f.write('#SBATCH --mem=' + str(mem) + '\n')
     f.write('module load conda\n')
@@ -91,7 +94,7 @@ def training(targetVar, methodName, family, mode, fields):
     f.write('python -c "import torch; print(\'Dispositivo:\', torch.cuda.get_device_name(0) if torch.cuda.is_available() else \'No GPU detectada\')"\n')
 
     f.write('SECONDS=0\n')
-    f.write('srun python3 ../lib/DeepESD_lib.py $1 $2 $3 $4 $5 $6\n')
+    f.write('srun python3 ../lib/DL_lib.py $1 $2 $3 $4 $5 $6\n')
     f.write('duration=$SECONDS\n')
     f.write('hours=$(($duration/3600))\n')
     f.write('duration=$(($duration%3600))\n')

@@ -78,6 +78,7 @@ from geopy.distance import distance as dist
 import cartopy.crs as ccrs
 import torch
 from torch.utils.data import DataLoader, random_split
+import torch.nn.functional as F
 
 sys.path.append('../')
 
@@ -92,9 +93,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF

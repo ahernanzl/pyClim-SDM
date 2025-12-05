@@ -130,7 +130,6 @@ def undo_standardization(data_ref: xr.Dataset, data: xr.Dataset) -> xr.Dataset:
 
     return data_undo_stand
 
-
 def xarray_to_numpy(data: xr.Dataset, ignore_vars: list[str]=None) -> np.ndarray:
 
     """
@@ -416,3 +415,40 @@ def replicate_across_time(data: xr.Dataset, ref: xr.Dataset) -> xr.Dataset:
     data_rep = data_rep.to_dataset(name=var_name)
 
     return data_rep
+
+def sort_variables(data: xr.Dataset, ref: xr.Dataset, keep_vars: bool = False) -> xr.Dataset:
+    
+    """
+    Sort the variables in one dataset based on their correspondence to
+    variables in another. This step is crucial when using multiple datasets
+    as predictors in a model.
+
+    Parameters
+    ----------
+    data : xr.Dataset
+        Dataset to sort.
+
+    ref : xr.Dataset
+        Dataset used as reference for variables order.
+
+    keep_vars: bool, optional (default=False)
+        If True, keeps variables in `data` that are not in ref, appended at the end.
+        If False, only keeps variables that are in ref.
+        
+    Returns
+    -------
+    xr.Dataset
+        Dataset with variables sorted according to reference variables
+    """
+    
+    if set(data.data_vars).issubset(set(ref.data_vars)):
+        ref_var_order = list(ref.data_vars)
+        if keep_vars:
+            data_sorted = data[[var for var in ref_var_order if var in data.data_vars] +  
+                            [var for var in data.data_vars if var not in ref_var_order]]
+        else:
+            data_sorted = data[[var for var in ref_var_order if var in data.data_vars]]
+    else:
+        raise ValueError("Variables in data are not present in the reference data.")
+    
+    return data_sorted

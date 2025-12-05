@@ -17,7 +17,8 @@ import ANA_lib
 import aux_lib
 import MOS_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF

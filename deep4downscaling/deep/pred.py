@@ -91,7 +91,8 @@ def _predict(model: torch.nn.Module, device: str,
     return y_pred
 
 def _pred_to_xarray(data_pred: np.ndarray, time_pred: np.ndarray,
-                    var_target: str, mask: xr.Dataset) -> xr.Dataset:
+                    var_target: str, mask: xr.Dataset,
+                    spatial_dims: tuple[str, str]) -> xr.Dataset:
 
     """
     This internal function transforms the prediction from a DL model
@@ -120,6 +121,9 @@ def _pred_to_xarray(data_pred: np.ndarray, time_pred: np.ndarray,
         Mask with no temporal dimension formed by ones/zeros for (spatial)
         positions to introduce data_pred/np.nans values.
 
+    spatial_dims: tuple[str, str]
+        Names of the spatial dimensions (e.g., ('lat', 'lon') or ('y', 'x')).
+
     Returns
     -------
     xr.Dataset
@@ -135,13 +139,13 @@ def _pred_to_xarray(data_pred: np.ndarray, time_pred: np.ndarray,
     mask[var_target] = mask[var_target].astype('float32')
     
     # Stack following the procedure perform in all these modules
-    # ('lat', 'lon')
-    mask = mask.stack(gridpoint=('lat', 'lon'))
+    # mask = mask.stack(gridpoint=spatial_dims)
+    mask = mask.stack(gridpoint=spatial_dims)
 
     # Assign the perdiction to the gridpoints of the mask with value 1
     # For the 0 ones we assign them np.nan
     one_indices = (mask[var_target].values == 1)
-
+    
     # For fully-convolutional models, for which the prediction includes
     # nan and non-nans values of the y_mask
     if mask['gridpoint'].shape[0] == data_pred.shape[1]:
@@ -155,7 +159,6 @@ def _pred_to_xarray(data_pred: np.ndarray, time_pred: np.ndarray,
 
     # Unstack and return
     mask = mask.unstack()
-
     return mask
 
 def _pred_stations_to_xarray(data_pred: np.ndarray, time_pred: np.ndarray,
@@ -215,7 +218,8 @@ def compute_preds_standard(x_data: xr.Dataset, model: torch.nn.Module, device: s
                            var_target: str,
                            mask: xr.Dataset=None, template: xr.Dataset=None,
                            ensemble_size: int=None,
-                           batch_size: int=None) -> xr.Dataset:
+                           batch_size: int=None,
+                           spatial_dims: tuple[str, str]=('lat', 'lon')) -> xr.Dataset:
 
     """
     Given some xr.Dataset with predictor data, this function returns the prediction
@@ -235,7 +239,7 @@ def compute_preds_standard(x_data: xr.Dataset, model: torch.nn.Module, device: s
     ----------
     x_data : xr.Dataset
         Predictors to pass as input to the DL model. They must have a spatial
-        (lat and lon) and temporal dimension.
+        (e.g., lat and lon) and temporal dimension.
 
     model : torch.nn.Module
         Pytorch model to use.
@@ -262,6 +266,10 @@ def compute_preds_standard(x_data: xr.Dataset, model: torch.nn.Module, device: s
     batch_size : int, optional
         If provided the predictions are computed in batches of size
         batch_size. This is useful when facing OOM errors.
+
+    spatial_dims : tuple[str, str], optional
+        Names of the spatial dimensions for gridded data, defaults to ('lat', 'lon').
+        Relevant only when `mask` is provided.
 
     Returns
     -------
@@ -293,7 +301,8 @@ def compute_preds_standard(x_data: xr.Dataset, model: torch.nn.Module, device: s
                             batch_size=batch_size)
         if mask:
             data_aux = _pred_to_xarray(data_pred=data_aux, time_pred=time_pred,
-                                       var_target=var_target, mask=mask)
+                                       var_target=var_target, mask=mask,
+                                       spatial_dims=spatial_dims)
         elif template:
             data_aux = _pred_stations_to_xarray(data_pred=data_aux, time_pred=time_pred,
                                                 var_target=var_target, template=template)
@@ -310,7 +319,8 @@ def compute_preds_standard(x_data: xr.Dataset, model: torch.nn.Module, device: s
 def compute_preds_gaussian(x_data: xr.Dataset, model: torch.nn.Module, device: str,
                            var_target: str, mask: xr.Dataset,
                            ensemble_size: int=None,
-                           batch_size: int=None) -> xr.Dataset:
+                           batch_size: int=None,
+                           spatial_dims: tuple[str, str]=('lat', 'lon')) -> xr.Dataset:
 
     """
     Given some xr.Dataset with predictor data, this function returns the prediction
@@ -327,7 +337,7 @@ def compute_preds_gaussian(x_data: xr.Dataset, model: torch.nn.Module, device: s
     ----------
     x_data : xr.Dataset
         Predictors to pass as input to the DL model. They must have a spatial
-        (lat and lon) and temporal dimension.
+        (e.g., lat and lon) and temporal dimension.
 
     model : torch.nn.Module
         Pytorch model to use.
@@ -350,6 +360,9 @@ def compute_preds_gaussian(x_data: xr.Dataset, model: torch.nn.Module, device: s
     batch_size : int, optional
         If provided the predictions are computed in batches of size
         batch_size. This is useful when facing OOM errors.
+
+    spatial_dims : tuple[str, str], optional
+        Names of the spatial dimensions, defaults to ('lat', 'lon').
 
     Returns
     -------
@@ -382,7 +395,8 @@ def compute_preds_gaussian(x_data: xr.Dataset, model: torch.nn.Module, device: s
     for _ in range(ensemble_size):    
         data_aux = np.random.normal(loc=mean, scale=s_dev)
         data_aux = _pred_to_xarray(data_pred=data_aux, time_pred=time_pred,
-                                   var_target=var_target, mask=mask)
+                                   var_target=var_target, mask=mask,
+                                   spatial_dims=spatial_dims)
         data_pred.append(data_aux)
 
     # Return the Dataset
@@ -391,12 +405,14 @@ def compute_preds_gaussian(x_data: xr.Dataset, model: torch.nn.Module, device: s
     else:
         data_final = xr.concat(data_pred, dim='member')
 
-    return data_pred
+    # BUG FIX: Was returning data_pred list instead of data_final
+    return data_final
 
 def compute_preds_ber_gamma(x_data: xr.Dataset, model: torch.nn.Module, threshold: float,
                             device: str, var_target: str, mask: xr.Dataset,
                             ensemble_size: int=None,
-                            batch_size: int=None) -> xr.Dataset:
+                            batch_size: int=None,
+                            spatial_dims: tuple[str, str]=('lat', 'lon')) -> xr.Dataset:
 
     """
     Given some xr.Dataset with predictor data, this function returns the prediction
@@ -413,7 +429,7 @@ def compute_preds_ber_gamma(x_data: xr.Dataset, model: torch.nn.Module, threshol
     ----------
     x_data : xr.Dataset
         Predictors to pass as input to the DL model. They must have a spatial
-        (lat and lon) and temporal dimension.
+        (e.g., lat and lon) and temporal dimension.
 
     model : torch.nn.Module
         Pytorch model to use.
@@ -442,6 +458,9 @@ def compute_preds_ber_gamma(x_data: xr.Dataset, model: torch.nn.Module, threshol
     batch_size : int, optional
         If provided the predictions are computed in batches of size
         batch_size. This is useful when facing OOM errors.
+
+    spatial_dims : tuple[str, str], optional
+        Names of the spatial dimensions, defaults to ('lat', 'lon').
 
     Returns
     -------
@@ -502,7 +521,8 @@ def compute_preds_ber_gamma(x_data: xr.Dataset, model: torch.nn.Module, threshol
         gc.collect()
 
         data_aux = _pred_to_xarray(data_pred=data_aux, time_pred=time_pred,
-                                   var_target=var_target, mask=mask)
+                                   var_target=var_target, mask=mask,
+                                   spatial_dims=spatial_dims)
 
         data_pred.append(data_aux)
 

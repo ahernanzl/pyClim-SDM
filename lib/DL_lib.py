@@ -16,9 +16,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -75,6 +77,14 @@ def train(targetVar, methodName, family, mode, fields):
     y_train[y_train >= special_value] = np.nan
     y_train /= 100
 
+    # Adapt shapes for UNET
+    if methodName == 'UNET':
+        (X_train, y_train,
+         hX_orig, wX_orig, nPointsY_orig,
+         hX_adj, wX_adj, nPointsY_adj) = aux_lib.adjust_dimensions_for_UNET(X_train, Y=y_train,
+                                                       hX_orig=X_train.shape[2], wX_orig=X_train.shape[3],
+                                                       nPointsY_orig=y_train.shape[-1],)
+
     # Remove days with Nans
     invalid_y = list(set(np.where(np.isnan(y_train))[0]))
     invalid_X = list(set(np.where(np.isnan(X_train))[0]))
@@ -85,7 +95,7 @@ def train(targetVar, methodName, family, mode, fields):
 
 
     if targetVar == 'pr':
-        asym_path = pathAux + 'DeepESD/ASYM/'
+        asym_path = pathAux + 'ASYM/'
         os.makedirs(asym_path, exist_ok=True)
         loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path, asym_weight=asym_weight, cdf_pow=cdf_pow)
         # if loss_function.parameters_exist():
@@ -118,13 +128,24 @@ def train(targetVar, methodName, family, mode, fields):
                                   shuffle=True)
 
 
-    model_name = 'DeepESD-' + targetVar
+    model_name = methodName+'-'+targetVar
 
     if targetVar == 'pr':
-        model = deep_models.DeepESDpr(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1, stochastic=False)
+        if methodName == 'DeepESD':
+            model = deep_models.DeepESDpr(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1, stochastic=False)
+        elif methodName == 'UNET':
+            model = deep_models.UnetPr(x_shape=X_train.shape, y_shape=y_train.shape, stochastic=False,
+                                       input_padding=(0, 0, 0, 0), kernel_size=3, padding="same",
+                                       batch_norm=True, trans_conv=False)
     else:
-        model = deep_models.DeepESDtas(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1,
+        if methodName == 'DeepESD':
+            model = deep_models.DeepESDtas(x_shape=X_train.shape, y_shape=y_train.shape, filters_last_conv=1,
                                        stochastic=False)
+        elif methodName == 'UNET':
+            model = deep_models.UnetTas(x_shape=X_train.shape, y_shape=y_train.shape, stochastic=False,
+                                       input_padding=(0, 0, 0, 0), kernel_size=3, padding="same",
+                                       batch_norm=True, trans_conv=False)
+
 
     num_epochs = 10000
     patience_early_stopping = 20

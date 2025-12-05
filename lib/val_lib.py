@@ -15,9 +15,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -356,10 +358,12 @@ def daily_boxplots(metric, by_season):
                                 units = '%'
                                 # title = ' '.join((targetVar, 'bias', metric, season))
                                 title = targetVar
+                                plt.ylim((-100, 100))
                             elif metric == 'rmse':
                                 units = predictands_units[targetVar]
                                 # title = ' '.join((targetVar, metric, season))
                                 title = targetVar
+                                plt.ylim((0, 5))
                             elif metric == 'wasserstein-distance':
                                 units = ''
                                 # title = ' '.join((targetVar, metric, season))

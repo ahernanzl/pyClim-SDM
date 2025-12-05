@@ -272,6 +272,12 @@ thresholds_WG_NMM = [0, 1, 2, 5, 10, 20, ]
 aggregation_pcp_WG_PDF = 1
 # aggregation_pcp_WG_PDF = 3
 
+# Parameters GAN
+gan_lambda_adv = 0.001
+gan_lambda_recon = 1
+gan_freq_train_gen = 1
+gan_freq_train_disc = 1
+
 if experiment == 'EVALUATION':
     classifier_mode = 'deterministic'  # clf.predict. Recommended if validating daily data
 elif experiment == 'PROJECTIONS':
@@ -291,7 +297,7 @@ recalibrating_when_missing_preds = True
 # When using the whole grid, they have more information as inputs, but that consumes more memory
 # Furthermore, when using the whole grid, a missing value affects all points, so more problems related to missing data
 # will arise.
-convolutional_methods = ['CNN', 'DeepESD']
+convolutional_methods = ['CNN', 'DeepESD', 'GAN-DeepESD', ]
 
 # The following Transfer Function methods will be replaced by a MLR where predictos lie out of the training range
 # This is done for all targetVars except for precipitation
@@ -633,6 +639,7 @@ families_modes_and_fields = {
     'ANN': ['TF', 'PP', 'pred'],
     'CNN': ['TF', 'PP', 'spred'],
     'DeepESD': ['DL', 'PP', 'spred'],
+    'GAN-DeepESD': ['GAN', 'PP', 'spred'],
     'WG-PDF': ['WG', 'PP', 'var'],
     'WG-NMM': ['WG', 'PP', 'var'],
 }
@@ -1435,6 +1442,7 @@ methods_colors = {
     'ANN': 'magenta',
     'CNN': 'magenta',
     'DeepESD': 'magenta',
+    'GAN-DeepESD': 'brown',
     'WG-PDF': 'g',
     'WG-NMM': 'g',
 }
@@ -1469,6 +1477,7 @@ methods_linestyles = {
     'ANN': '--',
     'CNN': ':',
     'DeepESD': '-.',
+    'GAN-DeepESD': '-',
     'WG-PDF': '-',
     'WG-NMM': '--',
 }

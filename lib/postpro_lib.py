@@ -18,9 +18,11 @@ sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
 import derived_predictors
-import DeepESD_lib
+import DL_lib
+import GAN_lib
 import down_scene_ANA
-import down_scene_DeepESD
+import down_scene_DL
+import down_scene_GAN
 import down_scene_MOS
 import down_scene_RAW
 import down_scene_TF
@@ -629,7 +631,8 @@ def figures_projections(lan='EN'):
         path = '../results/PROJECTIONS'+bc_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
         pathIn = path + 'climdex/'
         # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
-        pathRaw = '../results/PROJECTIONS/' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
+        # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW-BIL/climdex/'
+        pathRaw = '../results/PROJECTIONS-' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
         pathOut = path + 'climdex/figures/'
 
         try:
@@ -1120,6 +1123,26 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                     title = scene_names_dict[scene]+'   '+period+'\n'+season
                     plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
                              filename=filename, title=title)
+
+
+                for imodel in range(len(ssp_dict[scene]['models'])):
+                    modelName = ssp_dict[scene]['models'][imodel].replace('_', '-')
+                    dataModel = dataTerm[imodel]
+                    if plotAllRegions == False:
+                        # title = scene_names_dict[scene]+'   '+period+'     '+season
+                        title = scene_names_dict[scene] + ' ' + period + ' ' + modelName + ' ' + ' change'
+                        filename = '_'.join(
+                            ('PROJECTIONS' + bc_sufix, 'modelChangeMap', targetVar, climdex_name,
+                             methodName + '-' + scene + '-' + period + '-' + modelName, season))
+                        plot.map(targetVar, dataModel, 'change_' + climdex_name + '_mean', path=pathFigures,
+                                 filename=filename, title=title)
+                    else:
+                        filename = '_'.join(('modelChangeMap', climdex_name, scene, season + '-' + period + '-' + model))
+                        # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
+                        title = scene_names_dict[scene] + '   ' + period + ' ' + modelName + ' ' + '\n' + season
+                        plot.map(targetVar, dataModel, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
+                                 filename=filename, title=title)
+
 
 ########################################################################################################################
 def convert_to_2D(pathIn, pathOut, fileName, nc_varName, data_type, years=None, decimals=5):
