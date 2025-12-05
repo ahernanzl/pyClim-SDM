@@ -3,7 +3,9 @@ This module contains the definition of the deep learning models for
 statistical downscaling. References to each of the models are provided
 in the docstring of each class.
 
-Author: Jose González-Abad
+Authors:
+    Jose González-Abad
+    Alfonso Hernanz
 """
 
 import torch
@@ -26,6 +28,19 @@ class DeepESD_Discriminator(torch.nn.Module):
       - CNN encoder for X
       - Concatenate flattened X features + Y
       - Fully-connected layers for classification
+
+    Parameters
+    ----------
+    x_shape : tuple
+        Shape of the data used as predictor. This must have dimension 4
+        (time, channels/variables, lon, lat).
+
+    y_shape : tuple
+        Shape of the data used as predictand. This must have dimension 2
+        (time, gridpoint)
+
+    filters_last_conv : int
+        Number of filters/kernels of the last convolutional layer
     """
 
     def __init__(self, x_shape: tuple, y_shape: tuple, filters_last_conv: int = 25):
@@ -38,9 +53,6 @@ class DeepESD_Discriminator(torch.nn.Module):
         self.y_shape = y_shape
         self.filters_last_conv = filters_last_conv
 
-        # ------------------------------------------------------------------------------------------------------------
-        # CNN feature extractor for X
-        # ------------------------------------------------------------------------------------------------------------
         self.conv_1 = torch.nn.Conv2d(in_channels=self.x_shape[1],
                                       out_channels=50,
                                       kernel_size=3,
@@ -56,13 +68,9 @@ class DeepESD_Discriminator(torch.nn.Module):
                                       kernel_size=3,
                                       padding=1)
 
-        # Compute flattened feature size
         n_features_x = self.x_shape[2] * self.x_shape[3] * self.filters_last_conv
         n_features_total = n_features_x + self.y_shape[1]
 
-        # ------------------------------------------------------------------------------------------------------------
-        # Fully connected layers
-        # ------------------------------------------------------------------------------------------------------------
         self.fc1 = torch.nn.Linear(n_features_total, 256)
         self.fc2 = torch.nn.Linear(256, 64)
         self.fc3 = torch.nn.Linear(64, 1)
@@ -70,7 +78,6 @@ class DeepESD_Discriminator(torch.nn.Module):
         self.leaky_relu = torch.nn.LeakyReLU(0.2)
         self.sigmoid = torch.nn.Sigmoid()
 
-    # ------------------------------------------------------------------------------------------------------------
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """
         Parameters
@@ -85,17 +92,14 @@ class DeepESD_Discriminator(torch.nn.Module):
         torch.Tensor
             Probability that (x, y) is real, shape (batch, 1)
         """
-        # ----- CNN feature extraction -----
         x = self.leaky_relu(self.conv_1(x))
         x = self.leaky_relu(self.conv_2(x))
         x = self.leaky_relu(self.conv_3(x))
 
         x = torch.flatten(x, start_dim=1)
 
-        # ----- Concatenate features -----
         xy = torch.cat((x, y), dim=1)
 
-        # ----- Fully connected classification -----
         xy = self.leaky_relu(self.fc1(xy))
         xy = self.leaky_relu(self.fc2(xy))
         out = self.sigmoid(self.fc3(xy))

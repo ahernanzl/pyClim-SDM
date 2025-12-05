@@ -1,7 +1,9 @@
 """
 This module contains the functions for training deep learning models.
 
-Author: Jose González-Abad
+Authors:
+    Jose González-Abad
+    Alfonso Hernanz
 """
 
 import os
@@ -210,31 +212,29 @@ def standard_training_loop(model: torch.nn.Module, model_name: str, model_path: 
         return epoch_train_loss, None
 
 
-def adversarial_training_loop(targetVar,
-                              generator: torch.nn.Module,
-                              discriminator: torch.nn.Module,
-                              gen_name: str,
-                              disc_name: str,
-                              model_path: str,
-                              loss_function: torch.nn.Module,
-                              optimizer_G: torch.optim.Optimizer,
-                              optimizer_D: torch.optim.Optimizer,
-                              num_epochs: int,
-                              device: str,
-                              train_data: torch.utils.data.DataLoader,
-                              valid_data: torch.utils.data.DataLoader=None,
-                              lambda_adv: float=1.0,
-                              lambda_recon: float=1.0,
-                              freq_train_gen: int=1,
-                              freq_train_disc: int=1,
-                              scheduler: torch.optim.lr_scheduler._LRScheduler=None,
-                              mixed_precision: bool=False,
-                              save_checkpoint_every: int=None,
-                              resume_checkpoint: int=None,
-                              save_fake_every: int=None,
-                              fixed_indices: list=None) -> dict:
+def standard_cgan_training_loop(generator: torch.nn.Module,
+                                discriminator: torch.nn.Module,
+                                gen_name: str,
+                                disc_name: str,
+                                model_path: str,
+                                loss_function: torch.nn.Module,
+                                optimizer_G: torch.optim.Optimizer,
+                                optimizer_D: torch.optim.Optimizer,
+                                num_epochs: int,
+                                device: str,
+                                train_data: torch.utils.data.DataLoader,
+                                valid_data: torch.utils.data.DataLoader=None,
+                                lambda_adv: float=1.0,
+                                lambda_recon: float=1.0,
+                                freq_train_gen: int=1,
+                                freq_train_disc: int=1,
+                                scheduler: torch.optim.lr_scheduler._LRScheduler=None,
+                                mixed_precision: bool=False,
+                                save_checkpoint_every: int=None,
+                                resume_checkpoint: int=None) -> dict:
     """
-    Adversarial training loop for cGANs with extended control and checkpoint options.
+    Adversarial training loop for standard cGANs (BCE-based adversarial loss function) with
+    extended control and checkpoint options.
 
     Parameters
     ----------
@@ -254,7 +254,7 @@ def adversarial_training_loop(targetVar,
         Path where models will be saved.
 
     loss_function : torch.nn.Module
-        Reconstruction loss function (e.g., MSE, custom loss).
+        Reconstruction loss function (e.g., MSE).
 
     optimizer_G : torch.optim.Optimizer
         Optimizer for the generator.
@@ -281,13 +281,13 @@ def adversarial_training_loop(targetVar,
         Weight for the reconstruction loss term in generator training.
 
     freq_train_gen : int, optional
-        Frequency to train generator (default=1).
+        Frequency to train generator.
 
     freq_train_disc : int, optional
-        Frequency to train discriminator (default=1).
+        Frequency to train discriminator.
 
     scheduler : torch.optim.lr_scheduler, optional
-        Scheduler to adjust learning rate.
+        Scheduler to adjust the learning rate.
 
     mixed_precision : bool, optional
         If True, enables automatic mixed precision training.
@@ -297,12 +297,6 @@ def adversarial_training_loop(targetVar,
 
     resume_checkpoint : int, optional
         Checkpoint step (epoch number) to resume training from.
-
-    save_fake_every : int, optional
-        Frequency (in epochs) to save Y_real and Y_fake as .npy files.
-
-    fixed_indices : list[int], optional
-        List of indices from `valid_data` to use as fixed samples for generating Y_fake.
     """
 
     os.makedirs(model_path, exist_ok=True)
@@ -322,11 +316,9 @@ def adversarial_training_loop(targetVar,
     start_epoch = 0
     best_val_loss = math.inf
 
-    # -----------------------------
     # Resume checkpoint (if provided)
-    # -----------------------------
     if resume_checkpoint is not None:
-        ckpt_path = os.path.join(model_path, f"checkpoint_epoch_{resume_checkpoint}.pth")
+        ckpt_path = os.path.join(model_path, f"checkpoint_epoch_{resume_checkpoint}.pt")
         if os.path.exists(ckpt_path):
             print(f"Resuming training from checkpoint: {ckpt_path}")
             checkpoint = torch.load(ckpt_path, map_location=device)
@@ -337,20 +329,6 @@ def adversarial_training_loop(targetVar,
             start_epoch = checkpoint["epoch"] + 1
             best_val_loss = checkpoint.get("best_val_loss", math.inf)
             print(f"Resumed from epoch {start_epoch}")
-
-    # -----------------------------
-    # Prepare fixed validation sample (if indices are provided)
-    # -----------------------------
-    fixed_sample = None
-    if fixed_indices is not None and valid_data is not None:
-        X_list, Y_list = [], []
-        valid_dataset = valid_data.dataset  # acceder al dataset interno
-        for idx in fixed_indices:
-            X_i, Y_i = valid_dataset[idx]
-            X_list.append(X_i.unsqueeze(0))
-            Y_list.append(Y_i.unsqueeze(0))
-        fixed_sample = (torch.cat(X_list, dim=0), torch.cat(Y_list, dim=0))
-        print(f"Fixed sample prepared from indices {fixed_indices}")
 
     # Epoch tracking
     epoch_G_loss, epoch_D_loss, epoch_val_loss = [], [], []
@@ -375,9 +353,7 @@ def adversarial_training_loop(targetVar,
             real_labels = torch.ones((batch_size, 1), device=device)
             fake_labels = torch.zeros((batch_size, 1), device=device)
 
-            # -----------------------------
             # Train Discriminator
-            # -----------------------------
             if epoch % freq_train_disc == 0:
                 optimizer_D.zero_grad()
 
@@ -407,9 +383,7 @@ def adversarial_training_loop(targetVar,
                 running_loss_D_real.append(loss_D_real.item())
                 running_loss_D_fake.append(loss_D_fake.item())
 
-            # -----------------------------
             # Train Generator
-            # -----------------------------
             if epoch % freq_train_gen == 0:
                 optimizer_G.zero_grad()
 
@@ -418,7 +392,7 @@ def adversarial_training_loop(targetVar,
                         Y_fake = generator(X)
                         pred_fake = discriminator(X, Y_fake)
                         loss_adv = adversarial_criterion(pred_fake, real_labels)
-                        loss_recon = recon_criterion(Y_fake, Y_real)
+                        loss_recon = recon_criterion(Y_real, Y_fake)
                         loss_G = lambda_recon * loss_recon + lambda_adv * loss_adv
 
                     scaler_G.scale(loss_G).backward()
@@ -428,7 +402,7 @@ def adversarial_training_loop(targetVar,
                     Y_fake = generator(X)
                     pred_fake = discriminator(X, Y_fake)
                     loss_adv = adversarial_criterion(pred_fake, real_labels)
-                    loss_recon = recon_criterion(Y_fake, Y_real)
+                    loss_recon = recon_criterion(Y_real, Y_fake)
                     loss_G = lambda_recon * loss_recon + lambda_adv * loss_adv
                     loss_G.backward()
                     optimizer_G.step()
@@ -445,9 +419,7 @@ def adversarial_training_loop(targetVar,
         epoch_loss_D_real.append(float(np.mean(running_loss_D_real)))
         epoch_loss_D_fake.append(float(np.mean(running_loss_D_fake)))
 
-        # -----------------------------
         # Validation (reconstruction only)
-        # -----------------------------
         if valid_data is not None:
             generator.eval()
             val_loss = 0.0
@@ -457,52 +429,19 @@ def adversarial_training_loop(targetVar,
                     if mixed_precision:
                         with torch.amp.autocast(device_type=device):
                             Y_pred = generator(Xv)
-                            val_loss += recon_criterion(Y_pred, Yv).item()
+                            val_loss += recon_criterion(Yv, Y_pred).item()
                     else:
                         Y_pred = generator(Xv)
-                        val_loss += recon_criterion(Y_pred, Yv).item()
+                        val_loss += recon_criterion(Yv, Y_pred).item()
             val_loss /= len(valid_data)
             epoch_val_loss.append(val_loss)
         else:
             val_loss = None
 
-        # -----------------------------
-        # Optional: Save Y_real / Y_fake
-        # -----------------------------
-        if save_fake_every is not None and fixed_sample is not None:
-            if (epoch + 1) % save_fake_every == 0:
-                generator.eval()
-                X_fixed, Y_fixed = fixed_sample
-                X_fixed, Y_fixed = X_fixed.to(device), Y_fixed.to(device)
-                with torch.no_grad():
-                    Y_fake_fixed = generator(X_fixed)
-
-                y_mean = np.load('../aux/TRANSFORMATION/Y/' + targetVar + '_mean.npy')
-                y_std = np.load('../aux/TRANSFORMATION/Y/' + targetVar + '_std.npy')
-
-                import sys
-                sys.path.append('../lib/')
-                import plot
-
-                iaux = 0
-                for idx in fixed_indices:
-                    Y_fixed_np, Y_fake_fixed_np = Y_fixed.cpu().numpy()[iaux], Y_fake_fixed.cpu().numpy()[iaux]
-                    Y_fixed_np = Y_fixed_np * y_std + y_mean
-                    Y_fake_fixed_np = Y_fake_fixed_np * y_std + y_mean
-
-                    if epoch + 1 == save_fake_every:
-                        plot.map(targetVar, Y_fixed_np, palette=targetVar+'_gan', path=model_path, filename=f"Yreal_day_{idx}",
-                                 title=f"Yreal_day_{idx}", )
-                    plot.map(targetVar, Y_fake_fixed_np, palette=targetVar+'_gan', path=model_path, filename=f"Yfake_day_{idx}_epoch_{epoch + 1}",
-                             title=f"Yfake_day_{idx}_Variante_{lambda_adv}_{lambda_recon}_{freq_train_gen}_{freq_train_disc}_epoch_{epoch + 1}")
-                    iaux += 1
-
         epoch_end = time.time()
         epoch_time = np.round(epoch_end - epoch_start, 2)
 
-        # -----------------------------
         # Scheduler update
-        # -----------------------------
         if scheduler is not None:
             if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 scheduler.step(val_loss if val_loss is not None else epoch_G_loss[-1])
@@ -514,9 +453,7 @@ def adversarial_training_loop(targetVar,
         else:
             current_lr = optimizer_G.param_groups[0]['lr']
 
-        # -----------------------------
-        # Logging
-        # -----------------------------
+
         log_msg = (f"Epoch {epoch+1} ({epoch_time}s) | "
                    f"Loss_D {np.round(epoch_D_loss[-1], 4)} | "
                    f"Loss_G {np.round(epoch_G_loss[-1], 4)}")
@@ -525,26 +462,18 @@ def adversarial_training_loop(targetVar,
             log_msg += f" | Val_Loss {np.round(val_loss, 4)}"
 
         log_msg += (f" | LR {current_lr:.2e}"
-                    f" | lambda_adv {lambda_adv}"
-                    f" | lambda_recon {lambda_recon}"
-                    f" | freq_train_gen {freq_train_gen}"
-                    f" | freq_train_disc {freq_train_disc}"
                     f" | avd_loss {np.round(epoch_adv_loss[-1], 4)}"
                     f" | recon_loss {np.round(epoch_recon_loss[-1], 4)}")
 
-        # -----------------------------
         # Model saving
-        # -----------------------------
         save_model = True
         log_msg += " (Model saved)"
         torch.save(generator.state_dict(), os.path.join(model_path, f"{gen_name}.pt"))
         torch.save(discriminator.state_dict(), os.path.join(model_path, f"{disc_name}.pt"))
 
-        # -----------------------------
-        # Save checkpoint (optional)
-        # -----------------------------
+        # Save checkpoint
         if save_checkpoint_every is not None and (epoch + 1) % save_checkpoint_every == 0:
-            ckpt_path = os.path.join(model_path, f"checkpoint_epoch_{epoch+1}.pth")
+            ckpt_path = os.path.join(model_path, f"checkpoint_epoch_{epoch+1}.pt")
             torch.save({
                 "epoch": epoch,
                 "generator": generator.state_dict(),
@@ -553,22 +482,18 @@ def adversarial_training_loop(targetVar,
                 "optimizer_D": optimizer_D.state_dict(),
                 "best_val_loss": best_val_loss,
             }, ckpt_path)
-            if os.path.isfile(model_path+f"checkpoint_epoch_{epoch-save_checkpoint_every+1}.pth"):
-                os.remove(model_path+f"checkpoint_epoch_{epoch-save_checkpoint_every+1}.pth")
+            if os.path.isfile(model_path+f"checkpoint_epoch_{epoch-save_checkpoint_every+1}.pt"):
+                os.remove(model_path+f"checkpoint_epoch_{epoch-save_checkpoint_every+1}.pt")
 
             log_msg += f" | Checkpoint saved ({ckpt_path})"
 
         print(log_msg)
 
-    # -----------------------------
     # Return losses
-    # -----------------------------
-    return {
-        "train_G": epoch_G_loss,
-        "train_D": epoch_D_loss,
-        "avd_loss": epoch_adv_loss,
-        "recon_loss": epoch_recon_loss,
-        "loss_D_real": epoch_loss_D_real,
-        "loss_D_fake": epoch_loss_D_fake,
-        "valid": epoch_val_loss if valid_data is not None else None
-    }
+    return {"train_G": epoch_G_loss,
+            "train_D": epoch_D_loss,
+            "avd_loss": epoch_adv_loss,
+            "recon_loss": epoch_recon_loss,
+            "loss_D_real": epoch_loss_D_real,
+            "loss_D_fake": epoch_loss_D_fake,
+            "valid": epoch_val_loss if valid_data is not None else None}
