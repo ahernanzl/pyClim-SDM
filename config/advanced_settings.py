@@ -319,10 +319,6 @@ asym_loss_parameters = {
     'sfcWind': {'asym_weight': 3, 'cdf_pow': 10},
 }
 
-asym_weight=3
-cdf_pow=10
-
-
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
 # That is the case of TX10p, R95p, etc. When evaluating ESD methods, set to True, but when studying change on the
 # climdex (projections), set to False. This parameter is used in postporcess.get_climdex_oneModel
