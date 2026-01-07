@@ -118,10 +118,12 @@ def train(targetVar, methodName, family, mode, fields):
     y_train = y_train[valid]
     training_dates_valid = [training_dates[i] for i in valid]
 
-    if targetVar == 'pr':
+    if targetVar in asym_loss_parameters:
         asym_path = pathAux + 'ASYM/'
         os.makedirs(asym_path, exist_ok=True)
-        loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path, asym_weight=asym_weight, cdf_pow=cdf_pow)
+        loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path,
+                                       asym_weight=asym_loss_parameters[targetVar]['asym_weight'],
+                                       cdf_pow=asym_loss_parameters[targetVar]['cdf_pow'])
         if loss_function.parameters_exist():
             loss_function.load_parameters()
         else:

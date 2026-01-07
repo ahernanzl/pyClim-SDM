@@ -308,14 +308,18 @@ for methodName in convolutional_methods:
             'methods_to_extrapolate_with_MLR at advanced_settings.\nBoth options are not compatible.')
         exit()
 
-# DeepESD precipitation asym loss parameters.
-# Default values:
+# DeepESD asym loss parameters. Default values for precipitation:
 #   - deep4downscaling: asym_weight=1, cdf_pow=2
 #   - pyClim-SDM: asym_weight=3, cdf_pow=10
 # relative weight of the asymetric term (compared to the MAE term)
-asym_weight=3
 # the weight of each error is multiplied by this pow of its percentile on the distribution. Thus, cdf_pow=0 means the
 # same weight (1) for all values, and the larger the cdf_pow the bigger the difference between low and high percentiles
+asym_loss_parameters = {
+    'pr': {'asym_weight': 3, 'cdf_pow': 10},
+    'sfcWind': {'asym_weight': 3, 'cdf_pow': 10},
+}
+
+asym_weight=3
 cdf_pow=10
 
 
