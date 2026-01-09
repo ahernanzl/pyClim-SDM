@@ -2,6 +2,8 @@ import sys
 
 import numpy as np
 
+import deep4downscaling.trans
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -205,7 +207,7 @@ def get_transformation_parameters_oneModel(targetVar, fields_and_grid, model):
 
 
 ########################################################################################################################
-def transform(targetVar, data, model, fields_and_grid):
+def transform(targetVar, data, scene_dates, model, fields_and_grid):
     """Provided the data array, it is standardized (and transformed to PCA, optional) and returned
     Forze_only_standardize controls that the first time the transformation is done, only the standardization is applied.
     The following times, when the PCAs have been fitted, the complete transformation is allowed.
@@ -241,6 +243,43 @@ def transform(targetVar, data, model, fields_and_grid):
     mean = np.repeat(mean, data.shape[0], 0)
     std = np.expand_dims(std, axis=0)
     std = np.repeat(std, data.shape[0], 0)
+
+    # Bias correct predictors from GCM month by month
+    if model != 'reanalysis' and bias_correct_GCM_predictors_seasonal_cycle == True:
+
+        # Define field and grid
+        if fields_and_grid in ['pred', 'saf']:
+            field, grid = fields_and_grid, None
+        elif fields_and_grid in ['spred', 'spred-pca']:
+            field, grid = 'pred', 'saf'
+
+        # Load reanalysis predictors reference period
+        aux = read.lres_data(targetVar, field, grid=grid, period='reference')
+        rea_data = aux['data']
+        rea_times = aux['times']
+        del aux
+
+        # Load model predictors reference period
+        aux = read.lres_data(targetVar, field, grid=grid, model=model, scene='historical', period='reference')
+        hist_data = aux['data']
+        hist_times = aux['times']
+        del aux
+
+        # Create xr.Datasets
+        rea_dataset = xr.Dataset(
+            {var: (("time", "lat", "lon"), rea_data[:, i, :, :]) for i, var in enumerate(preds_targetVars_dict[targetVar])},
+            coords={"time": rea_times, "lat": np.arange(rea_data.shape[2]), "lon": np.arange(rea_data.shape[3])})
+        hist_dataset = xr.Dataset(
+            {var: (("time", "lat", "lon"), hist_data[:, i, :, :]) for i, var in enumerate(preds_targetVars_dict[targetVar])},
+            coords={"time": hist_times, "lat": np.arange(hist_data.shape[2]), "lon": np.arange(hist_data.shape[3])})
+        data_dataset = xr.Dataset(
+            {var: (("time", "lat", "lon"), data[:, i, :, :]) for i, var in enumerate(preds_targetVars_dict[targetVar])},
+            coords={"time": scene_dates, "lat": np.arange(data.shape[2]), "lon": np.arange(data.shape[3])})
+
+        # Apply the correction and convert xr.Dataset to np.array
+        data_dataset = deep4downscaling.trans.scaling_delta_correction(
+            data_dataset, hist_dataset, rea_dataset)
+        data = data_dataset.to_array().values.swapaxes(0, 1)
 
     # Standardize
     data = (data - mean) / std

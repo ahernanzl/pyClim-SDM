@@ -85,8 +85,10 @@ def downscale(targetVar, methodName, family, mode, fields, scene, model):
         idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
         scene_dates = list(np.array(scene_dates)[idates])
         scene_ndates = len(scene_dates)
-        X_test = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=scene)['data'][idates]
-        X_test = transform.transform(targetVar, X_test, model, 'spred')
+        aux = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=scene)
+        X_test = aux['data'][idates]
+        times = aux['times'][idates]
+        X_test = transform.transform(targetVar, X_test, times, model, 'spred')
         X_test = X_test.astype('float32')
 
     # Remove days with Nans

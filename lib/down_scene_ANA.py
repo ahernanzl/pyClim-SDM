@@ -123,12 +123,16 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             idates = [i for i in range(len(scene_dates)) if scene_dates[i].year >= years[0] and scene_dates[i].year <= years[1]]
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
-                pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
+                aux = read.lres_data(targetVar, 'pred', model=model, scene=scene)
+                pred_scene = aux['data'][idates]
+                times = aux['times'][idates]
+                pred_scene = transform.transform(targetVar, pred_scene, times, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
             if 'saf' in fields:
-                saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = transform.transform(targetVar, saf_scene, model, 'saf')
+                aux = read.lres_data(targetVar, 'saf', model=model, scene=scene)
+                saf_scene = aux['data'][idates]
+                times = aux['times'][idates]
+                saf_scene = transform.transform(targetVar, saf_scene, times, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
             if 'var' in fields:
                 var_scene = read.lres_data(targetVar, 'var', model=model, scene=scene)['data'][idates]

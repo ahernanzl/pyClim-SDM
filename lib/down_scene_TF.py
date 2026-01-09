@@ -141,21 +141,29 @@ def downscale_chunk(targetVar, methodName, family, mode, fields, scene, model, i
             scene_dates = list(np.array(scene_dates)[idates])
             if 'pred' in fields:
                 if predsType_targetVars_dict[targetVar]=='pca':
-                    pred_scene = read.lres_data(targetVar, field='pred', grid='saf', model=model, scene=scene)['data'][idates]
-                    pred_scene = transform.transform(targetVar, pred_scene, model, 'spred-pca')
+                    aux = read.lres_data(targetVar, field='pred', grid='saf', model=model, scene=scene)
+                    pred_scene = aux['data'][idates]
+                    times = aux['times'][idates]
+                    pred_scene = transform.transform(targetVar, pred_scene, times, model, 'spred-pca')
                 else:
-                    pred_scene = read.lres_data(targetVar, 'pred', model=model, scene=scene)['data'][idates]
-                    pred_scene = transform.transform(targetVar, pred_scene, model, 'pred')
+                    aux = read.lres_data(targetVar, 'pred', model=model, scene=scene)
+                    pred_scene = aux['data'][idates]
+                    times = aux['times'][idates]
+                    pred_scene = transform.transform(targetVar, pred_scene, times, model, 'pred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'spred' in fields:
-                pred_scene = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=scene)['data'][idates]
-                pred_scene = transform.transform(targetVar, pred_scene, model, 'spred')
+                aux = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=scene)
+                pred_scene = aux['data'][idates]
+                times = aux['times'][idates]
+                pred_scene = transform.transform(targetVar, pred_scene, times, model, 'spred')
                 pred_scene = pred_scene.astype('float32')
                 X_test = pred_scene
             if 'saf' in fields:
-                saf_scene = read.lres_data(targetVar, 'saf', model=model, scene=scene)['data'][idates]
-                saf_scene = transform.transform(targetVar, saf_scene, model, 'saf')
+                aux = read.lres_data(targetVar, 'saf', model=model, scene=scene)
+                saf_scene = aux['data'][idates]
+                times = aux['times'][idates]
+                saf_scene = transform.transform(targetVar, saf_scene, times, model, 'saf')
                 saf_scene = saf_scene.astype('float32')
                 X_test = saf_scene
             if 'var' in fields:

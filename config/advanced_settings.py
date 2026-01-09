@@ -228,8 +228,15 @@ pathFigures = '../results/Figures/'
 # If set to True, figures will be storaged at aux/TRAINED_MODELS
 plot_hyperparameters_epochs_nEstimators_featureImportances = False
 
+# Set to True to bias correct predictors from GCM month by month
+bias_correct_GCM_predictors_seasonal_cycle = True
+
 # When standarizing predictors from a GCM, use its own mean and std or take them from the reanalysis
 mean_and_std_from_GCM = True
+
+# If the annual cycle has been adjusted to the reanalysis, better use mean and std from reanalysis aswell
+if bias_correct_GCM_predictors_seasonal_cycle == True:
+    mean_and_std_from_GCM = False
 
 # Force calculations even if files already exist
 force_downscaling = True
@@ -316,7 +323,7 @@ for methodName in convolutional_methods:
 # same weight (1) for all values, and the larger the cdf_pow the bigger the difference between low and high percentiles
 asym_loss_parameters = {
     'pr': {'asym_weight': 3, 'cdf_pow': 10},
-    'sfcWind': {'asym_weight': 3, 'cdf_pow': 10},
+    # 'sfcWind': {'asym_weight': 1, 'cdf_pow': 2}, # parameters to be adjusted
 }
 
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
