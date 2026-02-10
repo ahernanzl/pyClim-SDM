@@ -96,7 +96,7 @@ Format:
   - Sea level and surface pressure (psl and ps) in Pa
   - Total runoff (mrro) in kg m-2 s-1
   - Soil water content (mrso) in kg m-2
-- Reanalysis and models format (low resolution predictors for calibration and downscaling): One netCDF file per variable, models and scene, with all pressure levels, in a regular 2D grid.
+- Reanalysis and models format (low resolution predictors for calibration and downscaling): One netCDF file per variable, models and scene, with all pressure levels, in a regular 2D grid. Lat/lon must have a maximum precission of two decimals.
 Filenames: filenames are composed of specific fields separated by ‘_’, so the use of this symbol inside a field (the reanalysis name, for example) must be avoided.
 
 
