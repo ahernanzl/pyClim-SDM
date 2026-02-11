@@ -632,7 +632,7 @@ def figures_projections(lan='EN'):
         pathIn = path + 'climdex/'
         # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
         # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW-BIL/climdex/'
-        pathRaw = '../results/PROJECTIONS-' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
+        pathRaw = '../results/PROJECTIONS' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
         pathOut = path + 'climdex/figures/'
 
         try:
