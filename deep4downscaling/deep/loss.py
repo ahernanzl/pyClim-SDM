@@ -15,6 +15,7 @@ import numpy as np
 import xarray as xr
 import scipy.stats
 from typing import Union
+import torch.nn.functional as F
 
 class MaeLoss(nn.Module):
 
@@ -184,7 +185,7 @@ class NLLBerGammaLoss(nn.Module):
                             shape * torch.log(scale + epsilon) -
                             torch.lgamma(shape + epsilon) -
                             target / (scale + epsilon))
-        
+
         loss = -torch.mean(noRainCase + rainCase)
         return loss
 
@@ -202,7 +203,7 @@ class Asym(nn.Module):
     Notes
     -----
     This loss function relies on gamma distribution fitted for each gridpoint in the
-    spatial domain. This class provides all the methods require to fit these 
+    spatial domain. This class provides all the methods require to fit these
     distributions to the data.
 
     The level of asymmetry can be adjusted by the pairs asym_weight and cdf_pow.
@@ -221,6 +222,14 @@ class Asym(nn.Module):
         Pow for the CDF at the asymmetric term of the loss function.
         Default value: 2 (as in Doury et al., 2024)
         Higher values make a bigger differentiation between the weight for high/low percentiles
+
+    r01_asym_weight : float, optional
+        Weight for the r01 (classification wet/dry day) term at the loss function relative to the MAE term.
+        Default value: 0
+
+    r01_cdf_pow : float, optional
+        Pow for the CDF at the r01 (classification wet/dry day) term of the loss function.
+        Default value: 0
 
     asym_path : str
         Path to the folder to save the fitted distributions.
@@ -241,25 +250,34 @@ class Asym(nn.Module):
 
     def __init__(self, ignore_nans: bool, asym_path: str,
                  asym_weight: float = 1.0, cdf_pow: float = 2.0,
+                 r01_asym_weight: float = 0.0, r01_cdf_pow: float = 0.0,
                  appendix: str = None) -> None:
         super(Asym, self).__init__()
 
-        # Ensure that asym_weight and cdf_pow are numeric values
+        # Ensure that asym_weight, cdf_pow and r01_weight are numeric values
         if not isinstance(asym_weight, (int, float)):
             raise ValueError("'asym_weight' must be a numeric value.")
         if not isinstance(cdf_pow, (int, float)):
             raise ValueError("'cdf_pow' must be a numeric value.")
-            
+        if not isinstance(r01_asym_weight, (int, float)):
+            raise ValueError("'r01_asym_weight' must be a numeric value.")
+        if not isinstance(r01_cdf_pow, (int, float)):
+            raise ValueError("'r01_cdf_pow' must be a numeric value.")
+
         # Convert to float if needed and check positiveness
         asym_weight = float(asym_weight)
         cdf_pow = float(cdf_pow)
-        if asym_weight < 0 or cdf_pow < 0:
-            raise ValueError("'asym_weight' and 'cdf_pow' must be positive.")
+        r01_asym_weight = float(r01_asym_weight)
+        r01_cdf_pow = float(r01_cdf_pow)
+        if asym_weight < 0 or cdf_pow < 0 or r01_asym_weight < 0 or r01_cdf_pow < 0:
+            raise ValueError("'asym_weight', 'cdf_pow', 'r01_asym_weight' and 'r01_cdf_pow' must be positive.")
 
         self.ignore_nans = ignore_nans
         self.asym_path = asym_path
         self.asym_weight = asym_weight
         self.cdf_pow = cdf_pow
+        self.r01_asym_weight = r01_asym_weight
+        self.r01_cdf_pow = r01_cdf_pow
         self.appendix = appendix
 
     def parameters_exist(self):
@@ -309,7 +327,7 @@ class Asym(nn.Module):
         1D np.ndarray.
 
         Parameters
-        ----------      
+        ----------
         x : np.ndarray
             1D np.ndarray containing the precipitation values across time
             for a specific gridpoint.
@@ -330,7 +348,7 @@ class Asym(nn.Module):
             try: # Compute dist.
                 fit_shape, fit_loc, fit_scale = scipy.stats.gamma.fit(x)
             except: # If its not possible return nan
-                fit_shape, fit_loc, fit_scale = np.nan, np.nan, np.nan 
+                fit_shape, fit_loc, fit_scale = np.nan, np.nan, np.nan
             return fit_shape, fit_loc, fit_scale
 
     def compute_parameters(self, data: xr.Dataset, var_target: str):
@@ -340,7 +358,7 @@ class Asym(nn.Module):
         the parameters of a fitted gamma distribution for the wet days.
 
         Parameters
-        ----------      
+        ----------
         data : xr.Dataset
             Dataset containing the variable used as target in the model. It is
             important to provide it in the same way as it will be provided
@@ -364,7 +382,7 @@ class Asym(nn.Module):
 
         # Compute yearly mean
         gamma_params = np.nanmean(np.stack(gamma_params), axis=0)
-        
+
         self.shape = gamma_params[0, :]
         self.scale = gamma_params[2, :]
         self.loc = gamma_params[1, :]
@@ -441,13 +459,13 @@ class Asym(nn.Module):
             self.loc[torch.isnan(self.loc)] = 0
 
     def compute_cdf(self, data: torch.Tensor) -> torch.Tensor:
-    
+
         """
         Compute the value of the cumulative distribution function (CDF) for
         the data.
 
         Parameters
-        ----------      
+        ----------
         data : torch.Tensor
             Data (from the target dataset) to compute the CDF for.
         """
@@ -491,6 +509,291 @@ class Asym(nn.Module):
         # Compute the loss
         loss_mae = torch.mean(torch.abs(target - output))
         loss_asym = torch.mean((cdfs ** self.cdf_pow) * torch.max(torch.tensor(0.0), target - output))
-        loss = loss_mae + self.asym_weight * loss_asym
+        loss_r01_asym = torch.mean(((1 - cdfs) ** self.r01_cdf_pow) * torch.max(torch.tensor(0.0), output - target))
+        loss = loss_mae + self.asym_weight * loss_asym  + self.r01_asym_weight * loss_r01_asym
+
+        return loss
+
+
+
+class MseExtremesLoss(nn.Module):
+
+    """
+
+
+    Notes
+    -----
+    This loss function relies on normal distribution fitted for each gridpoint in the
+    spatial domain. This class provides all the methods require to fit these
+    distributions to the data.
+
+    The level of asymmetry can be adjusted by the pairs w and pow.
+
+    Parameters
+    ----------
+    ignore_nans : bool
+        Whether to allow the loss function to ignore nans in the
+        target domain.
+
+    w : float, optional
+        Weight for the extremes term at the loss function relative to the MAE term.
+
+    pow : float, optional
+        Pow for the CDF at the extremes term of the loss function.
+
+    asym_path : str
+        Path to the folder to save the fitted distributions.
+
+    appendix : str, optional
+        String to add to the files generated/loaded for this loss function.
+        (e.g., appendix=test1 -> scale_test1.npy). If not provided no appendix
+        will be added.
+
+    target : torch.Tensor
+        Target/ground-truth data
+
+    output : torch.Tensor
+        Predicted data (model's output). This vector must be composed
+        by the concatenation of the predicted mean and logarithm of the
+        variance.
+    """
+
+    def __init__(self, ignore_nans: bool, asym_path: str,
+                 w: float = 1.0, pow: float = 2.0,
+                 appendix: str = None) -> None:
+        super(MseExtremesLoss, self).__init__()
+
+        # Ensure that w and pow are numeric values
+        if not isinstance(w, (int, float)):
+            raise ValueError("'w' must be a numeric value.")
+        if not isinstance(pow, (int, float)):
+            raise ValueError("'pow' must be a numeric value.")
+
+        # Convert to float if needed and check positiveness
+        w = float(w)
+        pow = float(pow)
+        if w < 0 or pow < 0:
+            raise ValueError("'w' and 'pow' must be positive.")
+
+        self.ignore_nans = ignore_nans
+        self.asym_path = asym_path
+        self.w = w
+        self.pow = pow
+        self.appendix = appendix
+
+    def parameters_exist(self):
+
+        """
+        Check for the existence of the normal distributions
+        """
+
+        if self.appendix:
+            mean_file_name = f'mean_{self.appendix}.npy'
+            std_file_name = f'std_{self.appendix}.npy'
+        else:
+            mean_file_name = 'mean.npy'
+            std_file_name = 'std.npy'
+
+        mean_exist = os.path.exists(f'{self.asym_path}/{mean_file_name}')
+        std_exist = os.path.exists(f'{self.asym_path}/{std_file_name}')
+
+        return (mean_exist and std_exist)
+
+    def load_parameters(self):
+
+        """
+        Load the normal distributions from asym_path.
+        """
+
+        if self.appendix:
+            mean_file_name = f'mean_{self.appendix}.npy'
+            std_file_name = f'std_{self.appendix}.npy'
+        else:
+            mean_file_name = 'mean.npy'
+            std_file_name = 'std.npy'
+
+        self.mean = np.load(f'{self.asym_path}/{mean_file_name}')
+        self.std = np.load(f'{self.asym_path}/{std_file_name}')
+
+    def _compute_normal_parameters(self, x: np.ndarray) -> tuple:
+
+        """
+        Fit a normal distribution
+
+        Parameters
+        ----------
+        x : np.ndarray
+            1D np.ndarray containing the values across time
+            for a specific gridpoint.
+
+        Returns
+        -------
+        tuple
+        The mean and std parameters of the fitted normal
+        distribution.
+        """
+
+        # If nan return nan
+        if np.sum(np.isnan(x)) == len(x):
+            return np.nan, np.nan, np.nan
+        else:
+            x = x[~np.isnan(x)] # Remove nans
+            try: # Compute dist.
+                fit_mean, fit_std = scipy.stats.norm.fit(x)
+            except: # If its not possible return nan
+                fit_mean, fit_std = np.nan, np.nan, np.nan
+            return fit_mean, fit_std
+
+    def compute_parameters(self, data: xr.Dataset, var_target: str):
+
+        """
+        Iterate over the xr.Dataset and compute for each spatial gridpoint
+        the parameters of a fitted normal distribution for the wet days.
+
+        Parameters
+        ----------
+        data : xr.Dataset
+            Dataset containing the variable used as target in the model. It is
+            important to provide it in the same way as it will be provided
+            as target to the forward() method (e.g., nan-filtered).
+
+        var_target : str
+            Target variable.
+        """
+
+        # Get years
+        normal_params = []
+        group_years = data.groupby('time.year')
+
+        # Iterate over years
+        for year, group in group_years:
+            print(f'Year: {year}')
+            y_year = group[var_target].values
+            params_year = np.apply_along_axis(self._compute_normal_parameters,
+                                              axis=0, arr=y_year) # mean, loc, std
+            normal_params.append(params_year)
+
+        # Compute yearly mean
+        normal_params = np.nanmean(np.stack(normal_params), axis=0)
+
+        self.mean = normal_params[0, :]
+        self.std = normal_params[1, :]
+
+        # Save the parameters in the asym_path
+        if self.appendix:
+            mean_file_name = f'mean_{self.appendix}.npy'
+            std_file_name = f'std_{self.appendix}.npy'
+        else:
+            mean_file_name = 'mean.npy'
+            std_file_name = 'std.npy'
+
+        np.save(file=f'{self.asym_path}/{mean_file_name}',
+                arr=self.mean)
+        np.save(file=f'{self.asym_path}/{std_file_name}',
+                arr=self.std)
+
+    def mask_parameters(self, mask: xr.Dataset):
+
+        """
+        Mask the mean, std and loc parameters. This is required for
+        models composed of a final fully-connected layer.
+
+        Parameters
+        ----------
+        mask : xr.Dataset
+            Mask without time dimension containing 1s for non-nan and
+            0 for nans.
+        """
+
+        mask_var = list(mask.keys())[0]
+        mask_dims = list(mask.dims.keys())
+
+        # If gridpoint dimension does not exist, create it
+        if 'gridpoint' not in mask_dims:
+            mask = mask.stack(gridpoint=('lat', 'lon'))
+
+        # We assume that 1 -> non-nan and 0 -> nan
+        mask_values = mask[mask_var].values
+        mask_ones = np.where(mask_values == 1)
+
+        self.mean = self.mean[mask_ones]
+        self.std = self.std[mask_ones]
+
+    def prepare_parameters(self, device: str):
+
+        """
+        Move the normal parameters to device and remove nans. The latter is key,
+        as if the normal has not been fitted to the data (nans), it means that
+        there are not (few) rainy days. In this case, we set a weight of one
+        for any underestimation (which will be uncommon).
+
+        Parameters
+        ----------
+        device : str
+            Device used to run the training (cuda or cpu)
+        """
+
+        self.mean = torch.tensor(self.mean).to(device)
+        self.std = torch.tensor(self.std).to(device)
+
+        epsilon = 0.0000001
+        if torch.isnan(self.mean).any():
+            self.mean[torch.isnan(self.mean)] = epsilon
+        if torch.isnan(self.std).any():
+            self.std[torch.isnan(self.std)] = epsilon
+
+    def compute_cdf(self, data: torch.Tensor) -> torch.Tensor:
+
+        """
+        Compute the value of the cumulative distribution function (CDF) for
+        the data.
+
+        Parameters
+        ----------
+        data : torch.Tensor
+            Data (from the target dataset) to compute the CDF for.
+        """
+
+        # Compute cdfs for Torch
+        if isinstance(data, torch.Tensor):
+            # data = data - self.mean
+            m = td.Normal(
+                loc=self.mean,
+                scale=self.std,
+                validate_args=False
+            )
+            cdfs = m.cdf(data)
+
+        # Compute cdfs for Numpy
+        elif isinstance(data, np.ndarray):
+            cdfs = np.empty_like(data)
+            cdfs = scipy.stats.norm.cdf(data,
+                                         loc=self.mean, scale=self.std)
+
+        else:
+            raise ValueError('Unsupported type for the data argument.')
+
+        return cdfs
+
+    def forward(self, target: torch.Tensor, output: torch.Tensor) -> torch.Tensor:
+
+        """
+        Compute the loss function for the target and output data
+        """
+
+        cdfs = self.compute_cdf(data=target)
+        cdfs = torch.nan_to_num(cdfs, nan=0.0)
+
+        if self.ignore_nans:
+            nans_idx = torch.isnan(target)
+            output = output[~nans_idx]
+            target = target[~nans_idx]
+            cdfs = cdfs[~nans_idx]
+
+        # Compute the loss
+        loss_mae = torch.mean(torch.abs(target - output))
+        loss_extremes = torch.mean(((1 - cdfs) ** self.w) * torch.max(torch.tensor(0.0), output - target)) +\
+                        torch.mean((cdfs ** self.pow) * torch.max(torch.tensor(0.0), target - output))
+        loss = loss_mae + self.w * loss_extremes
 
         return loss

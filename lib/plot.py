@@ -12,6 +12,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -552,13 +555,14 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # Create dictionary of all possible palettes
     dict = {}
 
-
     # dict.update({'tasmax_gan': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
     #                           'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
     # dict.update({'pr_gan': {'units': 'mm', 'bounds': np.linspace(0, 30, 13), 'cmap': 'terrain_r', 'vmin': None,
     #                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
     #
 
+    # dict.update({'r01': {'units': 'days', 'bounds': np.linspace(0, 250, 26), 'cmap': 'terrain_r', 'vmin': None,
+    #                          'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
     dict.update({None: {'units': '', 'bounds': None, 'cmap': None, 'vmin': data.min(), 'vmax': data.max(), 'n_bin': 10,
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
@@ -661,8 +665,8 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                                           'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
                                           'ext': 'max'}})
     dict.update({'pcp_PRCPTOT_rel_change': {'units': '%', 'bounds': np.array(
-        [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                            'n_bin': None, 'colors': None, 'ext': 'max'}})
+        [-150, -100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                            'n_bin': None, 'colors': None, 'ext': 'both'}})
     dict.update({'pcp_PRCPTOT_rel_biasMedian': {'units': '%', 'bounds': np.array(
         [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
                                                 'n_bin': None, 'colors': None, 'ext': 'max'}})
@@ -776,8 +780,8 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # dict.update({'change_Pm_mean': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': -100, 'vmax': 100, 'n_bin': 11,
     #                                  'colors': ['r', 'y', 'g'], 'ext': 'both'}})
     dict.update({'change_PRCPTOT_mean': {'units': '%', 'bounds': np.array(
-        [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
+        [-250, -200, -150, -100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150, 200, 250]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
     dict.update({'change_Pm_mean': {'units': '%', 'bounds': np.array([-150, -100, -50, -40, -30, -20, -10, 0, 10, 20,
                                                                       30, 40, 50, 100, 150]), 'cmap': None,
                                     'vmin': None, 'vmax': None, 'n_bin': None,

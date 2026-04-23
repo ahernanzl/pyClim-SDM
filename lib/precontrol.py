@@ -1,9 +1,14 @@
 import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
 from advanced_settings import *
+# from config.advanced_settings import model_list
 
 sys.path.append('../deep4downscaling/')
 import deep.loss as deep_loss
@@ -11,6 +16,9 @@ import deep.train as deep_train
 import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
+
+sys.path.append('../SBCK/')
+import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib
@@ -105,7 +113,7 @@ def missing_data_check():
         # Plot heatmaps
         nscenes = len(scene_names_list)
         predNames = [list(preds.keys())[i] for i in range(npreds)]
-        modelNames = model_names_list
+        modelNames = model_list
 
         # Define colors and units for heatmap
         cmap = 'RdYlGn_r'
@@ -235,6 +243,553 @@ def predictors_correlation():
 
 
 ########################################################################################################################
+def kolmogorov_smirnov_calculate():
+    """
+    """
+
+    print('kolmogorov_smirnov_calculate...')
+
+    sceneName = 'historical'
+
+    # transform_predictors = False
+    for transform_predictors in (
+            True,
+            False,
+    ):
+        # Go through all target variables
+        for targetVar in targetVars:
+
+            # Define pathOut
+            pathOut = '../results/' + experiment + '/kolmogorov_smirnov/' + targetVar.upper() + '/'
+            if not os.path.exists(pathOut):
+                os.makedirs(pathOut)
+
+            # Define preds
+            preds = preds_dict[targetVar]
+            npreds = len(preds)
+            nmodels = len(model_list)
+            nlats = saf_nlats
+            nlons = saf_nlons
+
+
+            # Read reanalysis
+            aux = read.lres_data(targetVar, 'pred', grid='saf')
+            rea = aux['data']
+            time_first, time_last = calibration_dates.index(reference_first_date), calibration_dates.index(
+                reference_last_date) + 1
+            rea = rea[time_first:time_last]
+            rea_dates = aux['times']
+            rea_dates = rea_dates[time_first:time_last]
+
+            # If this transformation is applied, model biases should be largely corrected
+            if transform_predictors == True:
+                rea = transform.transform(targetVar, rea, rea_dates, 'reanalysis', 'spred')
+
+            # Go through all models, predictors and seasons
+            for imodel in range(nmodels):
+                model = model_list[imodel]
+                for ipred in range(npreds):
+                    already_done = True
+                    predName = preds_targetVars_dict[targetVar][ipred]
+                    for season in season_dict:
+                        if not os.path.isfile(pathOut+'KS-statistic_' + model + '_' + predName + '_' + season + '_transform_' + str(transform_predictors)+'.npy'):
+                            already_done = False
+
+                if already_done == True:
+                    print(transform_predictors, model, 'already_done')
+                else:
+                    try:
+                        print(transform_predictors, model, '...')
+                        aux = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=sceneName)
+                        scene_dates = aux['times']
+                        years_aux = list(set([x.year for x in reference_dates]))
+                        idates = [i for i in range(len(scene_dates)) if scene_dates[i].year in years_aux]
+                        sceneData = aux['data']
+                        sceneData = sceneData[idates]
+                        scene_dates = [scene_dates[i] for i in idates]
+
+                        # If this transformation is applied, model biases should be largely corrected
+                        if transform_predictors == True:
+                            sceneData = transform.transform(targetVar, sceneData, scene_dates, model, 'spred')
+
+                        for season in season_dict:
+
+                            # Select season data
+                            rea_season = postpro_lib.get_season(rea, reference_dates, season)['data']
+                            sceneData_season = postpro_lib.get_season(sceneData, scene_dates, season)['data']
+
+                            for ipred in range(npreds):
+                                predName = preds_targetVars_dict[targetVar][ipred]
+
+                                # Kolmogorov-Smirnov two sample test
+                                ks_statistics = np.zeros((nlats, nlons))
+                                ks_pvalues = np.zeros((nlats, nlons))
+                                for ilat in range(nlats):
+                                    for ilon in range(nlons):
+                                        series1, series2 = rea_season[:, ipred, ilat, ilon], sceneData_season[:, ipred, ilat, ilon]
+                                        statistic, p_value = ks_2samp(series1, series2)
+                                        ks_pvalues[ilat, ilon] = p_value
+                                        ks_statistics[ilat, ilon] = statistic
+
+                                # Save results
+                                np.save(pathOut+'KS-pvalue_' + model + '_' + predName + '_' + season + '_transform_' + str(transform_predictors), ks_pvalues)
+                                np.save(pathOut+'KS-statistic_' + model + '_' + predName + '_' + season + '_transform_' + str(transform_predictors), ks_statistics)
+                    except:
+                        print(transform_predictors, model, 'ERROR')
+                        pass
+
+
+########################################################################################################################
+def kolmogorov_smirnov_plot():
+    """
+    """
+
+    print('kolmogorov_smirnov_plot...')
+
+    pathOut = pathFigures
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+    if not os.path.exists(pathOut + '/KS_maps/'):
+        os.makedirs(pathOut + '/KS_maps/')
+    if not os.path.exists(pathOut + '/KS_boxplots/'):
+        os.makedirs(pathOut + '/KS_boxplots/')
+
+    # Go through all target variables
+    for targetVar in targetVars:
+
+        # Define preds
+        preds = preds_dict[targetVar]
+        npreds = len(preds)
+        nmodels = len(model_list)
+
+        # transform_predictors = False
+        # Define pathIn
+        pathIn = '../results/' + experiment + '/kolmogorov_smirnov/' + targetVar.upper() + '/'
+
+
+        # Go through all seasons
+        for season in season_dict:
+            # if not os.path.isfile(pathIn+'matrix_'+season+'.npy'):
+            matrix = np.zeros((2, nmodels, npreds))
+
+            itransform = 0
+            for transform_predictors in (
+                    False,
+                    True,
+            ):
+
+                # Go through all models
+                for imodel in range(nmodels):
+                    model = model_list[imodel]
+
+                    # Go through all predictors
+                    for ipred in range(npreds):
+                        print(transform_predictors, targetVar, model, season, ipred)
+                        predName = preds_targetVars_dict[targetVar][ipred]
+
+                        # Kolmogorov-Smirnov two sample test
+                        # ks_statistics = np.load(pathIn+'KS-statistic_' + model + '_' + predName + '_' + season +
+                        #                         '_transform_' + str(transform_predictors)+'.npy')
+                        ks_pvalues = np.load(pathIn+'KS-pvalue_' + model + '_' + predName + '_' + season +
+                                                '_transform_' + str(transform_predictors)+'.npy')
+
+                        ks_pvalues_perc = 100*np.nanmean(ks_pvalues < .05)
+                        matrix[itransform, imodel, ipred] = ks_pvalues_perc
+
+                        plot.map(targetVar, ks_pvalues, palette='Kolmogorov-Smirnov-pvalue', grid='saf', path=pathOut+'KS_maps/',
+                                 filename='KS-pvalue_' + model + '_' + predName+ '_' + season + '_transform_' + str(transform_predictors),
+                                 title='KS-pvalue_' + model + '_' + predName + '_' + season + '_transform_' + str(transform_predictors))
+                        # plot.map(targetVar, ks_statistics, palette='Kolmogorov-Smirnov-statistic', grid='saf', path=pathOut+'KS_maps/',
+                        #          filename='KS-statistic_' + model + '_' + str(ipred )+ '_' + season + '_transform_' + str(transform_predictors),
+                        #          title='KS-statistic_' + model + '_' + predName + '_' + season + '_transform_' + str(transform_predictors))
+                itransform += 1
+            np.save(pathIn + 'matrix_' + season, matrix)
+
+
+            matrix = np.load(pathIn+'matrix_'+season+'.npy')
+            data_list = []
+            for imode in range(2):
+                for model in range(nmodels):
+                    for pred in range(npreds):
+                        data_list.append({'imode': imode, 'model': model, 'pred': pred, 'value': matrix[imode, model, pred]})
+            df = pd.DataFrame(data_list)
+            plt.figure(figsize=(12, 6))
+            sns.boxplot(x="pred", y="value", hue="imode", data=df, dodge=True, width=0.5)
+
+            plt.title(season)
+            plt.xlabel('Predictors')
+            plt.ylabel('Percentaje of grid points with different distributions (%)')
+            plt.xticks(ticks=np.arange(npreds), labels=[x for x in preds])
+            plt.ylim(0, 100)
+            plt.legend([], [], frameon=False)
+
+            ax = plt.gca()
+            ax.set_yticks(np.arange(0, 101, 20))
+            ax.grid(axis='y', linestyle='--', linewidth=0.8, alpha=0.6)
+
+            for i in range(npreds):
+                if i % 2 == 0:
+                    ax.axvspan(i - 0.5, i + 0.5, color='lightgray', alpha=0.2, zorder=0)
+            # plt.show()
+            # exit()
+            plt.savefig(pathOut + '/KS_boxplots/'+season)
+
+########################################################################################################################
+def pca_calculate():
+    """
+    """
+
+    print('pca_calculate...')
+
+    sceneName = 'historical'
+
+    for transform_predictors in (
+            # False,
+            True,
+    ):
+
+        # Go through all target variables
+        for targetVar in targetVars:
+
+            # Define pathOut
+            pathOut = '../results/' + experiment + '/pca/' + targetVar.upper() + '/'
+            if not os.path.exists(pathOut):
+                os.makedirs(pathOut)
+
+            # Define preds
+            preds = preds_dict[targetVar]
+            npreds = len(preds)
+            nmodels = len(model_list)
+            nlats = saf_nlats
+            nlons = saf_nlons
+
+            # Read reanalysis
+            aux = read.lres_data(targetVar, 'pred', grid='saf')
+            rea = aux['data']
+            time_first, time_last = calibration_dates.index(reference_first_date), calibration_dates.index(
+                reference_last_date) + 1
+            rea = rea[time_first:time_last]
+            rea_dates = aux['times']
+            rea_dates = rea_dates[time_first:time_last]
+
+            # If this transformation is applied, model biases should be largely corrected
+            if transform_predictors == True:
+                rea = transform.transform(targetVar, rea, rea_dates, 'reanalysis', 'spred')
+            for ipred in range(npreds):
+
+                predName = preds_targetVars_dict[targetVar][ipred]
+                rea_ipred = rea[:, ipred]
+
+                for season in season_dict:
+                    # Select season data
+                    rea_ipred_season = postpro_lib.get_season(rea_ipred, reference_dates, season)['data']
+                    total_variance = np.var(rea_ipred_season)
+
+                    pca = PCA(exp_var_ratio_th)
+                    rea_pca = pca.fit_transform(rea_ipred_season.reshape(rea_ipred_season.shape[0], -1))
+
+                    # Go through all models
+                    for imodel in range(nmodels):
+                        model = model_list[imodel]
+                        if os.path.isfile(pathOut+'_'.join((str(transform_predictors), model, season, predName))+'.npy'):
+                            print(transform_predictors, model, predName, season, 'already done')
+                        else:
+                            print(transform_predictors, model, predName, season, '...')
+                            aux = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=sceneName, predName=predName)
+                            scene_dates = aux['times']
+                            years_aux = list(set([x.year for x in reference_dates]))
+                            idates = [i for i in range(len(scene_dates)) if scene_dates[i].year in years_aux]
+                            sceneData = aux['data']
+                            sceneData = sceneData[idates]
+                            scene_dates = [scene_dates[i] for i in idates]
+
+                            # If this transformation is applied, model biases should be largely corrected
+                            if transform_predictors == True:
+                                sceneData = np.repeat(sceneData, npreds, axis=1)
+                                sceneData = transform.transform(targetVar, sceneData, scene_dates, model, 'spred')
+                                sceneData = sceneData[:, ipred]
+                                sceneData = sceneData[:, np.newaxis]
+                            elif force_fillNans_for_local_predictors == True and (np.sum(np.where(np.isnan(sceneData))) != 0):
+                                sceneData = aux_lib.fillNans_interpolation(sceneData)
+
+                            # Select season data
+                            sceneData_season = postpro_lib.get_season(sceneData, scene_dates, season)['data'][:, 0]
+                            sceneData_season_pca = pca.transform(sceneData_season.reshape(sceneData_season.shape[0], -1))
+
+                            npca = rea_pca.shape[1]
+                            perc_rea_matrix = np.zeros((npca,))
+                            perc_model_matrix = np.zeros((npca,))
+
+                            for ipca in range(npca):
+
+                                aux_rea = 0*rea_pca
+                                aux_rea[:, :ipca] = rea_pca[:, :ipca]
+                                aux_rea = pca.inverse_transform(aux_rea)
+
+                                aux_model = 0*sceneData_season_pca
+                                aux_model[:, :ipca] = sceneData_season_pca[:, :ipca]
+                                aux_model = pca.inverse_transform(aux_model)
+
+                                rea_perc_var = np.var(aux_rea) / total_variance
+                                model_perc_var = np.var(aux_model) / total_variance
+                                # print('ipca', ipca, npca, transform_predictors, predName, model, season, rea_perc_var, model_perc_var)
+
+                                perc_rea_matrix[ipca] = rea_perc_var
+                                perc_model_matrix[ipca] = model_perc_var
+
+                            np.save(pathOut+'_'.join((str(transform_predictors), 'rea', season, predName)), perc_rea_matrix)
+                            np.save(pathOut+'_'.join((str(transform_predictors), model, season, predName)), perc_model_matrix)
+
+
+########################################################################################################################
+def pca_plot():
+    """
+    """
+
+    print('pca_plot...')
+
+    pathOut = pathFigures + '/pca_exp_var/'
+    if not os.path.exists(pathOut):
+        os.makedirs(pathOut)
+    os.makedirs(pathOut+'expVar_vs_nPCA_spaghetti/', exist_ok=True)
+    os.makedirs(pathOut+'expVar_vs_nPCA_tube/', exist_ok=True)
+    os.makedirs(pathOut+'expVarRea_vs_expVarModel_spaghetti/', exist_ok=True)
+    os.makedirs(pathOut+'expVarRea_vs_expVarModel_tube/', exist_ok=True)
+
+    sceneName = 'historical'
+
+    for transform_predictors in (
+            False,
+            True,
+    ):
+
+        # Go through all target variables
+        for targetVar in targetVars:
+
+            # Define pathIn
+            pathIn = '../results/' + experiment + '/pca/' + targetVar.upper() + '/'
+
+            preds = preds_dict[targetVar]
+            npreds = len(preds)
+            nmodels = len(model_list)
+            for ipred in range(npreds):
+
+                predName = preds_targetVars_dict[targetVar][ipred]
+                for season in season_dict:
+                    perc_rea_matrix = np.load(pathIn + '_'.join((str(transform_predictors), 'rea', season, predName)) + '.npy')
+                    npca = perc_rea_matrix.size
+                    perc_model_matrix = np.zeros((nmodels, npca))
+                    for imodel in range(nmodels):
+                        model = model_list[imodel]
+                        print(transform_predictors, model, season, predName)
+                        perc_model_matrix[imodel] = np.load(pathIn+'_'.join((str(transform_predictors), model, season, predName)) + '.npy')
+                    max_limit = max(np.max(perc_rea_matrix), np.max(perc_model_matrix))
+
+                    # expVar_vs_nPCA
+                    plt.figure(figsize=(8, 4))
+                    plt.ylim((0, 1.1*max_limit))
+                    plt.plot(np.arange(npca), perc_rea_matrix, color='k', linestyle='-', label='Reanalysis', zorder=4)
+                    for imodel in range(nmodels):
+                        plt.plot(np.arange(npca), perc_model_matrix[imodel], linestyle='--', label=model_list[imodel], zorder=4)
+                    plt.xlabel("Number of PCA")
+                    plt.ylabel("Explained variance")
+                    plt.legend()
+                    plt.title(' '.join((str(transform_predictors), season, predName)))
+                    # plt.show()
+                    # exit()
+                    plt.savefig(pathOut+'expVar_vs_nPCA_spaghetti/'+'_'.join((str(transform_predictors), season, predName)))
+                    plt.close()
+
+                    # expVar_vs_nPCA
+                    plt.figure(figsize=(8, 4))
+                    plt.ylim((0, 1.1*max_limit))
+                    plt.plot(np.arange(npca), perc_rea_matrix, color='r', linestyle='-', label='Reanalysis', zorder=4)
+                    ensemble_min, ensemble_max, ensemble_median = np.nanmin(perc_model_matrix, axis=0), np.nanmax(perc_model_matrix, axis=0), np.nanmedian(perc_model_matrix, axis=0)
+                    plt.plot(np.arange(npca), ensemble_median, color='k', linestyle='--', label='Ensemble median', zorder=4)
+                    plt.fill_between(np.arange(npca), ensemble_min, ensemble_max, color='gray', label='Ensemble range', alpha=0.3, zorder=4)
+                    plt.plot(np.arange(npca), ensemble_min, linestyle='-', color='gray', zorder=5)
+                    plt.plot(np.arange(npca), ensemble_max, linestyle='-', color='gray', zorder=5)
+                    plt.xlabel("Number of PCA")
+                    plt.ylabel("Explained variance")
+                    plt.legend()
+                    plt.title(' '.join((str(transform_predictors), season, predName)))
+                    # plt.show()
+                    # exit()
+                    plt.savefig(pathOut+'expVar_vs_nPCA_tube/'+'_'.join((str(transform_predictors), season, predName)))
+                    plt.close()
+
+
+                    # expVarRea_vs_expVarModel
+                    plt.figure(figsize=(6, 6))
+                    plt.plot([0, 1.2], [0, 1.2], color='k', linestyle='-', zorder=4)
+                    for imodel in range(nmodels):
+                        plt.plot(perc_rea_matrix, perc_model_matrix[imodel], linestyle='-', label=model_list[imodel], zorder=5)
+                    plt.xlabel("Explained variance reanalysis")
+                    plt.ylabel("Explained variance models")
+                    plt.legend()
+                    plt.title(' '.join((str(transform_predictors), season, predName)))
+                    # plt.show()
+                    # exit()
+                    plt.savefig(pathOut+'expVarRea_vs_expVarModel_spaghetti/'+'_'.join((str(transform_predictors), season, predName)))
+                    plt.close()
+
+
+                    # expVarRea_vs_expVarModel
+                    plt.figure(figsize=(6, 6))
+                    plt.plot([0, 1.2], [0, 1.2], color='r', linestyle='-', zorder=4)
+                    ensemble_min, ensemble_max, ensemble_median = np.nanmin(perc_model_matrix, axis=0), np.nanmax(perc_model_matrix, axis=0), np.nanmedian(perc_model_matrix, axis=0)
+                    plt.fill_between(perc_rea_matrix, ensemble_min, ensemble_max, color='gray', alpha=0.3, zorder=4)
+                    plt.plot(perc_rea_matrix, ensemble_median, linestyle='--', color='k', zorder=5)
+                    plt.plot(perc_rea_matrix, ensemble_min, linestyle='-', color='gray', zorder=5)
+                    plt.plot(perc_rea_matrix, ensemble_max, linestyle='-', color='gray', zorder=5)
+                    plt.xlabel("Explained variance reanalysis")
+                    plt.ylabel("Explained variance models")
+                    plt.title(' '.join((str(transform_predictors), season, predName)))
+                    # plt.show()
+                    # exit()
+                    plt.savefig(pathOut+'expVarRea_vs_expVarModel_tube/'+'_'.join((str(transform_predictors), season, predName)))
+                    plt.close()
+
+
+########################################################################################################################
+def spread_GCM_fut_calculate():
+    """
+    Test the uncertainty in GCMs in the future, analysing all predictors, models, synoptic analogy fields...
+    It can be used to discard models/predictors and to detect outliers.
+    """
+
+    print('spread_GCM_fut_calculate...')
+
+    # Define parameters
+    nmodels = len(model_list)
+    nlats = saf_nlats
+    nlons = saf_nlons
+    nseasons = len(season_dict.keys())
+
+    # Go through all target variables
+    for targetVar in targetVars:
+
+        # Define pathOut
+        pathOut = '../results/' + experiment + '/spread_GCM_fut/' + targetVar.upper() + '/'
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
+
+        # Define preds
+        preds = preds_dict[targetVar]
+        npreds = len(preds)
+
+        # Go through all scenes
+        for sceneName in scene_list:
+            if not os.path.isfile(pathOut+sceneName+'.npy'):
+                matrix = np.zeros((nseasons, nmodels, npreds, nlats, nlons))
+
+                # Go through all models and storage mean values
+                for imodel in range(nmodels):
+                    model = model_list[imodel]
+                    print('spread_GCM_fut_calculate', sceneName, model)
+
+                    aux = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=sceneName)
+                    scene_dates = aux['times']
+                    if sceneName == 'historical':
+                        years_aux = list(set([x.year for x in reference_dates]))
+                    else:
+                        years_aux = [i for i in range(2081, 2101)]
+                    idates = [i for i in range(len(scene_dates)) if scene_dates[i].year in years_aux]
+                    sceneData = aux['data']
+                    sceneData = sceneData[idates]
+                    scene_dates = [scene_dates[i] for i in idates]
+
+                    # If this transformation is applied, model biases should be largely corrected
+                    sceneData = transform.transform(targetVar, sceneData, scene_dates, model, 'spred')
+
+                    iseason = 0
+                    for season in season_dict:
+                        sceneData_season = postpro_lib.get_season(sceneData, scene_dates, season)['data']
+                        matrix[iseason, imodel] = np.nanmean(sceneData_season, axis=0)
+                        iseason += 1
+                np.save(pathOut+sceneName, matrix)
+
+
+########################################################################################################################
+def spread_GCM_fut_plot():
+    """
+    Test the uncertainty in GCMs in the future, analysing all predictors, models, synoptic analogy fields...
+    It can be used to discard models/predictors and to detect outliers.
+    """
+
+    print('spread_GCM_fut_plot...')
+
+    nmodels = len(model_list)
+
+    # Go through all target variables
+    for targetVar in targetVars:
+
+        preds = preds_dict[targetVar]
+        npreds = len(preds)
+
+        # Define pathOut
+        pathIn = '../results/' + experiment + '/spread_GCM_fut/' + targetVar.upper() + '/'
+        pathOut = pathFigures+'spread_GCM_fut/'
+        if not os.path.exists(pathOut):
+            os.makedirs(pathOut)
+
+
+        matrix_hist = np.load(pathIn+'historical.npy')
+        matrix_fut = np.load(pathIn+'ssp585.npy')
+        delta = matrix_fut - matrix_hist
+        spread_matrix = np.nanmax(delta, axis=1) - np.nanmin(delta, axis=1)
+
+        # spread_hist = np.nanmax(matrix_hist, axis=1) - np.nanmin(matrix_hist, axis=1)
+        # spread_fut = np.nanmax(matrix_fut, axis=1) - np.nanmin(matrix_fut, axis=1)
+        # spread_matrix = spread_fut - spread_hist
+
+        # Go through all seasons
+        iseason = 0
+        for season in season_dict:
+
+            # # Maps
+            # for imodel in range(nmodels):
+            #     model = model_list[imodel]
+            #     print(season, model)
+            #     for ipred in range(npreds):
+            #         predName = list(preds.keys())[ipred]
+            #         plot.map(targetVar, delta[iseason][imodel][ipred], palette='standardized_preditors', path=pathOut,
+            #                  filename='_'.join(('mapDeltaChange', season, model, predName)),
+            #                  title=' '.join(('Delta change', model, predName, season, )), grid='saf')
+
+            # Boxplot
+            boxplot_data = [spread_matrix[iseason][i].flatten() for i in range(npreds)]
+
+            # detect out of ymax
+            ymax = 1
+            has_outliers = []
+            for vals in boxplot_data:
+                has_outliers.append(np.any((vals > ymax)))
+            print(season, has_outliers)
+
+            fig, ax = plt.subplots(figsize=(10, 4))
+            for i in range(npreds):
+                if i % 2 == 0:
+                    ax.axvspan(i + 0.5, i + 1.5, color='lightgrey', alpha=0.3, zorder=0)
+            bp = ax.boxplot(boxplot_data, showfliers=False, patch_artist=True)
+            for box in bp['boxes']:
+                box.set_facecolor('blue')
+            ax.set_xticks(range(1, npreds + 1))
+            ax.set_xticklabels(preds, rotation=90)
+            ax.set_ylabel("Range of the multimodel ensemble on the delta change")
+            plt.title(season)
+            plt.ylim((0, ymax))
+            for i, flag in enumerate(has_outliers):
+                if flag:
+                    ax.text(i + 1, .99*ymax, '*', color='red', ha='center', va='top', fontsize=22)
+            plt.tight_layout()
+            # plt.show()
+            # exit()
+            plt.savefig(pathOut+'boxplotSpreadDeltaChange_'+season)
+            iseason += 1
+
+
+########################################################################################################################
 def GCMs_evaluation_historical():
     """
     Test the reliability of GCMs in a historical period comparing them with a reanalysis, analysing all predictors,
@@ -279,12 +834,14 @@ def GCMs_evaluation_historical():
                 predName = list(preds.keys())[ipred]
                 if predName == targetVar:
                     # print(targetVar, season, predName)
+
                     # Read reanalysis
-                    rea = read.lres_data(targetVar, 'pred', predName=predName)['data']
+                    aux = read.lres_data(targetVar, 'pred', grid='saf')
+                    rea = aux['data']
                     time_first, time_last = calibration_dates.index(reference_first_date), calibration_dates.index(
                         reference_last_date) + 1
                     rea = rea[time_first:time_last]
-                    rea_dates = read.lres_data(targetVar, 'pred', predName=predName)['times']
+                    rea_dates = aux['times']
                     rea_dates = rea_dates[time_first:time_last]
 
                     # Go through all models
@@ -419,7 +976,7 @@ def GCMs_evaluation_historical():
                         plot.map(targetVar, bias, palette, grid='pred', path=pathOut, filename=filename,
                                  title=title)
                         '''
-                        # Calculate annual accumulated precipitation 
+                        # Calculate annual accumulated precipitation
                         if predName == 'pcp':
                             years = [i for i in range(scene_dates[0].year, scene_dates[-1].year)]
                             for iyear in years:
@@ -598,8 +1155,8 @@ def GCMs_evaluation_future():
     # Define parameters
     nmodels = len(model_list)
     nscenes = len(scene_list) - 1
-    nlats = pred_nlats
-    nlons = pred_nlons
+    nlats = saf_nlats
+    nlons = saf_nlons
     years = [i for i in range(ssp_years[0], ssp_years[-1] + 1)]
     nYears = len(years)
     nseasons = len(season_dict.keys())
@@ -662,11 +1219,11 @@ def GCMs_evaluation_future():
                             elif predName == 'zg':
                                 if unitspred != 'm':
                                     unitspred = 'm'
-                            aux2 = read.lres_data(targetVar, 'pred', model=model, scene='historical', predName=predName)
+                            aux2 = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene='historical', predName=predName)
                             scene_dates = aux2['times']
 
                             # Read model scene
-                            aux = read.lres_data(targetVar, 'pred', model=model, scene=sceneName, predName=predName)
+                            aux = read.lres_data(targetVar, 'pred', grid='saf', model=model, scene=sceneName, predName=predName)
                             times = aux['times']
                             sceneData = aux['data'][:, 0, :, :]
 
@@ -972,7 +1529,7 @@ def GCMs_evaluation_future():
                                              season))
                                         title = ' '.join((predName, model, sceneName, season + '-' + period,
                                                           '\nmean anomaly ' + '(' + unitspred + ')'))
-                                        plot.map(targetVar, mean_change, 'changeMap', grid='pred', path=pathOut,
+                                        plot.map(targetVar, mean_change, 'changeMap', grid='saf', path=pathOut,
                                                  filename=filename, title=title)
 
                                 iseason += 1
@@ -1003,7 +1560,7 @@ def GCMs_evaluation_future():
                                              season))
                                         title = ' '.join((predName, model, sceneName, season + '-' + period,
                                                           '\nmean anomaly ' + '(%)'))
-                                        plot.map(targetVar, mean_change, 'rel_changeMap', grid='pred',
+                                        plot.map(targetVar, mean_change, 'rel_changeMap', grid='saf',
                                                  path=pathOut, filename=filename, title=title)
 
                                 iseason += 1
@@ -1032,6 +1589,7 @@ def GCMs_evaluation_future():
                         #         iseason += 1
 
 
+
 ########################################################################################################################
 def GCMs_evaluation():
     """
@@ -1041,5 +1599,4 @@ def GCMs_evaluation():
     print('GCMs_evaluation...')
 
     GCMs_evaluation_historical()
-
     GCMs_evaluation_future()

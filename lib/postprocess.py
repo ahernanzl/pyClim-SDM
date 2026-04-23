@@ -1,6 +1,9 @@
 import os
 import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -12,6 +15,9 @@ import deep.train as deep_train
 import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
+
+sys.path.append('../SBCK/')
+import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib
@@ -45,6 +51,227 @@ import TF_lib
 import val_lib
 import WG_lib
 import write
+
+
+########################################################################################################################
+def trend_injection():
+    """
+    Adjusts trends to GCM RAW-BIL
+    """
+
+    # Define list for multiprocessing
+    iterable = []
+
+    if apply_ti == True:
+        for method_dict in methods:
+            targetVar, methodName = method_dict['var'], method_dict['methodName']
+
+            if experiment == 'PROJECTIONS':
+                aux = trend_injection_allModels(targetVar, methodName)
+                for x in aux:
+                    iterable.append(x)
+
+    # Parallel processing
+    if runInParallel_multiprocessing == True and experiment == 'PROJECTIONS':
+        with Pool(processes=nCPUs_multiprocessing) as pool:
+            pool.starmap(trend_injection_oneModel, iterable)
+
+    return  iterable
+
+
+########################################################################################################################
+def trend_injection_allModels(targetVar, methodName):
+    """
+    Check for methods/models not yet corrected and applie bias correction
+    """
+
+    print('postprocess.trend_injection_allModels', targetVar, methodName)
+
+
+    # Define and create paths
+    pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    pathOut = '../results/'+experiment+ti_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+
+    try:
+        os.makedirs(pathOut)
+    except:
+        pass
+
+    # Define list for multiprocessing
+    iterable = []
+
+    # Go through all models
+    for model in model_list:
+
+        # Check if all scenes by model have already been corrected
+        to_be_corrected = False
+        for scene in scene_list:
+            if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc') and \
+                    not os.path.isfile(pathOut + targetVar + '_' + model + '_' + scene + '.nc'):
+                to_be_corrected = True
+
+        if to_be_corrected == True or force_trend_injection == True:
+
+            print(targetVar, methodName, model, 'trend_injection')
+
+            if running_at_HPC == False:
+                if runInParallel_multiprocessing == False:
+                    # Serial processing
+                    trend_injection_oneModel(targetVar, methodName, model)
+                else:
+                    # Append combination for multiprocessing
+                    iterable.append([targetVar, methodName, model])
+
+            # Parallel processing at HPC
+            elif running_at_HPC == True:
+                while 1:
+                    # Check for correctly finished jobs
+                    for file in os.listdir('../job/'):
+                        if file.endswith(".out"):
+                            filename = os.path.join('../job/', file)
+                            if subprocess.check_output(['tail', '-1', filename]) == b'end\n':
+                                print('-----------------------')
+                                print(filename, 'end')
+                                os.system('mv ' + filename + ' ../job/out/')
+                                os.system('mv ' + filename[:-3] + 'err ../job/out/')
+
+                    # Check number of living jobs
+                    os.system('squeue -u ' + user + ' | wc -l > ../log/nJobs.txt')
+                    f = open('../log/nJobs.txt', 'r')
+                    nJobs = int(f.read()) - 1
+                    f.close()
+                    time.sleep(1)
+                    if nJobs < max_nJobs:
+                        print('nJobs', nJobs)
+                        break
+
+                # Send new job
+                launch_jobs.trendInjection(model, targetVar, methodName)
+
+        else:
+            print(targetVar, methodName, model, 'already corrected')
+
+    return iterable
+
+########################################################################################################################
+def trend_injection_oneModel(targetVar, methodName, model):
+    """
+    Apply trend_injection for a specific model.
+    """
+
+    print('postprocess.trend_injection_oneModel', model, targetVar, methodName)
+
+    if model != 'reanalysis':
+        # Define and create paths
+        pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+        pathInRaw = '../results/'+experiment+'/' + targetVar.upper() + '/RAW-BIL/daily_data/'
+        pathOut = '../results/'+experiment+ti_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+
+        try:
+            os.makedirs(pathOut)
+        except:
+            pass
+
+        # Go through all scenes
+        for scene in scene_list:
+
+            # Check if scene/model exists
+            if os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc'):
+                print(scene)
+
+                if not os.path.isfile(pathIn + targetVar + '_' + model + '_historical.nc'):
+                    print('ERROR', pathIn + targetVar + '_' + model + '_historical missing (REQUIRED)')
+                    exit()
+                if not os.path.isfile(pathIn + targetVar + '_' + model + '_' + scene + '.nc'):
+                    print('ERROR', pathIn + targetVar + '_' + model + '_' + scene + ' missing (REQUIRED)')
+                    exit()
+                if not os.path.isfile(pathInRaw + targetVar + '_' + model + '_historical.nc'):
+                    print('ERROR', pathInRaw + targetVar + '_' + model + '_historical missing (REQUIRED)')
+                    exit()
+                if not os.path.isfile(pathInRaw + targetVar + '_' + model + '_' + scene + '.nc'):
+                    print('ERROR', pathInRaw + targetVar + '_' + model + '_' + scene + ' missing (REQUIRED)')
+                    exit()
+                # Read reference data for RAW-BIL and compute mean climatology
+                raw_data = read.netCDF(pathInRaw, targetVar + '_' + model + '_historical.nc', targetVar)['data']
+
+                # Read reference data for methodName and compute mean climatology
+                aux = read.netCDF(pathIn, targetVar + '_' + model + '_historical.nc', targetVar)
+                dates = aux['times']
+                data = aux['data']
+                del aux
+
+                ivalid = [i for i in range(len(dates)) if dates[i].year >= reference_years[0] and
+                          dates[i].year <= reference_years[1]]
+                mean_ref = np.nanmean(data[ivalid], axis=0)
+                mean_refRaw = np.nanmean(raw_data[ivalid], axis=0)
+                del data, raw_data, dates
+
+                # Read scene data for RAW-BIL
+                scene_dataRaw = read.netCDF(pathInRaw, targetVar + '_' + model + '_' + scene + '.nc', targetVar)['data']
+
+                # Read scene data for methodName
+                aux = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
+                scene_dates = aux['times']
+                scene_data = aux['data']
+                calendar = aux['calendar']
+                ntimes, npoints = scene_data.shape[0], scene_data.shape[1]
+                del aux
+
+                # Compute change
+                if bc_mode_dict[targetVar] == 'abs':
+                    change = scene_data - mean_ref
+                    changeRaw = scene_dataRaw - mean_refRaw
+                elif bc_mode_dict[targetVar] == 'rel':
+                    th = zero_division_th[targetVar]
+                    scene_data[scene_data < th] = 0
+                    mean_ref[mean_ref < th] = 0
+                    change = 100 * (scene_data - mean_ref) / mean_ref
+                    change[(mean_ref == 0) * (scene_data == 0)] = 0
+                    change[np.isinf(change)] = np.nan
+
+                    scene_dataRaw[scene_dataRaw < th] = 0
+                    mean_refRaw[mean_refRaw < th] = 0
+                    changeRaw = 100 * (scene_dataRaw - mean_refRaw) / mean_refRaw
+                    changeRaw[(mean_refRaw == 0) * (scene_dataRaw == 0)] = 0
+                    changeRaw[np.isinf(changeRaw)] = np.nan
+
+                # Compute change on a moving window of 30 timesteps
+                change_smoothed = uniform_filter1d(change, size=30, axis=0, mode='nearest')
+                change_smoothedRaw = uniform_filter1d(changeRaw, size=30, axis=0, mode='nearest')
+                del change, changeRaw
+
+                # Compute spatial average
+                change_smoothed_averaged = np.nanmean(change_smoothed, axis=1)
+                change_smoothed_averaged = change_smoothed_averaged[:, np.newaxis]
+                change_smoothed_averaged = np.repeat(change_smoothed_averaged, npoints, axis=1)
+                change_smoothedRaw_averaged = np.nanmean(change_smoothedRaw, axis=1)
+                change_smoothedRaw_averaged = change_smoothedRaw_averaged[:, np.newaxis]
+                change_smoothedRaw_averaged = np.repeat(change_smoothedRaw_averaged, npoints, axis=1)
+                del change_smoothed, change_smoothedRaw
+
+
+                # Compute and apply delta to be forced
+                if bc_mode_dict[targetVar] == 'abs':
+                    diff_with_raw = change_smoothedRaw_averaged - change_smoothed_averaged
+                    scene_ti = scene_data + diff_with_raw
+                elif bc_mode_dict[targetVar] == 'rel':
+                    th = zero_division_th[targetVar]
+                    change_smoothed_averaged[change_smoothed_averaged < th] = 0
+                    change_smoothedRaw_averaged[change_smoothedRaw_averaged < th] = 0
+                    diff_with_raw = change_smoothedRaw_averaged  / change_smoothed_averaged
+                    diff_with_raw[(change_smoothedRaw_averaged == 0) * (change_smoothed_averaged == 0)] = 0
+                    diff_with_raw[np.isinf(diff_with_raw)] = np.nan
+                    scene_ti = scene_data * diff_with_raw
+
+                # Set units
+                units = predictands_units[targetVar]
+
+                # Save bias corrected scene
+                hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
+                hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
+                write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + '.nc', targetVar, scene_ti, units, hres_lats, hres_lons,
+                             scene_dates, calendar, regular_grid=False)
+
 
 ########################################################################################################################
 def bias_correction():
@@ -93,8 +320,8 @@ def bias_correction_renalysis(targetVar, methodName):
     print('postprocess.bias_correction_renalysis', targetVar, methodName, bc_sufix)
 
     # Define and create paths
-    pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    pathIn = '../results/'+experiment+ti_sufix+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    pathOut = '../results/'+experiment+ti_sufix+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     try:
         os.makedirs(pathOut)
@@ -147,7 +374,6 @@ def bias_correction_renalysis(targetVar, methodName):
     scene_bc = np.zeros(est_data.shape)
 
     # Go through the n folds
-    nfolds = 5
     for ifold in range(nfolds):
         print('bias_correcting reanalysis', methodName, bc_sufix, testing_years, ifold+1, '/', nfolds)
         idates_sce = [i for i in range(len(obs_times)) if obs_times[i].year in fold_years[ifold]]
@@ -182,8 +408,8 @@ def bias_correction_allModels(targetVar, methodName):
 
 
     # Define and create paths
-    pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    pathIn = '../results/'+experiment+ti_sufix+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    pathOut = '../results/'+experiment+ti_sufix+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     try:
         os.makedirs(pathOut)
@@ -262,8 +488,8 @@ def bias_correction_oneModel(targetVar, methodName, model):
         bias_correction_renalysis(targetVar, methodName)
     else:
         # Define and create paths
-        pathIn = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-        pathOut = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+        pathIn = '../results/'+experiment+ti_sufix+'/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+        pathOut = '../results/'+experiment+ti_sufix+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
         try:
             os.makedirs(pathOut)
@@ -350,12 +576,8 @@ def get_climdex_for_evaluation(targetVar, methodName):
 
     print('get_climdex_for_evaluation', methodName)
 
-    if apply_bc == False:
-        pathOut = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/climdex/'
-        pathIn = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/daily_data/'
-    else:
-        pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
-        pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
+    pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
+    pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     if os.path.isfile(pathIn+targetVar+'_reanalysis_TESTING.nc'):
 
@@ -378,9 +600,9 @@ def get_climdex_allModels(targetVar, methodName):
 
     # Define and create paths
     if apply_bc == False:
-        path = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/'+experiment+ti_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
     else:
-        path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/'+experiment+ti_sufix+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
 
@@ -458,9 +680,9 @@ def get_climdex_oneModel(targetVar, methodName, model):
 
     # Define and create paths
     if apply_bc == False:
-        path = '../results/'+experiment+'/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/'+experiment+ti_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
     else:
-        path = '../results/'+experiment+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/'+experiment+ti_sufix+bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/'
     pathIn = path + 'daily_data/'
     pathOut = path + 'climdex/'
     try:
@@ -533,7 +755,7 @@ def nc2ascii():
     netCDFs to ASCII.
     """
 
-    pathOutBase = '../results/'+experiment+bc_sufix+'_ASCII/'
+    pathOutBase = '../results/'+experiment+ti_sufix+bc_sufix+'_ASCII/'
 
     for method_dict in methods:
         targetVar, methodName = method_dict['var'], method_dict['methodName']
@@ -554,7 +776,7 @@ def nc2ascii():
             for model in model_list:
 
                 # Daily data
-                pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+                pathIn = '../results/'+experiment+ti_sufix+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
                 fileName = targetVar+'_'+model+'_'+scene
                 if os.path.isfile(pathIn + fileName +'.nc'):
                     nc = read.netCDF(pathIn, targetVar + '_' + model + '_' + scene + '.nc', targetVar)
@@ -581,7 +803,7 @@ def nc2ascii():
 
 
                 # Climdex
-                pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'
+                pathIn = '../results/'+experiment+ti_sufix+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'
                 for climdex in climdex_names[targetVar]:
                     for season in season_dict:
                         if scene == 'TESTING':
@@ -627,9 +849,9 @@ def nc1D_to_nc2D():
             for model in model_list:
 
                 # Daily data
-                pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+                pathIn = '../results/'+experiment+ti_sufix+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/daily_data/'
                 fileName = targetVar+'_'+model+'_'+scene+'.nc'
-                pathOut = '../results/'+experiment+bc_sufix+'_2D/'+targetVar.upper()+'/'+methodName+'/daily_data/'
+                pathOut = '../results/'+experiment+ti_sufix+bc_sufix+'_2D/'+targetVar.upper()+'/'+methodName+'/daily_data/'
 
                 # Check if file exists and has not been processed yet
                 if os.path.isfile(pathIn + fileName):
@@ -641,8 +863,8 @@ def nc1D_to_nc2D():
                     print(pathIn + fileName, 'does not exist')
 
                 # Climdex
-                pathIn = '../results/'+experiment+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'                # fileName = targetVar+'_'+model+'_'+scene+'.nc'
-                pathOut = '../results/'+experiment+bc_sufix+'_2D/'+targetVar.upper()+'/'+methodName+'/climdex/'
+                pathIn = '../results/'+experiment+ti_sufix+bc_sufix+'/'+targetVar.upper()+'/'+methodName+'/climdex/'                # fileName = targetVar+'_'+model+'_'+scene+'.nc'
+                pathOut = '../results/'+experiment+ti_sufix+bc_sufix+'_2D/'+targetVar.upper()+'/'+methodName+'/climdex/'
 
                 for climdex in climdex_names[targetVar]:
                     for season in season_dict:
@@ -684,4 +906,6 @@ if __name__ == "__main__":
         get_climdex_oneModel(targetVar, methodName, model)
     elif task == 'bias_correction':
         bias_correction_oneModel(targetVar, methodName, model)
+    elif task == 'trend_injection':
+        trend_injection_oneModel(targetVar, methodName, model)
 

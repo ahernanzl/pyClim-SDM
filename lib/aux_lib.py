@@ -11,6 +11,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -423,12 +426,13 @@ def retrieve_model_dates(targetVar, scene, model):
         else:
             periodFilename = sspPeriodFilename
         pathIn = '../input_data/models/'
-        if pred in targetVars:
-            ncVar = modNames[pred]
-        else:
+        if pred not in targetVars:
             for aux_level in all_levels:
                 pred = pred.replace(str(aux_level), '')
+        if pred in modNames:
             ncVar = modNames[pred]
+        else:
+            ncVar = pred
         modelName, modelRun = model.split('_')[0], model.split('_')[1]
         filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
 
@@ -438,6 +442,40 @@ def retrieve_model_dates(targetVar, scene, model):
             calendar = aux['calendar']
             datesDefined = True
             break
+
+    if datesDefined == False:
+        for pred in ['ta850', 'psl', 'ua850', ]:
+            if len(pred) > 4 and pred[-4:] in [str(x) for x in all_levels]:
+                level = int(pred[-4:])
+            elif len(pred) > 3 and pred[-3:] in [str(x) for x in all_levels]:
+                level = int(pred[-3:])
+            else:
+                level = None
+
+            if level is not None:
+                pred += str(level)
+            if scene in ('historical', 'HISTORICAL'):
+                periodFilename = historicalPeriodFilename
+            else:
+                periodFilename = sspPeriodFilename
+            pathIn = '../input_data/models/'
+            if pred not in targetVars:
+                for aux_level in all_levels:
+                    pred = pred.replace(str(aux_level), '')
+            if pred in modNames:
+                ncVar = modNames[pred]
+            else:
+                ncVar = pred
+            modelName, modelRun = model.split('_')[0], model.split('_')[1]
+            filename = ncVar + '_' + modelName + '_' + scene + '_' + modelRun + '_' + periodFilename + '.nc'
+
+            if os.path.isfile(pathIn + filename):
+                aux = read.one_direct_predictor(pred, level=level, grid='ext', model=model, scene=scene)
+                dates = aux['times']
+                calendar = aux['calendar']
+                datesDefined = True
+                break
+
     return dates, calendar, datesDefined
 
 ########################################################################################################################
@@ -538,5 +576,3 @@ def adjust_dimensions_for_UNET(X, Y=None, n_levels=4*4, xmin=16,
             Y_reverted = None
 
         return X_reverted, Y_reverted
-
-

@@ -14,6 +14,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -628,11 +631,11 @@ def figures_projections(lan='EN'):
         print('figures_projections', targetVar, methodName)
 
         # Define and create paths
-        path = '../results/PROJECTIONS'+bc_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
+        path = '../results/PROJECTIONS'+ti_sufix+bc_sufix+'/' + targetVar.upper() + '/' + methodName + '/'
         pathIn = path + 'climdex/'
         # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW/climdex/'
-        # pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW-BIL/climdex/'
-        pathRaw = '../results/PROJECTIONS' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
+        pathRaw = '../results/PROJECTIONS/' + targetVar.upper() + '/RAW-BIL/climdex/'
+        # pathRaw = '../results/PROJECTIONS' + bc_sufix+ '/' + targetVar.upper() + '/RAW-BIL/climdex/'
         pathOut = path + 'climdex/figures/'
 
         try:
@@ -1089,13 +1092,13 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                 iYears = [i for i in range(len(years)) if years[i] in years_list]
                 dataTerm = np.mean(ssp_dict[scene]['data'][:, iYears, :], axis=1)
 
-                # Delete nan
-                iNans = np.unique(np.where(np.isnan(dataTerm))[0])
-                dataTerm = np.delete(dataTerm, iNans, axis=0)
+                # # Delete nan
+                # iNans = np.unique(np.where(np.isnan(dataTerm))[0])
+                # dataTerm = np.delete(dataTerm, iNans, axis=0)
 
                 # Calculatean and plot mean and spread
-                # mean = np.mean(dataTerm, axis=0)
-                mean = np.median(dataTerm, axis=0)
+                # mean = np.nanmean(dataTerm, axis=0)
+                mean = np.nanmedian(dataTerm, axis=0)
                 if plotAllRegions == False:
                     # title = scene_names_dict[scene]+'   '+period+'     '+season
                     title = scene_names_dict[scene]+ ' '+period+' change'
@@ -1109,7 +1112,7 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                     title = scene_names_dict[scene]+'   '+period+'\n'+season
                     plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
                              filename=filename, title=title)
-                # spread = np.std(dataTerm, axis=0)
+                # spread = np.nanstd(dataTerm, axis=0)
                 spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
                 if plotAllRegions == False:
                     filename = '_'.join(

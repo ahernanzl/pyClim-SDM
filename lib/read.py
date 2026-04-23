@@ -1,5 +1,7 @@
 import sys
 
+import numpy as np
+
 sys.path.append('../config/')
 from imports import *
 from settings import *
@@ -11,6 +13,9 @@ import deep.train as deep_train
 import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
+
+sys.path.append('../SBCK/')
+import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib
@@ -441,6 +446,10 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             if 'clt' in preds:
                 data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data'][idates];
                 i += 1
+            # rsds
+            if 'rsds' in preds:
+                data[i] = one_direct_predictor('rsds', level=None, grid='ext', model=model, scene=scene)['data'][idates];
+                i += 1
             # uas, vas
             for var in ('uas', 'vas'):
                 if var in preds:
@@ -593,6 +602,10 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
             if 'clt' in preds:
                 data[i] = one_direct_predictor('clt', level=None, grid='ext', model=model, scene=scene)['data'];
                 i += 1
+            # rsds
+            if 'rsds' in preds:
+                data[i] = one_direct_predictor('rsds', level=None, grid='ext', model=model, scene=scene)['data'];
+                i += 1
             # uas, vas
             for var in ('uas', 'vas'):
                 if var in preds:
@@ -725,6 +738,8 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
         idates = [i for i in range(len(dates)) if dates[i].year >= years[0] and dates[i].year <= years[1]]
         dates = list(np.asarray(dates)[idates])
         data = data[idates]
+
+    data[:, np.nanstd(data, axis=0) == 0] = np.nan
 
     return {'data': data, 'times': dates, 'calendar': calendar}
 

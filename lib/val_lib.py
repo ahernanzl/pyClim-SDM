@@ -11,6 +11,10 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -363,12 +367,13 @@ def daily_boxplots(metric, by_season):
                                 units = predictands_units[targetVar]
                                 # title = ' '.join((targetVar, metric, season))
                                 title = targetVar
-                                plt.ylim((0, 5))
+                                # plt.ylim((0, 5))
                             elif metric == 'wasserstein-distance':
                                 units = ''
                                 # title = ' '.join((targetVar, metric, season))
                                 title = targetVar
-                            title = metric
+                            # title = metric
+                            title = ' '.join((targetVar, metric, season))
                             plt.title(title, fontsize=20)
                             # plt.title(title)
                             plt.ylabel(units, rotation=90)
@@ -570,7 +575,6 @@ def climdex_boxplots(by_season):
                             # est = np.nanmean(np.load(pathIn + '_'.join((climdex_name, 'est', season))+'.npy'), axis=0)
                             obs = np.nanmean(read.netCDF(pathIn, '_'.join((targetVar, climdex_name, 'obs', season))+'.nc', targetVar+'_'+climdex_name)['data'], axis=0)
                             est = np.nanmean(read.netCDF(pathIn, '_'.join((targetVar, climdex_name, 'est', season))+'.nc', targetVar+'_'+climdex_name)['data'], axis=0)
-
                             biasMode = bias_units_and_palette[targetVar + '_' + climdex_name]['biasMode']
                             if biasMode == 'abs':
                                 units = bias_units_and_palette[targetVar + '_' + climdex_name]['units']
@@ -629,6 +633,8 @@ def climdex_boxplots(by_season):
                             #     title = climdex_name
                             # else:
                             #     title = climdex_name + '    bias corrected'
+                            if targetVar == 'pr':
+                                plt.ylim((-100, 100))
                             plt.title(title, fontsize=16)
                             ax.set_xticklabels(names, rotation=90)
                             plt.hlines(y=0, xmin=-1, xmax=nmethods + 1, linestyles='--', color='grey')

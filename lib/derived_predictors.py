@@ -12,6 +12,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -573,7 +576,7 @@ def relative_humidity(level, model='reanalysis', scene='TESTING'):
         aux = aux_r_direct(level, model=model, scene=scene)
         r, times = aux['data'], aux['times']
     except:
-        # print('relative humidity', level, 'not available. Retrieving it indirectly')
+        print('relative humidity', level, 'not available. Retrieving it indirectly')
         try:
             aux = aux_r_from_q(level, model=model, scene=scene)
             r, times = aux['data'], aux['times']
@@ -687,6 +690,11 @@ def aux_q_from_Td(level, model, scene):
             p /= 100
         elif units in ('hPa', 'mb'):
             pass
+        elif 90000 < np.nanmean(p) < 100000:
+            units = 'Pa'
+            p /= 100
+        elif 900 < np.nanmean(p) < 1000:
+            units = 'hPa'
         else:
             print('Unknown units for surface pressure', units)
             exit()
@@ -723,6 +731,7 @@ def specific_humidity(level, model='reanalysis', scene='TESTING'):
         aux = aux_q_direct(level, model=model, scene=scene)
         q, times = aux['data'], aux['times']
     except:
+        print('specific humidity', level, 'not available. Retrieving it indirectly')
         try:
             aux = aux_q_from_r(level, model=model, scene=scene)
             q, times = aux['data'], aux['times']

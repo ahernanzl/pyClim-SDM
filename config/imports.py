@@ -57,11 +57,13 @@ from xgboost import XGBClassifier, XGBRegressor
 from scipy.stats import spearmanr
 from scipy.stats import pearsonr
 from scipy.ndimage import gaussian_filter1d
+from scipy.ndimage import uniform_filter1d
 from scipy.stats import gamma
 from scipy.stats import norm
 from scipy.signal import detrend
 from scipy.optimize import fsolve
 from scipy.stats import wasserstein_distance
+from scipy.stats import ks_2samp
 from scipy.spatial import cKDTree
 from netCDF4 import Dataset
 from netCDF4 import date2num
@@ -88,6 +90,9 @@ import deep.train as deep_train
 import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
+
+sys.path.append('../SBCK/')
+import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib

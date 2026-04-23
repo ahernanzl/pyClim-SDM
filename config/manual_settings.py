@@ -616,6 +616,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -703,6 +704,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -790,6 +792,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -877,6 +880,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -964,6 +968,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         'uas',              # surface wind
         'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1051,6 +1056,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         'uas',              # surface wind
         'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1138,6 +1144,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         'uas',              # surface wind
         'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1225,6 +1232,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         'sfcWind',              # surface wind speed
@@ -1312,6 +1320,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1399,6 +1408,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1486,6 +1496,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1573,6 +1584,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1660,6 +1672,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1747,6 +1760,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1834,6 +1848,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -1921,6 +1936,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -2008,6 +2024,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -2095,6 +2112,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -2182,6 +2200,7 @@ preds_targetVars_dict = {
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -2275,6 +2294,7 @@ saf_list = [
         # 'ps',             # surface pressure
         # 'ins',              # theoretical insolation (derived from dates)
         # 'clt',              # total cloud cover
+        # 'rsds' ,             # solar radiation
         # 'uas',              # surface wind
         # 'vas',              # surface wind
         # 'sfcWind',              # surface wind speed
@@ -2669,6 +2689,7 @@ climdex_names = {
 
 ##################################     bias correction           #################################################
 apply_bc = True
+apply_ti = False
 
 ###################################     myTargetVar           #################################################
 myTargetVarName = 'fwi'

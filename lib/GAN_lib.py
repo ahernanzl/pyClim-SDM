@@ -33,6 +33,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -119,11 +122,14 @@ def train(targetVar, methodName, family, mode, fields):
     training_dates_valid = [training_dates[i] for i in valid]
 
     if targetVar in asym_loss_parameters:
-        asym_path = pathAux + 'ASYM/'
+        asym_path = pathAux + 'ASYM/' + targetVar + '/'
         os.makedirs(asym_path, exist_ok=True)
         loss_function = deep_loss.Asym(ignore_nans=True, asym_path=asym_path,
                                        asym_weight=asym_loss_parameters[targetVar]['asym_weight'],
-                                       cdf_pow=asym_loss_parameters[targetVar]['cdf_pow'])
+                                       cdf_pow=asym_loss_parameters[targetVar]['cdf_pow'],
+                                       r01_asym_weight=asym_loss_parameters[targetVar]['r01_asym_weight'],
+                                       r01_cdf_pow=asym_loss_parameters[targetVar]['r01_cdf_pow'],
+                                       )
         if loss_function.parameters_exist():
             loss_function.load_parameters()
         else:
@@ -132,6 +138,26 @@ def train(targetVar, methodName, family, mode, fields):
                 coords={"time": training_dates_valid, "point": range(y_train.shape[1])}
             )
             loss_function.compute_parameters(data=y_train_ds, var_target=targetVar)
+
+        # Either for new calculations or for loading parameters
+        loss_function.prepare_parameters(device=device)
+    elif targetVar in mseExtremes_loss_parameters:
+        asym_path = pathAux + 'ASYM/' + targetVar + '/'
+        os.makedirs(asym_path, exist_ok=True)
+        loss_function = deep_loss.MseExtremesLoss(ignore_nans=True, asym_path=asym_path,
+                                                  w=mseExtremes_loss_parameters[targetVar]['w'],
+                                                  pow=mseExtremes_loss_parameters[targetVar]['pow'],
+                                                  )
+        if loss_function.parameters_exist():
+            loss_function.load_parameters()
+        else:
+            y_train_ds = xr.Dataset(
+                {targetVar: (["time", "point"], y_train)},
+                coords={"time": training_dates_valid, "point": range(y_train.shape[1])}
+            )
+            loss_function.compute_parameters(data=y_train_ds, var_target=targetVar)
+
+        # Either for new calculations or for loading parameters
         loss_function.prepare_parameters(device=device)
     else:
         loss_function = deep_loss.MseLoss(ignore_nans=True)

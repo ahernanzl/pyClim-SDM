@@ -240,8 +240,9 @@ if bias_correct_GCM_predictors_seasonal_cycle == True:
 
 # Force calculations even if files already exist
 force_downscaling = True
-force_climdex_calculation = True
+force_trend_injection = True
 force_bias_correction = True
+force_climdex_calculation = True
 force_2D = True
 
 exp_var_ratio_th = .95  # threshold for PCA of SAFs
@@ -322,8 +323,17 @@ for methodName in convolutional_methods:
 # the weight of each error is multiplied by this pow of its percentile on the distribution. Thus, cdf_pow=0 means the
 # same weight (1) for all values, and the larger the cdf_pow the bigger the difference between low and high percentiles
 asym_loss_parameters = {
-    'pr': {'asym_weight': 3, 'cdf_pow': 10},
-    # 'sfcWind': {'asym_weight': 1, 'cdf_pow': 2}, # parameters to be adjusted
+    'pr': {'asym_weight': 1, 'cdf_pow': 2, 'r01_asym_weight': 0, 'r01_cdf_pow': 0, }, # Original Doury et al. (2024)
+    # 'pr': {'asym_weight': 3, 'cdf_pow': 10, 'r01_asym_weight': 0, 'r01_cdf_pow': 0, }, # Improved for extremes in Spain
+    # 'pr': {'asym_weight': 10, 'cdf_pow': 10, 'r01_asym_weight': 3, 'r01_cdf_pow': 10, }, # Improved for extremes and R01 in Central America
+}
+# Similar to the asymetric loss, this loss is meant for temperature (or other gaussian variables)
+# w is the weight for extremes compared to the RMSE term.
+# pow controls how extreme a value must be to be weighted. High values separate very high percentiles from the rest of
+# the distribution, while low values separate high percentiles only moderately
+mseExtremes_loss_parameters = {
+    'tasmax': {'w': 0, 'pow': 0},
+    'tasmin': {'w': 0, 'pow': 0},
 }
 
 # Certain climdex make use of a reference period which can correspond to observations or to the proper method/model.
@@ -335,7 +345,12 @@ elif experiment == 'PROJECTIONS':
     reference_climatology_from_observations = False
 
 
-###################################     Bias correction   #################################################
+###################################     Trend injection and Bias correction   #################################################
+if apply_ti == False:
+    ti_sufix = ''
+else:
+    ti_sufix = '-TI'
+
 if apply_bc == True:
     # Set to False if the bias correction must be made for the whole year
     apply_bc_bySeason = True
@@ -347,6 +362,7 @@ else:
 # bc_method = 'DQM'
 bc_method = 'QDM'
 # bc_method = 'PSDM'
+# bc_method = 'R2D2'
 
 if apply_bc_bySeason == True:
     apply_bc = True
@@ -650,6 +666,11 @@ families_modes_and_fields = {
     'WG-PDF': ['WG', 'PP', 'var'],
     'WG-NMM': ['WG', 'PP', 'var'],
 }
+for targetVar in methods:
+    for methodName in methods[targetVar]:
+        if methodName.startswith('DeepESD'):
+            families_modes_and_fields.update({methodName: ['DL', 'PP', 'spred']})
+
 
 methods_list = []
 for targetVar in methods:
@@ -1488,4 +1509,18 @@ methods_linestyles = {
     'WG-PDF': '-',
     'WG-NMM': '--',
 }
+
+
+colors_20 = [
+    "blue", "green", "red", "cyan", "magenta",
+    "yellow", "black", "orange", "purple", "brown",
+    "pink", "gray", "olive", "lime", "teal",
+    "navy", "maroon", "aqua", "fuchsia", "gold"
+]
+i = 0
+for method in methods:
+    if method['methodName'].startswith('DeepESD'):
+        methods_colors.update({method['methodName']: colors_20[i]})
+        methods_linestyles.update({method['methodName']: '-'})
+        i += 1
 

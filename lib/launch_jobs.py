@@ -12,6 +12,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -138,7 +141,7 @@ def training(targetVar, methodName, family, mode, fields):
     job_file = '../lib/job.sh'
 
     # Define number of cores and memory
-    n = 256
+    n = 32
     mem = 250000
 
     if methodName == 'WG-PDF':
@@ -153,6 +156,8 @@ def training(targetVar, methodName, family, mode, fields):
         n = 128
     if methodName[:3] == 'GLM':
         n = 128
+    if methodName == 'MLR':
+        n = 32
     if family in ('DL', 'GAN'):
         n, mem = 1, 25000
 
@@ -227,7 +232,9 @@ def process(targetVar, methodName, family, mode, fields, scene, model):
     elif methodName == 'LS-SVM':
         n = 128
     if methodName[:3] == 'GLM':
-        n = 128
+        n = 32
+    if methodName == 'MLR':
+        n = 32
     if family in ('DL', 'GAN'):
         n = 1
 
@@ -333,6 +340,50 @@ def biasCorrection(model, targetVar, methodName):
     # f.writelines('# SBATCH --exclusive\n')
     f.writelines('SECONDS=0\n')
     f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/postprocess.py bias_correction $1 $2 $3 $4\n')
+    f.writelines('duration=$SECONDS\n')
+    f.writelines('hours=$(($duration/3600))\n')
+    f.writelines('duration=$(($duration%3600))\n')
+    f.writelines('minutes=$(($duration/60))\n')
+    f.writelines('seconds=$(($duration%60))\n')
+    f.writelines('echo "$hours h $minutes m $seconds s"\n')
+    f.writelines('sleep 5\n')
+    f.writelines('echo "end"\n')
+    f.close()
+
+    os.system('sbatch --job-name=' + model + ' ' + job_file + ' ' + ' ' + model + ' ' + targetVar + ' ' + methodName)
+
+
+########################################################################################################################
+def trendInjection(model, targetVar, methodName):
+    """
+    Launch a job for trend injecting each model in parallel
+    """
+
+    # Wait max jobs allowed
+    wait_maxJobs()
+
+    # Display info message
+    info_msg()
+
+    job_file = '../lib/job.sh'
+
+    # Define number of cores and memory
+    n = 1
+    mem = 250000
+
+    f = open(job_file, 'w')
+    f.writelines('#!/bin/bash\n')
+    if HPC_partition is not None:
+        f.writelines('#SBATCH -p ' + HPC_partition + '\n')
+    f.writelines('#SBATCH -o ../job/%j.out\n')
+    f.writelines('#SBATCH -e ../job/%j.err\n')
+    f.writelines('#SBATCH -N 1\n')  # nodes requested
+    f.writelines('#SBATCH -n ' + str(n) + '\n')  # tasks requested (256xN...)
+    f.writelines('#SBATCH -c 1\n')  # cores per task
+    f.writelines('#SBATCH --mem=' + str(mem) + '\n')
+    # f.writelines('# SBATCH --exclusive\n')
+    f.writelines('SECONDS=0\n')
+    f.writelines('srun -n $SLURM_NTASKS --mpi=pmi2 python3 ../lib/postprocess.py trend_injection $1 $2 $3 $4\n')
     f.writelines('duration=$SECONDS\n')
     f.writelines('hours=$(($duration/3600))\n')
     f.writelines('duration=$(($duration%3600))\n')

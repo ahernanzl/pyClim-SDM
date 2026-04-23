@@ -37,8 +37,12 @@ Additionally, it is prepared for downscaling any other user defined variable. py
 - **WG-PDF**: Downscaling parameters of the distributions instead of downscaling daily data. See Erlandsen *et al.* (2020) and Benestad (2021).
 ### Machine Learning:
 - **XGB**: eXtreme Gradient Boost. Non-linear machine learning classification/regression. This method is combined with a MLR to extrapolate to values out of the observed range (configurable).
-- **DeepESD**: Convolutional Neural Networks. See Baño-Medina *et al*., (2022)
+- **DeepESD**: Convolutional Neural Networks. See Baño-Medina *et al*., (2022). Integrated from https://github.com/SantanderMetGroup/deep4downscaling
 - **GAN-DeepESD**: Generative Adversarial Network base on DeepESD
+### Bias Correction:
+- **QDM**: Quantile Delta Mapping: apply delta change correction to all quantiles (Cannon et al., 2015).
+- **PSDM**: (Parametric) Scaled Distribution Mapping (Switanek et al., 2021)
+- **R2D2**: Non stationnary Quantile Mapping bias corrector with multivariate rankshuffle (Vrac et al., 2018). Integrated from https://github.com/yrobink/SBCK-python
 
 # How to use
 - Download and install pyClim-SDM (see Installation section)
@@ -127,6 +131,8 @@ Filenames: filenames are composed of specific fields separated by ‘_’, so th
 - Switanek, M.B., Troch, P.A., Castro, C.L., Leuprecht, A., Chang, H.-I., Mukherjee, R., and Demaria, E.M.C. (2017). Scaled distribution mapping: a bias correction method that preserves raw climate model projected changes, Hydrol. Earth Syst. Sci., 21, 2649–2666, https://doi.org/10.5194/hess-21-2649-2017
 
 - Themeßl, M.J., Gobiet, A. and Leuprecht, A. (2011). Empirical-statistical downscaling and error correction of daily precipitation from regional climate models. Int. J. Climatol., 31: 1530-1544. https://doi.org/10.1002/joc.2168
+
+- Vrac, M.: Multivariate bias adjustment of high-dimensional climate simulations: the Rank Resampling for Distributions and Dependences (R2 D2 ) bias correction, Hydrol. Earth Syst. Sci., 22, 3175–3196, https://doi.org/10.5194/hess-22-3175-2018, 2018.
 
 - Wilby, R., Dawson, C. and Barrow, E.M. (2002). SDSM—a decision support tool for the assessment of regional climate change impacts. Environmental Modelling & Software, 17, 145–157. https://doi.org/10.1016/S1364-8152(01)00060-3
 

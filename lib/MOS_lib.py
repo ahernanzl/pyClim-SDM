@@ -14,6 +14,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -543,6 +546,45 @@ def scaled_distribution_mapping(obs, hist, sce, targetVar, *args, **kwargs):
 
 
 ########################################################################################################################
+def r2d2(obs, hist, sce, targetVar):
+    """
+    SBCK.R2D2
+    =========
+
+    Description
+    -----------
+    Non stationnary Quantile Mapping bias corrector with multivariate rankshuffle, as described in [1]
+
+    References
+    ----------
+    [1] Vrac, M.: Multivariate bias adjustment of high-dimensional climate simulations: the Rank Resampling for Distributions and Dependences (R2 D2 ) bias correction, Hydrol. Earth Syst. Sci., 22, 3175–3196, https://doi.org/10.5194/hess-22-3175-2018, 2018.
+    """
+
+    sce_corrected = 1*sce
+
+    # Remove Nans
+    ivalid = [i for i in range(obs.shape[0]) if np.sum(np.isnan(obs[i])) == 0]
+    ivalid = [x for x in ivalid if np.sum(np.isnan(hist[x])) == 0]
+    obs_data = obs[ivalid]
+    hist_data = hist[ivalid]
+
+    # Remove Nans
+    ivalid = [i for i in range(sce.shape[0]) if np.sum(np.isnan(sce[i])) == 0]
+    sce_data = sce[ivalid]
+
+    # Add some noise
+    obs_data = obs_data + np.random.uniform(low=0, high=0.001, size=(obs_data.shape))
+    hist_data = hist_data + np.random.uniform(low=0, high=0.001, size=(hist_data.shape))
+    sce_data = sce_data + np.random.uniform(low=0, high=0.001, size=(sce_data.shape))
+
+    # Perform bias adjustment
+    r2d2 = SBCK.__R2D2.R2D2(refs=[0])
+    r2d2.fit(obs_data, hist_data, sce_data)
+    sce_corrected[ivalid] = r2d2.predict(sce_data)
+
+    return sce_corrected
+
+########################################################################################################################
 def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     """
     This function performs the season selection if needed and call the bc functions.
@@ -566,6 +608,8 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
             scene_bc = quantile_delta_mapping(obs, hist, sce, targetVar, sce_times)
         elif bc_method == 'PSDM':
             scene_bc = scaled_distribution_mapping(obs, hist, sce, targetVar)
+        elif bc_method == 'R2D2':
+            scene_bc = r2d2(obs, hist, sce, targetVar)
     else:
         # print(obs.shape, hist.shape, sce.shape)
 
@@ -593,6 +637,8 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
                     scene_bc[idates] = quantile_delta_mapping(obs_season, hist_season, sce_season, targetVar, sce_times_season)
                 elif bc_method == 'PSDM':
                     scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, targetVar)
+                elif bc_method == 'R2D2':
+                    scene_bc[idates] = r2d2(obs_season, hist_season, sce_season, targetVar)
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']

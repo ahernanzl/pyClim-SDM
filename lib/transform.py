@@ -16,6 +16,9 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
+sys.path.append('../SBCK/')
+import SBCK
+
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -148,7 +151,7 @@ def get_transformation_parameters_reanalysis(targetVar, fields_and_grid):
         outfile.close()
 
      # Transform predictors (standardization plus optional PCA)
-    calib_data = transform(targetVar, calib_data, 'reanalysis', fields_and_grid)
+    calib_data = transform(targetVar, calib_data, calibration_dates, 'reanalysis', fields_and_grid)
 
     # Save transformed (standardized plus optional PCA) predictors matrix
     np.save(pathOut + 'reanalysis_transformed', calib_data)
@@ -264,6 +267,10 @@ def transform(targetVar, data, scene_dates, model, fields_and_grid):
         hist_data = aux['data']
         hist_times = aux['times']
         del aux
+
+        if force_fillNans_for_local_predictors == True and (np.sum(np.where(np.isnan(hist_data))) != 0):
+            hist_data = aux_lib.fillNans_interpolation(hist_data)
+
 
         # Create xr.Datasets
         rea_dataset = xr.Dataset(

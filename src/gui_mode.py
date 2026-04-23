@@ -101,6 +101,14 @@ def switch_bc_method(bc_opt, bc_methods_bt):
         else:
             object["state"] = "normal"
 
+########################################################################################################################
+def switch_ti_method(ti_opt, ti_methods_bt):
+    for object in ti_methods_bt:
+        if ti_opt == 'No':
+            object["state"] = "disabled"
+        else:
+            object["state"] = "normal"
+
 
 
 ########################################################################################################################
@@ -174,7 +182,7 @@ class tabSteps(tk.Frame):
         tabSteps = tk.Frame(notebook)
         notebook.add(tabSteps, text='Experiment and Steps')
 
-        padx = 80
+        padx = 20
 
         # frameSteps
         frameSteps = Frame(tabSteps)
@@ -184,9 +192,18 @@ class tabSteps(tk.Frame):
         frameDates = Frame(tabSteps)
         frameDates.grid(sticky="W", column=1, row=0, padx=padx, pady=10)
 
+        # frame for bias correction and trend injection
+        frameCorrections = Frame(tabSteps)
+        frameCorrections.grid(sticky="W", column=1, row=1, padx=padx, pady=10)
+
         # frameBiasCorrection
-        frameBiasCorrection = Frame(tabSteps)
-        frameBiasCorrection.grid(sticky="W", column=1, row=1, padx=padx, pady=10)
+        frameBiasCorrection = Frame(frameCorrections)
+        frameBiasCorrection = Frame(frameCorrections)
+        frameBiasCorrection.grid(sticky="W", column=0, row=0, padx=10, pady=10)
+
+        # frameTrendInjection
+        frameTrendInjection = Frame(frameCorrections)
+        frameTrendInjection.grid(sticky="W", column=1, row=0, padx=10, pady=10)
 
 
         self.chk_dict = {}
@@ -243,11 +260,12 @@ class tabSteps(tk.Frame):
         tk.Label(frameSteps, text="").grid(column=icol, row=irow, pady=0); irow+=1
         irow += 1
 
-        steps_after = {'downscale': {'text': 'Downscale', 'info': 'Apply all selected methods. If you are \n'
+        steps_after = {'downscale': {'text': 'Downscale (automatically apply trend injection and bias correction if selected)', 'info': 'Apply all selected methods. If you are \n'
                                                            'working in a HPC, you can assign different configuration \n'
                                                            '(number of nodes, memory, etc) to each method by editing the \n'
                                                            'lib/launch_jobs.py file. Dowscaled data will be storaged in the \n'
                                                            'results/ directory.'},
+                # 'bias_correction': {'text': 'Trend injection (optional)', 'info': 'Trend injection after downscaling.'},
                 # 'bias_correction': {'text': 'Bias correct (optional)', 'info': 'Bias correct after downscaling.'},
                 'calculate_climdex': {'text': 'Calculate climate indices', 'info': 'Calculate all selected climdex.'},
                 'plot_results': {'text': 'Generate figures', 'info': 'Generate figures and storage them in results/figures/. \n'
@@ -324,7 +342,6 @@ class tabSteps(tk.Frame):
 
 
         # Bias correction
-
         irow = 0; icol = 0
         self.bc_option = StringVar()
         bc_options = {
@@ -345,10 +362,33 @@ class tabSteps(tk.Frame):
         icol+=1; irow-=3
         Label(frameBiasCorrection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0); icol+=1
 
+
+        # Trend Injection
+        irow = 0; icol = 0
+        self.ti_option = StringVar()
+        ti_options = {
+            'No': 'Do not apply trend injection after downscaling.',
+            'Yes': 'Apply trend injection after downscaling.',
+        }
+        Label(frameTrendInjection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=15, columnspan=3); irow+=1
+        Label(frameTrendInjection, text='Trend injection:').grid(sticky="E", column=icol, row=irow, padx=3, pady=0, columnspan=1); icol+=1
+        if apply_ti == False:
+            last_ti_opt = 'No'
+        else:
+            last_ti_opt = 'Yes'
+        ti_methods_bt= []
+        for ti_opt in ti_options:
+            c = Radiobutton(frameTrendInjection, text=ti_opt, variable=self.ti_option, value=ti_opt, command=lambda: switch_ti_method(self.ti_option.get(), ti_methods_bt), takefocus=False)
+            c.grid(sticky="W", column=icol, row=irow, padx=5, columnspan=1); irow+=1
+            self.ti_option.set(last_ti_opt)
+        icol+=1; irow-=3
+        Label(frameTrendInjection, text='').grid(sticky="E", column=icol, row=irow, padx=10, pady=0); icol+=1
+
+
     def get(self):
         return (self.experiment, self.chk_dict, self.all_steps,
                 self.calibration_years, self.reference_years, self.single_split_testing_years,
-                self.bc_option)
+                self.bc_option, self.ti_option)
 
 
 ########################################################################################################################
@@ -2713,7 +2753,7 @@ class selectionWindow():
          # self.hres_type_chk,
          self.steps_dict, self.all_steps,
             self.calibration_years_chk, self.reference_years_chk, self.single_split_testing_years_chk,
-            self.bc_option_chk) = tabSteps(notebook, root).get()
+            self.bc_option_chk, self.ti_option_chk) = tabSteps(notebook, root).get()
 
         # Tab: models
         self.chk_dict_models, self.otherModels_var, self.chk_dict_scenes, self.otherScenes_var, \
@@ -2796,6 +2836,8 @@ class selectionWindow():
                     self.steps.append(step)
             if self.bc_option_chk.get() == 'Yes':
                 self.steps.append('bias_correction')
+            if self.ti_option_chk.get() == 'Yes':
+                self.steps.append('trend_injection')
 
             # TargetVars
             self.targetVars = []
@@ -2962,6 +3004,13 @@ class selectionWindow():
                 elif self.bc_option_str == 'Yes':
                     self.apply_bc = True
 
+                # Trend injection
+                self.ti_option_str = self.ti_option_chk.get()
+                if self.ti_option_str == 'No':
+                    self.apply_ti = False
+                elif self.ti_option_str == 'Yes':
+                    self.apply_ti = True
+
                 if 'myTargetVar' in self.targetVars:
                     info = self.targetVars_dict['myTargetVar']['info']
                     self.myTargetVarName = info['myTargetVarName'].get()
@@ -3000,6 +3049,7 @@ class selectionWindow():
                 # print(self.single_split_testing_years)
                 # print(self.reference_years)
                 # print(self.apply_bc)
+                # print(self.apply_ti)
                 # print(self.reanalysisName)
                 # print(self.grid_res)
                 # print(self.saf_lat_up)
@@ -3026,7 +3076,7 @@ class selectionWindow():
                                     self.experiment,
                                     self.targetVars, self.methods,
                                     self.calibration_years, self.single_split_testing_years,
-                                    self.reference_years, self.apply_bc, self.reanalysisName,
+                                    self.reference_years, self.apply_bc, self.apply_ti, self.reanalysisName,
                                     self.grid_res, self.saf_lat_up, self.saf_lat_down, self.saf_lon_left, self.saf_lon_right,
                                     self.reaNames, self.modNames, self.preds_targetVars_dict, self.saf_list,
                                     self.scene_names_list, self.model_names_list, self.climdex_names,
@@ -3061,7 +3111,7 @@ def write_settings_file(
                                 experiment,
                                 targetVars, methods,
                                 calibration_years, single_split_testing_years,
-                                reference_years, apply_bc, reanalysisName,
+                                reference_years, apply_bc, apply_ti, reanalysisName,
                                 grid_res, saf_lat_up, saf_lat_down, saf_lon_left, saf_lon_right,
                                 reaNames, modNames, preds_targetVars_dict, saf_list,
                                 scene_names_list, model_names_list, climdex_names,
@@ -3083,6 +3133,7 @@ def write_settings_file(
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
     f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
     f.write("apply_bc = " + str(apply_bc) + "\n")
+    f.write("apply_ti = " + str(apply_bc) + "\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
@@ -3135,6 +3186,8 @@ def write_tmpMain_file(steps):
         f.write("    preprocess.train_methods()\n")
     if 'downscale' in steps:
         f.write("    process.downscale()\n")
+        if 'trend_injection' in steps:
+            f.write("    postprocess.trend_injection()\n")
         if 'bias_correction' in steps:
             f.write("    postprocess.bias_correction()\n")
     if 'calculate_climdex' in steps:

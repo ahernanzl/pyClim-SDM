@@ -31,10 +31,19 @@ def main():
     # precontrol.predictors_correlation()
     # precontrol.GCMs_evaluation()
 
+    # preprocess.preprocess()
+    # precontrol.kolmogorov_smirnov_calculate()
+    # precontrol.kolmogorov_smirnov_plot()
+    # precontrol.pca_calculate()
+    # precontrol.pca_plot()
+    # precontrol.spread_GCM_fut_calculate()
+    # precontrol.spread_GCM_fut_plot()
+
     #-------------------- experiment = EVALUATION / PROJECTIONS ------------------------------------------------------
     # preprocess.preprocess()
     # preprocess.train_methods()
     # process.downscale()
+    # postprocess.trend_injection()
     # postprocess.bias_correction()
     # postprocess.get_climdex()
     # postprocess.plot_results()
