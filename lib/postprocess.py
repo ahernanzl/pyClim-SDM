@@ -16,8 +16,6 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
-sys.path.append('../SBCK/')
-import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib
@@ -357,7 +355,7 @@ def bias_correction_renalysis(targetVar, methodName):
     # print('est', est_data.shape, est_times[0], est_times[-1])
 
 
-    nfolds = 5
+    nfolds = 2
     block = nyears // nfolds
     rest = nyears % nfolds
     blocks = [block, block, block, block, block, ]
@@ -574,22 +572,33 @@ def get_climdex_for_evaluation(targetVar, methodName):
     Calculate climdex for evaluation
     """
 
-    print('get_climdex_for_evaluation', methodName)
+    print('get_climdex_for_evaluation', targetVar, methodName)
 
     pathOut = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/climdex/'
     pathIn = '../results/EVALUATION' + bc_sufix + '/' + targetVar.upper() + '/' + methodName + '/daily_data/'
 
     if os.path.isfile(pathIn+targetVar+'_reanalysis_TESTING.nc'):
 
-        # Read data
-        d = postpro_lib.get_data_eval(targetVar, methodName)
-        ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
-        del d
+        # Check if all climdex have already been calculated
+        all_calculated = True
+        for climdex_name in climdex_names[targetVar]:
+            for season in season_dict:
+                for source in ('obs', 'est'):
+                    if not os.path.isfile(pathOut + '_'.join((targetVar, climdex_name, source, season))+'.nc'):
+                        all_calculated = False
+                        break
 
-        # Calculate all climdex
-        for (data, filename) in ((obs, 'obs'), (est, 'est')):
-            postpro_lib.calculate_all_climdex(pathOut, filename, targetVar, data, times_scene, ref, times_ref, reanalysis_calendar)
+        if all_calculated == False or force_climdex_calculation == True:
+            # Read data
+            d = postpro_lib.get_data_eval(targetVar, methodName)
+            ref, times_ref, obs, est, times_scene = d['ref'], d['times_ref'], d['obs'], d['est'], d['times_scene']
+            del d
 
+            # Calculate all climdex
+            for (data, filename) in ((obs, 'obs'), (est, 'est')):
+                postpro_lib.calculate_all_climdex(pathOut, filename, targetVar, data, times_scene, ref, times_ref, reanalysis_calendar)
+        else:
+            print('already calculated')
 
 ########################################################################################################################
 def get_climdex_allModels(targetVar, methodName):

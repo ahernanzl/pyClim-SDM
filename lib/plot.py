@@ -12,8 +12,6 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
-sys.path.append('../SBCK/')
-import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib
@@ -555,11 +553,9 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
     # Create dictionary of all possible palettes
     dict = {}
 
-    # dict.update({'tasmax_gan': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-    #                           'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    # dict.update({'pr_gan': {'units': 'mm', 'bounds': np.linspace(0, 30, 13), 'cmap': 'terrain_r', 'vmin': None,
-    #                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    #
+
+
+
 
     # dict.update({'r01': {'units': 'days', 'bounds': np.linspace(0, 250, 26), 'cmap': 'terrain_r', 'vmin': None,
     #                          'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
@@ -567,243 +563,125 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
                         'colors': ['g', 'y', 'r'], 'ext': 'both'}})
     dict.update({'target_region': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 3, 'n_bin': 5,
                                    'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
-    dict.update({'bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
-                        'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    dict.update({'changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
-                        'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    dict.update({'rel_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
-                        'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
-    dict.update({'rel_changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
-                        'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
-    dict.update({'tmax_TXm': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'tmax_p10': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'tmax_p90': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'tmin_TNm': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'tmin_p10': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'tmin_p90': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
-                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
+    # dict.update({'bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+    #                     'colors': ['b', 'w', 'r'], 'ext': 'both'}})
+    # dict.update({'changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+    #                     'colors': ['b', 'w', 'r'], 'ext': 'both'}})
+    # dict.update({'rel_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+    #                     'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
+    # dict.update({'rel_changeMap': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -abs_limit, 'vmax': abs_limit, 'n_bin': 10,
+    #                     'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
 
-    dict.update({'tmax_TXm_bias': {'units': degree_sign, 'bounds': np.array(
+    # Temperature palettes
+    temperature_palette = {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 45, 'n_bin': 65,
+                              'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}
+    temperature_bias_palette = {'units': degree_sign, 'bounds': np.array(
         [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                   'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmax_p10_bias': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                   'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmax_p90_bias': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                   'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_TNm_bias': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                   'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_p10_bias': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                   'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_p90_bias': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                   'n_bin': None, 'colors': None, 'ext': 'both'}})
+                                   'n_bin': None, 'colors': None, 'ext': 'both'}
+    temperature_change_palette = {'units': degree_sign, 'bounds': np.array(range(0, 10, 1)), 'cmap': 'hot_r',
+                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}
+    dict.update({'tasmax_daily': temperature_palette})
+    dict.update({'tasmin_daily': temperature_palette})
+    for v in ['tas', 'tasmax', 'tasmin', ]:
+        for c in ['TXm', 'TXx', 'TXn', 'TNm', 'TNx', 'TNn', 'p1','p99', 'p95', 'p90', 'p10', 'p5', 'p1',]:
+            dict.update({v+'_'+c: temperature_palette})
+            dict.update({v+'_'+c+'_bias': temperature_bias_palette})
+            dict.update({v+'_'+c+'_change': temperature_change_palette})
 
-    dict.update({'tmax_TXm_change': {'units': degree_sign, 'bounds': np.array(range(-10, 12, 2)), 'cmap': 'bwr',
-                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmax_p10_change': {'units': degree_sign, 'bounds': np.array(range(-10, 12, 2)), 'cmap': 'bwr',
-                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmax_p90_change': {'units': degree_sign, 'bounds': np.array(range(-10, 12, 2)), 'cmap': 'bwr',
-                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_TNm_change': {'units': degree_sign, 'bounds': np.array(range(-10, 12, 2)), 'cmap': 'bwr',
-                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_p10_change': {'units': degree_sign, 'bounds': np.array(range(-10, 12, 2)), 'cmap': 'bwr',
-                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_p90_change': {'units': degree_sign, 'bounds': np.array(range(-10, 12, 2)), 'cmap': 'bwr',
-                                     'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
 
-    dict.update({'tmax_TXm_biasMedian': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmax_p10_biasMedian': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmax_p90_biasMedian': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_TNm_biasMedian': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_p10_biasMedian': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'tmin_p90_biasMedian': {'units': degree_sign, 'bounds': np.array(
-        [-2.5, -1.5, -1, -.8, -.6, -.4, -.2, .2, .4, .6, .8, 1, 1.5, 2.5]), 'cmap': 'bwr', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
 
-    dict.update({'tmax_TXm_biasSpread': {'units': degree_sign, 'bounds': np.array([0, .2, .4, .6, .8, 1, 1.5, 2.5]),
-                                         'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                         'ext': 'max'}})
-    dict.update({'tmax_p10_biasSpread': {'units': degree_sign, 'bounds': np.array([0, .2, .4, .6, .8, 1, 1.5, 2.5]),
-                                         'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                         'ext': 'max'}})
-    dict.update({'tmax_p90_biasSpread': {'units': degree_sign, 'bounds': np.array([0, .2, .4, .6, .8, 1, 1.5, 2.5]),
-                                         'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                         'ext': 'max'}})
-    dict.update({'tmin_TNm_biasSpread': {'units': degree_sign, 'bounds': np.array([0, .2, .4, .6, .8, 1, 1.5, 2.5]),
-                                         'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                         'ext': 'max'}})
-    dict.update({'tmin_p10_biasSpread': {'units': degree_sign, 'bounds': np.array([0, .2, .4, .6, .8, 1, 1.5, 2.5]),
-                                         'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                         'ext': 'max'}})
-    dict.update({'tmin_p90_biasSpread': {'units': degree_sign, 'bounds': np.array([0, .2, .4, .6, .8, 1, 1.5, 2.5]),
-                                         'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                         'ext': 'max'}})
-
-    dict.update({'pcp_PRCPTOT': {'units': 'mm', 'bounds': np.linspace(0, 600, 13), 'cmap': 'terrain_r', 'vmin': None,
-                                 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_PRCPTOT_rel_bias': {'units': '%',
-                                          'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
-                                          'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
-                                          'ext': 'max'}})
-    dict.update({'pcp_PRCPTOT_rel_change': {'units': '%', 'bounds': np.array(
-        [-150, -100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                            'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'pcp_PRCPTOT_rel_biasMedian': {'units': '%', 'bounds': np.array(
-        [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                                'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_PRCPTOT_rel_biasSpread': {'units': '%', 'bounds': np.array([0, 10, 20, 30, 40, 50, 100]),
-                                                'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
-                                                'colors': None, 'ext': 'max'}})
-
-    dict.update({'pcp_R95p': {'units': 'mm', 'bounds': np.linspace(0, 200, 11), 'cmap': 'terrain_r', 'vmin': None,
-                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_R95p_rel_bias': {'units': '%', 'bounds': np.array(
-        [-100, -80, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                       'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_R95p_rel_change': {'units': '%', 'bounds': np.array(
-        [-100, -80, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_R95p_rel_biasMedian': {'units': '%', 'bounds': np.array(
-        [-100, -80, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                             'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_R95p_rel_biasSpread': {'units': '%', 'bounds': np.array([0, 10, 20, 30, 40, 50, 100]),
-                                             'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
-                                             'colors': None, 'ext': 'max'}})
-
-    dict.update({'pcp_R01': {'units': 'days', 'bounds': np.linspace(0, 55, 12), 'cmap': 'terrain_r', 'vmin': None,
+    # Precipitation palettes
+    dict.update({'pr_daily': {'units': 'mm', 'bounds': np.linspace(0, 600, 13), 'cmap': 'terrain_r', 'vmin': None,
                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_R01_rel_bias': {'units': '%',
-                                      'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 100, 200]),
+
+    # PRCPTOT
+    dict.update({'pr_PRCPTOT': {'units': 'mm', 'bounds': np.linspace(0, 1500, 16), 'cmap': 'terrain_r', 'vmin': None,
+                             'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_PRCPTOT_rel_bias': {'units': '%',
+                                      'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
                                       'ext': 'max'}})
-    dict.update({'pcp_R01_rel_change': {'units': '%',
-                                        'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 100, 200]),
+    dict.update({'pr_PRCPTOT_rel_change': {'units': '%', 'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                           'cmap': 'BrBG', 'vmin': None,
+                                        'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'both'}})
+
+    # R01
+    dict.update({'pr_R01': {'units': 'days', 'bounds': np.linspace(0, 200, 11), 'cmap': 'terrain_r', 'vmin': None,
+                             'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R01_rel_bias': {'units': '%',
+                                      'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 80, 100, ]),
+                                      'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+                                      'ext': 'max'}})
+    dict.update({'pr_R01_rel_change': {'units': '%',
+                                        'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
                                         'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
                                         'ext': 'max'}})
-    dict.update({'pcp_R01_rel_biasMedian': {'units': '%', 'bounds': np.array(
-        [-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 100, 200]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                            'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_R01_rel_biasSpread': {'units': '%', 'bounds': np.array([0, 10, 20, 30, 50, 100]),
-                                            'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
-                                            'colors': None, 'ext': 'max'}})
 
-    dict.update({'pcp_SDII': {'units': 'mm', 'bounds': np.linspace(0, 20, 9), 'cmap': 'terrain_r', 'vmin': None,
+    # SDII
+    dict.update({'pr_SDII': {'units': 'mm', 'bounds': np.linspace(0, 12, 13), 'cmap': 'terrain_r', 'vmin': None,
                               'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_SDII_rel_bias': {'units': '%',
+    dict.update({'pr_SDII_rel_bias': {'units': '%',
                                        'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
                                        'ext': 'max'}})
-    dict.update({'pcp_SDII_rel_change': {'units': '%', 'bounds': np.array(
-        [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+    dict.update({'pr_SDII_rel_change': {'units': '%', 'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None,
                                          'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_SDII_rel_biasMedian': {'units': '%', 'bounds': np.array(
-        [-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                             'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'pcp_SDII_rel_biasSpread': {'units': '%', 'bounds': np.array([0, 10, 20, 30, 40, 50, 100]),
-                                             'cmap': 'Purples', 'vmin': None, 'vmax': None, 'n_bin': None,
-                                             'colors': None, 'ext': 'max'}})
 
 
+    # R10mm
+    dict.update({'pr_R10mm': {'units': 'days', 'bounds': np.linspace(0, 55, 12), 'cmap': 'terrain_r', 'vmin': None,
+                             'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R10mm_rel_bias': {'units': '%',
+                                      'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 80, 100, ]),
+                                      'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+                                      'ext': 'max'}})
+    dict.update({'pr_R10mm_rel_change': {'units': '%',
+                                        'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+                                        'ext': 'max'}})
 
+    # R20mm
+    dict.update({'pr_R20mm': {'units': 'days', 'bounds': np.linspace(0, 55, 12), 'cmap': 'terrain_r', 'vmin': None,
+                             'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R20mm_rel_bias': {'units': '%',
+                                      'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 80, 100, ]),
+                                      'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+                                      'ext': 'max'}})
+    dict.update({'pr_R20mm_rel_change': {'units': '%',
+                                        'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None,
+                                        'ext': 'max'}})
 
-    ############ Theses palettes are to be tuned
-    dict.update({'p': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 50, 'n_bin': 50,
-                       'colors': ['g', 'y', 'r', 'm', 'b', 'c'], 'ext': 'max'}})
-    # dict.update({'%': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 50, 'colors': ['g', 'y', 'r', 'm', 'b', 'c'], 'ext': 'neither'}})
-    # dict.update({'%_bias': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': -20, 'vmax': 20, 'n_bin': 50, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    # dict.update({'t_bias': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': -1, 'vmax': 1, 'n_bin': 21, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    # dict.update({'p_bias': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': -10, 'vmax': 10, 'n_bin': 20, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    dict.update({'t_mae': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 3, 'n_bin': 6,
-                           'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'p_mae': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 6, 'n_bin': 6,
-                           'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'t_rmse': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 3, 'n_bin': 6,
-                            'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'p_rmse': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 10, 'n_bin': 10,
-                            'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'prob': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5,
-                          'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
-    dict.update({'corrMonth': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.4, 'vmax': 1, 'n_bin': 6,
-                               'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'correlation': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 10,
-                                 'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
-    dict.update({'pearson': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10,
-                             'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'spearman': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 10,
-                              'colors': ['r', 'y', 'g'], 'ext': 'neither'}})
-    dict.update({'probInv': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5,
-                             'colors': ['g', 'y', 'r'], 'ext': 'neither'}})
-    dict.update({'r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': .5, 'vmax': 1, 'n_bin': 5,
-                        'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'t_r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.8, 'vmax': 1, 'n_bin': 4,
-                          'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'p_r2': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 1, 'n_bin': 5,
-                          'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'acc': {'units': '', 'bounds': None, 'cmap': None, 'vmin': 0.5, 'vmax': 1, 'n_bin': 10,
-                         'colors': ['r', 'y', 'g'], 'ext': 'min'}})
-    dict.update({'perc_nan': {'units': '%', 'bounds': np.array(
-        [0, .01, .1, 1, 2, 5, 10, 20, 50, 100]), 'cmap': 'RdYlGn_r', 'vmin': None, 'vmax': None, 'n_bin': None,
-                              'colors': None, 'ext': 'neither'}})
+    # R95p
+    dict.update({'pr_R95p': {'units': 'mm', 'bounds': np.linspace(0, 500, 11), 'cmap': 'terrain_r', 'vmin': None,
+                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R95p_rel_bias': {'units': '%', 'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 80, 100, ]),
+                                      'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                       'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R95p_rel_change': {'units': '%', 'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
 
-    # dict.update({'std_interp_preds': {'units': '', '': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 41, 'colors': ['m', 'c', 'b', 'g', 'y', 'r'], 'ext': 'both'}})
-    # dict.update({'abs_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -2, 'vmax': 2, 'n_bin': 25, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    # dict.update({'rel_bias': {'units': '', 'bounds': None, 'cmap': None, 'vmin': -5, 'vmax': 5, 'n_bin': 25, 'colors': ['b', 'w', 'r'], 'ext': 'both'}})
-    # dict.update({'pcp_p95': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 40, 'n_bin': 20, 'colors': ['g', 'y', 'r', 'm', 'b', 'c'], 'ext': 'max'}})
-    # dict.update({'pcp_p95': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 30, 'n_bin': 7, 'colors': ['r', 'orange', 'y', 'g', 'c', 'b', 'purple', 'pink'], 'ext': 'max'}})
-    # dict.update({'pcp_p95': {'units': 'mm', 'bounds': np.linspace(0, 30, 7), 'cmap': 'terrain_r', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    # dict.update({'pcp_p95_bias': {'units': 'mm', 'bounds': None, 'cmap': None, 'vmin': -10, 'vmax': 10, 'n_bin': 20, 'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
-    # dict.update({'pcp_p95_rel_bias': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': -50, 'vmax': 50, 'n_bin': 20, 'colors': ['brown', 'w', 'g'], 'ext': 'both'}})
-    # dict.update({'pcp_p95_rel_bias': {'units': '%', 'bounds': np.array([-150, -100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
-    dict.update({'change_TXm_mean': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 12,
-                                     'n_bin': 12, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'change_TNm_mean': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 12,
-                                     'n_bin': 12, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
-    # dict.update({'change_Pm_mean': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': -100, 'vmax': 100, 'n_bin': 11,
-    #                                  'colors': ['r', 'y', 'g'], 'ext': 'both'}})
-    dict.update({'change_PRCPTOT_mean': {'units': '%', 'bounds': np.array(
-        [-250, -200, -150, -100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100, 150, 200, 250]), 'cmap': 'BrBG', 'vmin': None, 'vmax': None,
-                                         'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'change_Pm_mean': {'units': '%', 'bounds': np.array([-150, -100, -50, -40, -30, -20, -10, 0, 10, 20,
-                                                                      30, 40, 50, 100, 150]), 'cmap': None,
-                                    'vmin': None, 'vmax': None, 'n_bin': None,
-                                    'colors': ['r', 'y', 'g'], 'ext': 'both'}})
-    dict.update({'change_TXm_spread': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
-                                    'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_TNm_spread': {'units': degree_sign, 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 4,
-                                    'n_bin': 8, 'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_Pm_spread': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
-                                   'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    dict.update({'change_PRCPTOT_spread': {'units': '%', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 100, 'n_bin': 10,
-                                        'colors': ['g', 'y', 'r'], 'ext': 'max'}})
-    # dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': None, 'cmap': None, 'vmin': 0, 'vmax': 35,
-    #                                  'n_bin': 35, 'colors': ['g', 'y', 'r'], 'ext': 'both'}})
-    dict.update({'change_FWI90p_mean': {'units': 'days', 'bounds': np.arange(0, 90, 20), 'cmap': 'viridis', 'vmin': None, 'vmax': None,
-                                     'n_bin': None, 'colors': None, 'ext': 'both'}})
-    dict.update({'change_FWI90p_spread': {'units': 'days', 'bounds': np.array([0, 10, 20, 30, 40, 50]),
-                                             'cmap': 'Reds', 'vmin': None, 'vmax': None, 'n_bin': None,
-                                             'colors': None, 'ext': 'max'}})
+    #  R99p
+    dict.update({'pr_R99p': {'units': 'mm', 'bounds': np.linspace(0, 300, 11), 'cmap': 'terrain_r', 'vmin': None,
+                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R99p_rel_bias': {'units': '%', 'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 80, 100, ]),
+                                       'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                       'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_R99p_rel_change': {'units': '%', 'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
 
-
-    # dict.update({'none': {'units': degree_sign, 'bounds': np.array([0, 1]), 'cmap': 'bwr', 'ext': 'both'}})
+    # Rx1day
+    dict.update({'pr_Rx1day': {'units': 'mm', 'bounds': np.linspace(0, 100, 11), 'cmap': 'terrain_r', 'vmin': None,
+                              'vmax': None, 'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_Rx1day_rel_bias': {'units': '%', 'bounds': np.array([-100, -80, -50, -30, -20, -10, 10, 20, 30, 50, 80, 100, ]),
+                                        'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                       'n_bin': None, 'colors': None, 'ext': 'max'}})
+    dict.update({'pr_Rx1day_rel_change': {'units': '%', 'bounds': np.array([-100, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50, 100]),
+                                          'cmap': 'BrBG', 'vmin': None, 'vmax': None,
+                                         'n_bin': None, 'colors': None, 'ext': 'max'}})
 
     # For not defined palettes use None
     if palette not in dict:
@@ -832,7 +710,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
 
             # Set map limits
             latmin = np.min(hres_lats_all) - 2
-            latMax = np.max(hres_lats_all) + 2
+            latmax = np.max(hres_lats_all) + 2
             lonmin = np.min(hres_lons_all) - 2
             lonMax = np.max(hres_lons_all) + 2
 
@@ -843,20 +721,20 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
 
             # Set map limits
             latmin = np.min(lats) - 2
-            latMax = np.max(lats) + 2
+            latmax = np.max(lats) + 2
             lonmin = np.min(lons) - 2
             lonMax = np.max(lons) + 2
 
         if palette == 'target_region':
             # Set map limits
             latmin = np.min(lats) - 5
-            latMax = np.max(lats) + 15
+            latmax = np.max(lats) + 15
             lonmin = np.min(lons) - 10
             lonMax = np.max(lons) + 20
 
         else:
             latmin = np.min(lats) - 2
-            latMax = np.max(lats) + 2
+            latmax = np.max(lats) + 2
             lonmin = np.min(lons) - 2
             lonMax = np.max(lons) + 2
 
@@ -879,7 +757,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
 
         # Set map limits
         latmin = np.min(lats)
-        latMax = np.max(lats)
+        latmax = np.max(lats)
         lonmin = np.min(lons)
         lonMax = np.max(lons)
 
@@ -889,7 +767,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
         cmap = plt.get_cmap(cmap)
     else:
         cmap = LinearSegmentedColormap.from_list('my_list', c, N=n_bin)
-    if palette in ('pr_Pm', 'pr_PRCPTOT', 'pr_SDII', 'pr_p95', 'pr_R95p', 'pr_R01', 'pr_gan'):
+    if palette in ('pr_Pm', 'pr_PRCPTOT', 'pr_SDII', 'pr_p95', 'pr_R99p', 'pr_R01', 'pr_R10mm', 'pr_R20mm', 'pr_Rx1day', 'pr_gan', 'pr_daily'):
         cmap = truncate_colormap(cmap, .3)
 
     # Define map
@@ -901,14 +779,14 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
             #               rsphere=(6378137.00, 6356752.3142), \
             #               resolution='l', area_thresh=1000., projection='lcc', \
             #               lat_1=46., lat_2=56, lat_0=51, lon_0=9.5)
-            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
+            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latmax, projection='merc',
                       resolution='l')
         except:
             latmin = np.min(lats) - 1
-            latMax = np.max(lats) + 1
+            latmax = np.max(lats) + 1
             lonmin = np.min(lons) - 1
             lonMax = np.max(lons) + 1
-            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latMax, projection='merc',
+            map = Basemap(llcrnrlon=lonmin, llcrnrlat=latmin, urcrnrlon=lonMax, urcrnrlat=latmax, projection='merc',
                       resolution='l')
         map.drawcoastlines(linewidth=0.5)
         if plot_lat_lon == True:
@@ -945,7 +823,7 @@ def map(targetVar, data, palette=None, lats=[None, None], lons=[None, None], pat
         ax.coastlines(resolution=resolution)
 
         plt.xlim((lonmin, lonMax))
-        plt.ylim((latmin, latMax))
+        plt.ylim((latmin, latmax))
         if grid is None:
             if palette == 'target_region':
                 s = .05

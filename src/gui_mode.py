@@ -1030,7 +1030,7 @@ class frameMethodsClass(tk.Frame):
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'CNN', 'TF', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
         add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'UNET', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
-        add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GAN-DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
+        # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GAN-DeepESD', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
         # add_method_to_chk_list(disabled_methods, self.chk_list, targetVar, 'GAN-UNET', 'DL', 'PP', 'pred', 'Convolutional Neural Network', icol, irow); irow += 1
 
         # Select/deselect all
@@ -1324,7 +1324,8 @@ class tabTasmax(tk.Frame):
     def __init__(self, notebook):
         targetVar = 'tasmax'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='T1')
+        # notebook.add(tab, text='T1')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='Temperature: max')
 
         frames = []
@@ -1379,7 +1380,8 @@ class tabTasmin(tk.Frame):
     def __init__(self, notebook):
         targetVar = 'tasmin'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='T2')
+        # notebook.add(tab, text='T2')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='Temperature: min')
 
 
@@ -1435,7 +1437,8 @@ class tabTas(tk.Frame):
     def __init__(self, notebook):
         targetVar = 'tas'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='T3')
+        # notebook.add(tab, text='T3')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='Temperature: mean')
 
 
@@ -1493,7 +1496,8 @@ class tabPr(tk.Frame):
 
         targetVar = 'pr'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='P')
+        # notebook.add(tab, text='P')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='Precipitation')
 
 
@@ -1663,7 +1667,8 @@ class tabSfcWind(tk.Frame):
 
         targetVar = 'sfcWind'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='W3')
+        # notebook.add(tab, text='W3')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='Wind: speed')
 
 
@@ -1720,7 +1725,8 @@ class tabHurs(tk.Frame):
 
         targetVar = 'hurs'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='H1')
+        # notebook.add(tab, text='H1')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='Humidity')
 
 
@@ -1890,7 +1896,8 @@ class tabRsds(tk.Frame):
 
         targetVar = 'rsds'
         tab = tk.Frame(notebook)
-        notebook.add(tab, text='R2')
+        # notebook.add(tab, text='R2')
+        notebook.add(tab, text=targetVar)
         # notebook.add(tab, text='')
 
         frames = []
@@ -2773,37 +2780,37 @@ class selectionWindow():
         self.targetVars_dict.update({'tas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabPr(notebook).get()
         self.targetVars_dict.update({'pr': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabUas(notebook).get()
-        self.targetVars_dict.update({'uas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabVas(notebook).get()
-        self.targetVars_dict.update({'vas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabUas(notebook).get()
+        # self.targetVars_dict.update({'uas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabVas(notebook).get()
+        # self.targetVars_dict.update({'vas': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabSfcWind(notebook).get()
         self.targetVars_dict.update({'sfcWind': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabHurs(notebook).get()
         self.targetVars_dict.update({'hurs': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabHuss(notebook).get()
-        self.targetVars_dict.update({'huss': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabClt(notebook).get()
-        self.targetVars_dict.update({'clt': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabHuss(notebook).get()
+        # self.targetVars_dict.update({'huss': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabClt(notebook).get()
+        # self.targetVars_dict.update({'clt': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
         aux = tabRsds(notebook).get()
         self.targetVars_dict.update({'rsds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabRlds(notebook).get()
-        self.targetVars_dict.update({'rlds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabEvspsbl(notebook).get()
-        self.targetVars_dict.update({'evspsbl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabEvspsblpot(notebook).get()
-        self.targetVars_dict.update({'evspsblpot': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabPsl(notebook).get()
-        self.targetVars_dict.update({'psl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabPs(notebook).get()
-        self.targetVars_dict.update({'ps': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabMrro(notebook).get()
-        self.targetVars_dict.update({'mrro': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-        aux = tabMrso(notebook).get()
-        self.targetVars_dict.update({'mrso': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
-
-        aux = tabMyTargetVar(notebook).get()
-        self.targetVars_dict.update({'myTargetVar': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabRlds(notebook).get()
+        # self.targetVars_dict.update({'rlds': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabEvspsbl(notebook).get()
+        # self.targetVars_dict.update({'evspsbl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabEvspsblpot(notebook).get()
+        # self.targetVars_dict.update({'evspsblpot': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabPsl(notebook).get()
+        # self.targetVars_dict.update({'psl': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabPs(notebook).get()
+        # self.targetVars_dict.update({'ps': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabMrro(notebook).get()
+        # self.targetVars_dict.update({'mrro': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        # aux = tabMrso(notebook).get()
+        # self.targetVars_dict.update({'mrso': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
+        #
+        # aux = tabMyTargetVar(notebook).get()
+        # self.targetVars_dict.update({'myTargetVar': {'active': aux[0], 'methods': aux[1], 'preds': aux[2], 'info': aux[3], 'climdex': aux[4], }})
 
         # Tab: visualization
         tabFigures(notebook)

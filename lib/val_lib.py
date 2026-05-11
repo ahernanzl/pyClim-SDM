@@ -11,8 +11,6 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
-sys.path.append('../SBCK/')
-import SBCK
 
 
 sys.path.append('../lib/')
@@ -224,13 +222,13 @@ def daily_boxplots(metric, by_season):
 
                     pathOutData = '../results/EVALUATION/' + targetVar.upper() + '/' + methodName + '/metrics/'
 
-                    # # Select season
-                    # already_done = True
-                    # for season in season_dict:
-                    #     if season == annualName or by_season == True:
-                    #         if not os.path.isfile(pathOutData + season+'_' +metric + '.npy'):
-                    #             already_done = False
-                    already_done = False
+                    # Select season
+                    already_done = True
+                    for season in season_dict:
+                        if season == annualName or by_season == True:
+                            if not os.path.isfile(pathOutData + season+'_' +metric + '.npy'):
+                                already_done = False
+                    # already_done = False
 
                     if already_done == False:
                         # Read data
@@ -635,6 +633,8 @@ def climdex_boxplots(by_season):
                             #     title = climdex_name + '    bias corrected'
                             if targetVar == 'pr':
                                 plt.ylim((-100, 100))
+                            elif targetVar in ('tasmax', 'tasmin', ):
+                                plt.ylim((-2.5, 2.5))
                             plt.title(title, fontsize=16)
                             ax.set_xticklabels(names, rotation=90)
                             plt.hlines(y=0, xmin=-1, xmax=nmethods + 1, linestyles='--', color='grey')

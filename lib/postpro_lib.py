@@ -14,9 +14,6 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
-sys.path.append('../SBCK/')
-import SBCK
-
 sys.path.append('../lib/')
 import ANA_lib
 import aux_lib
@@ -1127,23 +1124,30 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                     plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathOut + 'maps/',
                              filename=filename, title=title)
 
-
+                if bias_units_and_palette[targetVar+'_'+climdex_name]['biasMode'] == 'abs':
+                    palette = targetVar+'_'+climdex_name + '_change'
+                elif bias_units_and_palette[targetVar+'_'+climdex_name]['biasMode'] == 'rel':
+                    palette = targetVar+'_'+climdex_name + '_rel_change'
+                else:
+                    palette = None
                 for imodel in range(len(ssp_dict[scene]['models'])):
                     modelName = ssp_dict[scene]['models'][imodel].replace('_', '-')
                     dataModel = dataTerm[imodel]
                     if plotAllRegions == False:
                         # title = scene_names_dict[scene]+'   '+period+'     '+season
-                        title = scene_names_dict[scene] + ' ' + period + ' ' + modelName + ' ' + ' change'
+                        # title = methodName + '\n' + scene_names_dict[scene] + ' ' + period + ' ' + modelName + ' ' + ' change'
+                        title = methodName + '\n' + scene_names_dict[scene] + ' ' + period + ' ' + modelName + ' ' + season
                         filename = '_'.join(
                             ('PROJECTIONS' + bc_sufix, 'modelChangeMap', targetVar, climdex_name,
                              methodName + '-' + scene + '-' + period + '-' + modelName, season))
-                        plot.map(targetVar, dataModel, 'change_' + climdex_name + '_mean', path=pathFigures,
+                        plot.map(targetVar, dataModel, palette, path=pathFigures,
                                  filename=filename, title=title)
                     else:
                         filename = '_'.join(('modelChangeMap', climdex_name, scene, season + '-' + period + '-' + model))
                         # title = ' '.join(('mod_mean', climdex_name, scene, season, period))
-                        title = scene_names_dict[scene] + '   ' + period + ' ' + modelName + ' ' + '\n' + season
-                        plot.map(targetVar, dataModel, 'change_' + climdex_name + '_mean', path=pathOut + 'maps/',
+                        # title = methodName + '\n' + scene_names_dict[scene] + '   ' + period + ' ' + modelName + ' ' + '\n' + season
+                        title = methodName + '\n' + scene_names_dict[scene] + ' ' + period + ' ' + modelName + ' ' + season
+                        plot.map(targetVar, dataModel, palette, path=pathOut + 'maps/',
                                  filename=filename, title=title)
 
 

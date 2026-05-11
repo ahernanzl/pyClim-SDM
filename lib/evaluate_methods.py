@@ -11,8 +11,6 @@ import deep.models as deep_models
 import deep.pred as deep_pred
 import deep.utils as deep_utils
 
-sys.path.append('../SBCK/')
-import SBCK
 
 sys.path.append('../lib/')
 import ANA_lib
@@ -309,18 +307,23 @@ def daily_data(by_season=True):
     #             print(regType, regName, npoints, 'points', str(index) + '/' + str(df_reg.shape[0]))
     #             pathOut = pathFigures + 'CASE_STUDIES/'
     #             os.makedirs(pathOut, exist_ok=True)
-    #             idays = np.argsort(np.max(obs, axis=1))[::-1]
+    #             if targetVar == 'pr':
+    #                 idays = np.argsort(np.max(obs, axis=1))[::-1]
+    #             else:
+    #                 idays_max = np.argsort(np.max(obs, axis=1))[::-1]
+    #                 idays_min = np.argsort(np.min(obs, axis=1))[::-1]
+    #                 idays = np.column_stack((idays_max, idays_min)).reshape(-1)
     #
     #             print('-----------------------')
     #             n_case_studies = 10
     #             for iday in idays[:n_case_studies]:
     #                 time_i, obs_i, est_i = times_scene[iday], obs[iday], est[iday]
-    #                 print(methodName, iday, np.max(obs_i), np.max(est_i))
-    #                 plot.map(targetVar, obs_i, 'pr_daily', path=pathOut,
-    #                          filename=str(iday)+'_OBS', title=str(time_i)+'\nOBS')
-    #                 plot.map(targetVar, est_i, 'pr_daily', path=pathOut,
-    #                          filename=str(iday)+'_'+methodName.replace(',', '-'),
-    #                          title=str(time_i)+'\n'+methodName.replace(',', '-'))
+    #                 print(targetVar, methodName, iday, np.max(obs_i), np.max(est_i))
+    #                 plot.map(targetVar, obs_i, targetVar+'_daily', path=pathOut,
+    #                          filename=targetVar+'_'+str(iday)+'_OBS', title=targetVar+'_'+str(time_i)+'\nOBS')
+    #                 plot.map(targetVar, est_i, targetVar+'_daily', path=pathOut,
+    #                          filename=targetVar+'_'+str(iday)+'_'+methodName.replace(',', '-'),
+    #                          title=targetVar+'_'+str(time_i)+'\n'+methodName.replace(',', '-'))
 
     # if activate_plot_QQ_continuous_dichotomous == True:
     #     # Go through all methods

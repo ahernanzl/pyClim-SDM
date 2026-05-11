@@ -363,6 +363,10 @@ else:
 bc_method = 'QDM'
 # bc_method = 'PSDM'
 # bc_method = 'R2D2'
+# bc_method = 'ISIMIP'
+if apply_bc == True and bc_method == 'ISIMIP':
+    print('ISIMIP is automatically applied on a monthly basis')
+    apply_bc_bySeason = False
 
 if apply_bc_bySeason == True:
     apply_bc = True
@@ -1512,9 +1516,10 @@ methods_linestyles = {
 
 
 colors_20 = [
-    "blue", "green", "red", "cyan", "magenta",
-    "yellow", "black", "orange", "purple", "brown",
-    "pink", "gray", "olive", "lime", "teal",
+    "blue", "green", "red",
+    "cyan", "magenta",
+    "yellow", "orange", "purple", "brown",
+    "pink", "olive", "lime", "teal",
     "navy", "maroon", "aqua", "fuchsia", "gold"
 ]
 i = 0
