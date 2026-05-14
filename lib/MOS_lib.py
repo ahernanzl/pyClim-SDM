@@ -684,7 +684,7 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     * hist (nDaysHist, nPoints): the model data at the reference period
     * sce (nDaysSce, nPoints): the scenario data that shall be corrected
     :return:
-    """oooooooooooooooooooooooooooo
+    """
 
     if targetVar == 'huss':
         print('huss modification /1000...')
