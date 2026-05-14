@@ -586,7 +586,7 @@ def r2d2(obs, hist, sce, targetVar):
     return sce_corrected
 
 ########################################################################################################################
-def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin = 273.15, pr_factor = 24*3600):
+def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_factor=24 * 3600):
     """
     Implements the ISIMIP3b and ISIMIP3BASD bias adjustment methodology based on Lange 2019 and Lange 2021.
 
@@ -601,6 +601,8 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin = 273.15, pr_
 
     sys.path.append('../ibicus/')
     from ibicus.debias import ISIMIP
+    obs = obs.astype('float32')
+    obs /= 100.
 
     # Prepare data units for isimip
     targetVar_for_isimip = targetVar
@@ -616,29 +618,23 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin = 273.15, pr_
         print('Select a differente bias correction method at config/advanced_settings.py')
         exit()
 
-
     # Define parameters and variables
     nPoints, nDays_ref, nDays_sce = obs.shape[1], obs.shape[0], sce.shape[1]
-    sce, hist = 100*sce, 100*hist
-    sce_corrected = 1*sce
+    sce_corrected = 1 * sce
 
     # Go through all points
     for ipoint in range(nPoints):
-        if ipoint % 1 == 0:
+        if ipoint % 100 == 0:
             print(ipoint)
-
 
         # Select data from one point
         obs_data = obs.T[ipoint]
         hist_data = hist.T[ipoint]
         sce_data = sce.T[ipoint]
 
-        print(obs_data.shape, hist_data.shape, sce_data.shape, )
-        print(np.sum(np.isnan(obs_data)), np.sum(np.isnan(hist_data)), np.sum(np.isnan(sce_data)), )
-
         # Remove missing data from obs and hist
-        # obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
-        obs_data = obs_data[abs(obs_data - 100*predictands_codification[targetVar]['special_value']) > 1]
+        obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
+        # obs_data = obs_data[abs(obs_data - 100 * predictands_codification[targetVar]['special_value']) > 1]
         hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
@@ -649,8 +645,12 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin = 273.15, pr_
             sce_data = sce_data[ivalid]
 
             # Add axis for 2D required by isimip
-            obs_data, hist_data, sce_data = np.expand_dims(obs_data, axis=-1), np.expand_dims(hist_data, axis=-1), np.expand_dims(sce_data, axis=-1)
-            obs_data, hist_data, sce_data = np.expand_dims(obs_data, axis=-1), np.expand_dims(hist_data, axis=-1), np.expand_dims(sce_data, axis=-1)
+            obs_data, hist_data, sce_data = np.expand_dims(obs_data, axis=-1), np.expand_dims(hist_data,
+                                                                                              axis=-1), np.expand_dims(
+                sce_data, axis=-1)
+            obs_data, hist_data, sce_data = np.expand_dims(obs_data, axis=-1), np.expand_dims(hist_data,
+                                                                                              axis=-1), np.expand_dims(
+                sce_data, axis=-1)
 
             debiaser = ISIMIP.from_variable(targetVar_for_isimip)
             sceCorr_data = debiaser.apply(obs_data, hist_data, sce_data, time_obs=np.array(ref_times),
@@ -684,7 +684,7 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
     * hist (nDaysHist, nPoints): the model data at the reference period
     * sce (nDaysSce, nPoints): the scenario data that shall be corrected
     :return:
-    """
+    """oooooooooooooooooooooooooooo
 
     if targetVar == 'huss':
         print('huss modification /1000...')
