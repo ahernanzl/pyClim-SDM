@@ -634,7 +634,6 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
 
         # Remove missing data from obs and hist
         obs_data = obs_data[abs(obs_data - predictands_codification[targetVar]['special_value']) > 0.01]
-        # obs_data = obs_data[abs(obs_data - 100 * predictands_codification[targetVar]['special_value']) > 1]
         hist_data = hist_data[np.isnan(hist_data) == False]
 
         if hist_data.size == 0:
@@ -657,7 +656,7 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
                                           time_cm_hist=np.array(ref_times), time_cm_future=np.array(sce_times))[:, 0, 0]
 
             # Load corrected data to the final matrix
-            sce_corrected.T[ipoint][ivalid] = sceCorr_data
+            sce_corrected.T[ipoint][ivalid] = 100 * sceCorr_data
 
     # Undo units adaptation
     if targetVar in ('tas', 'tasmax', 'tasmin'):
