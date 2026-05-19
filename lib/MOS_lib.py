@@ -656,7 +656,7 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
                                           time_cm_hist=np.array(ref_times), time_cm_future=np.array(sce_times))[:, 0, 0]
 
             # Load corrected data to the final matrix
-            sce_corrected.T[ipoint][ivalid] = 100 * sceCorr_data
+            sce_corrected.T[ipoint][ivalid] = sceCorr_data
 
     # Undo units adaptation
     if targetVar in ('tas', 'tasmax', 'tasmin'):
@@ -669,6 +669,8 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
         print('ISIMIP not implemented for', targetVar)
         print('Select a differente bias correction method at config/advanced_settings.py')
         exit()
+
+    sce_corrected = 100 * sce_corrected
 
     return sce_corrected
 
