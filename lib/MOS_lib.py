@@ -591,7 +591,7 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
     Implements the ISIMIP3b and ISIMIP3BASD bias adjustment methodology based on Lange 2019 and Lange 2021.
 
     This method has been integrated from  https://github.com/ecmwf-projects/ibicus
-    ISIMIP covers the following variables:: ["tas", "tasmax", "tasmin", "pr", "sfcwind", "hurs", "rsds",]
+    This method covers the following variables:: ["tas", "tasmax", "tasmin", "pr", "sfcwind", "hurs", "rsds",]
 
     **References**:
     - Lange, S. (2019). Trend-preserving bias adjustment and statistical downscaling with ISIMIP3BASD (v1.0). In Geoscientific Model Development (Vol. 12, Issue 7, pp. 3055–3070). Copernicus GmbH. https://doi.org/10.5194/gmd-12-3055-2019
@@ -605,9 +605,9 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
     obs /= 100.
 
     # Prepare data units for isimip
-    targetVar_for_isimip = targetVar
+    targetVar_for_ibicus = targetVar
     if targetVar in ('tas', 'tasmax', 'tasmin'):
-        targetVar_for_isimip = 'tas'
+        targetVar_for_ibicus = 'tas'
         obs, hist, sce = obs + kelvin, hist + kelvin, sce + kelvin
     elif targetVar == 'pr':
         obs, hist, sce = obs * pr_factor, hist * pr_factor, sce * pr_factor
@@ -651,7 +651,7 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
                                                                                               axis=-1), np.expand_dims(
                 sce_data, axis=-1)
 
-            debiaser = ISIMIP.from_variable(targetVar_for_isimip)
+            debiaser = ISIMIP.from_variable(targetVar_for_ibicus)
             sceCorr_data = debiaser.apply(obs_data, hist_data, sce_data, time_obs=np.array(ref_times),
                                           time_cm_hist=np.array(ref_times), time_cm_future=np.array(sce_times))[:, 0, 0]
 
@@ -665,16 +665,10 @@ def isimip(obs, hist, sce, targetVar, ref_times, sce_times, kelvin=273.15, pr_fa
         sce_corrected /= pr_factor
     elif targetVar in ('sfcWind', 'hurs', 'rsds'):
         pass
-    else:
-        print('ISIMIP not implemented for', targetVar)
-        print('Select a differente bias correction method at config/advanced_settings.py')
-        exit()
 
     sce_corrected = 100 * sce_corrected
 
     return sce_corrected
-
-
 
 
 ########################################################################################################################
@@ -736,14 +730,12 @@ def biasCorrect_as_postprocess(obs, hist, sce, targetVar, ref_times, sce_times):
                     scene_bc[idates] = scaled_distribution_mapping(obs_season, hist_season, sce_season, targetVar)
                 elif bc_method == 'R2D2':
                     scene_bc[idates] = r2d2(obs_season, hist_season, sce_season, targetVar)
-                elif bc_method == 'ISIMIP':
-                    scene_bc[idates] = isimip(obs_season, hist_season, sce_season, targetVar, ref_times_season, sce_times_season)
 
     # Force to theoretical range
     minAllowed, maxAllowed = predictands_range[targetVar]['min'], predictands_range[targetVar]['max']
     if minAllowed is not None:
-        scene_bc[scene_bc < minAllowed] = minAllowed
+        scene_bc[scene_bc < 100*minAllowed] = 100*minAllowed
     if maxAllowed is not None:
-        scene_bc[scene_bc > maxAllowed] = maxAllowed
+        scene_bc[scene_bc > 100*maxAllowed] = 100*maxAllowed
 
     return scene_bc
