@@ -369,25 +369,25 @@ def lres_data(targetVar, field, grid=None, model='reanalysis', scene=None, predN
                 pass
         if datesDefined == False:
             for ipred in range(len(all_preds.keys())):
-                ncName = list(all_preds.keys())[ipred]
+                predName = list(all_preds.keys())[ipred]
 
-                if level is not None:
-                    pred += str(level)
-
-                if model == 'reanalysis':
-                    pathIn = '../input_data/reanalysis/'
-                    if pred in targetVars:
-                        ncVar = reaNames[predName]
-                    else:
-                        for aux_level in all_levels:
-                            pred = pred.replace(str(aux_level), '')
-                        ncVar = reaNames[pred]
-                    filename = ncVar + '_' + reanalysisName + '_' + reanalysisPeriodFilename + '.nc'
-                    if os.path.isfile(pathIn + filename):
-                        aux_times = read.one_direct_predictor(ncName, level=None, grid='ext', model=model, scene=scene)[
-                            'times']
-                        datesDefined = True
-                        break
+                pathIn = '../input_data/reanalysis/'
+                if pred in targetVars:
+                    ncName = reaNames[predName]
+                    level = None
+                else:
+                    for aux_level in all_levels:
+                        if predName.endswith(str(aux_level)):
+                            level = aux_level
+                            ncName = reaNames[predName.replace(str(level), '')]
+                            print(ncName, level)
+                            break
+                filename = ncName + '_' + reanalysisName + '_' + reanalysisPeriodFilename + '.nc'
+                if os.path.isfile(pathIn + filename):
+                    aux_times = read.one_direct_predictor(predName, level=level, grid='ext', model=model, scene=scene)[
+                        'times']
+                    datesDefined = True
+                    break
 
         if datesDefined == False:
             print('ERROR retrieving dates from netCDF reanalysis files')

@@ -265,8 +265,10 @@ def trend_injection_oneModel(targetVar, methodName, model):
                 units = predictands_units[targetVar]
 
                 # Save bias corrected scene
-                hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
-                hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
+                hres_lats = read.hres_metadata(targetVar)['lats'].values
+                hres_lons = read.hres_metadata(targetVar)['lons'].values
+                # hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
+                # hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
                 write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + '.nc', targetVar, scene_ti, units, hres_lats, hres_lons,
                              scene_dates, calendar, regular_grid=False)
 
@@ -390,8 +392,10 @@ def bias_correction_renalysis(targetVar, methodName):
     units = predictands_units[targetVar]
 
     # Save bias corrected scene
-    hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
-    hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
+    hres_lats = read.hres_metadata(targetVar)['lats'].values
+    hres_lons = read.hres_metadata(targetVar)['lons'].values
+    # hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
+    # hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
     write.netCDF(pathOut, targetVar + '_' + 'reanalysis_TESTING.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
                  est_times, reanalysis_calendar, regular_grid=False)
 
@@ -524,8 +528,10 @@ def bias_correction_oneModel(targetVar, methodName, model):
                 units = predictands_units[targetVar]
 
                 # Save bias corrected scene
-                hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
-                hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
+                hres_lats = read.hres_metadata(targetVar)['lats'].values
+                hres_lons = read.hres_metadata(targetVar)['lons'].values
+                # hres_lats = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lats.npy')
+                # hres_lons = np.load(pathAux + 'ASSOCIATION/' + targetVar.upper()+'_bilinear/hres_lons.npy')
                 write.netCDF(pathOut, targetVar + '_' + model + '_' + scene + '.nc', targetVar, scene_bc, units, hres_lats, hres_lons,
                              scene_dates, calendar, regular_grid=False)
 
@@ -749,8 +755,8 @@ def plot_results():
     if experiment == 'EVALUATION':
         if activate_plot_annualCycle == True:
             evaluate_methods.annual_cycle()
-        evaluate_methods.daily_data()
         evaluate_methods.monthly_data()
+        evaluate_methods.daily_data()
         evaluate_methods.climdex()
 
     if experiment == 'PROJECTIONS':
