@@ -394,6 +394,9 @@ def fillNans_interpolation(data):
 
                 mask = np.isnan(slice_2d)
                 coords_valid = np.array(np.nonzero(~mask)).T
+                if len(coords_valid) == 0:
+                    print('ERROR: time', t, 'predictor', c, 'is empty')
+                    exit()
                 values_valid = slice_2d[~mask]
                 coords_nan = np.array(np.nonzero(mask)).T
                 filled = slice_2d.copy()
