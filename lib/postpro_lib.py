@@ -136,14 +136,16 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
 
 
             # Calculate climdex for obs and est
-            data_climdex = calculate_climdex(climdex_name, data_season, data_percCalendar_season,
-                                                  times_season, times_percCalendar_season)['data']
+            aux = calculate_climdex(targetVar, climdex_name, data_season, data_percCalendar_season,
+                                                  times_season, times_percCalendar_season)
+            data_climdex = aux['data']
+            units_climdex = aux['units']
 
             # Save results
             times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
 
             write.netCDF(pathOut, '_'.join((targetVar, climdex_name, filename, season))+'.nc',
-                         targetVar+'_'+climdex_name, data_climdex, '',
+                         targetVar+'_'+climdex_name, data_climdex, units_climdex,
                          hres_lats[targetVar], hres_lons[targetVar], times_years, calendar, regular_grid=False)
 
     print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
@@ -174,7 +176,7 @@ def purge_days_different_calendars(data_year, ref, times_year, times_ref):
     return data_year, ref
 
 ########################################################################################################################
-def calculate_climdex(climdex_name, data, ref, times, times_ref):
+def calculate_climdex(targetVar, climdex_name, data, ref, times, times_ref):
     """
     Calculate climdex_name of input data. (https://www.climdex.org/learn/indices/)
     All climdex correspond to 1 value per year/season.
@@ -376,8 +378,9 @@ def calculate_climdex(climdex_name, data, ref, times, times_ref):
             results.append(np.nansum(data_year >= 20, axis=0))
 
     results = np.asarray(results)
+    units = absolute_units_and_palette[targetVar + '_' + climdex_name]['units']
 
-    return {'data': results, 'times': times_results}
+    return {'data': results, 'times': times_results, 'units': units}
 
 
 ########################################################################################################################
