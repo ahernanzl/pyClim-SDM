@@ -74,9 +74,9 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 			nc.createDimension(lon_name, 1)
 	else:
 		try:
-			nc.createDimension('point', len(lats))
+			nc.createDimension('station', len(lats))
 		except:
-			nc.createDimension('point', 1)
+			nc.createDimension('station', 1)
 
 	if level is not None:
 		nc.createDimension(level_name, 1)
@@ -102,20 +102,20 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 		else:
 			var = nc.createVariable(varName, 'f4', (time_name, level_name, lat_name, lon_name,))
 	else:
-		point = nc.createVariable('point', 'i', 'point')
-		point.units = ' '
-		point.long_name = ""
+		station = nc.createVariable('station', 'i', 'station')
+		station.units = ' '
+		station.long_name = ""
 		try:
-			point[:] = range(len(lats))
+			station[:] = range(len(lats))
 		except:
-			point[:] = 0
+			station[:] = 0
 		ids = list(read.hres_metadata(varName_hres_metadata)['id'].values)
 		ids = [str(i) for i in ids]
-		point.id_names = ids
+		station.id_names = ids
 
-		latitude = nc.createVariable(lat_name, 'f4', 'point')
-		longitude = nc.createVariable(lon_name, 'f4', 'point')
-		var = nc.createVariable(varName, 'f4', (time_name, 'point'))
+		latitude = nc.createVariable(lat_name, 'f4', 'station')
+		longitude = nc.createVariable(lon_name, 'f4', 'station')
+		var = nc.createVariable(varName, 'f4', (time_name, 'station'))
 
 	# var.fill_value = fill_value
 	# data[np.isnan(data)] = fill_value
