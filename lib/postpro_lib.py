@@ -140,13 +140,14 @@ def calculate_all_climdex(pathOut, filename, targetVar, data, times, ref, times_
                                                   times_season, times_percCalendar_season)
             data_climdex = aux['data']
             units_climdex = aux['units']
+            longName = aux['longName']
 
             # Save results
             times_years = list(dict.fromkeys([datetime.datetime(x.year, 1, 1, 12, 0) for x in times_season]))
 
             write.netCDF(pathOut, '_'.join((targetVar, climdex_name, filename, season))+'.nc',
                          targetVar+'_'+climdex_name, data_climdex, units_climdex,
-                         hres_lats[targetVar], hres_lons[targetVar], times_years, calendar, regular_grid=False)
+                         hres_lats[targetVar], hres_lons[targetVar], times_years, calendar, regular_grid=False, longName=longName)
 
     print(targetVar, filename, 'calculate_all_climdex', str(datetime.datetime.now() - start))
 
@@ -379,8 +380,12 @@ def calculate_climdex(targetVar, climdex_name, data, ref, times, times_ref):
 
     results = np.asarray(results)
     units = absolute_units_and_palette[targetVar + '_' + climdex_name]['units']
+    if climdex_name in longNames_climdex[targetVar]:
+        longName = longNames_climdex[targetVar][climdex_name]
+    else:
+        longName = ''
 
-    return {'data': results, 'times': times_results, 'units': units}
+    return {'data': results, 'times': times_results, 'units': units, 'longName': longName}
 
 
 ########################################################################################################################

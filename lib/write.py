@@ -48,7 +48,7 @@ import write
 
 ########################################################################################################################
 def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, regular_grid=True, level=None,
-		   level_name='level', lat_name='lat', lon_name='lon', time_name='time'):
+		   level_name='level', lat_name='lat', lon_name='lon', time_name='time', longName=''):
 	"""
 	This function writes data to netCDF file.
 	"""
@@ -128,7 +128,10 @@ def netCDF(path, filename, varName, data, units, lats, lons, times, calendar, re
 	longitude.long_name = "longitude"
 	longitude[:] = lons
 	var.units = units
-	var.long_name = varName
+	if longName != '':
+		var.long_name = varName + ':' + longName
+	else:
+		var.long_name = varName
 	var[:] = data
 
 	# # print(nc)
