@@ -198,6 +198,8 @@ def register_callbacks(app):
                 # Compute spatial mean
                 anomaly_spatial_mean = anomaly.mean(dim=[d for d in anomaly.dims if d != "time"])
                 all_anomalies.append(anomaly_spatial_mean)
+                print('---------------------')
+                print(model, '\n', anomaly_spatial_mean['time'][0])
                 traces.append(go.Scatter(x=years_scene, y=anomaly_spatial_mean.values, mode='lines', name=model))
 
             # Ensemble mean, min and max
@@ -354,16 +356,16 @@ def register_callbacks(app):
             # Reassign lat/lon as coordinates if working with point data
             if is_grid==False:
                 field_mean = field_mean.assign_coords(
-                    lat=("point", lats),
-                    lon=("point", lons)
+                    lat=("station", lats),
+                    lon=("station", lons)
                 )
                 field_min = field_min.assign_coords(
-                    lat=("point", lats),
-                    lon=("point", lons)
+                    lat=("station", lats),
+                    lon=("station", lons)
                 )
                 field_max = field_max.assign_coords(
-                    lat=("point", lats),
-                    lon=("point", lons)
+                    lat=("station", lats),
+                    lon=("station", lons)
                 )
 
             # Define custom_data for hovertemplate

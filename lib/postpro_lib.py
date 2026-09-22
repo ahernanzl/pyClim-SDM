@@ -900,7 +900,7 @@ def trendPreservation(pathOut, subDir, ssp_dict, raw_ssp_dict, climdex_name, his
             plt.legend()
             # plt.show()
             # exit()
-            filename = '_'.join(('PROJECTIONS'+bc_sufix, 'trendPreservation', targetVar, climdex_name, methodName+'-'+scene, season))
+            filename = '_'.join(('PROJECTIONS'+ti_sufix+bc_sufix, 'trendPreservation', targetVar, climdex_name, methodName+'-'+scene, season))
             # if (plotAllRegions == False) and ((season == season_dict[annualName]) or (climdex_name in ('TXm', 'TNm', 'PRCPTOT', 'R01'))):
             if (plotAllRegions == False):
                 # plt.title(methodName, fontsize=title_size)
@@ -986,7 +986,7 @@ def spaghetti(pathOut, subDir, ssp_dict, years, ylim, climdex_name, ylabel, seas
     if plotAllRegions == False:
         if not os.path.exists(pathFigures):
             os.makedirs(pathFigures)
-        filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolSpaghetti', targetVar, climdex_name, methodName, season))
+        filename = '_'.join(('PROJECTIONS'+ti_sufix+bc_sufix, 'evolSpaghetti', targetVar, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
         if not os.path.exists(pathOut + 'evolution/' + subDir):
@@ -1069,7 +1069,7 @@ def tube(pathOut, subDir, ssp_dict, climdex_name, hist_years_local, ssp_years_lo
     if plotAllRegions == False:
         if not os.path.exists(pathFigures):
             os.makedirs(pathFigures)
-        filename = '_'.join(('PROJECTIONS'+bc_sufix, 'evolTube', targetVar, climdex_name, methodName, season))
+        filename = '_'.join(('PROJECTIONS'+ti_sufix+bc_sufix, 'evolTube', targetVar, climdex_name, methodName, season))
         plt.savefig(pathFigures + filename + '.png')
     elif plotAllRegions == True:
         if not os.path.exists(pathOut + 'evolution/' + subDir):
@@ -1108,7 +1108,7 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                     # title = scene_names_dict[scene]+'   '+period+'     '+season
                     title = scene_names_dict[scene]+ ' '+period+' change'
                     filename = '_'.join(
-                        ('PROJECTIONS'+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
+                        ('PROJECTIONS'+ti_sufix+bc_sufix, 'meanChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
                     plot.map(targetVar, mean, 'change_' + climdex_name + '_mean', path=pathFigures,
                              filename=filename, title=title)
                 else:
@@ -1121,7 +1121,7 @@ def change_maps(ssp_dict, years, targetVar, methodName, season, climdex_name, pa
                 spread = np.nanpercentile(dataTerm, 75, axis=0) - np.nanpercentile(dataTerm, 25, axis=0)
                 if plotAllRegions == False:
                     filename = '_'.join(
-                        ('PROJECTIONS'+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
+                        ('PROJECTIONS'+ti_sufix+bc_sufix, 'spreadChangeMap', targetVar, climdex_name, methodName+'-'+scene+'-'+period, season))
                     title = scene_names_dict[scene]+' '+period+' spread'
                     plot.map(targetVar, spread, 'change_' + climdex_name + '_spread', path=pathFigures,
                              filename=filename, title=title)
