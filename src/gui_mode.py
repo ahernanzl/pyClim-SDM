@@ -2714,6 +2714,10 @@ class tabFigures(tk.Frame):
                                'PROJECTIONS-BC-QM', 'PROJECTIONS-BC-DQM', 'PROJECTIONS-BC-QDM', 'PROJECTIONS-BC-PSDM',
                                'PROJECTIONS-BC-QM-s', 'PROJECTIONS-BC-DQM-s', 'PROJECTIONS-BC-QDM-s',
                                'PROJECTIONS-BC-PSDM-s',
+                               'PROJECTIONS-TI',
+                               'PROJECTIONS-TI-BC-QM', 'PROJECTIONS-TI-BC-DQM', 'PROJECTIONS-TI-BC-QDM', 'PROJECTIONS-TI-BC-PSDM',
+                               'PROJECTIONS-TI-BC-QM-s', 'PROJECTIONS-TI-BC-DQM-s', 'PROJECTIONS-TI-BC-QDM-s',
+                               'PROJECTIONS-TI-BC-PSDM-s',
                                ]
 
         experiments = [x for x in ordered_experiments if x in experiments]

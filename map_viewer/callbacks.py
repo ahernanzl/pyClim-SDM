@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import xarray as xr
+import pandas as pd
 import plotly.graph_objects as go
 import dash
 from dash import Input, Output, State
@@ -154,90 +155,392 @@ def register_callbacks(app):
         Plot evolution with change relative to historical baseline for any scenario.
         Supports absolute or relative changes based on climdex settings.
         """
+
+        def extract_years(da):
+            return np.asarray([
+                t.year if hasattr(t, "year") else pd.Timestamp(t).year
+                for t in da["time"].values
+            ], dtype=int)
+
         if not all([var, method, climdex_name, scene, model, season]):
             return go.Figure()
         try:
             base = os.path.join(data_path, var.upper(), method, "climdex")
 
+            # -------------------------------------------------------------
             # Load scene data and years
-            data_scene = load_models(base, var, climdex_name, model, scene, season)
-            years_scene = get_years(base, var, climdex_name, model, scene, season)
+            # -------------------------------------------------------------
+            data_scene = load_models(
+                base, var, climdex_name, model, scene, season
+            )
 
+            years_scene = get_years(
+                base, var, climdex_name, model, scene, season
+            )
+
+            # -------------------------------------------------------------
             # Load historical reference if needed
+            # -------------------------------------------------------------
             if display_mode.startswith('Change_'):
-                data_hist = load_models(base, var, climdex_name, model, 'historical', season)
-                years_hist = get_years(base, var, climdex_name, model, 'historical', season)
+                data_hist = load_models(
+                    base, var, climdex_name, model, 'historical', season
+                )
 
-            # Get bias_mode
+                years_hist = get_years(
+                    base, var, climdex_name, model, 'historical', season
+                )
+
+            # -------------------------------------------------------------
+            # Get bias mode
+            # -------------------------------------------------------------
             bias_mode = 'abs'
-            if var+'_'+climdex_name in bias_units_and_palette:
-                bias_mode = bias_units_and_palette[var+'_'+climdex_name]['biasMode']
 
+            if var + '_' + climdex_name in bias_units_and_palette:
+                bias_mode = bias_units_and_palette[
+                    var + '_' + climdex_name
+                    ]['biasMode']
+
+            # -------------------------------------------------------------
             # Get units
-            units_and_palette_dict = bias_units_and_palette if display_mode.startswith(
-                "Change_") else absolute_units_and_palette
-            units = units_and_palette_dict.get(var + '_' + climdex_name, {}).get("units", "")
+            # -------------------------------------------------------------
+            units_and_palette_dict = (
+                bias_units_and_palette
+                if display_mode.startswith("Change_")
+                else absolute_units_and_palette
+            )
 
+            units = units_and_palette_dict.get(
+                var + '_' + climdex_name, {}
+            ).get("units", "")
+
+            # -------------------------------------------------------------
             # Add model data to traces and all_anomalies
+            # -------------------------------------------------------------
             traces = []
             all_anomalies = []
-            for model in data_scene:
-                data_scene_model = data_scene[model]
+
+            for model_name in data_scene:
+
+                data_scene_model = data_scene[model_name]
+
+                # ---------------------------------------------------------
+                # Calculate scene years from the actual time coordinate
+                #
+                # This works for:
+                #   numpy.datetime64
+                #   cftime.DatetimeNoLeap
+                #   cftime.Datetime360Day
+                #   etc.
+                # ---------------------------------------------------------
+                scene_years = extract_years(data_scene_model)
+
+                # ---------------------------------------------------------
+                # Calculate anomaly / change
+                # ---------------------------------------------------------
                 if display_mode.startswith("Change_"):
-                    data_hist_model = data_hist[model]
-                    ref_start, ref_end = map(int, display_mode.replace("Change_", "").split("_"))
-                    ref_mask = (years_hist >= ref_start) & (years_hist <= ref_end)
-                    ref_mask_xr = xr.DataArray(ref_mask, coords={"time": data_hist_model["time"]}, dims="time")
-                    ref_mask_expanded = ref_mask_xr.broadcast_like(data_hist_model)
-                    ref_data = data_hist_model.where(ref_mask_expanded)
+
+                    data_hist_model = data_hist[model_name]
+
+                    hist_years = extract_years(data_hist_model)
+
+                    # Reference period
+                    ref_start, ref_end = map(
+                        int,
+                        display_mode.replace("Change_", "").split("_")
+                    )
+
+                    # Select reference years
+                    ref_mask = (
+                            (hist_years >= ref_start) &
+                            (hist_years <= ref_end)
+                    )
+
+                    # Select directly using the boolean mask.
+                    # This avoids mixing datetime64 and cftime.
+                    ref_data = data_hist_model.isel(
+                        time=ref_mask
+                    )
+
+                    # Mean reference period
                     ref_mean = ref_data.mean(dim="time")
-                    anomaly = apply_change_mode(data_scene_model, ref_mean, bias_mode)
+
+                    # Calculate anomaly/change
+                    anomaly = apply_change_mode(
+                        data_scene_model,
+                        ref_mean,
+                        bias_mode
+                    )
+
                 else:
+
                     anomaly = data_scene_model
 
-                # Compute spatial mean
-                anomaly_spatial_mean = anomaly.mean(dim=[d for d in anomaly.dims if d != "time"])
-                all_anomalies.append(anomaly_spatial_mean)
-                print('---------------------')
-                print(model, '\n', anomaly_spatial_mean['time'][0])
-                traces.append(go.Scatter(x=years_scene, y=anomaly_spatial_mean.values, mode='lines', name=model))
+                # ---------------------------------------------------------
+                # Spatial mean
+                # ---------------------------------------------------------
+                spatial_dims = [
+                    d for d in anomaly.dims
+                    if d != "time"
+                ]
 
+                anomaly_spatial_mean = anomaly.mean(
+                    dim=spatial_dims
+                )
+
+                # ---------------------------------------------------------
+                # Convert time coordinate to YEAR
+                #
+                # This is the important part.
+                #
+                # Instead of having:
+                #
+                # datetime64[ns]
+                #
+                # or:
+                #
+                # cftime.DatetimeNoLeap
+                #
+                # every model gets:
+                #
+                # 1950, 1951, 1952, ...
+                # ---------------------------------------------------------
+                scene_years = extract_years(anomaly_spatial_mean)
+
+                anomaly_spatial_mean = anomaly_spatial_mean.assign_coords(
+                    time=("time", scene_years)
+                )
+
+                # ---------------------------------------------------------
+                # Save anomaly for ensemble
+                # ---------------------------------------------------------
+                all_anomalies.append(
+                    anomaly_spatial_mean
+                )
+
+                # ---------------------------------------------------------
+                # Model trace
+                # ---------------------------------------------------------
+                traces.append(
+                    go.Scatter(
+                        x=scene_years,
+                        y=anomaly_spatial_mean.values,
+                        mode='lines',
+                        name=model_name
+                    )
+                )
+
+            # -------------------------------------------------------------
             # Ensemble mean, min and max
+            # -------------------------------------------------------------
             if len(all_anomalies) > 1:
-                combined = xr.concat(all_anomalies, dim="model")
-                mean = combined.mean(dim="model")
-                min_ = combined.min(dim="model")
-                max_ = combined.max(dim="model")
-                traces.append(go.Scatter(x=years_scene, y=mean.values, mode='lines', name="ENSEMBLE MEAN",
-                                         line=dict(width=4, color='black')))
-                traces.append(go.Scatter(x=years_scene, y=min_.values, mode='lines', name="Min",
-                                         line=dict(width=0), showlegend=False, hoverinfo='skip'))
-                traces.append(go.Scatter(x=years_scene, y=max_.values, mode='lines', name="Max",
-                                         fill='tonexty', line=dict(width=0),
-                                         fillcolor='rgba(0,0,0,0.2)', showlegend=False, hoverinfo='skip'))
+                # All models now have an integer "time" coordinate:
+                #
+                # 1950, 1951, 1952, ...
+                #
+                # so xarray no longer has to compare datetime64 with cftime.
+                combined = xr.concat(
+                    all_anomalies,
+                    dim="model",
+                    join="outer"
+                )
 
-            # Define y_title
+                # ---------------------------------------------------------
+                # Ensemble statistics
+                # ---------------------------------------------------------
+                ensemble_mean = combined.mean(
+                    dim="model"
+                )
+
+                ensemble_min = combined.min(
+                    dim="model"
+                )
+
+                ensemble_max = combined.max(
+                    dim="model"
+                )
+
+                # ---------------------------------------------------------
+                # Ensemble years
+                # ---------------------------------------------------------
+                ensemble_years = combined["time"].values
+
+                # ---------------------------------------------------------
+                # Ensemble mean
+                # ---------------------------------------------------------
+                traces.append(
+                    go.Scatter(
+                        x=ensemble_years,
+                        y=ensemble_mean.values,
+                        mode='lines',
+                        name="ENSEMBLE MEAN",
+                        line=dict(
+                            width=4,
+                            color='black'
+                        )
+                    )
+                )
+
+                # ---------------------------------------------------------
+                # Minimum
+                # ---------------------------------------------------------
+                traces.append(
+                    go.Scatter(
+                        x=ensemble_years,
+                        y=ensemble_min.values,
+                        mode='lines',
+                        name="Min",
+                        line=dict(width=0),
+                        showlegend=False,
+                        hoverinfo='skip'
+                    )
+                )
+
+                # ---------------------------------------------------------
+                # Maximum + shaded range
+                # ---------------------------------------------------------
+                traces.append(
+                    go.Scatter(
+                        x=ensemble_years,
+                        y=ensemble_max.values,
+                        mode='lines',
+                        name="Max",
+                        fill='tonexty',
+                        line=dict(width=0),
+                        fillcolor='rgba(0,0,0,0.2)',
+                        showlegend=False,
+                        hoverinfo='skip'
+                    )
+                )
+
+            # -------------------------------------------------------------
+            # Define Y axis title
+            # -------------------------------------------------------------
             if display_mode == 'Value':
-                y_title = var + '_' + climdex_name + ' (' + units + ')'
-            else:
-                y_title = var + '_' + climdex_name + ' change (' + units + ')'
 
+                y_title = (
+                        var
+                        + '_'
+                        + climdex_name
+                        + ' ('
+                        + units
+                        + ')'
+                )
+
+            else:
+
+                y_title = (
+                        var
+                        + '_'
+                        + climdex_name
+                        + ' change ('
+                        + units
+                        + ')'
+                )
+
+            # -------------------------------------------------------------
             # Create figure
-            fig = go.Figure(data=traces)
+            # -------------------------------------------------------------
+            fig = go.Figure(
+                data=traces
+            )
+
             fig.update_layout(
-                            # title="Spatial average evolution",
-                            xaxis_title="Year", yaxis_title=y_title,
-                              # legend=dict(
-                              #     x=0.01,
-                              #     y=0.99,
-                              #     bgcolor='rgba(255,255,255,0.7)',
-                              #     bordercolor='gray',
-                              #     borderwidth=1
-                              # ),
-                              showlegend=False,
-                              margin=dict(t=30, r=10, b=30, l=40)
-                              )
+                xaxis_title="Year",
+                yaxis_title=y_title,
+
+                showlegend=False,
+
+                margin=dict(
+                    t=30,
+                    r=10,
+                    b=30,
+                    l=40
+                )
+            )
+
             return fig
+
+            # base = os.path.join(data_path, var.upper(), method, "climdex")
+            #
+            # # Load scene data and years
+            # data_scene = load_models(base, var, climdex_name, model, scene, season)
+            # years_scene = get_years(base, var, climdex_name, model, scene, season)
+            #
+            # # Load historical reference if needed
+            # if display_mode.startswith('Change_'):
+            #     data_hist = load_models(base, var, climdex_name, model, 'historical', season)
+            #     years_hist = get_years(base, var, climdex_name, model, 'historical', season)
+            #
+            # # Get bias_mode
+            # bias_mode = 'abs'
+            # if var+'_'+climdex_name in bias_units_and_palette:
+            #     bias_mode = bias_units_and_palette[var+'_'+climdex_name]['biasMode']
+            #
+            # # Get units
+            # units_and_palette_dict = bias_units_and_palette if display_mode.startswith(
+            #     "Change_") else absolute_units_and_palette
+            # units = units_and_palette_dict.get(var + '_' + climdex_name, {}).get("units", "")
+            #
+            # # Add model data to traces and all_anomalies
+            # traces = []
+            # all_anomalies = []
+            # for model in data_scene:
+            #     data_scene_model = data_scene[model]
+            #     if display_mode.startswith("Change_"):
+            #         data_hist_model = data_hist[model]
+            #         ref_start, ref_end = map(int, display_mode.replace("Change_", "").split("_"))
+            #         ref_mask = (years_hist >= ref_start) & (years_hist <= ref_end)
+            #         ref_mask_xr = xr.DataArray(ref_mask, coords={"time": data_hist_model["time"]}, dims="time")
+            #         ref_mask_expanded = ref_mask_xr.broadcast_like(data_hist_model)
+            #         ref_data = data_hist_model.where(ref_mask_expanded)
+            #         ref_mean = ref_data.mean(dim="time")
+            #         anomaly = apply_change_mode(data_scene_model, ref_mean, bias_mode)
+            #     else:
+            #         anomaly = data_scene_model
+            #
+            #     # Compute spatial mean
+            #     anomaly_spatial_mean = anomaly.mean(dim=[d for d in anomaly.dims if d != "time"])
+            #     all_anomalies.append(anomaly_spatial_mean)
+            #     print('---------------------')
+            #     print(model, '\n', anomaly_spatial_mean['time'][0])
+            #     traces.append(go.Scatter(x=years_scene, y=anomaly_spatial_mean.values, mode='lines', name=model))
+            #
+            # # Ensemble mean, min and max
+            # if len(all_anomalies) > 1:
+            #     combined = xr.concat(all_anomalies, dim="model")
+            #     mean = combined.mean(dim="model")
+            #     min_ = combined.min(dim="model")
+            #     max_ = combined.max(dim="model")
+            #     traces.append(go.Scatter(x=years_scene, y=mean.values, mode='lines', name="ENSEMBLE MEAN",
+            #                              line=dict(width=4, color='black')))
+            #     traces.append(go.Scatter(x=years_scene, y=min_.values, mode='lines', name="Min",
+            #                              line=dict(width=0), showlegend=False, hoverinfo='skip'))
+            #     traces.append(go.Scatter(x=years_scene, y=max_.values, mode='lines', name="Max",
+            #                              fill='tonexty', line=dict(width=0),
+            #                              fillcolor='rgba(0,0,0,0.2)', showlegend=False, hoverinfo='skip'))
+            #
+            # # Define y_title
+            # if display_mode == 'Value':
+            #     y_title = var + '_' + climdex_name + ' (' + units + ')'
+            # else:
+            #     y_title = var + '_' + climdex_name + ' change (' + units + ')'
+            #
+            # # Create figure
+            # fig = go.Figure(data=traces)
+            # fig.update_layout(
+            #                 # title="Spatial average evolution",
+            #                 xaxis_title="Year", yaxis_title=y_title,
+            #                   # legend=dict(
+            #                   #     x=0.01,
+            #                   #     y=0.99,
+            #                   #     bgcolor='rgba(255,255,255,0.7)',
+            #                   #     bordercolor='gray',
+            #                   #     borderwidth=1
+            #                   # ),
+            #                   showlegend=False,
+            #                   margin=dict(t=30, r=10, b=30, l=40)
+            #                   )
+            # return fig
         except:
             return go.Figure()
 
