@@ -3144,7 +3144,7 @@ def write_settings_file(
     f.write("single_split_testing_years = (" + str(single_split_testing_years[0]) + ", " + str(single_split_testing_years[1]) + ")\n")
     f.write("reference_years = (" + str(reference_years[0]) + ", " + str(reference_years[1]) + ")\n")
     f.write("apply_bc = " + str(apply_bc) + "\n")
-    f.write("apply_ti = " + str(apply_bc) + "\n")
+    f.write("apply_ti = " + str(apply_ti) + "\n")
     f.write("reanalysisName = '" + str(reanalysisName) + "'\n")
     f.write("grid_res = " + str(grid_res) + "\n")
     f.write("saf_lat_up = " + str(saf_lat_up) + "\n")
