@@ -69,6 +69,7 @@ requirements.txt. You can install them by following these steps:
 After installation:
 - Activate your environment: **conda activate env_pyClim-SDM**
 - Deactivate your environment: **conda deactivate**
+
 **Warning**: Alternatively, if the basic installation fails, you can try **conda create -f environment.yml**
 
 # Input data
